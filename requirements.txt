@@ -1,1 +1,15 @@
 django >= 1.7, < 1.8
+django-debug-toolbar==1.2.2
+django-import-export==0.2.6
+diff-match-patch==20110725.1
+django-crispy-forms==1.4.0
+djrill==1.2.0
+requests==2.5.1
+sqlparse==0.1.13
+tablib==0.10.0
+django-jquery==1.9.1
+django-jquery-ui==1.10.3.1
+xlrd==0.9.3
+xlwt==0.7.5
+django-extensions==1.5.2
+six==1.9.0
