@@ -30,12 +30,18 @@ else:
 # Application definition
 
 INSTALLED_APPS = (
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+	'django.contrib.admin.apps.SimpleAdminConfig',
+    'debug_toolbar',
+    'import_export',
+    'crispy_forms',
+    'djrill',
+    'jquery_ui',
+    'members',  
 )
 
 MIDDLEWARE_CLASSES = (
@@ -125,3 +131,9 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(BASE_DIR, 'templates'),
 )
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+# Configuration for Djrill
+MANDRILL_API_KEY = "GlGcSfGZhHlpO75odVYTAQ"
+EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
