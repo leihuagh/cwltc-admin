@@ -312,7 +312,7 @@ class InvoiceItemUpdateView(LoggedInMixin, UpdateView):
 
     def form_valid(self, form):
         if 'submit' in form.data:
-            return super(InvoiceItemUpdateView, self).form_valid(*args, **kwargs)
+            return super(InvoiceItemUpdateView, self).form_valid(form)
         if 'delete' in form.data:
             item = self.get_object()
             person_id = item.person.id
@@ -394,7 +394,7 @@ class InvoiceMailBatchView(LoggedInMixin, View):
 
     def get(self, request, *args, **kwargs):
         invs = Invoice.objects.filter(state=Invoice.UNPAID)
-        option = 'test'
+        option = 'send'
         for inv in invs:
             do_mail(inv, option)
         return HttpResponseRedirect(reverse('home'))
