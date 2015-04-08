@@ -1,5 +1,5 @@
 """
-Django settings for Cwltc project.
+Django settings for Cwltc project
 """
 from os import path, environ
 from socket import gethostname
