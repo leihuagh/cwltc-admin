@@ -1,0 +1,120 @@
+﻿{% extends "members/layout.html" %}
+
+{% block content %}
+{% load members_extras %}
+<h2>Member detail</h2>
+<p><b>
+{{ mem_dict|get_item:person.membership_id }}<br />
+</b></p>
+<p><h4><a href="{% url "person-edit" pk=person.id %}">
+    {{ person.first_name }} {{ person.last_name }}</a></h4></p>
+Id: {{ person.id }}<br />
+{{ address.address1 }}<br />
+{% if address.address2 %}{{ address.address2 }}<br />{% endif %}
+{{ address.town }}<br />
+{{ address.post_code }}</p>
+<p>{{ address.home_phone }}<br />
+{{ person.mobile_phone}}</p>
+<p>{{ person.email}}</p>
+{% if person.dob %}
+    {{ person.dob }}
+{% else %}
+    (No data of birth)
+{% endif %}  
+{% if children %}
+    <h4>Children</h4>
+    <table width="500">
+        {% for child in children %}
+        <tr>
+            <td><a href="{% url "person-unlink" pk=child.id %}" class="btn btn-primary btn-xs">Unlink</a></td>
+            <td><a href="{% url "person-detail" pk=child.id %}">{{ child.first_name }} {{ child.last_name }}</a></td>
+        </tr>
+        {% endfor child %}
+    </table>
+    
+{% endif %}
+{% if person.linked %}
+    <h4>Parent</h4>
+    <a href="{% url "person-detail" pk=person.linked.id %}">{{ person.linked.first_name }} {{ person.linked.last_name }}</a>
+{% endif %}
+
+{% if subs %}
+    {% include "members/_subscription_list.html" %}
+{% else %}
+    <h4>No subscriptions</h4>
+{% endif %}
+
+<table id="statement" class="table table-condensed">
+    <thead>
+    <tr>
+        <th></th>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Number</th>
+        <th>Detail</th>
+        <th class = "text-right">Credit</th>
+        <th class = "text-right">Debit</th>
+        <th class = "text-right">Balance</th>
+    </tr>
+    </thead>
+<h4>Statement of account</h4>
+{% for line in statement %}
+    {% with line.0 as entry %}
+    {% with entry|classname as modelclass %}
+    {% if modelclass == 'Invoice' %}
+        <tr>
+        <td><a href="{% url "invoice-detail" entry.id %}" class="btn btn-primary btn-xs">View</a></td>
+        <td>{{ entry.update_date|date }}</td>
+        <td>Invoice</td>
+        <td>{{ entry.id }}</td>
+        <td>{{ state_list|get_option:entry.state }}</td>
+        <td></td>
+        <td class = "text-right">£{{ entry.total }}</td>
+        <td class = "text-right">£{{ line.1 }}</td>
+        </tr>
+    {% elif modelclass == 'Payment' %}
+        <tr>
+        <td><a href="{% url "payment-detail" entry.id %}" class="btn btn-primary btn-xs">View</a></td>
+        <td>{{ entry.update_date|date }}</td>
+        <td>Payment</td>
+        <td>{{ entry.id }}</td>
+        <td>{{ payment_states|get_option:entry.state }}</td>
+        <td class = "text-right">£{{ entry.amount }}</td>
+        <td></td>  
+        <td class = "text-right">£{{ line.1 }}</td>
+        </tr>
+    {% elif modelclass == 'CreditNote' %}
+        <tr>
+        <td></td>
+        <td>{{ entry.update_date|date }}</td>
+        <td>Credit note</td>       
+        <td>{{ entry.id }}</td>
+        <td>{{ entry.reference }}</td>
+        <td class = "text-right">£{{ entry.amount }}</td>
+        <td></td>  
+        <td class = "text-right">£{{ line.1 }}</td>
+        </tr>
+    {% endif %}
+    {% endwith %}
+    {% endwith %}
+{% endfor %}
+</table>
+
+{% if items %}
+    {% include "members/_invoiceitem_list.html" %}
+    <a href="{% url "invoice-generate" pk=person.id %}" class="btn btn-primary">Generate an invoice</a>
+{% else %}
+    <h4>No uninvoiced items</h4>
+{% endif %}
+<a href="{% url "item-create" person_id=person.id %}" class="btn btn-primary">Create item</a>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        $('#person').DataTable();
+    });
+</script>
+{% endblock %}
+
+

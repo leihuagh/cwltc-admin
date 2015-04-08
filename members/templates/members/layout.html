@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} CWLTC Members</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'members/content/bootstrap.min.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'members/content/site.css' %}" />
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.css" />
+    <script src="{% static 'members/scripts/modernizr-2.6.2.js' %}"></script>
+    <link rel='stylesheet' type='text/css' href='{% static 'members/content/jquery-ui/smoothness/jquery-ui.css' %}' />
+</head>
+
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a href="/" class="navbar-brand">CWLTC membership system</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'about' %}">About</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                </ul>
+                {% include 'members/loginpartial.html' %}
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">
+{% if messages %}
+<h3>Messages:</h3>
+    <ul class="messages">
+        {% for message in messages %}
+        <li id="message_{{ forloop.counter }}"
+            {% if message.tags %} class="{{ message.tags }}"
+                {% endif %}>
+                {{ message }}
+        </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% block content %}{% endblock %}
+        <hr/>
+        <footer>
+            <p>&copy; {{ year }} KT Consultants</p>
+        </footer>
+    </div>
+
+    <script src="{% static 'members/scripts/jquery-1.10.2.js' %}"></script>
+    <script src="{% static 'members/scripts/bootstrap.js' %}"></script>
+    <script src="{% static 'members/scripts/respond.js' %}"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.js"></script>
+    <script type='text/javascript' src='{% static 'members/scripts/jquery-ui.js' %}'></script>
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

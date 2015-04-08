@@ -1,0 +1,13 @@
+﻿{% extends "members/layout.html" %}
+
+{% block content %}
+{% load crispy_forms_tags %} 
+
+{% if person.id %}
+<h1>Edit Junior</h1>
+{% else %}
+<h1>Add Junior</h1>
+{% endif %}
+
+{% crispy form %}
+{% endblock content %}

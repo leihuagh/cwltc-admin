@@ -1,0 +1,34 @@
+{% extends "members/layout.html" %}
+{% load staticfiles %}
+{% block content %}
+
+<div class="jumbotron">
+    <img src="{% static "members/content/CWLTC logo small.png" %}"/>
+    <h2>Coombe Wood Lawn Tennis Club</h2>
+    <p class="lead">Membership system</p>
+
+    <p><a href="/list" class="btn btn-primary btn-large">List members &raquo;</a></p>
+    <p><a href="/select" class="btn btn-primary btn-large">Go to person or invoice &raquo;</a></p>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <h2>Club website</h2>
+        <p>
+            This link takes you to the main website for the club
+        </p>
+        <p><a class="btn btn-default" href="http://www.coombewoodltc.co.uk">Go &raquo;</a></p>
+    </div>
+    <div class="col-md-4">
+        <h2>Admin</h2>
+        <p>Access to the administration system is restricted</p>
+        <p><a href="/admin/" class="btn btn-default">Admin &raquo;</a></p>
+    </div>
+    <div class="col-md-4">
+        <h2>Add new member</h2>
+        <p>Form for adding juniors</p>
+        <p><a class="btn btn-default" href="/junior/create">Add junior &raquo;</a></p>
+    </div>
+</div>
+
+{% endblock %}

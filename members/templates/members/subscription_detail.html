@@ -1,0 +1,53 @@
+﻿{% extends "members/layout.html" %}
+{% block content %}
+<h2>Subscription</h2>
+
+<h4>
+<a href="{% url "person-detail"  object.person_member_id %}">{{ subscription.person_member.first_name }} {{ subscription.person_member.last_name }}</a>
+</h4>
+<table id="sub" class="table table-condensed">
+    <tr>
+        <td>Subscription year:</td><td>{{ subscription.sub_year}}</td>      
+    </tr>
+    <tr>
+        <td>Start date:</td><td>{{ subscription.start_date|date }}</td>      
+    </tr>
+    <tr>
+        <td>End date:</td><td>{{ subscription.end_date|date }}</td>      
+    </tr>
+    <tr>
+        <td>Sub type:</td><td>{{ subscription.period }}</td>      
+    </tr>
+    <tr>
+        <td>Membership:</td><td>{{ subscription.membership.description }}</td>      
+    </tr>
+    <tr>
+        <td>New member:</td><td>{{ subscription.new_member }}</td>      
+    </tr>
+    <tr>
+        <td>Active:</td><td>{{ subscription.active }}</td>      
+    </tr>
+    <tr>
+        <td>Last invoiced month:</td><td>{{ subscription.invoiced_month}}</td>      
+    </tr>
+    <tr>
+        <td>Do not renew:</td><td>{{ subscription.no_renewal }}</td>      
+    </tr>
+    <tr><td><b>Items</b></td><td></td></tr>
+    {% for item in items %}
+    <tr>
+        <td><a href="{% url "item-update" item.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+        <td>{{ item.item_date|date }}</td>
+        <td>{{ item.description}}</td>
+        <td>
+        {% if item.payment %}
+            {{ item.payment_id }}
+        {% else %}
+            Unpaid
+        {% endif %}          
+        </td>
+        <td class = "text-right">£{{ item.amount }}</td>
+    </tr>
+    {% endfor item %}
+</table>
+{% endblock content %}

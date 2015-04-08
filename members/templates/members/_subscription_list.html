@@ -1,0 +1,39 @@
+﻿<table id="subs" class="table table-condensed" >
+<caption class="text-left"><h4>Subscriptions</h4></caption>
+<thead>
+        <tr>
+        <th>Action</th>
+        <th>Year</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Category</th>
+        <th>Active</th>
+        <th>Invoice</th>
+        <th>Paid</th>
+    </tr>
+</thead>
+{% for sub in subs %}
+<tr>
+    {% if sub.active %}
+        <td><a href="{% url "sub-detail" sub.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+    {% else %}
+        <td></td>
+    {% endif %}
+    <td>{{ sub.sub_year }}</td>
+    <td>{{ sub.start_date }}</td> 
+    <td>{{ sub.end_date }}</td>
+    <td>{{ sub.membership.description }}</td>
+    <td>
+    {% if sub.active%}
+        Active
+    {% endif %} 
+    </td>
+    <td>
+    {% if sub.invoice_item %}
+        Invoice
+    {% endif %} 
+    </td>
+    <td>{{ sub.paid }}</td>
+    {#<td>{{ person.current_sub.membership.description }}</td>#}  
+{% endfor sub %}
+</table>

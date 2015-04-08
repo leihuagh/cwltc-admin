@@ -1,0 +1,9 @@
+﻿{% extends "members/layout.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+<h2>Subscription</h2>
+<p>
+{{ person.first_name }} {{ person.last_name}}
+</p>
+{% crispy form %}
+{% endblock content %}

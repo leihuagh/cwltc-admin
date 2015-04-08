@@ -1,0 +1,21 @@
+﻿{% extends "members/layout.html" %}
+
+{% block content %}
+{% load crispy_forms_tags %} 
+{% if person.id %}
+<h1>Edit Person</h1>
+{% else %}
+<h1>Add Person</h1>
+{% endif %}
+
+
+<form action="{{ action }}" method="POST" class="form-horizontal">
+    {% csrf_token %}
+    
+    <table>
+    {{ form|crispy}}
+    </table>
+  <input id="save_contact" type="submit" value="Save" />
+</form>
+<p><a class="btn btn-default" href="{% url "person-list" %}">Back to list &raquo;</a></p>
+{% endblock %}

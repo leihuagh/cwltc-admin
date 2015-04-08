@@ -1,0 +1,15 @@
+﻿{% extends "members/layout.html" %}
+{% block content %}
+<h4>
+<a href="{% url "person-detail"  person.id %}">{{ person.first_name }} {{ person.last_name }}</a>
+</h4>
+{% include "members/_invoice_detail.html" %}
+{% if full_payment_button %}
+    <a href="{% url "invoice-mail" pk=invoice.id option='view' %}" class="btn btn-primary">Preview mail</a>
+    <a href="{% url "invoice-mail" pk=invoice.id option='test' %}" class="btn btn-primary">Send test mail</a>
+    <a href="{% url "invoice-mail" pk=invoice.id option='send' %}" class="btn btn-primary">Send mail</a>
+    <a href="{% url "invoice-cancel"  invoice.id %}" class="btn btn-warning">Cancel invoice</a>
+    <a href="{% url "payment-invoice" invoice.id %}" class="btn btn-primary">Full payment</a>
+{% endif %}
+
+{% endblock content %}

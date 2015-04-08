@@ -1,0 +1,44 @@
+﻿{% extends "members/layout.html" %}
+{% block content %}
+{% load members_extras %}
+<h2>Payment</h2>
+<h4>
+<a href="{% url "person-detail"  payment.person_id %}">{{ payment.person.first_name }} {{ payment.person.last_name }}</a>
+</h4>
+
+<table width="300">
+    <tr>
+        <td>Number:</td><td>{{ payment.id }}</td>       
+    </tr>
+    <tr>
+        <td>Date:</td><td>{{ payment.creation_date|date }}</td>      
+    </tr>
+    <tr>
+        <td>Type:</td><td>{{ payment_types|get_option:payment.type }}</td>      
+    </tr>
+    <tr>
+        <td>Reference:</td><td>{{ payment.reference }}</td>      
+    </tr>
+    <tr>
+        <td>Amount:</td><td>£ {{ payment.amount }}</td>      
+    </tr>
+    <tr>
+        <td>Matched amount:</td><td>£ {{ payment.credited }}</td>      
+    </tr>
+    <tr>
+        <td>State:</td><td>{{ payment_states|get_option:payment.state }}</td>      
+    </tr>
+</table>
+<h4>Matched invoice items</h4>
+<table id="invoiceitem" class="table table-condensed">
+{% for item in payment.invoiceitem_set.all %}
+    <tr>       
+        <td>{{ item.item_date }}</td>
+        <td>{{ item.item_type.description}}</td> 
+        <td>{{ item.description}}</td>
+        <td class = "text-right">£{{ item.amount }}</td> 
+        <td><a href="{% url "item-detail" item.id %}" class="btn btn-primary btn-xs">View</a></td>
+    </tr>
+{% endfor %}
+</table>
+{% endblock content %}

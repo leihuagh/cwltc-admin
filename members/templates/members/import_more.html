@@ -1,0 +1,17 @@
+﻿{% extends "members/layout.html" %}
+{% load crispy_forms_tags %} 
+{% block content %}
+<h2>{{ title }} {{ pass }}</h2>
+{% if pass == '1' %}
+    <p>Start record: {{ start }}</p>
+    <p>Batch size: {{ size }}</p>
+{% elif pass == '2' %}
+    <p>{{ start }} Children linked</p>
+{% elif pass == '3' %}
+    <p>{{ start }} Children linked</p>
+{% endif %}
+{% if remaining %}
+    <p>Remaining records: {{ remaining }}</p>
+{% endif %}
+{% crispy form %}
+{% endblock content %}

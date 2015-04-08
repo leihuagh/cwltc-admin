@@ -1,0 +1,19 @@
+﻿{% extends "members/layout.html" %}
+{% block content %}
+<h2>Invoice items</h2>
+    {% include "members/_invoiceitem_list.html" %}
+{% endblock %}
+
+{% block scripts %}
+ <script>
+  $(function() {
+    $( ".datepicker" ).datepicker({
+      changeMonth: true,
+      changeYear: true,
+      yearRange: "2010:2050",
+      // You can put more options here.
+
+    });
+  });
+  </script>
+{% endblock %}

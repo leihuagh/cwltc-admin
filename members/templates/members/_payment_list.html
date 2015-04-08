@@ -1,0 +1,27 @@
+﻿{% load members_extras %}
+<table id="payments" class="table table-condensed">
+    <caption class="text-left"><h4>Payments</h4></caption>
+<thead>
+    <tr>
+        <th>Number</th>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Reference</th>
+        <th>State</th>
+        <th class = "text-right">Matched</th>
+        <th class = "text-right">Amount</th>
+    </tr>
+</thead>
+{% for p in payments %}
+    <tr>
+        <td>{{ p.id}}</td>
+        <td>{{ p.creation_date|date  }}</td>
+        <td>{{ types|get_option:p.type }}</td>
+        <td>{{ p.reference}}</td> 
+        <td>{{ payment_states|get_option:p.state }}</td>
+        <td class = "text-right">£{{ p.credited}}</td>
+        <td class = "text-right">£{{ p.amount}}</td>      
+        <td><a href="{% url "payment-detail"  p.id %}" class="btn btn-primary btn-xs">View</a></td>
+    </tr>
+{% endfor sub %}
+</table>

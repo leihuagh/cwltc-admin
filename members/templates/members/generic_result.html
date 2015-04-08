@@ -1,0 +1,10 @@
+﻿{% extends "members/layout.html" %}
+{% block content %}
+<h2>{{ title }}</h2>
+{% if errors %}
+    {% for err in errors %}
+        <li>{{ err }}</li>
+    {% endfor %}
+{% endif %}
+{{ message }}
+{% endblock content %}

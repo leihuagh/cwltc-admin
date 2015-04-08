@@ -1,0 +1,28 @@
+﻿{% load members_extras %}
+<table id="invoices" class="table table-condensed">
+    <caption class="text-left"><h4>Invoices</h4></caption>
+<thead>
+    <tr>
+        <th>Number</th>
+        <th>State</th>
+        <th>Date</th>
+        <th>Reference</th>
+        <th>Email count</th>
+        <th>Posted count</th>
+        <th class = "text-right">Total</th>
+        <th></th>
+    </tr>
+</thead>
+{% for inv in invoices %}
+    <tr>
+        <td>{{ inv.id }}</td>
+        <td>{{ state_list|get_option:inv.state }}</td>
+        <td>{{ inv.update_date|date }}</td>
+        <td>{{ inv.reference}}</td> 
+        <td>{{ inv.email_count}}</td>
+        <td>{{ inv.postal_count}}</td>
+        <td class = "text-right">£{{ inv.total }}</td>
+        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View</a></td>
+    </tr>
+{% endfor sub %}
+</table>

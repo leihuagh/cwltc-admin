@@ -1,0 +1,6 @@
+﻿{% extends "members/layout.html" %}
+{% block content %}
+<h2>Invoices</h2>
+    {% include "members/_invoice_list.html" %}
+<a href="{% url "filter" %}" class="btn btn-primary">Filter</a> 
+{% endblock %}

@@ -1,0 +1,38 @@
+﻿{% load members_extras %}
+<h2>Invoice</h2>
+Invoice number: {{ reference }}
+<p>
+Date: {{ invoice.date|date }}</p>
+
+<table id="invoiceitem" class="table table-condensed">
+
+{% for item in items %}
+<tr>
+    <td>{{ item.item_type.description }}</td>
+    <td>{{ item.person.first_name }}{{ item.person.last_name }}</td>
+    <td>{{ item.description}}</td>
+    <td align="right">£{{ item.amount }}</td>
+    <td>
+    {% if item.paid %}
+     <a href="{% url "payment-detail"  item.payment_id %}" class="btn btn-primary btn-xs">Paid</a>
+    {% else %} Unpaid {% endif %}</td>
+</tr>
+{% endfor sub %}
+<tr>
+    <td></td>
+    <td></td>
+    <td align="right"><b>Total</b></td>
+    <td align="right"><b>£{{ invoice.total }}</b></td>
+    <td></td>
+</tr>
+</table>
+<hr />
+<p>State: {{ state_list|get_option:invoice.state }}</p>
+{% if credit_note %}
+<p>Credit note: {{ credit_note.id }} </p>
+<p>Issued: {{ credit_note.update_date}}</p>
+<p>Amount: {{ credit_note.amount }}</p>
+<p>{{ credit_note.reference }}</p>
+{% endif %}
+<p>Email count: {{ invoice.email_count }} </p>
+<p>Posted count: {{ invoice.postal_count }} </p>

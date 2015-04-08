@@ -1,0 +1,32 @@
+﻿<html>
+<body>
+<h3><span style="font-family: 'arial black', 'avant garde';">Coombe Wood Account</span></h3>
+<p>Dear {{ name }}</p>
+<p>Your account with Coombe Wood LTC is now due for payment.</p>
+<table style="height: 74px;" width="486">
+<tbody>
+{% for item in item_list %}
+    <tr>
+        <td><span style="font-family: arial, helvetica, sans-serif; font-size: 10pt;">
+        {{ item.description }}
+        </span></td>
+        <td style="text-align: right;"><span style="font-family: arial, helvetica, sans-serif; font-size: 10pt;">
+        {{ item.amount }}
+        </span></td>
+    </tr>
+{% endfor %}
+<tr>
+    <td><span style="font-family: arial, helvetica, sans-serif; font-size: 10pt;"><strong>
+    {{ total.description }}
+    </strong></span></td>
+    <td style="text-align: right;"><span style="font-family: arial, helvetica, sans-serif; font-size: 10pt;"><strong>
+    {{ total.amount }}
+    </strong></span></td>
+</tr>
+</tbody>
+</table>
+<p>Click here for payment instructions</p>
+<p>Regards</p>
+<p>CWLTC</p>
+</body>
+</html>

@@ -1,0 +1,31 @@
+﻿<table id="invoiceitem" class="table table-condensed">
+
+<thead>
+    <tr>
+        <th>Unbilled items</th>
+        <th>Member</th>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Payment</th>
+        <th class = "text-right">Amount</th>
+    </tr>
+</thead>
+{% for item in items %}
+<tr>
+    <td><a href="{% url "item-update" item.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+    <td>{{ item.person.first_name }} {{ item.person.last_name }}</td>
+    <td>{{ item.item_date }}</td>
+    <td>{{ item.item_type.description}}</td> 
+    <td>{{ item.description}}</td>
+    <td>
+    {% if item.payment %}
+        {{ item.payment_id }}
+    {% else %}
+        Unpaid
+    {% endif %}          
+    </td>
+    <td class = "text-right">£{{ item.amount }}</td>  
+</tr>
+{% endfor item %}
+</table>

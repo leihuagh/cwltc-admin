@@ -1,0 +1,16 @@
+{% extends "members/layout.html" %}
+
+{% block content %}
+<h2>Member list</h2>
+
+<ul>
+    {% for person in object_list %}
+    
+        <li>
+        {{ person.first_name }} {{ person.last_name }}  {{ person.mobile_phone }}
+        </li>
+       
+    {% endfor %}
+</ul>
+
+{% endblock %}
