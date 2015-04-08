@@ -205,7 +205,6 @@ INSTALLED_APPS = (
     'crispy_forms',
     'djrill',
     'jquery_ui',
-    'django-extensions',
     'members',  
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
