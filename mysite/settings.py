@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'djrill',
     'jquery_ui',
+	'members',
 )
 
 MIDDLEWARE_CLASSES = (
