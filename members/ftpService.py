@@ -1,5 +1,5 @@
 import ftplib
-from Cwltc import settings
+from django.conf import settings
 from os import path, unlink
 
 HOST = 'ftp.ktconsultants.co.uk'
