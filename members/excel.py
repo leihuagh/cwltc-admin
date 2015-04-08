@@ -147,9 +147,10 @@ def import_members_1(book, start, size):
                 p.linked = None
                 p.state = Person.ACTIVE
                 if sheet.cell_value(row, 11):
-                    p.date_joined = datetime(sheet.cell_value(row, 11), 5, 1)
+                    year = int(sheet.cell_value(row, 11))
+                    p.date_joined = date(year, 5, 1)
                 else:
-                    p.date_joined = datetime(1900, 5, 1)
+                    p.date_joined = date(1900, 5, 1)
                 if not(p.membership_id == Membership.JUNIOR or p.membership_id == Membership.CADET):
                     a = Address()
                     a.address1= sheet.cell_value(row, 4)
