@@ -425,9 +425,9 @@ def do_mail(invoice, option):
             context['family'] = family
         subject = "Coombe Wood LTC account"
         if option == 'view':
-            return render_to_response("members\invoice_email.html", context)
+            return render_to_response("members/invoice_email.html", context)
         
-        html_body = render_to_string("members\invoice_email.html", context)
+        html_body = render_to_string("members/invoice_email.html", context)
         target = invoice.person.email if option == 'send' else "is@ktconsultants.co.uk"
         if target <> '':
             text_plain = strip_tags(html_body)
