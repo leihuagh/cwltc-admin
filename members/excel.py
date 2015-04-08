@@ -205,9 +205,10 @@ def import_members_3(book, size):
         mem_dict[mem.description] = mem.id 
     count = 0
 
-	# Reset postgres id
-    cursor = connection.cursor()
-    cursor.execute("SELECT setval('members_person_id_seq', (SELECT MAX(id) FROM members_person)+1)")
+    if not settings.ON_AZURE:
+        # Reset postgres id
+        cursor = connection.cursor()
+        cursor.execute("SELECT setval('members_person_id_seq', (SELECT MAX(id) FROM members_person)+1)")
 
     sheet = book.sheet_by_name('Members')
     errors = []

@@ -8,8 +8,10 @@
     <a href="{% url "invoice-mail" pk=invoice.id option='view' %}" class="btn btn-primary">Preview mail</a>
     <a href="{% url "invoice-mail" pk=invoice.id option='test' %}" class="btn btn-primary">Send test mail</a>
     <a href="{% url "invoice-mail" pk=invoice.id option='send' %}" class="btn btn-primary">Send mail</a>
-    <a href="{% url "invoice-cancel"  invoice.id %}" class="btn btn-warning">Cancel invoice</a>
     <a href="{% url "payment-invoice" invoice.id %}" class="btn btn-primary">Full payment</a>
+    <a href="{% url "invoice-cancel"  invoice.id %}" class="btn btn-warning">Cancel invoice</a>   
 {% endif %}
-
+{% if can_delete %}
+    <a href="{% url "invoice-delete"  invoice.id %}" class="btn btn-warning">Delete invoice</a>
+{% endif %}
 {% endblock content %}

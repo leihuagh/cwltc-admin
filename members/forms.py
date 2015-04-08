@@ -176,6 +176,7 @@ class InvoiceItemForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(InvoiceItemForm, self).__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
         # If you pass FormHelper constructor a form instance
         # It builds a default layout with all its fields
         self.helper = FormHelper(self)
@@ -187,10 +188,12 @@ class InvoiceItemForm(forms.ModelForm):
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
+        if instance and instance.id:
+            self.helper.add_input(Submit('delete', 'Delete', css_class='btn-danger'))
         self.fields['item_date'].widget.format = '%d/%m/%Y'
         self.fields['item_date'].input_formats = ['%d/%m/%Y']
-
+       
     class Meta:
         model = InvoiceItem
         fields = ['item_type', 'item_date', 'description', 'amount']

@@ -78,6 +78,11 @@ urlpatterns = patterns('',
         name='invoice-mail'
     ),
     url(
+        r'^invoice/mail/batch$',
+        InvoiceMailBatchView.as_view(),
+        name='invoice-mail-batch'
+    ),
+    url(
         r'^select$',
         InvoiceSelectView.as_view(),
         name='select'
@@ -87,10 +92,10 @@ urlpatterns = patterns('',
         InvoiceBatchView.as_view(),
         name='invoice-batch'
     ),
-        url(
-        r'^invoice/export$',
-        InvoiceExportView.as_view(),
-        name='invoice-export'
+    url(
+        r'^invoice/delete/(?P<pk>\d+)/',
+        InvoiceDeleteView.as_view(),
+        name='invoice-delete'
     ),
 
     #   PAYMENTS

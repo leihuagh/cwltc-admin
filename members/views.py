@@ -310,6 +310,15 @@ class InvoiceItemUpdateView(LoggedInMixin, UpdateView):
         context['person'] = item.person
         return context
 
+    def form_valid(self, form):
+        if 'submit' in form.data:
+            return super(InvoiceItemUpdateView, self).form_valid(*args, **kwargs)
+        if 'delete' in form.data:
+            item = self.get_object()
+            person_id = item.person.id
+            item.delete()
+            return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':person_id}))
+
 class InvoiceItemDetailView(LoggedInMixin, DetailView):
     model = InvoiceItem
     template_name = 'members/invoiceitem_detail.html'
@@ -320,6 +329,14 @@ class InvoiceCancelView(LoggedInMixin, View):
     def get(self, request, *args, **kwargs):
         invoice = Invoice.objects.get(pk = self.kwargs['pk'])
         invoice.cancel()
+        return redirect(invoice.person)
+
+class InvoiceDeleteView(LoggedInMixin, View):
+    
+    def get(self, request, *args, **kwargs):
+        invoice= Invoice.objects.get(pk = self.kwargs['pk'])
+        invoice.cancel()
+        invoice.delete()
         return redirect(invoice.person)
 
 class InvoiceListView(LoggedInMixin, ListView):
@@ -344,6 +361,7 @@ class InvoiceDetailView(LoggedInMixin, DetailView):
         context['types'] = Payment.TYPES
         context['payment_states'] = Payment.STATES
         context['full_payment_button'] = inv.state == Invoice.UNPAID
+        context['can_delete'] = inv.email_count == 0 and inv.postal_count == 0
         c_note = None
         if inv.creditnote_set.count() > 0:
             c_note = inv.creditnote_set.all()[0]
@@ -367,8 +385,23 @@ class InvoiceMailView(LoggedInMixin, View):
     def get(self, request, *args, **kwargs):
         invoice= Invoice.objects.get(pk = self.kwargs['pk'])
         option = self.kwargs['option']
-        family = invoice.person.person_set.all()
+        result = do_mail(invoice, option)
+        if option == 'view':
+            return result
+        return redirect(invoice)
 
+class InvoiceMailBatchView(LoggedInMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        invs = Invoice.objects.filter(state=Invoice.UNPAID)
+        option = 'test'
+        for inv in invs:
+            do_mail(inv, option)
+        return HttpResponseRedirect(reverse('home'))
+
+
+def do_mail(invoice, option):
+        family = invoice.person.person_set.all()
         context={
             'invoice': invoice,
             'person': invoice.person,
@@ -396,16 +429,18 @@ class InvoiceMailView(LoggedInMixin, View):
         
         html_body = render_to_string("members\invoice_email.html", context)
         target = invoice.person.email if option == 'send' else "is@ktconsultants.co.uk"
-        text_plain = strip_tags(html_body)
-        msg = EmailMultiAlternatives(subject=subject,
-                                        from_email="subs@coombewoodltc.co.uk",
-                                        to=[target],
-                                        body=text_plain)
-        msg.attach_alternative(html_body, "text/html")
-        msg.send()
-        invoice.email_count += 1
-        invoice.save()
-        return redirect(invoice)
+        if target <> '':
+            text_plain = strip_tags(html_body)
+            msg = EmailMultiAlternatives(subject=subject,
+                                            from_email="subs@coombewoodltc.co.uk",
+                                            to=[target],
+                                            body=text_plain)
+            msg.attach_alternative(html_body, "text/html")
+            msg.send()
+            if option == 'send':
+                invoice.email_count += 1
+            invoice.save()
+        return
 
 class InvoiceSelectView(LoggedInMixin, FormView):
     form_class = InvoiceSelectForm
@@ -418,12 +453,6 @@ class InvoiceSelectView(LoggedInMixin, FormView):
             return HttpResponseRedirect(reverse('invoice-detail', kwargs={'pk':ref}))
         else:
             return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':ref}))
-
-class InvoiceExportView(LoggedInMixin, View):
-    
-    def get(self, request, *args, **kwargs):
-        return export_invoices()
-
 
 class PaymentCreateView(LoggedInMixin, CreateView):
     model = Payment
