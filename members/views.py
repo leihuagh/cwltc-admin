@@ -348,6 +348,9 @@ class InvoiceListView(LoggedInMixin, ListView):
         context['state_list'] = Invoice.STATES
         return context
 
+    def get_queryset(self):       
+        return super(InvoiceListView, self).get_queryset()
+
 class InvoiceDetailView(LoggedInMixin, DetailView):
     model = Invoice
     template_name = 'members/invoice_detail.html'
@@ -391,16 +394,18 @@ class InvoiceMailView(LoggedInMixin, View):
         return redirect(invoice)
 
 class InvoiceMailBatchView(LoggedInMixin, View):
+    ''' Send email for all invoices that are unpaid and have not been emailed '''
 
     def get(self, request, *args, **kwargs):
-        invs = Invoice.objects.filter(state=Invoice.UNPAID)
+        invs = Invoice.objects.filter(state=Invoice.UNPAID, email_count=0)
         option = 'send'
+        count = 0
         for inv in invs:
-            do_mail(inv, option)
-        return HttpResponseRedirect(reverse('home'))
-
+            count += do_mail(inv, option)
+        return HttpResponse("sent {} mails for {} invoices".format(count, invs.count()))
 
 def do_mail(invoice, option):
+        count = 0
         family = invoice.person.person_set.all()
         context={
             'invoice': invoice,
@@ -439,8 +444,9 @@ def do_mail(invoice, option):
             msg.send()
             if option == 'send':
                 invoice.email_count += 1
+                count += 1
             invoice.save()
-        return
+        return count
 
 class InvoiceSelectView(LoggedInMixin, FormView):
     form_class = InvoiceSelectForm
@@ -730,3 +736,17 @@ def about(request):
         })
     )
 
+def fixup(request):
+    people = Person.objects.filter(email='', membership_id=Membership.NON_MEMBER)
+    count = people.count()
+    fixed = 0
+    for p in people:
+        if p.email == '':
+            for child in p.person_set.all():
+                if child.email <> '':
+                    fixed += 1
+                    p.email = child.email
+                    p.save()
+                    break
+
+    return HttpResponse("Fixed up {} of {} people".format(fixed, count))

@@ -20,8 +20,8 @@ urlpatterns = patterns('',
         name='home'
     ),
     url(
-        r'^test$',
-        'members.views.test',
+        r'^fixup$',
+        'members.views.fixup',
         name='test'
     ),
 
