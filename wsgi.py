@@ -1,11 +1,19 @@
-#!/usr/bin/python
+"""
+WSGI config for mysite project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
+"""
+
 import os
+import sys
 
-virtenv = os.environ['OPENSHIFT_PYTHON_DIR'] + '/virtenv/'
-virtualenv = os.path.join(virtenv, 'bin/activate_this.py')
-try:
-    execfile(virtualenv, dict(__file__=virtualenv))
-except IOError:
-    pass
+sys.path.append(os.path.join(os.environ['OPENSHIFT_REPO_DIR']))
 
-from mysite.wsgi import application
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
