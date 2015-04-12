@@ -178,7 +178,6 @@ class Membership(models.Model):
     STUDENT = 4
     NON_MEMBER = 13
 
-    id = models.IntegerField(primary_key=True)
     description = models.CharField(max_length=20)
     
     def __unicode__(self):
@@ -313,7 +312,7 @@ class Invoice(models.Model):
                     item.item_type.description,
                     item.amount,
                     '\n')
-                if item.item_type == ItemType.FAMILY_DISCOUNT:
+                if item.item_type_id == ItemType.FAMILY_DISCOUNT:
                     item.delete()
                 else:
                     item.invoice = None
@@ -648,9 +647,11 @@ class Subscription(models.Model):
             if sub.active:
                 sub.active = False
                 sub.save()
-
         self.active = True
-        self.save()        
+        self.save()   
+        self.person_member.membership_id = self.membership_id
+        self.person_member.save()
+             
 
     def __unicode__(self):  
         return u'Sub {} {} {} {}'.format (
@@ -658,6 +659,9 @@ class Subscription(models.Model):
             self.membership,
             Subscription.PERIODS[self.period][1],
             self.active)
+
+    def get_absolute_url(self):
+        return reverse("sub-update", kwargs={"pk": self.pk})
 
     def is_invoiced(self):
         return self.invoice_item is not None
@@ -700,6 +704,18 @@ class Subscription(models.Model):
 
                     elif self.period == Subscription.NON_RECURRING:
                         pass
+    
+    def delete_invoice_items(self):
+        ''' Delete uninvoice items attached to sub
+        If item is linked to an unpaid invoice, 
+        cancel the invoice and delete the item '''
+        for item in self.invoiceitem_set.all():
+            if item.invoice:
+                if item.invoice.state == Invoice.UNPAID:
+                    item.invoice.cancel()
+                    item.delete()
+            else:
+                item.delete()
 
 class BarTransaction(models.Model):
     id = models.IntegerField(primary_key=True)

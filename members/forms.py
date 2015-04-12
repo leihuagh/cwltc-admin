@@ -153,6 +153,7 @@ class SubscriptionForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super(SubscriptionForm, self).__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-SubscriptionForm'
         self.helper.form_class = 'form-horizontal'
@@ -162,14 +163,50 @@ class SubscriptionForm(forms.ModelForm):
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        self.helper.layout = Layout(
+            Fieldset(
+                'Edit subscription',
+                'sub_year',
+                'period',
+                'start_date',
+                'end_date',
+                'no_renewal',              
+                'membership'
+                ),
+            HTML("""{% if items %}
+            <h3>Subscription cannot be edited unless linked items / invoice are deleted</h3>
+            {% for item in items %}
+            <ul>{{ item.date|date }} {{ item.description }}
+            {% if item.invoice %} Invoice: {{ item.invoice.id }}
+            {% else %} Not invoiced {% endif %} </ul>
+            {% endfor %}
+            {% endif %}""")
+           ) 
+       
+        
+        if instance and instance.pk:
+            if instance.invoiceitem_set.all().count() > 0:
+                self.helper['sub_year'].wrap(Field, readonly="true")
+                self.helper['period'].wrap(Field, readonly="true")
+                self.helper['start_date'].wrap(Field, readonly="true")
+                self.helper['end_date'].wrap(Field, readonly="true")
+                self.helper['no_renewal'].wrap(Field, readonly="true")
+                self.helper['membership'].wrap(Field, readonly="true")
 
+                self.has_invoice = False
+                for item in instance.invoiceitem_set.all():
+                    if item.invoice and item.invoice.state == Invoice.UNPAID:
+                        self.has_invoice = True
+                        break
+                if self.has_invoice:
+                    self.helper.add_input(Submit('delete_items', 'Delete item & invoice', css_class='btn-danger'))
+                else:
+                    self.helper.add_input(Submit('delete_items', 'Delete item', css_class='btn-danger'))
+            else:
+                self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
     class Meta:
         model = Subscription
-        fields = ['person_member', 'sub_year', 'start_date', 'end_date', 'period', 'membership']
-
-    def get_context_data(self, **kwargs):
-        context = super(SubscriptionForm, self).get_context_data(**kwargs)
+        fields = ['sub_year', 'start_date', 'end_date', 'period', 'membership', 'no_renewal']
 
 
 class InvoiceItemForm(forms.ModelForm):
@@ -188,7 +225,6 @@ class InvoiceItemForm(forms.ModelForm):
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
         if instance and instance.id:
             self.helper.add_input(Submit('delete', 'Delete', css_class='btn-danger'))
         self.fields['item_date'].widget.format = '%d/%m/%Y'

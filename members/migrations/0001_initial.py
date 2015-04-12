@@ -83,7 +83,6 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('creation_date', models.DateTimeField(auto_now_add=True)),
                 ('update_date', models.DateTimeField(auto_now=True)),
-                ('date', models.DateField()),
                 ('reference', models.CharField(max_length=80)),
                 ('state', models.SmallIntegerField(default=0, choices=[(0, b'Unpaid'), (1, b'Part paid'), (2, b'Paid in full'), (3, b'Cancelled'), (4, b'Part paid & credit note'), (5, b'Error - overpaid')])),
                 ('email_count', models.SmallIntegerField(default=0)),
@@ -162,7 +161,6 @@ class Migration(migrations.Migration):
                 ('pays_own_bill', models.BooleanField(default=False)),
                 ('pays_family_bill', models.BooleanField(default=False)),
                 ('state', models.SmallIntegerField(default=0, choices=[(0, b'Active'), (1, b'Applied'), (2, b'Rejected'), (3, b'Resigned')])),
-                ('date_joined', models.DateField(null=True, blank=True)),
                 ('address', models.ForeignKey(blank=True, to='members.Address', null=True)),
                 ('linked', models.ForeignKey(blank=True, to='members.Person', null=True)),
                 ('membership', models.ForeignKey(blank=True, to='members.Membership', null=True)),
@@ -196,7 +194,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=30)),
-                ('text', models.CharField(max_length=8000)),
+                ('text', models.CharField(max_length=9000)),
             ],
             options={
             },

@@ -25,7 +25,7 @@ urlpatterns = patterns('',
         name='test'
     ),
 
-    #   Subscriptions
+    #   SUBSCRIPTIONS
     url(
         r'^sub/update/(?P<pk>\d+)/',
         SubUpdateView.as_view(),
@@ -51,9 +51,16 @@ urlpatterns = patterns('',
         SubRenewBatch.as_view(),
         name='sub-renew-batch'
     ),
+
     #   INVOICES
     url(
-        r'^invoices$',
+        r'^sub/invoicecancel/(?P<pk>\d+)/',
+        SubInvoiceCancel.as_view(),
+        name='sub-invoice-cancel'
+    ),
+   
+    url(
+        r'^invoices/(?P<option>[a-zA-Z]+)$',
         InvoiceListView.as_view(),
         name='invoice-list'
     ),

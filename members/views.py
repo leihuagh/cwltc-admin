@@ -9,8 +9,8 @@ from django.views.generic.edit import FormView
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
-from django.shortcuts import render, redirect
+from django.db.models import Q, Sum
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
@@ -237,13 +237,24 @@ class SubUpdateView(LoggedInMixin, UpdateView):
 
     def get_success_url(self):
         sub = self.get_object()
-        return reverse('person-detail', kwargs={'pk':sub.person.id})                    
+        sub.activate()
+        sub.generate_invoice_items(month=5)
+        return reverse('person-detail', kwargs={'pk':sub.person_member_id})                    
     
     def get_context_data(self, **kwargs):
         context = super(SubUpdateView, self).get_context_data(**kwargs)
         sub = self.get_object()
-        context['person'] = sub.person
+        context['person'] = sub.person_member
+        context['items'] = sub.invoiceitem_set.all().order_by('item_type')
         return context
+
+    def form_valid(self, form):
+        if 'submit' in form.data:
+            return super(SubUpdateView, self).form_valid(form)
+        if 'delete_items' in form.data:
+            sub = self.get_object()
+            sub.delete_invoice_items()
+            return redirect(sub)
 
 class SubDetailView(LoggedInMixin, DetailView):
     model = Subscription
@@ -252,7 +263,12 @@ class SubDetailView(LoggedInMixin, DetailView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super(SubDetailView, self).get_context_data(**kwargs)
-        context['items'] = self.get_object().invoiceitem_set.all().order_by('item_type')
+        sub = self.get_object()
+        context['items'] = sub.invoiceitem_set.all().order_by('item_type')
+        for item in context['items']:
+            if item.invoice and item.invoice.state == Invoice.UNPAID:
+                context['cancel_invoice'] = True
+                break
         return context
 
 class SubRenewView(LoggedInMixin, View):
@@ -262,6 +278,17 @@ class SubRenewView(LoggedInMixin, View):
         sub.renew(sub.sub_year+1, Subscription.START_MONTH)
         return redirect(sub.person_member)
 
+class SubInvoiceCancel(LoggedInMixin, View):
+    ''' Deletes unpaid items and invoices associated with a sub '''
+    
+    def get(self, request, *args, **kwargs):
+        sub = get_object_or_404(Subscription, pk = self.kwargs['pk'])
+        for item in sub.invoiceitem_set.all():
+            if item.invoice and item.invoice.state == Invoice.UNPAID:
+                item.invoice.cancel()
+            item.delete()
+        return redirect(sub)
+    
 # ================ Invoice items
 
 class InvoiceItemListView(LoggedInMixin, ListView):
@@ -323,6 +350,7 @@ class InvoiceItemDetailView(LoggedInMixin, DetailView):
     model = InvoiceItem
     template_name = 'members/invoiceitem_detail.html'
 
+# ================= INVOICES
 
 class InvoiceCancelView(LoggedInMixin, View):
 
@@ -341,15 +369,29 @@ class InvoiceDeleteView(LoggedInMixin, View):
 
 class InvoiceListView(LoggedInMixin, ListView):
     model = Invoice
+    paginate_by = 4
     template_name = 'members/invoice_list.html'
+    context_object_name = 'invoices'
 
     def get_context_data(self, **kwargs):
         context = super(InvoiceListView, self).get_context_data(**kwargs)
         context['state_list'] = Invoice.STATES
+        dict = self.queryset.aggregate(Sum('total'))
+        context['total'] = dict['total__sum']
+        context['option']= self.kwargs['option']
         return context
 
-    def get_queryset(self):       
-        return super(InvoiceListView, self).get_queryset()
+    def get_queryset(self):
+        option = self.kwargs['option']
+        if option == 'paid':
+            self.queryset = Invoice.objects.filter(state=Invoice.PAID_IN_FULL)
+        elif option == 'unpaid':
+            self.queryset = Invoice.objects.filter(state=Invoice.UNPAID) 
+        elif option == 'cancelled':
+            self.queryset = Invoice.objects.filter(state=Invoice.CANCELLED)   
+        else:
+            self.queryset =  Invoice.objects.all()
+        return self.queryset
 
 class InvoiceDetailView(LoggedInMixin, DetailView):
     model = Invoice
@@ -459,6 +501,8 @@ class InvoiceSelectView(LoggedInMixin, FormView):
             return HttpResponseRedirect(reverse('invoice-detail', kwargs={'pk':ref}))
         else:
             return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':ref}))
+
+# ================== PAYMENTS
 
 class PaymentCreateView(LoggedInMixin, CreateView):
     model = Payment
@@ -737,16 +781,9 @@ def about(request):
     )
 
 def fixup(request):
-    people = Person.objects.filter(email='', membership_id=Membership.NON_MEMBER)
-    count = people.count()
-    fixed = 0
-    for p in people:
-        if p.email == '':
-            for child in p.person_set.all():
-                if child.email <> '':
-                    fixed += 1
-                    p.email = child.email
-                    p.save()
-                    break
 
-    return HttpResponse("Fixed up {} of {} people".format(fixed, count))
+        cursor = connection.cursor()
+        cursor.execute("SELECT setval('members_person_id_seq', (SELECT MAX(id) FROM members_person)+1)")
+        cursor.execute("SELECT setval('members_fees_id_seq', (SELECT MAX(id) FROM members_fees)+1)")
+        cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
+

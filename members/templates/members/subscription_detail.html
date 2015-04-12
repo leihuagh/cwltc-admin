@@ -33,7 +33,10 @@
     <tr>
         <td>Do not renew:</td><td>{{ subscription.no_renewal }}</td>      
     </tr>
-    <tr><td><b>Items</b></td><td></td></tr>
+</table>
+{% if items %}
+<p>Linked items</p>
+<table id="sub" class="table table-condensed">
     {% for item in items %}
     <tr>
         <td><a href="{% url "item-update" item.id %}" class="btn btn-primary btn-xs">Edit</a></td>
@@ -46,8 +49,21 @@
             Unpaid
         {% endif %}          
         </td>
+        <td>{% if item.invoice %} Invoice {{ item.invoice.id }}
+        {% else %}No invoice{% endif %}</td>
         <td class = "text-right">£{{ item.amount }}</td>
     </tr>
     {% endfor item %}
 </table>
+{% else %}
+<p>No linked item</p>
+    <a href="{% url "sub-update"  subscription.id %}" class="btn btn-primary">Edit subscription</a>   
+{% endif %}
+{% if items %}
+    {% if cancel_invoice %}
+        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>   
+    {% else %}
+        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Delete unpaid items</a>   
+    {% endif %}
+{% endif %}
 {% endblock content %}

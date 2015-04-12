@@ -15,7 +15,7 @@
 {% for sub in subs %}
 <tr>
     {% if sub.active %}
-        <td><a href="{% url "sub-detail" sub.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+        <td><a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">Edit</a></td>
     {% else %}
         <td></td>
     {% endif %}
