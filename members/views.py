@@ -14,6 +14,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 
 #from django.contrib.auth.views import login, logout
 from django.utils.decorators import method_decorator
@@ -742,6 +743,7 @@ def bar(request):
 def home(request):
     """Renders the home page."""
     assert isinstance(request, HttpRequest)
+    db_name = settings.DATABASES['default']['NAME']
     return render(
         request,
         'members/index.html',
@@ -749,6 +751,7 @@ def home(request):
         {
             'title':'Home Page',
             'year':datetime.now().year,
+            'db_name':db_name,
         })
     )
 

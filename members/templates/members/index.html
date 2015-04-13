@@ -4,9 +4,15 @@
 
 <div class="jumbotron">
     <img src="{% static "members/content/CWLTC logo small.png" %}"/>
+    
     <h2>Coombe Wood Lawn Tennis Club</h2>
-    <p class="lead">Membership system</p>
-
+    <p class="lead">Membership system
+    {% if db_name == "sandbox" %}
+     [SANDBOX]
+    {% elif db_name == "cwltc" %}
+     [LOCAL]
+    {% endif %}
+    </p>
     <p><a href="/list" class="btn btn-primary btn-large">List members &raquo;</a></p>
     <p><a href="/select" class="btn btn-primary btn-large">Go to person or invoice &raquo;</a></p>
 </div>
