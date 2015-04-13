@@ -1,0 +1,596 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{d70fc3d0-25e7-4971-b390-e465ab903278}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>manage.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{5F0BE9CA-D677-4A4D-8806-6076C0FAAD37};{349c5851-65df-11da-9384-00065b846f21};{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Django launcher</LaunchProvider>
+    <InterpreterId>{04b0df60-5862-4e27-8707-c45ed9160210}</InterpreterId>
+    <InterpreterVersion>2.7</InterpreterVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <DjangoSettingsModule>mysite.settings</DjangoSettingsModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="members\static\members\content\bootstrap.css" />
+    <Content Include="members\static\members\content\bootstrap.min.css" />
+    <Content Include="members\static\members\content\CWLTC logo small.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_diagonals-thick_8_333333_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_flat_65_ffffff_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_glass_40_111111_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_glass_55_1c1c1c_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_highlight-hard_100_f9f9f9_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_highlight-hard_40_aaaaaa_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_highlight-soft_50_aaaaaa_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_inset-hard_45_cd0a0a_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_inset-hard_55_ffeb80_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-icons_222222_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-icons_4ca300_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-icons_bbbbbb_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-icons_ededed_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-icons_ffcf29_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\black-tie\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-bg_diagonals-thick_75_f3d8d8_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-bg_dots-small_65_a6a6a6_2x2.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-bg_flat_0_333333_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-bg_flat_65_ffffff_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-bg_glass_55_fbf8ee_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-bg_highlight-hard_100_eeeeee_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-bg_highlight-hard_100_f6f6f6_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-bg_highlight-soft_15_cc0000_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-icons_004276_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-icons_cc0000_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\blitzer\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-bg_diagonals-thick_90_eeeeee_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-bg_flat_15_cd0a0a_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-bg_glass_100_e4f1fb_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-bg_glass_50_3baae3_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-bg_glass_80_d7ebf9_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-bg_highlight-hard_100_f2f5f7_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-bg_highlight-hard_70_000000_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-bg_highlight-soft_100_deedf7_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-bg_highlight-soft_25_ffef8f_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-icons_2694e8_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-icons_3d80b3_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-icons_72a7cf_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\cupertino\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-bg_flat_30_cccccc_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-bg_flat_50_5c5c5c_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-bg_glass_40_ffc73d_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-bg_highlight-hard_20_0972a5_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-bg_highlight-soft_33_003147_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-bg_highlight-soft_35_222222_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-bg_highlight-soft_44_444444_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-bg_highlight-soft_80_eeeeee_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-bg_loop_25_000000_21x21.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-icons_222222_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-icons_4b8e0b_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-icons_a83300_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-icons_cccccc_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\dark-hive\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-bg_diagonals-thick_15_0b3e6f_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-bg_dots-medium_30_0b58a2_4x4.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-bg_dots-small_20_333333_2x2.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-bg_dots-small_30_a32d00_2x2.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-bg_dots-small_40_00498f_2x2.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-bg_flat_40_292929_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-bg_gloss-wave_20_111111_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-icons_00498f_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-icons_98d2fb_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-icons_9ccdfc_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\dot-luv\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-bg_flat_0_eeeeee_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-bg_flat_55_994d53_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-bg_flat_55_fafafa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-bg_gloss-wave_30_3d3644_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-bg_highlight-soft_100_dcd9de_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-bg_highlight-soft_100_eae6ea_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-bg_highlight-soft_25_30273a_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-bg_highlight-soft_45_5f5964_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-icons_454545_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-icons_734d99_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-icons_8d78a5_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-icons_a8a3ae_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-icons_ebccce_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\eggplant\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-bg_diagonals-small_25_c5ddfc_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-bg_diagonals-thick_20_e69700_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-bg_diagonals-thick_22_1484e6_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-bg_diagonals-thick_26_2293f7_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-bg_flat_0_e69700_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-bg_flat_0_e6b900_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-bg_highlight-soft_100_f9f9f9_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-bg_inset-hard_100_eeeeee_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-icons_0a82eb_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-icons_0b54d5_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-icons_5fa5e3_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-icons_fcdd4a_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\excite-bike\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_flat_0_eeeeee_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_flat_55_ffffff_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_highlight-soft_100_f6f6f6_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_highlight-soft_25_0073ea_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_highlight-soft_50_dddddd_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-icons_0073ea_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-icons_454545_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-icons_666666_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-icons_ff0084_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\flick\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-bg_diagonals-small_40_db4865_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-bg_diagonals-small_50_93c3cd_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-bg_diagonals-small_50_ff3853_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-bg_diagonals-small_75_ccd232_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-bg_dots-medium_80_ffff38_4x4.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-bg_dots-small_35_35414f_2x2.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-bg_flat_75_ba9217_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-bg_white-lines_85_f7f7ba_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-icons_454545_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-icons_88a206_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-icons_c02669_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-icons_e1e463_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-icons_ffeb33_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\hot-sneaks\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-bg_flat_75_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-bg_glass_100_f5f0e5_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-bg_glass_25_cb842e_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-bg_glass_70_ede4d4_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-bg_highlight-hard_100_f4f0ec_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-bg_highlight-hard_65_fee4bd_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-bg_highlight-hard_75_f5f5b5_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-bg_inset-soft_100_f4f0ec_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-icons_c47a23_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-icons_cb672b_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-icons_f08000_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-icons_f35f07_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-icons_ff7519_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\humanity\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-bg_diagonals-small_0_aaaaaa_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-bg_diagonals-thick_15_444444_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-bg_diagonals-thick_95_ffdc2e_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-bg_glass_55_fbf5d0_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-bg_highlight-hard_30_285c00_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-bg_highlight-soft_33_3a8104_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-bg_highlight-soft_50_4eb305_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-bg_highlight-soft_60_4ca20b_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-bg_inset-soft_10_285c00_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-icons_4eb305_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-icons_72b42d_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\le-frog\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-bg_glass_15_5f391b_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-bg_gloss-wave_20_1c160d_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-bg_gloss-wave_25_453326_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-bg_gloss-wave_30_44372c_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-bg_highlight-soft_20_201913_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-bg_highlight-soft_20_619226_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-bg_inset-soft_10_201913_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-icons_222222_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-icons_9bcc60_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-icons_add978_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-icons_e3ddc9_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-icons_f1fd86_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\mint-choc\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-bg_flat_0_eeeeee_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-bg_flat_55_c0402a_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-bg_flat_55_eeeeee_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-bg_glass_100_f8f8f8_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-bg_glass_35_dddddd_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-bg_glass_60_eeeeee_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-bg_inset-hard_75_999999_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-bg_inset-soft_50_c9c9c9_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-icons_3383bb_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-icons_454545_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-icons_70b2e1_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-icons_999999_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\images\ui-icons_fbc856_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\overcast\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-bg_diagonal-maze_20_6e4f1c_10x10.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-bg_diagonal-maze_40_000000_10x10.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-bg_fine-grain_10_eceadf_60x60.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-bg_fine-grain_10_f8f7f6_60x60.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-bg_fine-grain_15_eceadf_60x60.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-bg_fine-grain_15_f7f3de_60x60.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-bg_fine-grain_15_ffffff_60x60.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-bg_fine-grain_65_654b24_60x60.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-bg_fine-grain_68_b83400_60x60.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-icons_222222_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-icons_3572ac_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-icons_8c291d_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-icons_b83400_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-icons_fbdb93_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\pepper-grinder\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-bg_flat_55_fbec88_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-bg_glass_75_d0e5f5_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-bg_glass_85_dfeffc_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-bg_gloss-wave_55_5c9ccc_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-bg_inset-hard_100_f5f8f9_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-bg_inset-hard_100_fcfdfd_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-icons_217bc0_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-icons_469bdd_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-icons_6da8d5_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-icons_d8e7f3_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\images\ui-icons_f9bd01_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\redmond\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-bg_glass_55_fbf9ee_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-bg_glass_75_dadada_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-bg_glass_75_e6e6e6_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-icons_222222_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-icons_454545_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-icons_888888_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\smoothness\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-bg_glass_55_fcf0ba_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-bg_gloss-wave_100_ece8da_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-bg_highlight-hard_100_f5f3e5_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-bg_highlight-hard_100_fafaf4_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-bg_highlight-hard_15_459e00_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-bg_highlight-hard_95_cccccc_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-bg_highlight-soft_25_67b021_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-bg_highlight-soft_95_ffedad_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-bg_inset-soft_15_2b2922_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-icons_808080_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-icons_847e71_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-icons_8DC262_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-icons_eeeeee_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\south-street\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-bg_flat_55_999999_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-bg_flat_75_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-bg_glass_45_0078ae_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-bg_glass_55_f8da4e_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-bg_glass_75_79c9ec_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-bg_gloss-wave_45_e14f1c_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-bg_gloss-wave_50_6eac2c_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-bg_gloss-wave_75_2191c0_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-bg_inset-hard_100_fcfdfd_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-icons_0078ae_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-icons_056b93_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-icons_d8e7f3_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-icons_e0fdff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-icons_f5e175_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-icons_f7a50d_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\images\ui-icons_fcd113_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\start\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-bg_diagonals-medium_20_d34d17_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-bg_flat_30_cccccc_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-bg_flat_50_5c5c5c_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-bg_gloss-wave_45_817865_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-bg_gloss-wave_60_fece2f_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-bg_gloss-wave_70_ffdd57_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-bg_gloss-wave_90_fff9e5_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-bg_highlight-soft_100_feeebd_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-bg_inset-soft_30_ffffff_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-icons_3d3d3d_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-icons_bd7b00_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-icons_d19405_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-icons_eb990f_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-icons_ed9f26_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-icons_fadc7a_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\images\ui-icons_ffe180_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\sunny\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-bg_diamond_10_4f4221_10x8.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-bg_diamond_20_372806_10x8.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-bg_diamond_25_675423_10x8.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-bg_diamond_25_d5ac5d_10x8.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-bg_diamond_8_261803_10x8.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-bg_diamond_8_443113_10x8.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-bg_flat_75_ddd4b0_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-bg_highlight-hard_65_fee4bd_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-icons_070603_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-icons_e8e2b5_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-icons_e9cd86_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-icons_efec9f_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-icons_f2ec64_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-icons_f9f2bd_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\images\ui-icons_ff7519_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\swanky-purse\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-bg_diagonals-small_50_262626_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-bg_flat_0_303030_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-bg_flat_0_4c4c4c_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-bg_glass_40_0a0a0a_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-bg_glass_55_f1fbe5_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-bg_glass_60_000000_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-bg_gloss-wave_55_000000_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-bg_gloss-wave_85_9fda58_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-bg_gloss-wave_95_f6ecd5_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-icons_000000_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-icons_1f1f1f_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-icons_9fda58_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-icons_b8ec79_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\trontastic\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-bg_flat_30_cccccc_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-bg_flat_50_5c5c5c_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-bg_glass_20_555555_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-bg_glass_40_0078a3_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-bg_glass_40_ffc73d_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-bg_gloss-wave_25_333333_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-bg_highlight-soft_80_eeeeee_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-bg_inset-soft_25_000000_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-bg_inset-soft_30_f58400_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-icons_222222_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-icons_4b8e0b_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-icons_a83300_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-icons_cccccc_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-darkness\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-bg_diagonals-thick_18_b81900_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-bg_diagonals-thick_20_666666_40x40.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-bg_flat_10_000000_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-bg_glass_100_f6f6f6_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-bg_glass_100_fdf5ce_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-bg_gloss-wave_35_f6a828_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-bg_highlight-soft_100_eeeeee_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-bg_highlight-soft_75_ffe45c_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-icons_222222_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-icons_228ef1_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-icons_ef8c08_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-icons_ffd27a_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\ui-lightness\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-bg_gloss-wave_16_121212_500x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-bg_highlight-hard_15_888888_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-bg_highlight-hard_55_555555_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-bg_highlight-soft_35_adadad_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-bg_highlight-soft_60_dddddd_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-bg_inset-soft_15_121212_1x100.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-icons_666666_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-icons_aaaaaa_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-icons_bbbbbb_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-icons_c98000_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-icons_cccccc_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\images\ui-icons_f29a00_256x240.png" />
+    <Content Include="members\static\members\content\jquery-ui\vader\jquery-ui.css" />
+    <Content Include="members\static\members\content\site.css" />
+    <Content Include="members\static\members\fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="members\static\members\scripts\bootstrap.js" />
+    <Content Include="members\static\members\scripts\bootstrap.min.js" />
+    <Content Include="members\static\members\scripts\jquery-1.10.2.intellisense.js" />
+    <Content Include="members\static\members\scripts\jquery-1.10.2.js" />
+    <Content Include="members\static\members\scripts\jquery-1.10.2.min.js" />
+    <Content Include="members\static\members\scripts\jquery-ui.js" />
+    <Content Include="members\static\members\scripts\jquery.validate-vsdoc.js" />
+    <Content Include="members\static\members\scripts\jquery.validate.js" />
+    <Content Include="members\static\members\scripts\jquery.validate.min.js" />
+    <Content Include="members\static\members\scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="members\static\members\scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="members\static\members\scripts\modernizr-2.6.2.js" />
+    <Content Include="members\static\members\scripts\respond.js" />
+    <Content Include="members\static\members\scripts\respond.min.js" />
+    <Content Include="members\static\members\scripts\_references.js" />
+    <Content Include="members\templates\members\about.html" />
+    <Content Include="members\templates\members\contact.html" />
+    <Content Include="members\templates\members\filter_member.html" />
+    <Content Include="members\templates\members\generic_crispy_form.html" />
+    <Content Include="members\templates\members\generic_result.html" />
+    <Content Include="members\templates\members\import_excel.html" />
+    <Content Include="members\templates\members\import_more.html" />
+    <Content Include="members\templates\members\index.html" />
+    <Content Include="members\templates\members\invoiceitem_detail.html" />
+    <Content Include="members\templates\members\invoiceitem_form.html" />
+    <Content Include="members\templates\members\invoiceitem_list.html" />
+    <Content Include="members\templates\members\invoice_detail.html" />
+    <Content Include="members\templates\members\invoice_email.html" />
+    <Content Include="members\templates\members\invoice_list.html" />
+    <Content Include="members\templates\members\invoice_select.html" />
+    <Content Include="members\templates\members\junior_form.html" />
+    <Content Include="members\templates\members\layout.html" />
+    <Content Include="members\templates\members\login.html" />
+    <Content Include="members\templates\members\loginpartial.html" />
+    <Content Include="members\templates\members\payment_detail.html" />
+    <Content Include="members\templates\members\payment_form.html" />
+    <Content Include="members\templates\members\person_detail.html" />
+    <Content Include="members\templates\members\person_form.html" />
+    <Content Include="members\templates\members\person_table.html" />
+    <Content Include="members\templates\members\subscription_detail.html" />
+    <Content Include="members\templates\members\subscription_form.html" />
+    <Content Include="members\templates\members\subsmail.html" />
+    <Content Include="members\templates\members\textblock_form.html" />
+    <Content Include="members\templates\members\textblock_list.html" />
+    <Content Include="members\templates\members\xperson_list.html" />
+    <Content Include="members\templates\members\_address_block.html" />
+    <Content Include="members\templates\members\_how_to_pay.html" />
+    <Content Include="members\templates\members\_invoiceitem_list.html" />
+    <Content Include="members\templates\members\_invoice_detail.html" />
+    <Content Include="members\templates\members\_invoice_email.html" />
+    <Content Include="members\templates\members\_invoice_list.html" />
+    <Content Include="members\templates\members\_payment_list.html" />
+    <Content Include="members\templates\members\_subscription_list.html" />
+    <Content Include="requirements.txt" />
+    <Content Include="static\README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="manage.py" />
+    <Compile Include="members\admin.py" />
+    <Compile Include="members\excel.py" />
+    <Compile Include="members\forms.py" />
+    <Compile Include="members\ftpService.py" />
+    <Compile Include="members\mail.py" />
+    <Compile Include="members\migrations\0001_initial.py" />
+    <Compile Include="members\migrations\0002_auto_20150405_1601.py" />
+    <Compile Include="members\migrations\0003_auto_20150406_1504.py" />
+    <Compile Include="members\migrations\0004_auto_20150412_0826.py" />
+    <Compile Include="members\migrations\__init__.py" />
+    <Compile Include="members\models.py" />
+    <Compile Include="members\subs.py" />
+    <Compile Include="members\templatetags\members_extras.py" />
+    <Compile Include="members\templatetags\__init__.py" />
+    <Compile Include="members\tests.py" />
+    <Compile Include="members\views.py" />
+    <Compile Include="members\wsgi.py" />
+    <Compile Include="members\__init__.py" />
+    <Compile Include="mysite\settings.py" />
+    <Compile Include="mysite\urls.py" />
+    <Compile Include="mysite\views.py" />
+    <Compile Include="mysite\__init__.py" />
+    <Compile Include="setup.py" />
+    <Compile Include="wsgi.py" />
+    <Compile Include="wsgi\wsgi.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="members" />
+    <Folder Include="members\migrations" />
+    <Folder Include="members\static\" />
+    <Folder Include="members\static\members\" />
+    <Folder Include="members\static\members\content" />
+    <Folder Include="members\static\members\content\jquery-ui\" />
+    <Folder Include="members\static\members\content\jquery-ui\black-tie" />
+    <Folder Include="members\static\members\content\jquery-ui\black-tie\images" />
+    <Folder Include="members\static\members\content\jquery-ui\blitzer" />
+    <Folder Include="members\static\members\content\jquery-ui\blitzer\images" />
+    <Folder Include="members\static\members\content\jquery-ui\cupertino" />
+    <Folder Include="members\static\members\content\jquery-ui\cupertino\images" />
+    <Folder Include="members\static\members\content\jquery-ui\dark-hive" />
+    <Folder Include="members\static\members\content\jquery-ui\dark-hive\images" />
+    <Folder Include="members\static\members\content\jquery-ui\dot-luv" />
+    <Folder Include="members\static\members\content\jquery-ui\dot-luv\images" />
+    <Folder Include="members\static\members\content\jquery-ui\eggplant" />
+    <Folder Include="members\static\members\content\jquery-ui\eggplant\images" />
+    <Folder Include="members\static\members\content\jquery-ui\excite-bike" />
+    <Folder Include="members\static\members\content\jquery-ui\excite-bike\images" />
+    <Folder Include="members\static\members\content\jquery-ui\flick" />
+    <Folder Include="members\static\members\content\jquery-ui\flick\images" />
+    <Folder Include="members\static\members\content\jquery-ui\hot-sneaks" />
+    <Folder Include="members\static\members\content\jquery-ui\hot-sneaks\images" />
+    <Folder Include="members\static\members\content\jquery-ui\humanity" />
+    <Folder Include="members\static\members\content\jquery-ui\humanity\images" />
+    <Folder Include="members\static\members\content\jquery-ui\le-frog" />
+    <Folder Include="members\static\members\content\jquery-ui\le-frog\images" />
+    <Folder Include="members\static\members\content\jquery-ui\mint-choc" />
+    <Folder Include="members\static\members\content\jquery-ui\mint-choc\images" />
+    <Folder Include="members\static\members\content\jquery-ui\overcast" />
+    <Folder Include="members\static\members\content\jquery-ui\overcast\images" />
+    <Folder Include="members\static\members\content\jquery-ui\pepper-grinder" />
+    <Folder Include="members\static\members\content\jquery-ui\pepper-grinder\images" />
+    <Folder Include="members\static\members\content\jquery-ui\redmond" />
+    <Folder Include="members\static\members\content\jquery-ui\redmond\images" />
+    <Folder Include="members\static\members\content\jquery-ui\smoothness" />
+    <Folder Include="members\static\members\content\jquery-ui\smoothness\images" />
+    <Folder Include="members\static\members\content\jquery-ui\south-street" />
+    <Folder Include="members\static\members\content\jquery-ui\south-street\images" />
+    <Folder Include="members\static\members\content\jquery-ui\start" />
+    <Folder Include="members\static\members\content\jquery-ui\start\images" />
+    <Folder Include="members\static\members\content\jquery-ui\sunny" />
+    <Folder Include="members\static\members\content\jquery-ui\sunny\images" />
+    <Folder Include="members\static\members\content\jquery-ui\swanky-purse" />
+    <Folder Include="members\static\members\content\jquery-ui\swanky-purse\images" />
+    <Folder Include="members\static\members\content\jquery-ui\trontastic" />
+    <Folder Include="members\static\members\content\jquery-ui\trontastic\images" />
+    <Folder Include="members\static\members\content\jquery-ui\ui-darkness" />
+    <Folder Include="members\static\members\content\jquery-ui\ui-darkness\images" />
+    <Folder Include="members\static\members\content\jquery-ui\ui-lightness" />
+    <Folder Include="members\static\members\content\jquery-ui\ui-lightness\images" />
+    <Folder Include="members\static\members\content\jquery-ui\vader" />
+    <Folder Include="members\static\members\content\jquery-ui\vader\images" />
+    <Folder Include="members\static\members\fonts" />
+    <Folder Include="members\static\members\scripts" />
+    <Folder Include="members\templates\" />
+    <Folder Include="members\templates\members" />
+    <Folder Include="members\templatetags" />
+    <Folder Include="mysite" />
+    <Folder Include="static" />
+    <Folder Include="wsgi" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="..\admin\env\">
+      <Id>{04b0df60-5862-4e27-8707-c45ed9160210}</Id>
+      <BaseInterpreter>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</BaseInterpreter>
+      <Version>2.7</Version>
+      <Description>env (Python 2.7)</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <LibraryPath>Lib\</LibraryPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X86</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Django.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:54477/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}" User="">
+        <WebProjectProperties>
+          <StartPageUrl>
+          </StartPageUrl>
+          <StartAction>CurrentPage</StartAction>
+          <AspNetDebugging>True</AspNetDebugging>
+          <SilverlightDebugging>False</SilverlightDebugging>
+          <NativeDebugging>False</NativeDebugging>
+          <SQLDebugging>False</SQLDebugging>
+          <ExternalProgram>
+          </ExternalProgram>
+          <StartExternalURL>
+          </StartExternalURL>
+          <StartCmdLineArguments>
+          </StartCmdLineArguments>
+          <StartWorkingDirectory>
+          </StartWorkingDirectory>
+          <EnableENC>True</EnableENC>
+          <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
