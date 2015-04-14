@@ -364,6 +364,7 @@ class Payment(models.Model):
     amount = models.DecimalField(max_digits=7, decimal_places=2, null=False)
     credited = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
     state = models.SmallIntegerField(choices=STATES, default=NOT_MATCHED)
+    banked = models.BooleanField(default=False)
     
     def __unicode__(self):
         return "Payment:{} amount:{} credited:{} state:{}".format(
@@ -414,12 +415,12 @@ class CreditNote(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     person = models.ForeignKey(Person)
-    invoice = models.ForeignKey(Invoice)
+    invoice = models.ForeignKey(Invoice, blank=True, null=True)
     amount = models.DecimalField(max_digits=7, decimal_places=2, null=False)
     reference = models.CharField(max_length=80, blank=True, null=True)
     detail = models.CharField(max_length=1000, blank=True, null=True)
 
-
+    
 class ItemType(models.Model):
     SUBSCRIPTION = 1
     JOINING = 2

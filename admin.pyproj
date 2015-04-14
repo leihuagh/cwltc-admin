@@ -15,6 +15,7 @@
     <InterpreterVersion>2.7</InterpreterVersion>
     <UseIISExpress>true</UseIISExpress>
     <DjangoSettingsModule>mysite.settings</DjangoSettingsModule>
+    <Name>admin</Name>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -456,9 +457,6 @@
     <Compile Include="members\ftpService.py" />
     <Compile Include="members\mail.py" />
     <Compile Include="members\migrations\0001_initial.py" />
-    <Compile Include="members\migrations\0002_auto_20150405_1601.py" />
-    <Compile Include="members\migrations\0003_auto_20150406_1504.py" />
-    <Compile Include="members\migrations\0004_auto_20150412_0826.py" />
     <Compile Include="members\migrations\__init__.py" />
     <Compile Include="members\models.py" />
     <Compile Include="members\subs.py" />
