@@ -15,17 +15,19 @@ else:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # adjust to turn off when on Openshift, but allow an environment variable to override on PAAS
-DEBUG = not ON_PAAS
-DEBUG = True
-DEBUG = DEBUG or 'DEBUG' in os.environ
+DEBUG = not ON_PAAS or 'DEBUG' in os.environ
+
+if ON_PAAS and os.environ['OPENSHIFT_APP_NAME'] == "sandbox":
+    DEBUG = True
+
 if ON_PAAS and DEBUG:
     print("*** Warning - Debug mode is on ***")
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = DEBUG
 
 if ON_PAAS:
     ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
-else:
+else:   
     ALLOWED_HOSTS = []
 
 # Application definition
@@ -60,7 +62,6 @@ ROOT_URLCONF = 'mysite.urls'
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
 if ON_PAAS:
-    # determine if we are on MySQL or POSTGRESQL
     if "OPENSHIFT_POSTGRESQL_DB_USERNAME" in os.environ: 
     
         DATABASES = {
