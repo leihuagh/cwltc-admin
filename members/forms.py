@@ -1,6 +1,6 @@
 from os import path
-
 from django import forms
+from django.forms import Form, ModelForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
@@ -14,7 +14,7 @@ from .models import (Person, Address, Subscription, Membership, Invoice, Invoice
                      Payment, ExcelBook, TextBlock)
 from .excel import *
 
-class FilterMemberForm(forms.Form):
+class FilterMemberForm(Form):
    
     success_url = '/list'
     helper = FormHelper()
@@ -29,7 +29,117 @@ class FilterMemberForm(forms.Form):
         for cat in memcats:
             self.fields[str(cat.id)] = forms.BooleanField(required = False, label = cat.description)
 
-class JuniorForm(forms.ModelForm):
+class PersonForm(ModelForm):
+    
+    address1 = forms.CharField(max_length=50)
+    address2 = forms.CharField(max_length=50, required=False)
+    town = forms.CharField(max_length=30)
+    post_code = forms.CharField(max_length=15)
+    home_phone = forms.CharField(max_length=20, required=False)
+
+    class Meta:
+        model = Person
+        fields = ['gender',
+                'first_name',
+                'last_name',
+                'dob',
+                'email',
+                'mobile_phone',
+                'british_tennis',
+                'pays_own_bill',
+                'pays_family_bill',
+                'date_joined',
+                'notes']
+
+    def __init__(self, *args, **kwargs):
+        super(PersonForm, self).__init__(*args, **kwargs)
+        self.fields['dob'].label = 'Date of birth'
+        instance = getattr(self, 'instance', None)
+
+            
+        self.helper = FormHelper(self)
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Div(
+                'first_name',
+                'last_name', 
+                'gender',
+                'dob',
+            ),
+            Fieldset('Address',
+                'address1',
+                'address2',
+                'town',
+                'post_code', 
+            ),
+            Fieldset('Contact details',
+                'home_phone',  
+                'mobile_phone',
+                'email'
+            ),
+            Fieldset('Other information',
+                'notes',
+                'british_tennis',
+                'pays_own_bill',
+                'pays_family_bill',
+                'date_joined'      
+            ),
+            ButtonHolder(
+                Submit('submit', 'Save', css_class='btn-group-lg'),
+                HTML('<a class="btn btn-default btn-group-lg" href={% url "person-list" %}>Cancel</a>')
+            )
+        )
+
+
+    def save(self, commit=True):
+        ''' Create a person linked to an address record '''
+        person = super(PersonForm, self).save(commit=False)
+        address = Address.objects.create(
+            address1 = self.cleaned_data['address1'],
+            address2 = self.cleaned_data['address2'],
+            town = self.cleaned_data['town'],
+            post_code = self.cleaned_data['post_code'],
+            home_phone = self.cleaned_data['home_phone']
+            )
+        person.address = address
+        person.save()
+
+class AddressForm(ModelForm):
+
+    class Meta:
+        model = Address
+        fields = [
+                'address1',
+                'address2',
+                'town',
+                'post_code',
+                'home_phone'
+                ]
+
+    def __init__(self, *args, **kwargs):
+        super(AddressForm, self).__init__(*args, **kwargs)      
+        self.helper = FormHelper(self)
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Fieldset("",
+                'address1',
+                'address2',
+                'town',
+                'post_code',
+                'home_phone' 
+             ),    
+             ButtonHolder(
+                Submit('submit', 'Save', css_class='btn-group-lg')
+                )
+             )
+              
+class JuniorForm(ModelForm):
 
     success_url = '/list'
     ''' additional fields for this form '''
@@ -149,7 +259,7 @@ class JuniorForm(forms.ModelForm):
         sub.activate()
         sub.generate_invoice_items(month)
 
-class SubscriptionForm(forms.ModelForm):
+class SubscriptionForm(ModelForm):
     
     def __init__(self, *args, **kwargs):
         super(SubscriptionForm, self).__init__(*args, **kwargs)
@@ -209,7 +319,7 @@ class SubscriptionForm(forms.ModelForm):
         fields = ['sub_year', 'start_date', 'end_date', 'period', 'membership', 'no_renewal']
 
 
-class InvoiceItemForm(forms.ModelForm):
+class InvoiceItemForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(InvoiceItemForm, self).__init__(*args, **kwargs)
@@ -235,7 +345,7 @@ class InvoiceItemForm(forms.ModelForm):
         fields = ['item_type', 'item_date', 'description', 'amount']
         widgets = {'item_date': forms.DateInput(attrs={'class':'datepicker'}),}
 
-class InvoiceSelectForm(forms.Form):
+class InvoiceSelectForm(Form):
     CHOICES=[(1, 'Invoice reference number'),
              (2, 'Person reference number')]
 
@@ -267,7 +377,7 @@ class InvoiceSelectForm(forms.Form):
             except:
                 raise forms.ValidationError("Person with id {} not found".format(ref))
 
-class PaymentForm(forms.ModelForm):
+class PaymentForm(ModelForm):
 
      def __init__(self, *args, **kwargs):
         super(PaymentForm, self).__init__(*args, **kwargs)
@@ -286,7 +396,7 @@ class PaymentForm(forms.ModelForm):
         model = Payment
         fields = ['type', 'amount']
 
-class TextBlockForm(forms.ModelForm):
+class TextBlockForm(ModelForm):
 
      def __init__(self, *args, **kwargs):
         super(TextBlockForm, self).__init__(*args, **kwargs)
@@ -305,14 +415,16 @@ class TextBlockForm(forms.ModelForm):
             'text': Textarea(attrs={'cols': 80, 'rows': 50}),
             }
 
-class XlsInputForm(forms.Form):
+class XlsInputForm(Form):
     IMPORT_FILE_TYPES = ['.xls', ]
     BASE = 0
     MEMBERS = 1
     ITEMS = 2
+    BACKUP = 3
     CHOICES=[(BASE, 'Basic tables'),
-             (MEMBERS, 'Backup file'),
-             (ITEMS, 'Invoice items')
+             (MEMBERS, 'Members file'),
+             (ITEMS, 'Invoice items'),
+             (BACKUP, 'Backup file')
             ]
 
     input_excel = forms.FileField(required=True, label=u"Select the Excel file")
@@ -338,7 +450,7 @@ class XlsInputForm(forms.Form):
         else:
             return input_excel
 
-class XlsMoreForm(forms.Form):
+class XlsMoreForm(Form):
 
     def __init__(self, *args, **kwargs):
         super(XlsMoreForm, self).__init__(*args, **kwargs)
@@ -347,7 +459,7 @@ class XlsMoreForm(forms.Form):
         self.helper.form_method = 'post'
         self.helper.add_input(Submit('submit', 'Next', css_class='btn-group-lg'))
 
-class GenericMoreForm(forms.Form):
+class GenericMoreForm(Form):
     
     def __init__(self, *args, **kwargs):
         super(GenericMoreForm, self).__init__(*args, **kwargs)
@@ -367,7 +479,7 @@ class BootstrapAuthenticationForm(AuthenticationForm):
                                    'class': 'form-control',
                                    'placeholder':'Password'}))
 
-class SelectSheetsForm(forms.Form):
+class SelectSheetsForm(Form):
     
     def __init__(self, *args, **kwargs):
         super(SelectSheetsForm, self).__init__(*args, **kwargs)

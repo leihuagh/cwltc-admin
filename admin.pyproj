@@ -409,6 +409,7 @@
     <Content Include="members\static\members\scripts\respond.min.js" />
     <Content Include="members\static\members\scripts\_references.js" />
     <Content Include="members\templates\members\about.html" />
+    <Content Include="members\templates\members\address_form.html" />
     <Content Include="members\templates\members\contact.html" />
     <Content Include="members\templates\members\filter_member.html" />
     <Content Include="members\templates\members\generic_crispy_form.html" />

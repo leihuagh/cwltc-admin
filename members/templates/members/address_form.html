@@ -1,0 +1,13 @@
+﻿{% extends "members/layout.html" %}
+
+{% load crispy_forms_tags %} 
+{% block content %}
+<h2>Change address for:</h2>
+<h4><a href="{% url "person-detail" pk=person.id %}">{{ person.first_name }} {{ person.last_name }}</a></h4>
+{% if children %}
+    {% for child in children %}
+        <h4><a href="{% url "person-detail" pk=child.id %}">{{ child.first_name }} {{ child.last_name }}</a></h4>
+    {% endfor child %}   
+{% endif %}
+{% crispy form %}
+{% endblock content %}

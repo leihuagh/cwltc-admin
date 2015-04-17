@@ -316,9 +316,30 @@ def export_sheet(book, model_name):
         for col_num in xrange(len(columns)): 
                       
             sheet.write(row_num, col_num, getattr(object, columns[col_num])) 
-        
+   
+def import_all(book):
+    model_name = 'fees'
+    import_sheet(book, model_name)
+    return HttpResponse("Imported")
     
+def import_sheet(book, model_name):
+    try:
+        sheet = book.sheet_by_name(model_name)
+        my_model = get_model ('members', model_name)
+        # get list of column names including foreign keys with _id
+        # but ignore creation_date or update_date
+        columns = []
+        colDict = {}
+        colType = {}
 
+        for col in range(0,sheet.ncols):
+            f_name = sheet.cell(0, col).value
+            field = my_model._meta.get_field(f_name)
+            columns.append(field)
+            type = field.get_internal_type()
+    except:
+        return False
+    return True
 
 def export_invoices():
     response = HttpResponse(content_type='application/vnd.ms-excel')

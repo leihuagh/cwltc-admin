@@ -21,7 +21,7 @@ from django.utils.decorators import method_decorator
 
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, ItemType, TextBlock, ExcelBook)
-from .forms import (JuniorForm, FilterMemberForm, SubscriptionForm,  XlsInputForm, XlsMoreForm,
+from .forms import (PersonForm, JuniorForm, FilterMemberForm, AddressForm, SubscriptionForm,  XlsInputForm, XlsMoreForm,
                     SelectSheetsForm, InvoiceItemForm, PaymentForm, TextBlockForm, InvoiceSelectForm)
 from .excel import *
 import ftpService
@@ -99,13 +99,33 @@ class PersonActionMixin(object):
 
 class PersonCreateView(LoggedInMixin, PersonActionMixin, CreateView):
     model = Person
-    template_name = 'members/person_form.html'
+    template_name = 'members/generic_crispy_form.html'
     success_msg = "Person created"
+    form_class = PersonForm
 
-    def get_context_data(self, **kwargs):
-        context = super(PersonCreateView, self).get_context_data(**kwargs)
-        context['action'] = reverse('person-create')
-        return context
+    #def get_context_data(self, **kwargs):
+    #    context = super(PersonCreateView, self).get_context_data(**kwargs)
+    #    context['action'] = reverse('person-create')
+    #    return context
+
+    def get_success_url(self):
+        return reverse('person-list')
+
+class PersonUpdateView(LoggedInMixin, PersonActionMixin, UpdateView):
+    model = Person
+    template_name = 'members/generic_crispy_form.html'
+    success_msg = "Person updated"
+    form_class = PersonForm
+
+    def get_success_url(self):
+        return reverse('person-list')
+    
+    #def get_context_data(self, **kwargs):
+
+    #    context = super(PersonUpdateView, self).get_context_data(**kwargs)
+    #    context['action'] = reverse('person-edit',
+    #                                kwargs={'pk': self.get_object().id})
+    #    return context
 
 class PersonUnlinkView(LoggedInMixin, View):
 
@@ -188,27 +208,34 @@ def set_person_context(context, pers):
     context['payments'] = pers.payment_set.all().order_by('update_date')
     return context
 
-class PersonUpdateView(LoggedInMixin, PersonActionMixin, UpdateView):
-
-    model = Person
-    #form_class = forms.ContactForm
-    template_name = 'members/person_form.html'
-    success_msg = "Person updated"
-
-    #def get_success_url(self):
-    #    return reverse('person-list')
-    
-    def get_context_data(self, **kwargs):
-
-        context = super(PersonUpdateView, self).get_context_data(**kwargs)
-        context['action'] = reverse('person-edit',
-                                    kwargs={'pk': self.get_object().id})
-        return context
 
 class PersonExportView(LoggedInMixin, View):
 
     def get(self, request, *args, **kwargs):
         return export_members()
+
+# ============== Address
+
+class AddressUpdateView(LoggedInMixin, UpdateView):
+    model = Address
+    form_class = AddressForm
+    template_name = 'members/address_form.html'
+
+    def get_object(self):
+        self.person = Person.objects.get(pk=self.kwargs['person_id'])
+        return self.person.address
+
+    def get_context_data(self, **kwargs):
+        context = super(AddressUpdateView, self).get_context_data(**kwargs)
+        parent = self.person
+        if self.person.linked:
+            parent = self.person.linked
+        context['person'] = parent
+        context['children'] = parent.person_set.all()
+        return context
+
+    def get_success_url(self):
+        return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
 
 # ============== Subscriptions
 
@@ -648,7 +675,12 @@ class ImportExcelView(LoggedInMixin, FormView):
             with open_excel_workbook(my_book.file) as book:
                 import_base_tables(book)
             return HttpResponseRedirect(reverse('import'))
-                                                
+        
+        elif sheet_type == XlsInputForm.BACKUP:
+            my_book = ExcelBook.objects.all()[0]
+            with open_excel_workbook(my_book.file) as book:
+                import_all(book)
+            return HttpResponseRedirect(reverse('import'))                                
         else:
             return HttpResponseRedirect(reverse('select-sheets'))
 
@@ -681,9 +713,6 @@ class SelectSheets(LoggedInMixin, FormView):
                         break          
             context['message'] = '{} items were imported from {} sheets'.format(total, sheet_count)
             return render(self.request, 'members/generic_result.html', context)
-
-def export(request):
-    return export_all()
                        
 class SubRenewBatch(LoggedInMixin, FormView):
     form_class = XlsMoreForm
@@ -713,6 +742,11 @@ class InvoiceBatchView(LoggedInMixin, FormView):
         remaining = InvoiceItem.invoice_batch(size=100)
         return HttpResponseRedirect(reverse('invoice-batch'))
 
+def export(request):
+    return export_all()
+
+def import_backup(request):
+    return import_all()
 
 def testinv(request):
     p=Person.generate_invoices(100)

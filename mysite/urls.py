@@ -117,7 +117,7 @@ urlpatterns = patterns('',
         name='payment-detail'
     ),
 
-
+    #   PEOPLE
     url(
         r'^list$',
        PersonList.as_view(),
@@ -144,6 +144,11 @@ urlpatterns = patterns('',
        name='person-create'
     ),
     url(
+        r'^edit/(?P<pk>\d+)/$',
+       PersonUpdateView.as_view(),
+       name='person-edit'
+    ),
+    url(
         r'^person/unlink/(?P<pk>\d+)/',
        PersonUnlinkView.as_view(),
        name='person-unlink'
@@ -153,18 +158,19 @@ urlpatterns = patterns('',
        JuniorCreateView.as_view(),
        name='junior-create'
     ),
-    url(
-        r'^edit/(?P<pk>\d+)/$',
-       PersonUpdateView.as_view(),
-       name='person-edit'
-    ),
+
     url(
         r'^person/export$',
        PersonExportView.as_view(),
        name='person-export'
     ),
+        url(
+        r'^person/address/(?P<person_id>\d+)/$',
+       AddressUpdateView.as_view(),
+       name='person-address'
+    ),
 
-        #   INVOICE ITEMS
+    #   INVOICE ITEMS
     url(
         r'^items/(?P<pk>\d+)/$',
         InvoiceItemListView.as_view(),
@@ -225,6 +231,12 @@ urlpatterns = patterns('',
         'members.views.export',
         name='export'
     ),
+    url(
+        r'^import_backup$',
+        'members.views.import_backup',
+        name='import-backup'
+    ),
+
     url(
         r'^testinv$',
         'members.views.testinv',

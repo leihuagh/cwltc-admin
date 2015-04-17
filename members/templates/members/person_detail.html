@@ -9,10 +9,8 @@
 <p><h4><a href="{% url "person-edit" pk=person.id %}">
     {{ person.first_name }} {{ person.last_name }}</a></h4></p>
 Id: {{ person.id }}<br />
-{{ address.address1 }}<br />
-{% if address.address2 %}{{ address.address2 }}<br />{% endif %}
-{{ address.town }}<br />
-{{ address.post_code }}</p>
+{% include "members/_address_block.html" %}
+<a href="{% url "person-address" person_id=person.id %}" class="btn btn-primary btn-xs">Change address</a>
 <p>{{ address.home_phone }}<br />
 {{ person.mobile_phone}}</p>
 <p>{{ person.email}}</p>
