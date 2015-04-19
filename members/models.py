@@ -62,7 +62,7 @@ class Person(models.Model):
     # creditnote_set
 
     def __unicode__(self):
-        return self.first_name + " " + self.last_name
+        return self.fullname()
 
     def get_absolute_url(self):
         return reverse("person-detail", kwargs={"pk": self.pk})
@@ -169,6 +169,24 @@ class Person(models.Model):
                 invoice.save()
                 return invoice
             return None
+
+    def fullname(self):
+        return self.first_name + " " + self.last_name
+
+    def link(self, parent):
+        ''' link child to parent
+            If parent = None, just unlink
+            Delete any unknown parents without children '''
+        old_parent = self.linked
+        self.linked = parent
+        self.save()
+        if (
+            old_parent and
+            old_parent.membership == Membership.NON_MEMBER and
+            old_parent.person_set.count() == 0 and
+            old_parent.first_name == 'Unknown'):
+                old_parent.delete()
+    
 
 class Membership(models.Model):
     AUTO = -1

@@ -2,39 +2,92 @@
 
 {% block content %}
 {% load members_extras %}
-<h2>Member detail</h2>
-<p><b>
-{{ mem_dict|get_item:person.membership_id }}<br />
-</b></p>
-<p><h4><a href="{% url "person-edit" pk=person.id %}">
-    {{ person.first_name }} {{ person.last_name }}</a></h4></p>
-Id: {{ person.id }}<br />
-{% include "members/_address_block.html" %}
-<a href="{% url "person-address" person_id=person.id %}" class="btn btn-primary btn-xs">Change address</a>
-<p>{{ address.home_phone }}<br />
-{{ person.mobile_phone}}</p>
-<p>{{ person.email}}</p>
-{% if person.dob %}
-    {{ person.dob }}
-{% else %}
-    (No data of birth)
-{% endif %}  
-{% if children %}
-    <h4>Children</h4>
-    <table width="500">
-        {% for child in children %}
-        <tr>
-            <td><a href="{% url "person-unlink" pk=child.id %}" class="btn btn-primary btn-xs">Unlink</a></td>
-            <td><a href="{% url "person-detail" pk=child.id %}">{{ child.first_name }} {{ child.last_name }}</a></td>
-        </tr>
-        {% endfor child %}
-    </table>
+<style>
+
+.equal, .equal > div[class*='col-'] {  
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    flex:1 1 auto;
+}
+</style>
+
+<h3>{{ person.fullname }}</h3>
+ 
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="panel panel-default">
+       <div class="panel-heading">Address</div>
+       <div class="panel-body">
+            {{ address.address1 }}<br />
+            {% if address.address2 %}{{ address.address2 }}<br />{% endif %}
+            {{ address.town }}<br />
+            {{ address.post_code }}<br />
+            {{ address.home_phone }}
+       </div>
+       <div class="panel-footer"><a href="{% url "person-address" person_id=person.id %}" class="btn btn-primary btn-sm">Edit address
+           </a></div> 
+     </div>
+    </div><!--/col-->
+    <div class="col-md-4">
+      <div class="panel panel-default">
+       <div class="panel-heading">Title</div>
+       <div class="panel-body">
+        Id:     {{ person.id }} <br />
+        Date of birth:  {% if person.dob %}{{ person.dob }}
+                    {% else %}
+                        Unknown
+                    {% endif %}
+        <br /><br />
+        {% if person.email %}{{ person.email }} {% else %}No email address{% endif %}
+        <br />
+        {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}
+        <br />
+       </div>
+       <div class="panel-footer"><a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a></div> 
+
+     </div>
+    </div><!--/col-->
+    <div class="col-md-4">
+      <div class="panel panel-default">
+       <div class="panel-heading">Family</div>
+       <div class="panel-body">
+        {% if person.linked %}
+            <table width="400">
+                <tr>
+            <td><a href="{% url "person-detail" pk=person.linked.id %}">{{ person.linked.fullname }}</a></td>
+            <td> {{ person.linked.membership.description }}</td>              
+                </tr>
+            </table>
     
-{% endif %}
-{% if person.linked %}
-    <h4>Parent</h4>
-    <a href="{% url "person-detail" pk=person.linked.id %}">{{ person.linked.first_name }} {{ person.linked.last_name }}</a>
-{% endif %}
+        {% endif %}
+        {% if children %}
+            <table width="300">
+                {% for child in children %}
+                <tr>
+                    <td><a href="{% url "person-detail" pk=child.id %}">{{ child.fullname }}</a></td>
+                    <td>{{ child.membership.description }}</td>
+                </tr>
+                {% endfor child %}
+            </table>  
+        {% endif %}
+       </div>
+       <div class="panel-footer">
+            {% if person.linked %}
+            <a href="{% url "person-link" pk=person.id %}" class="btn btn-primary btn-sm">Change link</a>
+            {% endif %}
+       </div> 
+     </div>
+    </div><!--/col-->
+  </div>
+</div>
+
+
+
+
 
 {% if subs %}
     {% include "members/_subscription_list.html" %}

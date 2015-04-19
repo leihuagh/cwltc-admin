@@ -154,6 +154,11 @@ urlpatterns = patterns('',
        name='person-unlink'
     ),
     url(
+        r'^person/link/(?P<pk>\d+)/',
+       PersonLinkView.as_view(),
+       name='person-link'
+    ),
+    url(
         r'^junior/create$',
        JuniorCreateView.as_view(),
        name='junior-create'

@@ -21,7 +21,7 @@ from django.utils.decorators import method_decorator
 
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, ItemType, TextBlock, ExcelBook)
-from .forms import (PersonForm, JuniorForm, FilterMemberForm, AddressForm, SubscriptionForm,  XlsInputForm, XlsMoreForm,
+from .forms import (PersonForm, PersonLinkForm, JuniorForm, FilterMemberForm, AddressForm, SubscriptionForm,  XlsInputForm, XlsMoreForm,
                     SelectSheetsForm, InvoiceItemForm, PaymentForm, TextBlockForm, InvoiceSelectForm)
 from .excel import *
 import ftpService
@@ -127,12 +127,29 @@ class PersonUpdateView(LoggedInMixin, PersonActionMixin, UpdateView):
     #                                kwargs={'pk': self.get_object().id})
     #    return context
 
+
+class PersonLinkView(LoggedInMixin, FormView):
+    form_class = PersonLinkForm
+    template_name = 'members/generic_crispy_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(PersonLinkView, self).get_context_data(**kwargs)
+        context['title'] = 'Link ' + Person.objects.get(pk = self.kwargs['pk']).fullname()
+        return context
+
+    def form_valid(self, form):
+        child = Person.objects.get(pk = self.kwargs['pk'])
+        if 'link' in form.data:
+            child.link(form.person)          
+            return redirect(form.person)
+        else:
+            return redirect(child)
+            
 class PersonUnlinkView(LoggedInMixin, View):
 
     def get(self, request, *args, **kwargs):
         person = Person.objects.get(pk = self.kwargs['pk'])
-        person.linked = None
-        person.save()
+        person.link(None)
         return redirect(person)
 
 class JuniorCreateView(LoggedInMixin, PersonActionMixin, CreateView):
@@ -434,7 +451,7 @@ class InvoiceDetailView(LoggedInMixin, DetailView):
         context['types'] = Payment.TYPES
         context['payment_states'] = Payment.STATES
         context['full_payment_button'] = inv.state == Invoice.UNPAID
-        context['can_delete'] = inv.email_count == 0 and inv.postal_count == 0
+        context['can_delete'] = inv.email_count == 0 and inv.postal_count == 0 and inv.state == Invoice.UNPAID
         c_note = None
         if inv.creditnote_set.count() > 0:
             c_note = inv.creditnote_set.all()[0]

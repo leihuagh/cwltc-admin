@@ -108,7 +108,7 @@ class PersonForm(ModelForm):
         person.save()
 
 class AddressForm(ModelForm):
-
+    
     class Meta:
         model = Address
         fields = [
@@ -259,6 +259,56 @@ class JuniorForm(ModelForm):
         sub.activate()
         sub.generate_invoice_items(month)
 
+class PersonLinkForm(Form):
+    ''' Link a person to another '''
+
+    first_name = forms.CharField(max_length=30, required=True)
+    last_name = forms.CharField(max_length=30, required=True)
+
+    
+    def __init__(self, *args, **kwargs):
+        super(Form, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Fieldset('Select parent / bill payer:',
+                'first_name',
+                'last_name'
+                ),
+            ButtonHolder(
+                Submit('link', 'Link', css_class='btn-group-lg'),
+                Submit('cancel', 'Cancel', css_class='btn-group-lg')
+            )
+        )
+
+    def clean_first_name(self):
+        data = self.cleaned_data['first_name']
+        if len(data) < 1:
+            raise forms.ValidationError('Specify at least 1 character')
+        return data
+
+    def clean_last_name(self):
+        data = self.cleaned_data['last_name']
+        if len(data) < 1:
+            raise forms.ValidationError('Specify at least 1 character')
+        return data
+    
+    def clean(self):
+        cleaned_data = super(PersonLinkForm, self).clean()
+        matches = Person.objects.filter(
+            first_name__startswith=cleaned_data.get('first_name'),
+            last_name__startswith=cleaned_data.get('last_name')
+            )
+        if matches.count() == 1:
+            self.person = matches[0]
+        elif matches.count() == 0:
+            raise forms.ValidationError('No matching person')
+        else:
+            raise forms.ValidationError('Too many matching people')
+
 class SubscriptionForm(ModelForm):
     
     def __init__(self, *args, **kwargs):
@@ -337,6 +387,7 @@ class InvoiceItemForm(ModelForm):
         self.helper.error_text_inline = True
         if instance and instance.id:
             self.helper.add_input(Submit('delete', 'Delete', css_class='btn-danger'))
+        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group_lg'))
         self.fields['item_date'].widget.format = '%d/%m/%Y'
         self.fields['item_date'].input_formats = ['%d/%m/%Y']
        
@@ -394,7 +445,7 @@ class PaymentForm(ModelForm):
     
      class Meta:
         model = Payment
-        fields = ['type', 'amount']
+        fields = ['type', 'reference', 'amount']
 
 class TextBlockForm(ModelForm):
 
