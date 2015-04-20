@@ -178,6 +178,7 @@ class Person(models.Model):
             If parent = None, just unlink
             Delete any unknown parents without children '''
         old_parent = self.linked
+        old_addreess = self.address
         self.linked = parent
         self.save()
         if (
@@ -186,7 +187,8 @@ class Person(models.Model):
             old_parent.person_set.count() == 0 and
             old_parent.first_name == 'Unknown'):
                 old_parent.delete()
-    
+        if old_address.person_set.count() == 0:
+            address.delete()
 
 class Membership(models.Model):
     AUTO = -1

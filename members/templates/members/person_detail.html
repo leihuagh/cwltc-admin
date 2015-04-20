@@ -62,9 +62,11 @@
             <td> {{ person.linked.membership.description }}</td>              
                 </tr>
             </table>
-    
-        {% endif %}
-        {% if children %}
+        </div>
+        <div class="panel-footer">
+            <a href="{% url "person-link" pk=person.id %}" class="btn btn-primary btn-sm">Change link</a>
+        </div> 
+        {% elif children %}
             <table width="300">
                 {% for child in children %}
                 <tr>
@@ -72,18 +74,17 @@
                     <td>{{ child.membership.description }}</td>
                 </tr>
                 {% endfor child %}
-            </table>  
+            </table>
+        {% else %}
+           Not part of family
+            <div class="panel-footer">
+                <a href="{% url "person-link" pk=person.id %}" class="btn btn-primary btn-sm">Link to family</a>
+            </div> 
         {% endif %}
        </div>
-       <div class="panel-footer">
-            {% if person.linked %}
-            <a href="{% url "person-link" pk=person.id %}" class="btn btn-primary btn-sm">Change link</a>
-            {% endif %}
-       </div> 
      </div>
     </div><!--/col-->
   </div>
-</div>
 
 
 
@@ -92,7 +93,7 @@
 {% if subs %}
     {% include "members/_subscription_list.html" %}
 {% else %}
-    <h4>No subscriptions</h4>
+     <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Add subscription</a>
 {% endif %}
 
 <table id="statement" class="table table-condensed">

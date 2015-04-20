@@ -54,6 +54,8 @@ class PersonForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(PersonForm, self).__init__(*args, **kwargs)
         self.fields['dob'].label = 'Date of birth'
+        self.fields['dob'].widget.format = ['%d/%m/%Y']
+        self.fields['dob'].input_formats = ['%d/%m/%Y']
         instance = getattr(self, 'instance', None)
 
             
@@ -157,6 +159,8 @@ class JuniorForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(JuniorForm, self).__init__(*args, **kwargs)
+        self.fields['dob'].widget.format = ['%d/%m/%Y']
+        self.fields['dob'].input_formats = ['%d/%m/%Y']
 
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-juniorForm'
@@ -342,7 +346,10 @@ class SubscriptionForm(ModelForm):
             {% endfor %}
             {% endif %}""")
            ) 
-       
+        self.fields['start_date'].widget.format = '%d/%m/%Y'
+        self.fields['end_date'].widget.format = '%d/%m/%Y'
+        self.fields['start_date'].input_formats = ['%d/%m/%Y']
+        self.fields['end_date'].input_formats = ['%d/%m/%Y']
         
         if instance and instance.pk:
             if instance.invoiceitem_set.all().count() > 0:
@@ -362,8 +369,9 @@ class SubscriptionForm(ModelForm):
                     self.helper.add_input(Submit('delete_items', 'Delete item & invoice', css_class='btn-danger'))
                 else:
                     self.helper.add_input(Submit('delete_items', 'Delete item', css_class='btn-danger'))
-            else:
-                self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
+        else:
+            self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
+
     class Meta:
         model = Subscription
         fields = ['sub_year', 'start_date', 'end_date', 'period', 'membership', 'no_renewal']
