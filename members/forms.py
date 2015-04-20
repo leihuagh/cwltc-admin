@@ -369,6 +369,8 @@ class SubscriptionForm(ModelForm):
                     self.helper.add_input(Submit('delete_items', 'Delete item & invoice', css_class='btn-danger'))
                 else:
                     self.helper.add_input(Submit('delete_items', 'Delete item', css_class='btn-danger'))
+            else:
+                self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
         else:
             self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
 
