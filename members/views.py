@@ -419,7 +419,7 @@ class InvoiceDeleteView(LoginRequiredMixin, View):
 
 class InvoiceListView(LoginRequiredMixin, ListView):
     model = Invoice
-    paginate_by = 4
+    paginate_by = 15
     template_name = 'members/invoice_list.html'
     context_object_name = 'invoices'
 
@@ -427,17 +427,18 @@ class InvoiceListView(LoginRequiredMixin, ListView):
         context = super(InvoiceListView, self).get_context_data(**kwargs)
         context['state_list'] = Invoice.STATES
         dict = self.queryset.aggregate(Sum('total'))
+        context['count'] = self.queryset.count()
         context['total'] = dict['total__sum']
         context['option']= self.kwargs['option']
         return context
 
     def get_queryset(self):
         option = self.kwargs['option']
-        if option == 'paid':
+        if option == 'Paid':
             self.queryset = Invoice.objects.filter(state=Invoice.PAID_IN_FULL)
-        elif option == 'unpaid':
+        elif option == 'Unpaid':
             self.queryset = Invoice.objects.filter(state=Invoice.UNPAID) 
-        elif option == 'cancelled':
+        elif option == 'Cancelled':
             self.queryset = Invoice.objects.filter(state=Invoice.CANCELLED)   
         else:
             self.queryset =  Invoice.objects.all()

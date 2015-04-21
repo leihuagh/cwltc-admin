@@ -1,7 +1,7 @@
 ﻿{% extends "members/layout.html" %}
 {% block content %}
-<h2>Invoices</h2>
+<h2>{{ option }} invoices</h2>
     {% include "members/_invoice_list.html" %}
-<h4>Total = {{ total }}</h4>
+<h4>Total = £{{ total }} ({{ count }} invoices)</h4>
 <a href="{% url "filter" %}" class="btn btn-primary">Filter</a> 
 {% endblock %}

@@ -391,6 +391,7 @@
     <Content Include="members\static\members\content\jquery-ui\vader\images\ui-icons_cd0a0a_256x240.png" />
     <Content Include="members\static\members\content\jquery-ui\vader\images\ui-icons_f29a00_256x240.png" />
     <Content Include="members\static\members\content\jquery-ui\vader\jquery-ui.css" />
+    <Content Include="members\static\members\content\jquery.smartmenus.bootstrap.css" />
     <Content Include="members\static\members\content\site.css" />
     <Content Include="members\static\members\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="members\static\members\scripts\bootstrap.js" />
@@ -399,6 +400,9 @@
     <Content Include="members\static\members\scripts\jquery-1.10.2.js" />
     <Content Include="members\static\members\scripts\jquery-1.10.2.min.js" />
     <Content Include="members\static\members\scripts\jquery-ui.js" />
+    <Content Include="members\static\members\scripts\jquery.smartmenus.bootstrap.js" />
+    <Content Include="members\static\members\scripts\jquery.smartmenus.bootstrap.min.js" />
+    <Content Include="members\static\members\scripts\jquery.smartmenus.js" />
     <Content Include="members\static\members\scripts\jquery.validate-vsdoc.js" />
     <Content Include="members\static\members\scripts\jquery.validate.js" />
     <Content Include="members\static\members\scripts\jquery.validate.min.js" />

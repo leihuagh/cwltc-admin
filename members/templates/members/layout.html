@@ -10,31 +10,76 @@
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.css" />
     <script src="{% static 'members/scripts/modernizr-2.6.2.js' %}"></script>
     <link rel='stylesheet' type='text/css' href='{% static 'members/content/jquery-ui/smoothness/jquery-ui.css' %}' />
+    <link rel="stylesheet" type="text/css" href="{% static 'members/content/jquery.smartmenus.bootstrap.css' %}" />
 </head>
 
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a href="/" class="navbar-brand">CWLTC Admin</a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li><a href="{% url 'home' %}">Home</a></li>
-                    <li><a href="{% url 'about' %}">About</a></li>
-                    <li><a href="{% url 'contact' %}">Contact</a></li>
-                </ul>
-                {% include 'members/loginpartial.html' %}
-            </div>
-        </div>
-    </div>
 
-    <div class="container body-content">
+<div class="navbar navbar-inverse navbar-fixed-top role="navigation">
+<div class="container">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="/">CWLTC Admin System</a>
+  </div>
+  <div class="navbar-collapse collapse">
+
+    <!-- Left nav -->
+    <ul class="nav navbar-nav">
+      <li><a href="{% url 'home' %}">Home</a></li>
+      <li><a href="">Menu</a>
+        <ul class="dropdown-menu">
+          <li><a href="{% url 'person-list' %}">People list</a></li>
+          <li><a href="{% url 'person-create' %}">Create adult</a></li>
+          <li><a href="{% url 'junior-create' %}">Create junior</a></li>
+          <li class="divider"></li>
+          
+          <li><a href="{% url 'invoice-list' 'All' %}">All invoices</a></li>
+          <li><a href="{% url 'invoice-list' 'Paid' %}">Paid invoices</a></li>
+          <li><a href="{% url 'invoice-list' 'Unpaid' %}">Unpaid invoices</a></li>
+          <li><a href="{% url 'invoice-list' 'Cancelled' %}">Cancelled invoices</a></li>
+          <li><a href="{% url 'select' %}">Select an invoice</a></li>
+          <li><a href="{% url 'invoice-batch' %}">Create a batch of invoices</a></li>
+          <li class="divider"></li>
+          
+            <li class="dropdown-header">Nav header</li>
+          <li><a href="#">Separated link</a></li>
+          <li><a href="#">One more separated link</a>
+            <ul class="dropdown-menu">
+              <li><a href="#">Action</a></li>
+              <li><a href="#">Another action</a></li>
+              <li><a href="#">A long sub menu</a>
+                <ul class="dropdown-menu">
+                  <li><a href="#">Action</a></li>
+                  <li><a href="#">Something else here</a></li>
+                  <li class="disabled"><a class="disabled" href="#">Disabled item</a></li>
+                  <li><a href="#">One more link</a></li>
+                  <li><a href="#">Menu item 1</a></li>
+                  <li><a href="#">Menu item 2</a></li>
+                  <li><a href="#">Menu item 3</a></li>
+                  <li><a href="#">Menu item 4</a></li>
+                  <li><a href="#">Menu item 5</a></li>
+                </ul>
+              </li>
+              <li><a href="#">Another link</a></li>
+              <li><a href="#">One more link</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <!-- Right nav -->
+    {% include 'members/loginpartial.html' %}
+
+  </div><!--/.nav-collapse -->
+</div>
+</div>
+<div class="container body-content">
 {% if messages %}
 <h3>Messages:</h3>
     <ul class="messages">
@@ -59,6 +104,9 @@
     <script src="{% static 'members/scripts/respond.js' %}"></script>
     <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.js"></script>
     <script type='text/javascript' src='{% static 'members/scripts/jquery-ui.js' %}'></script>
+    <!-- SmartMenus jQuery plugin -->
+    <script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.js' %}'></script>
+    <script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.bootstrap.js' %}'></script>
 {% block scripts %}{% endblock %}
 
 </body>
