@@ -17,7 +17,8 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 
 #from django.contrib.auth.views import login, logout
-from django.utils.decorators import method_decorator
+#from django.utils.decorators import method_decorator
+from braces.views import LoginRequiredMixin
 
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, ItemType, TextBlock, ExcelBook)
@@ -27,13 +28,13 @@ from .excel import *
 import ftpService
 import xlrd
 
-class LoggedInMixin(object):
+#class LoginRequiredMixin(object):
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(LoggedInMixin, self).dispatch(*args, **kwargs)
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
 
-class PersonList(LoggedInMixin, ListView):
+class PersonList(LoginRequiredMixin, ListView):
     model = Person
     template_name = 'members/person_table.html'
 
@@ -46,7 +47,7 @@ class PersonList(LoggedInMixin, ListView):
         add_membership_context(context)
         return context
 
-class FilteredPersonList(LoggedInMixin, ListView):
+class FilteredPersonList(LoginRequiredMixin, ListView):
     model = Person
     template_name = 'members/person_table.html'
 
@@ -74,7 +75,7 @@ class FilteredPersonList(LoggedInMixin, ListView):
         add_membership_context(context)
         return context
 
-class FilterMemberView(LoggedInMixin, FormView):
+class FilterMemberView(LoginRequiredMixin, FormView):
     form_class = FilterMemberForm
     template_name = 'members/filter_member.html'
 
@@ -97,7 +98,7 @@ class PersonActionMixin(object):
         messages.info(self.request, self.success_msg)
         return super(PersonActionMixin, self).form_valid(form)
 
-class PersonCreateView(LoggedInMixin, PersonActionMixin, CreateView):
+class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     model = Person
     template_name = 'members/generic_crispy_form.html'
     success_msg = "Person created"
@@ -111,7 +112,7 @@ class PersonCreateView(LoggedInMixin, PersonActionMixin, CreateView):
     def get_success_url(self):
         return reverse('person-list')
 
-class PersonUpdateView(LoggedInMixin, PersonActionMixin, UpdateView):
+class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
     model = Person
     template_name = 'members/generic_crispy_form.html'
     success_msg = "Person updated"
@@ -128,7 +129,7 @@ class PersonUpdateView(LoggedInMixin, PersonActionMixin, UpdateView):
     #    return context
 
 
-class PersonLinkView(LoggedInMixin, FormView):
+class PersonLinkView(LoginRequiredMixin, FormView):
     form_class = PersonLinkForm
     template_name = 'members/generic_crispy_form.html'
 
@@ -145,14 +146,14 @@ class PersonLinkView(LoggedInMixin, FormView):
         else:
             return redirect(child)
             
-class PersonUnlinkView(LoggedInMixin, View):
+class PersonUnlinkView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         person = Person.objects.get(pk = self.kwargs['pk'])
         person.link(None)
         return redirect(person)
 
-class JuniorCreateView(LoggedInMixin, PersonActionMixin, CreateView):
+class JuniorCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     model = Person
     template_name = 'members/junior_form.html'
     success_msg = "Junior created"
@@ -167,7 +168,7 @@ class JuniorCreateView(LoggedInMixin, PersonActionMixin, CreateView):
     def get_success_url(self):
         return reverse('person-list')
 
-class PersonDetailView(LoggedInMixin, DetailView):
+class PersonDetailView(LoginRequiredMixin, DetailView):
     model = Person
     template_name = 'members/person_detail.html'
 
@@ -226,14 +227,14 @@ def set_person_context(context, pers):
     return context
 
 
-class PersonExportView(LoggedInMixin, View):
+class PersonExportView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         return export_members()
 
 # ============== Address
 
-class AddressUpdateView(LoggedInMixin, UpdateView):
+class AddressUpdateView(LoginRequiredMixin, UpdateView):
     model = Address
     form_class = AddressForm
     template_name = 'members/address_form.html'
@@ -256,7 +257,7 @@ class AddressUpdateView(LoggedInMixin, UpdateView):
 
 # ============== Subscriptions
 
-class SubCreateView(LoggedInMixin, CreateView):
+class SubCreateView(LoginRequiredMixin, CreateView):
     model = Subscription
     form_class = SubscriptionForm
     form = SubscriptionForm()
@@ -279,7 +280,7 @@ class SubCreateView(LoggedInMixin, CreateView):
         result = super(SubCreateView, self).form_valid(form)
         return result
 
-class SubUpdateView(LoggedInMixin, UpdateView):
+class SubUpdateView(LoginRequiredMixin, UpdateView):
     model = Subscription
     form_class = SubscriptionForm
     template_name = 'members/subscription_form.html'
@@ -305,7 +306,7 @@ class SubUpdateView(LoggedInMixin, UpdateView):
             sub.delete_invoice_items()
             return redirect(sub)
 
-class SubDetailView(LoggedInMixin, DetailView):
+class SubDetailView(LoginRequiredMixin, DetailView):
     model = Subscription
     template_name = 'members/subscription_detail.html'
 
@@ -320,14 +321,14 @@ class SubDetailView(LoggedInMixin, DetailView):
                 break
         return context
 
-class SubRenewView(LoggedInMixin, View):
+class SubRenewView(LoginRequiredMixin, View):
     
     def get(self, request, *args, **kwargs):
         sub = Subscription.objects.get(pk = self.kwargs['pk'])
         sub.renew(sub.sub_year+1, Subscription.START_MONTH)
         return redirect(sub.person_member)
 
-class SubInvoiceCancel(LoggedInMixin, View):
+class SubInvoiceCancel(LoginRequiredMixin, View):
     ''' Deletes unpaid items and invoices associated with a sub '''
     
     def get(self, request, *args, **kwargs):
@@ -340,7 +341,7 @@ class SubInvoiceCancel(LoggedInMixin, View):
     
 # ================ Invoice items
 
-class InvoiceItemListView(LoggedInMixin, ListView):
+class InvoiceItemListView(LoginRequiredMixin, ListView):
     model = InvoiceItem
     template_name = 'members/invoiceitem_list.html'
 
@@ -352,7 +353,7 @@ class InvoiceItemListView(LoggedInMixin, ListView):
         context['state_list'] = Invoice.STATES
         return context
 
-class InvoiceItemCreateView(LoggedInMixin, CreateView):
+class InvoiceItemCreateView(LoginRequiredMixin, CreateView):
     model = InvoiceItem
     form_class = InvoiceItemForm
     form = InvoiceItemForm()
@@ -371,7 +372,7 @@ class InvoiceItemCreateView(LoggedInMixin, CreateView):
         form.instance.person = Person.objects.get(pk = self.kwargs['person_id'])
         return super(InvoiceItemCreateView, self).form_valid(form)
 
-class InvoiceItemUpdateView(LoggedInMixin, UpdateView):
+class InvoiceItemUpdateView(LoginRequiredMixin, UpdateView):
     model = InvoiceItem
     form_class = InvoiceItemForm
     template_name = 'members/invoiceitem_form.html'
@@ -395,20 +396,20 @@ class InvoiceItemUpdateView(LoggedInMixin, UpdateView):
             item.delete()
             return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':person_id}))
 
-class InvoiceItemDetailView(LoggedInMixin, DetailView):
+class InvoiceItemDetailView(LoginRequiredMixin, DetailView):
     model = InvoiceItem
     template_name = 'members/invoiceitem_detail.html'
 
 # ================= INVOICES
 
-class InvoiceCancelView(LoggedInMixin, View):
+class InvoiceCancelView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         invoice = Invoice.objects.get(pk = self.kwargs['pk'])
         invoice.cancel()
         return redirect(invoice.person)
 
-class InvoiceDeleteView(LoggedInMixin, View):
+class InvoiceDeleteView(LoginRequiredMixin, View):
     
     def get(self, request, *args, **kwargs):
         invoice= Invoice.objects.get(pk = self.kwargs['pk'])
@@ -416,7 +417,7 @@ class InvoiceDeleteView(LoggedInMixin, View):
         invoice.delete()
         return redirect(invoice.person)
 
-class InvoiceListView(LoggedInMixin, ListView):
+class InvoiceListView(LoginRequiredMixin, ListView):
     model = Invoice
     paginate_by = 4
     template_name = 'members/invoice_list.html'
@@ -442,7 +443,7 @@ class InvoiceListView(LoggedInMixin, ListView):
             self.queryset =  Invoice.objects.all()
         return self.queryset
 
-class InvoiceDetailView(LoggedInMixin, DetailView):
+class InvoiceDetailView(LoginRequiredMixin, DetailView):
     model = Invoice
     template_name = 'members/invoice_detail.html'
 
@@ -462,7 +463,7 @@ class InvoiceDetailView(LoggedInMixin, DetailView):
         context['credit_note'] = c_note
         return context
 
-class InvoiceGenerateView(LoggedInMixin, View):
+class InvoiceGenerateView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         person = Person.objects.get(pk = self.kwargs['pk'])
@@ -474,7 +475,7 @@ class InvoiceGenerateView(LoggedInMixin, View):
             return redirect(person)
         return
 
-class InvoiceMailView(LoggedInMixin, View):
+class InvoiceMailView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         invoice= Invoice.objects.get(pk = self.kwargs['pk'])
@@ -484,7 +485,7 @@ class InvoiceMailView(LoggedInMixin, View):
             return result
         return redirect(invoice)
 
-class InvoiceMailBatchView(LoggedInMixin, View):
+class InvoiceMailBatchView(LoginRequiredMixin, View):
     ''' Send email for all invoices that are unpaid and have not been emailed '''
 
     def get(self, request, *args, **kwargs):
@@ -539,7 +540,7 @@ def do_mail(invoice, option):
             invoice.save()
         return count
 
-class InvoiceSelectView(LoggedInMixin, FormView):
+class InvoiceSelectView(LoginRequiredMixin, FormView):
     form_class = InvoiceSelectForm
     template_name = 'members/invoice_select.html'
 
@@ -553,7 +554,7 @@ class InvoiceSelectView(LoggedInMixin, FormView):
 
 # ================== PAYMENTS
 
-class PaymentCreateView(LoggedInMixin, CreateView):
+class PaymentCreateView(LoginRequiredMixin, CreateView):
     model = Payment
     form_class = PaymentForm
     form = PaymentForm()
@@ -583,7 +584,7 @@ class PaymentCreateView(LoggedInMixin, CreateView):
         payment.pay_invoice_full(inv)
         return super(PaymentCreateView, self).form_valid(form)
 
-class PaymentDetailView(LoggedInMixin, DetailView):
+class PaymentDetailView(LoginRequiredMixin, DetailView):
     model = Payment
     template_name = 'members/payment_detail.html'
 
@@ -594,7 +595,7 @@ class PaymentDetailView(LoggedInMixin, DetailView):
         return context
 
 
-class TextBlockCreateView(LoggedInMixin, CreateView):
+class TextBlockCreateView(LoginRequiredMixin, CreateView):
     model = TextBlock
     form_class = TextBlockForm
     template_name = 'members/textblock_form.html'
@@ -603,7 +604,7 @@ class TextBlockCreateView(LoggedInMixin, CreateView):
     def get_success_url(self):
         return reverse('text-list')
  
-class TextBlockUpdateView(LoggedInMixin, UpdateView):
+class TextBlockUpdateView(LoginRequiredMixin, UpdateView):
     model = TextBlock
     form_class = TextBlockForm
     template_name = 'members/textblock_form.html'
@@ -611,12 +612,12 @@ class TextBlockUpdateView(LoggedInMixin, UpdateView):
     def get_success_url(self):
         return reverse('text-list') 
     
-class TextBlockListView(LoggedInMixin, ListView):
+class TextBlockListView(LoginRequiredMixin, ListView):
     model = TextBlock               
     template_name = 'members/textblock_list.html'
 
 
-class ImportExcelMore(LoggedInMixin, FormView):
+class ImportExcelMore(LoginRequiredMixin, FormView):
     form_class = XlsMoreForm
     template_name = 'members/import_more.html'
 
@@ -668,7 +669,7 @@ class ImportExcelMore(LoggedInMixin, FormView):
                     return HttpResponseRedirect(reverse('import_more',
                                                         args=[3, count, size]))
 
-class ImportExcelView(LoggedInMixin, FormView):
+class ImportExcelView(LoginRequiredMixin, FormView):
     ''' Capture the excel name and batch size '''
     form_class = XlsInputForm
     template_name = 'members/import_excel.html'
@@ -705,7 +706,7 @@ class ImportExcelView(LoggedInMixin, FormView):
         else:
             return HttpResponseRedirect(reverse('select-sheets'))
 
-class SelectSheets(LoggedInMixin, FormView):
+class SelectSheets(LoginRequiredMixin, FormView):
     ''' Select itemtype sheets to import ''' 
     form_class = SelectSheetsForm
     template_name = 'members/generic_crispy_form.html'
@@ -735,7 +736,7 @@ class SelectSheets(LoggedInMixin, FormView):
             context['message'] = '{} items were imported from {} sheets'.format(total, sheet_count)
             return render(self.request, 'members/generic_result.html', context)
                        
-class SubRenewBatch(LoggedInMixin, FormView):
+class SubRenewBatch(LoginRequiredMixin, FormView):
     form_class = XlsMoreForm
     template_name = 'members/import_more.html'
 
@@ -749,7 +750,7 @@ class SubRenewBatch(LoggedInMixin, FormView):
         remaining = Subscription.renew_batch(2015, 5, 100)
         return HttpResponseRedirect(reverse('sub-renew-batch'))
 
-class InvoiceBatchView(LoggedInMixin, FormView):
+class InvoiceBatchView(LoginRequiredMixin, FormView):
     form_class = XlsMoreForm
     template_name = 'members/import_more.html'
 

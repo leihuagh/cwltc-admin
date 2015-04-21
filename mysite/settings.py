@@ -163,3 +163,4 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 # Configuration for Djrill
 MANDRILL_API_KEY = "GlGcSfGZhHlpO75odVYTAQ"
 EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
+LOGIN_URL ='/login/'
