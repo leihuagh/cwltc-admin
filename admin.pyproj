@@ -434,6 +434,7 @@
     <Content Include="members\templates\members\loginpartial.html" />
     <Content Include="members\templates\members\payment_detail.html" />
     <Content Include="members\templates\members\payment_form.html" />
+    <Content Include="members\templates\members\payment_list.html" />
     <Content Include="members\templates\members\person_detail.html" />
     <Content Include="members\templates\members\person_form.html" />
     <Content Include="members\templates\members\person_table.html" />

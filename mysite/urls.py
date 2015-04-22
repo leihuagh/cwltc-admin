@@ -106,6 +106,12 @@ urlpatterns = patterns('',
     ),
 
     #   PAYMENTS
+
+    url(
+        r'^payment/list/',
+        PaymentListView.as_view(),
+        name='payment-list'
+    ),
     url(
         r'^payment/invoice/(?P<invoice_id>\d+)/',
         PaymentCreateView.as_view(),
@@ -116,6 +122,7 @@ urlpatterns = patterns('',
         PaymentDetailView.as_view(),
         name='payment-detail'
     ),
+
 
     #   PEOPLE
     url(

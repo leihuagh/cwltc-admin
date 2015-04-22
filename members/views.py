@@ -596,6 +596,23 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+class PaymentListView(LoginRequiredMixin, ListView):
+    model = Payment
+    template_name = 'members/payment_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(PaymentListView, self).get_context_data(**kwargs)
+        context['payment_types'] = Payment.TYPES
+        context['payment_states'] = Payment.STATES
+        dict = self.queryset.aggregate(Sum('amount'))
+        context['count'] = self.queryset.count()
+        context['total'] = dict['amount__sum']
+        return context
+
+    def get_queryset(self):
+        self.queryset = Payment.objects.select_related()
+        return self.queryset
+
 class TextBlockCreateView(LoginRequiredMixin, CreateView):
     model = TextBlock
     form_class = TextBlockForm

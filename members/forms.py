@@ -473,8 +473,8 @@ class TextBlockForm(ModelForm):
         model = TextBlock
         fields = ['name', 'text']
         widgets = {
-            'text': Textarea(attrs={'cols': 80, 'rows': 50}),
-            }
+            'text': Textarea(attrs={'cols': 20, 'rows': 30, 'class': 'col-md'
+            })}
 
 class XlsInputForm(Form):
     IMPORT_FILE_TYPES = ['.xls', ]
