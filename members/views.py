@@ -441,7 +441,7 @@ class InvoiceListView(LoginRequiredMixin, ListView):
         elif option == 'Cancelled':
             self.queryset = Invoice.objects.filter(state=Invoice.CANCELLED)   
         else:
-            self.queryset =  Invoice.objects.all()
+            self.queryset =  Invoice.objects.exclude(state=Invoice.CANCELLED)
         return self.queryset
 
 class InvoiceDetailView(LoginRequiredMixin, DetailView):

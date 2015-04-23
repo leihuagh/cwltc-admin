@@ -2,6 +2,6 @@
 {% block content %}
 <h2>{{ option }} invoices</h2>
     {% include "members/_invoice_list.html" %}
-<h4>Total = £{{ total }} ({{ count }} invoices)</h4>
+<h4>Total = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} invoices)</h4>
 <a href="{% url "filter" %}" class="btn btn-primary">Filter</a> 
 {% endblock %}

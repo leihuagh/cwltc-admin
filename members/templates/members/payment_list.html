@@ -44,5 +44,5 @@
         </span>
     </div>
 {% endif %}
-<h4>Total = £{{ total }} ({{ count }} payments)</h4>
+<h4>Total = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} payments)</h4>
 {%  endblock content %}

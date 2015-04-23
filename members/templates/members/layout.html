@@ -38,7 +38,7 @@
           <li><a href="{% url 'junior-create' %}">Create junior</a></li>
           <li class="divider"></li>
           
-          <li><a href="{% url 'invoice-list' 'All' %}">All invoices</a></li>
+          <li><a href="{% url 'invoice-list' 'All' %}">All invoices except cancelled</a></li>
           <li><a href="{% url 'invoice-list' 'Paid' %}">Paid invoices</a></li>
           <li><a href="{% url 'invoice-list' 'Unpaid' %}">Unpaid invoices</a></li>
           <li><a href="{% url 'invoice-list' 'Cancelled' %}">Cancelled invoices</a></li>
