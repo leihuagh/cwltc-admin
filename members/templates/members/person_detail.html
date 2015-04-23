@@ -20,6 +20,31 @@
   <div class="row">
     <div class="col-md-4">
       <div class="panel panel-default">
+       <div class="panel-heading">Details</div>
+       <div class="panel-body">
+           <table>
+               <tr><td>Id:</td><td>{{ person.id }} </td></tr>
+               <tr><td>State</td><td>{{ person.state }} </td></tr>
+               <tr><td>Date of birth:</td><td>
+                   {% if person.dob %}{{ person.dob|date }}
+                    {% else %}Unknown{% endif %}
+               </td></tr>
+               <tr><td>Mobile:</td><td> 
+                {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}   
+                </td></tr>
+               <tr><td>
+                {% if person.email %}{{ person.email }} {% else %}No email address{% endif %}   
+                </td></tr>
+
+           </table>
+       </div>
+       <div class="panel-footer"><a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a></div> 
+
+     </div>
+    </div><!--/col-->
+    
+    <div class="col-md-4">
+      <div class="panel panel-default">
        <div class="panel-heading">Address</div>
        <div class="panel-body">
             {{ address.address1 }}<br />
@@ -32,25 +57,7 @@
            </a></div> 
      </div>
     </div><!--/col-->
-    <div class="col-md-4">
-      <div class="panel panel-default">
-       <div class="panel-heading">Title</div>
-       <div class="panel-body">
-        Id:     {{ person.id }} <br />
-        Date of birth:  {% if person.dob %}{{ person.dob }}
-                    {% else %}
-                        Unknown
-                    {% endif %}
-        <br /><br />
-        {% if person.email %}{{ person.email }} {% else %}No email address{% endif %}
-        <br />
-        {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}
-        <br />
-       </div>
-       <div class="panel-footer"><a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a></div> 
 
-     </div>
-    </div><!--/col-->
     <div class="col-md-4">
       <div class="panel panel-default">
        <div class="panel-heading">Family</div>
@@ -75,6 +82,9 @@
                 </tr>
                 {% endfor child %}
             </table>
+        <div class="panel-footer">
+            <a href="{% url "person-create" link=person.id %}" class="btn btn-primary btn-sm">Add family member</a>
+        </div> 
         {% else %}
            Not part of family
             <div class="panel-footer">

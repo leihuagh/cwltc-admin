@@ -146,12 +146,12 @@ urlpatterns = patterns('',
        name='person-detail'
     ),
     url(
-        r'^person/create$',
+        r'^person/create(?:/(?P<link>\d+))?/$',
        PersonCreateView.as_view(),
        name='person-create'
     ),
     url(
-        r'^edit/(?P<pk>\d+)/$',
+        r'^person/update/(?P<pk>\d+)/$',
        PersonUpdateView.as_view(),
        name='person-edit'
     ),
@@ -176,7 +176,10 @@ urlpatterns = patterns('',
        PersonExportView.as_view(),
        name='person-export'
     ),
-        url(
+    
+    #   ADDRESSES
+
+    url(
         r'^person/address/(?P<person_id>\d+)/$',
        AddressUpdateView.as_view(),
        name='person-address'

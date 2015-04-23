@@ -5,6 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
 from django.core.urlresolvers import reverse_lazy
+from django.conf import settings
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder
@@ -30,7 +31,10 @@ class FilterMemberForm(Form):
             self.fields[str(cat.id)] = forms.BooleanField(required = False, label = cat.description)
 
 class PersonForm(ModelForm):
-    
+    ''' Handles creation of a person with new address
+        creation of a linked person with linked address
+        update of a person '''
+
     address1 = forms.CharField(max_length=50)
     address2 = forms.CharField(max_length=50, required=False)
     town = forms.CharField(max_length=30)
@@ -43,6 +47,7 @@ class PersonForm(ModelForm):
                 'first_name',
                 'last_name',
                 'dob',
+                'state',
                 'email',
                 'mobile_phone',
                 'british_tennis',
@@ -52,62 +57,80 @@ class PersonForm(ModelForm):
                 'notes']
 
     def __init__(self, *args, **kwargs):
+        self.link = kwargs.pop('link', None)
         super(PersonForm, self).__init__(*args, **kwargs)
         self.fields['dob'].label = 'Date of birth'
-        self.fields['dob'].widget.format = ['%d/%m/%Y']
-        self.fields['dob'].input_formats = ['%d/%m/%Y']
+        self.fields['dob'].widget.format = '%d/%m/%Y'
+        self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
         instance = getattr(self, 'instance', None)
-
-            
+           
         self.helper = FormHelper(self)
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
-        self.helper.layout = Layout(
-            Div(
+        self.helper.form_show_errors = True
+        name_set = Div(
                 'first_name',
                 'last_name', 
                 'gender',
                 'dob',
-            ),
-            Fieldset('Address',
+                'state',
+            )
+        address_set = Fieldset('Address',
                 'address1',
                 'address2',
                 'town',
                 'post_code', 
-            ),
-            Fieldset('Contact details',
-                'home_phone',  
+                'home_phone', 
+            )
+        contact_set = Fieldset('Contact details',        
                 'mobile_phone',
                 'email'
-            ),
-            Fieldset('Other information',
+            )
+        other_set = Fieldset('Other information',
                 'notes',
                 'british_tennis',
                 'pays_own_bill',
                 'pays_family_bill',
                 'date_joined'      
-            ),
-            ButtonHolder(
-                Submit('submit', 'Save', css_class='btn-group-lg'),
-                HTML('<a class="btn btn-default btn-group-lg" href={% url "person-list" %}>Cancel</a>')
-            )
-        )
+            )       
+            
+        self.helper.layout = Layout(name_set)
+        if not self.link and not instance:
+            self.helper.layout.append(address_set)
+        self.helper.layout.append(contact_set)
+        self.helper.layout.append(other_set)
+        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        self.helper.add_input(Submit('cancel', 'Cancel', css_class='btn-group-lg'))            
 
+
+    def clean(self):
+        ''' remove address errors if linked person or update '''
+        super(PersonForm, self).clean()
+        if self.link or self.instance:
+            del self._errors['address1']
+            del self._errors['town']
+            del self._errors['post_code']
+        return self.cleaned_data
 
     def save(self, commit=True):
-        ''' Create a person linked to an address record '''
-        person = super(PersonForm, self).save(commit=False)
-        address = Address.objects.create(
-            address1 = self.cleaned_data['address1'],
-            address2 = self.cleaned_data['address2'],
-            town = self.cleaned_data['town'],
-            post_code = self.cleaned_data['post_code'],
-            home_phone = self.cleaned_data['home_phone']
-            )
-        person.address = address
-        person.save()
+        if 'submit' in self.data:
+            person = super(PersonForm, self).save(commit=False)
+            if self.link:
+                parent = Person.objects.get(pk=self.link)
+                person.linked = parent
+                person.address = parent.address
+            else:
+                if not self.instance:
+                    address = Address.objects.create(
+                        address1 = self.cleaned_data['address1'],
+                        address2 = self.cleaned_data['address2'],
+                        town = self.cleaned_data['town'],
+                        post_code = self.cleaned_data['post_code']
+                    )
+                    person.address = address
+            person.save()
 
 class AddressForm(ModelForm):
     
@@ -159,7 +182,7 @@ class JuniorForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(JuniorForm, self).__init__(*args, **kwargs)
-        self.fields['dob'].widget.format = ['%d/%m/%Y']
+        self.fields['dob'].widget.format = '%d/%m/%Y'
         self.fields['dob'].input_formats = ['%d/%m/%Y']
 
         self.helper = FormHelper(self)
@@ -214,12 +237,7 @@ class JuniorForm(ModelForm):
                 'email',
                 'mobile_phone']
 
-    def form_valid(self, form):
-        return super(JuniorForm, self).form_valid(form)
-
-    def form_invalid(self, form):
-        return super(JuniorForm, self).form_invalid(form)
-    
+  
     def clean(self):
         self.errorString = "\n".join(self.errors)
         #self.cleaned_data['membership'] = Membership.objects.get(id= int(self.cleaned_data['mem_type']))

@@ -28,12 +28,6 @@ from .excel import *
 import ftpService
 import xlrd
 
-#class LoginRequiredMixin(object):
-
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
-
 class PersonList(LoginRequiredMixin, ListView):
     model = Person
     template_name = 'members/person_table.html'
@@ -104,10 +98,10 @@ class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     success_msg = "Person created"
     form_class = PersonForm
 
-    #def get_context_data(self, **kwargs):
-    #    context = super(PersonCreateView, self).get_context_data(**kwargs)
-    #    context['action'] = reverse('person-create')
-    #    return context
+    def get_form_kwargs(self):
+        kwargs = super(PersonCreateView,self).get_form_kwargs()
+        kwargs.update({'link': self.kwargs['link']})
+        return kwargs
 
     def get_success_url(self):
         return reverse('person-list')
@@ -119,15 +113,8 @@ class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
     form_class = PersonForm
 
     def get_success_url(self):
-        return reverse('person-list')
+        return reverse('person-detail', kwargs={'pk':self.kwargs['pk']})
     
-    #def get_context_data(self, **kwargs):
-
-    #    context = super(PersonUpdateView, self).get_context_data(**kwargs)
-    #    context['action'] = reverse('person-edit',
-    #                                kwargs={'pk': self.get_object().id})
-    #    return context
-
 
 class PersonLinkView(LoginRequiredMixin, FormView):
     form_class = PersonLinkForm

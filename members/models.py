@@ -20,6 +20,9 @@ class Address(models.Model):
     def __unicode__(self):
         return self.post_code
 
+    def get_absolute_url(self):
+        return reverse("person-detail", kwargs={"pk": self.pk})
+
 class Person(models.Model):
     GENDERS = (
         ('M','Male'),

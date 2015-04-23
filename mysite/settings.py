@@ -113,8 +113,8 @@ FIRST_DAY_OF_WEEK = 1
 # LIST: http://docs.python.org/library/datetime.html#strftime-strptime-behavior
 
 DATE_INPUT_FORMATS = (
-    '%d-%m-%Y',    # '21-03-2014'
     '%d/%m/%Y',    # '21/03/2014'
+    '%d-%m-%Y',    # '21-03-2014'
     '%d/%m/%y',    # '21/03/14'
     '%d %b &Y',    # '21 Mar 2014'
     '%d %B &Y',    # '21 March 2014'
