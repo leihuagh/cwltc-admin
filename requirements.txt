@@ -14,3 +14,4 @@ xlwt==0.7.5
 django-extensions
 six==1.9.0
 django-braces
+git+https://github.com/chrisglass/xhtml2pdf.git
