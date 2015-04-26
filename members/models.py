@@ -181,7 +181,7 @@ class Person(models.Model):
             If parent = None, just unlink
             Delete any unknown parents without children '''
         old_parent = self.linked
-        old_addreess = self.address
+        old_address = self.address
         self.linked = parent
         self.save()
         if (
@@ -356,6 +356,7 @@ class Invoice(models.Model):
         ''' set up the context for invoice & payment templates '''
         context['invoice'] = self
         context['person'] = self.person
+        context['address'] = self.person.address
         context['reference'] = str(self.person.id) + '/' + str(self.id)
         context['items'] = self.invoiceitem_set.all().order_by('creation_date')
         context['state_list'] = Invoice.STATES

@@ -1,0 +1,17 @@
+﻿{% extends "members/layout.html" %}
+
+{% block content %}
+
+    <div class="confirmation-box">
+        <p>{{ message }}</p>
+        <div>
+            <a href="{{ prev_link }}">Cancel</a>
+            <form action="{{ action_link }}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ cancel_link }}" />
+                <input type="submit" value="Continue" />
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

@@ -159,9 +159,15 @@ TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'templates'),
 )
 
+LOGIN_URL ='/login/'
+
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-# Configuration for Djrill
-MANDRILL_API_KEY = "GlGcSfGZhHlpO75odVYTAQ"
-EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
-LOGIN_URL ='/login/'
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
+else:
+    # Configuration for Djrill
+    MANDRILL_API_KEY = "GlGcSfGZhHlpO75odVYTAQ"
+    EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
+

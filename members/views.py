@@ -22,9 +22,10 @@ from easy_pdf.views import PDFTemplateView
 from braces.views import LoginRequiredMixin
 
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
-                     Payment, ItemType, TextBlock, ExcelBook)
-from .forms import (PersonForm, PersonLinkForm, JuniorForm, FilterMemberForm, AddressForm, SubscriptionForm,  XlsInputForm, XlsMoreForm,
-                    SelectSheetsForm, InvoiceItemForm, PaymentForm, TextBlockForm, InvoiceSelectForm)
+                     Payment, CreditNote, ItemType, TextBlock, ExcelBook)
+from .forms import (PersonForm, PersonLinkForm, JuniorForm, FilterMemberForm, AddressForm,
+                    SubscriptionForm,  XlsInputForm, XlsMoreForm, SelectSheetsForm,
+                    InvoiceItemForm, PaymentForm, CreditNoteForm, TextBlockForm, InvoiceSelectForm)
 from .excel import *
 import ftpService
 import xlrd
@@ -465,30 +466,39 @@ class InvoiceMailView(LoginRequiredMixin, View):
         return redirect(invoice)
 
 class InvoiceMailBatchView(LoginRequiredMixin, View):
-    ''' Send email for all invoices that are unpaid and have not been emailed '''
+    ''' Send email for all invoices that are unpaid and have not been emailed
+        get asks for confirmation
+        put sends the mail '''
 
     def get(self, request, *args, **kwargs):
-        invs = Invoice.objects.filter(state=Invoice.UNPAID, email_count=0)
+        count = Invoice.objects.filter(state=Invoice.UNPAID).count()
+        context = RequestContext(request)
+        context['message'] = "This will send {} emails. Continue?".format(count)
+        context['action_link'] = reverse('invoice-mail-batch')
+        context['cancel_link'] = reverse('home')
+        return render_to_response('members/confirm.html', context)
+
+    def post(self, request, *args, **kwargs):
+        invs = Invoice.objects.filter(state=Invoice.UNPAID)
         option = 'send'
         count = 0
         for inv in invs:
             count += do_mail(inv, option)
-        return HttpResponse("sent {} mails for {} invoices".format(count, invs.count()))
+        return HttpResponse("Sent {} mails for {} invoices".format(count, invs.count()))
 
 def do_mail(invoice, option):
         count = 0
         family = invoice.person.person_set.all()
+        
         context={
-            'invoice': invoice,
-            'person': invoice.person,
-            'address': invoice.person.address,
-            'reference': str(invoice.person.id) + '/' + str(invoice.id),
-            'items': invoice.invoiceitem_set.all().order_by('item_type'),
             'text_intro': TextBlock.objects.filter(name='invoice_intro')[0].text,
             'text_notes': TextBlock.objects.filter(name='invoice_notes')[0].text,
             'text_closing': TextBlock.objects.filter(name='invoice_closing')[0].text,
             }
-        addressee = invoice.person.first_name + ' ' + invoice.person.last_name
+        invoice.add_context(context)
+        if invoice.email_count > 0:
+            context['reminder'] = True
+        addressee = invoice.person.fullname()
         if invoice.person.first_name == 'Unknown':
             addressee = 'Parent or guardian of '
             for person in family:
@@ -604,7 +614,6 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         context['payment_states'] = Payment.STATES
         return context
 
-
 class PaymentListView(LoginRequiredMixin, ListView):
     model = Payment
     template_name = 'members/payment_list.html'
@@ -621,6 +630,30 @@ class PaymentListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         self.queryset = Payment.objects.select_related()
         return self.queryset
+
+
+ # ================== CREDIT NOTES
+class CreditNoteCreateView(LoginRequiredMixin, CreateView):
+    model = CreditNote
+    form_class = CreditNoteForm
+    template_name = 'members/generic_crispy_form.html'
+    success_msg = "Credit note added"
+
+    def get_context_data(self, **kwargs):
+        person = Person.objects.get(pk=self.kwargs['person_id'])
+        context = super(CreditNoteCreateView, self).get_context_data(**kwargs)
+        context['title'] = 'Create credit note'
+        context['message'] = person.fullname()
+        return context
+
+    def form_valid(self, form):
+        form.instance.person = Person.objects.get(pk=self.kwargs['person_id'])
+        form.instance.detail = "Manually created"
+        return super(CreditNoteCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('person-detail',
+                       kwargs={'pk':self.kwargs['person_id']})
 
 class TextBlockCreateView(LoginRequiredMixin, CreateView):
     model = TextBlock
@@ -874,17 +907,9 @@ def fixup_postgresql(request):
         cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
 
 def fixup(request):
-    invs = Invoice.objects.filter(state=Invoice.PART_PAID)
-    pay_count = Payment.objects.filter(state=Payment.PARTLY_MATCHED).count()
-    count = 0
-    for inv in invs:
-        for item in inv.invoiceitem_set.all():
-            if item.paid:
-                payment = item.payment
-                break
-
-        if payment:
-            payment.pay_invoice(inv)
-            count += 1
-    end_count = Payment.objects.filter(state=Payment.PARTLY_MATCHED).count()
-    return HttpResponse("{} invoices were fixed. Start: {} payments End: {} payments".format(count, pay_count, end_count))
+    p = Payment.objects.get(pk=3)
+    p.delete()
+    p = Payment.objects.get(pk=4)
+    p.delete()
+    p = Payment.objects.get(pk=5)
+    p.delete()

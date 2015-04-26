@@ -3,13 +3,19 @@
 <body>
 <p style="font-family: 'Arial';font-size:14px; color:#101010;">
 Dear {{ addressee }} </p>
+{% if reminder %}
+    <p style="font-family: 'Arial';font-size:14px; color:#ff0000;">
+        <strong>This is a reminder. Pay by 1 May to enter Wimbledon draw and by 18 May to avoid a penalty!</strong> <br />
+        If you have paid your bill within the last few days please ignore this email.
+    <p>
+{% endif %}
 {% autoescape off %}
 {{ text_intro }}
 {% endautoescape %}
 {% include "members/_invoice_email.html" %}
 {% include "members/_how_to_pay.html" %}
-<p style="font-family: 'arial black', 'avant garde';"> 
-Important notes
+<p style="font-family: 'Arial'; font-size:18px;" > 
+<strong>Important notes</strong>
 </p>
 <p style="font-family: 'Arial';font-size:14px; color:#101010;">
 {% if junior_notes %}
@@ -21,8 +27,8 @@ Important notes
 {% autoescape off %}
 {{ text_notes }}
 {% endautoescape %}
-<p style="font-family: 'arial black', 'avant garde';"> 
- Please check your details
+<p style="font-family: 'Arial'; font-size:18px;" > 
+<strong>Please check your details</strong> 
 <p style="font-family: 'Arial'; font-size:14px; color:#101010;">
 We want to ensure that we have accurate information. Please let us know if the address on the invoice
      or any of the details of you or your family are incorrect. <br />

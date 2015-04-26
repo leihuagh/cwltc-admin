@@ -90,7 +90,7 @@ urlpatterns = patterns('',
         name='invoice-pdf'
     ),
     url(
-        r'^invoice/mail/batch$',
+        r'^invoice/mail/batch(?:/(?P<send>\d+))?/$',
         InvoiceMailBatchView.as_view(),
         name='invoice-mail-batch'
     ),
@@ -128,6 +128,13 @@ urlpatterns = patterns('',
         name='payment-detail'
     ),
 
+    #   CREDIT NOTES
+
+    url(
+        r'^creditnote/create/(?P<person_id>\d+)/',
+        CreditNoteCreateView.as_view(),
+        name='creditnote-create'
+    ),
 
     #   PEOPLE
     url(

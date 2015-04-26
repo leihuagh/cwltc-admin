@@ -83,6 +83,10 @@ class InvoiceItemAdmin(ImportExportModelAdmin):
     resource_class = InvoiceItem
     pass
 
+class ItemTypeAdmin(ImportExportModelAdmin):
+    resource_class = ItemType
+    pass
+
 class BarTransactionAdmin(ImportExportModelAdmin):
     resource_class = MembershipResource
     pass
@@ -93,6 +97,6 @@ admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(Fees, FeesAdmin)
 admin.site.register(Invoice, InvoiceAdmin)
 admin.site.register(Payment, PaymentAdmin)
-#admin.site.register(ItemType, ItemTypeAdmin)
+admin.site.register(ItemType, ItemTypeAdmin)
 admin.site.register(InvoiceItem, InvoiceItemAdmin)
 admin.site.register(BarTransaction, BarTransactionAdmin)
