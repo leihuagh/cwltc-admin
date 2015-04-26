@@ -85,6 +85,11 @@ urlpatterns = patterns('',
         name='invoice-mail'
     ),
     url(
+        r'^invoice/pdf/(?P<pk>\d+)/(?P<option>[a-zA-Z]+)$',
+        InvoicePDFView.as_view(),
+        name='invoice-pdf'
+    ),
+    url(
         r'^invoice/mail/batch$',
         InvoiceMailBatchView.as_view(),
         name='invoice-mail-batch'

@@ -458,8 +458,12 @@ class InvoiceSelectForm(Form):
 
 class PaymentForm(ModelForm):
 
-     def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        ''' optional kwarg amount sets the default amount '''
+        amount = kwargs.pop('amount', None)
         super(PaymentForm, self).__init__(*args, **kwargs)
+        if amount:
+            self.fields['amount'].initial = amount
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-InvoiceItemForm'
         self.helper.form_class = 'form-horizontal'
@@ -471,13 +475,13 @@ class PaymentForm(ModelForm):
         self.helper.error_text_inline = True
         self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
     
-     class Meta:
+    class Meta:
         model = Payment
         fields = ['type', 'reference', 'amount']
 
 class TextBlockForm(ModelForm):
 
-     def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(TextBlockForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.field_class = 'input-xlarge'
@@ -487,7 +491,7 @@ class TextBlockForm(ModelForm):
         self.helper.error_text_inline = True
         self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
 
-     class Meta:
+    class Meta:
         model = TextBlock
         fields = ['name', 'text']
         widgets = {

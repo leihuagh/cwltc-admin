@@ -23,7 +23,7 @@
        <div class="panel-heading">Details</div>
        <div class="panel-body">
            <table>
-               <tr><td>Id:</td><td>{{ person.id }} </td></tr>
+               <tr><td width="50%">Id:</td><td>{{ person.id }} </td></tr>
                <tr><td>State</td><td>{{ person.state }} </td></tr>
                <tr><td>Date of birth:</td><td>
                    {% if person.dob %}{{ person.dob|date }}
@@ -32,11 +32,8 @@
                <tr><td>Mobile:</td><td> 
                 {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}   
                 </td></tr>
-               <tr><td>
-                {% if person.email %}{{ person.email }} {% else %}No email address{% endif %}   
-                </td></tr>
-
            </table>
+            {% if person.email %}{{ person.email }} {% else %}No email address{% endif %}  
        </div>
        <div class="panel-footer"><a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a></div> 
 
@@ -106,6 +103,8 @@
      <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Add subscription</a>
 {% endif %}
 
+{% if statement %}
+<h4>Statement of account</h4>
 <table id="statement" class="table table-condensed">
     <thead>
     <tr>
@@ -119,7 +118,6 @@
         <th class = "text-right">Balance</th>
     </tr>
     </thead>
-<h4>Statement of account</h4>
 {% for line in statement %}
     {% with line.0 as entry %}
     {% with entry|classname as modelclass %}
@@ -161,6 +159,7 @@
     {% endwith %}
 {% endfor %}
 </table>
+{% endif %}
 
 {% if items %}
     {% include "members/_invoiceitem_list.html" %}

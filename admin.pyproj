@@ -443,6 +443,7 @@
     <Content Include="members\templates\members\subsmail.html" />
     <Content Include="members\templates\members\textblock_form.html" />
     <Content Include="members\templates\members\textblock_list.html" />
+    <Content Include="members\templates\members\invoice_pdf.html" />
     <Content Include="members\templates\members\xperson_list.html" />
     <Content Include="members\templates\members\_address_block.html" />
     <Content Include="members\templates\members\_how_to_pay.html" />
@@ -450,6 +451,7 @@
     <Content Include="members\templates\members\_invoice_detail.html" />
     <Content Include="members\templates\members\_invoice_email.html" />
     <Content Include="members\templates\members\_invoice_list.html" />
+    <Content Include="members\templates\members\_invoice_pdf.html" />
     <Content Include="members\templates\members\_payment_list.html" />
     <Content Include="members\templates\members\_subscription_list.html" />
     <Content Include="requirements.txt" />

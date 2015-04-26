@@ -474,7 +474,7 @@ class MembersTestCase(TestCase):
                                          credited=0)
         self.assertEqual(payment.state, Payment.NOT_MATCHED)
         # pay the invoice
-        payment.pay_invoice_full(inv)
+        payment.pay_invoice(inv)
         payment = Payment.objects.all()[0]
         self.assertEqual(payment.state, Payment.FULLY_MATCHED)    
         # check the invoice and items are paid

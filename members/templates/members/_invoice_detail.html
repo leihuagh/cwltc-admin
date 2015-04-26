@@ -9,7 +9,7 @@ Date: {{ invoice.date|date }}</p>
 {% for item in items %}
 <tr>
     <td>{{ item.item_type.description }}</td>
-    <td>{{ item.person.first_name }}{{ item.person.last_name }}</td>
+    <td>{{ item.person.full_name }}</td>
     <td>{{ item.description}}</td>
     <td align="right">£{{ item.amount }}</td>
     <td>

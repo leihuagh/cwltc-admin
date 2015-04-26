@@ -1,0 +1,57 @@
+﻿<div style="font-family: 'Arial black'; font-size:18px;">  Coombe Wood LTC Invoice </div>
+<p style="font-family: 'Arial'; font-size:12px; color:#020202;">
+Reference: {{ person.id }}/{{ invoice.id }}<br />
+Date: {{ invoice.date }}
+</p>
+<p style="font-family: 'Arial';font-size:12px;  color:#101010;">
+{{ addressee }}<br />
+{% if unknown %}
+    </p>
+    <p style="font-family: 'Arial';font-size:12px">
+    {{ unknown }} </p>
+    <p style="font-family: 'Arial';font-size:12px">
+{% endif %}
+{% include "members/_address_block.html" %}
+</p>
+
+<table style="height: 40px;" width="650">
+<tbody style="font-family: 'Arial'; font-size:12px; color:#020202;">
+{% for item in items %}
+<tr>
+    <td>{{ item.person.first_name }} {{ item.person.last_name }}</td>
+    <td>
+    {% if item.description %}
+        {{ item.description }}
+    {% else %}
+        {{ item.item_type.description }}
+    {% endif %}
+    </td>
+    <td align="right">£ {{ item.amount }}</td>
+</tr>
+{% endfor sub %}
+
+<tr>
+    <td></td>
+    <td align="right"><b>Total now due</b></td>
+    <td align="right"><b>£{{ invoice.total }}</b></td>
+</tr>
+</table>
+<p style="font-family: 'Arial'">  
+<strong>How to pay</strong>
+</p>
+<p style="font-family: 'Arial';font-size:12px; color:#101010;">
+Please pay by Bank Transfer (preferred) to:<br/><br/>
+
+Santander<br />
+Sort code: 090127<br/>
+Account: 81173477<br/>
+Quote reference: <strong>{{ reference }}</strong>
+<br /><br />
+Or send a cheque made payable to CWLTC with the reference
+<strong>{{ reference }}</strong> written on the back to:
+<br /><br />
+Matthew Cruickshank<br />
+7 Presburg Road<br />
+New Malden<br />
+KT3 5AH<br />
+</p>

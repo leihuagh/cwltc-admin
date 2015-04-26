@@ -16,6 +16,7 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 
+from easy_pdf.views import PDFTemplateView
 #from django.contrib.auth.views import login, logout
 #from django.utils.decorators import method_decorator
 from braces.views import LoginRequiredMixin
@@ -438,17 +439,7 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(InvoiceDetailView, self).get_context_data(**kwargs)
         inv = self.get_object()
-        context['person'] = inv.person
-        context['items'] = inv.invoiceitem_set.all().order_by('creation_date')
-        context['state_list'] = Invoice.STATES
-        context['types'] = Payment.TYPES
-        context['payment_states'] = Payment.STATES
-        context['full_payment_button'] = inv.state == Invoice.UNPAID
-        context['can_delete'] = inv.email_count == 0 and inv.postal_count == 0 and inv.state == Invoice.UNPAID
-        c_note = None
-        if inv.creditnote_set.count() > 0:
-            c_note = inv.creditnote_set.all()[0]
-        context['credit_note'] = c_note
+        inv.add_context(context)
         return context
 
 class InvoiceGenerateView(LoginRequiredMixin, View):
@@ -528,6 +519,37 @@ def do_mail(invoice, option):
             invoice.save()
         return count
 
+class InvoicePDFView(LoginRequiredMixin, PDFTemplateView):
+    template_name = "members/invoice_pdf.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(InvoicePDFView, self).get_context_data(**kwargs)
+        invoice= Invoice.objects.get(pk = self.kwargs['pk'])
+        family = invoice.person.person_set.all()
+        context={
+            'invoice': invoice,
+            'person': invoice.person,
+            'address': invoice.person.address,
+            'reference': str(invoice.person.id) + '/' + str(invoice.id),
+            'items': invoice.invoiceitem_set.all().order_by('item_type'),
+            'text_intro': TextBlock.objects.filter(name='invoice_intro')[0].text,
+            'text_notes': TextBlock.objects.filter(name='invoice_notes')[0].text,
+            'text_closing': TextBlock.objects.filter(name='invoice_closing')[0].text,
+            }
+        addressee = invoice.person.first_name + ' ' + invoice.person.last_name
+        if invoice.person.first_name == 'Unknown':
+            addressee = 'Parent or guardian of '
+            for person in family:
+                addressee += person.first_name +' ' + person.last_name + ', '
+            addressee = addressee[:-2]
+            context['unknown'] = "Please supply your details!"  
+        context['addressee'] = addressee
+        if family.count() > 0:
+            context['junior_notes'] = TextBlock.objects.filter(name='junior_notes')[0].text
+            context['family'] = family
+        return context
+
+
 class InvoiceSelectView(LoginRequiredMixin, FormView):
     form_class = InvoiceSelectForm
     template_name = 'members/invoice_select.html'
@@ -545,23 +567,19 @@ class InvoiceSelectView(LoginRequiredMixin, FormView):
 class PaymentCreateView(LoginRequiredMixin, CreateView):
     model = Payment
     form_class = PaymentForm
-    form = PaymentForm()
     template_name = 'members/payment_form.html'
 
-    def get_success_url(self):
-
-        return reverse('invoice-detail',
-                       kwargs={'pk':self.kwargs['invoice_id']})
+    def get_form_kwargs(self):
+        ''' if view passed an invoice pass the total to the form '''
+        kwargs = super(PaymentCreateView,self).get_form_kwargs()
+        self.inv = Invoice.objects.get(pk = self.kwargs['invoice_id'])
+        if self.inv:
+            kwargs.update({'amount': self.inv.total})
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super(PaymentCreateView, self).get_context_data(**kwargs)
-        inv = Invoice.objects.get(pk = self.kwargs['invoice_id'])
-        context['invoice'] = inv
-        context['person'] = inv.person
-        context['items'] = inv.invoiceitem_set.all().order_by('creation_date')
-        context['state_list'] = Invoice.STATES
-        context['types'] = Payment.TYPES
-        context['payment_states'] = Payment.STATES
+        self.inv.add_context(context)
         return context
 
     def form_valid(self, form):
@@ -569,8 +587,12 @@ class PaymentCreateView(LoginRequiredMixin, CreateView):
         form.instance.person = inv.person
         # save new object before handling many to many relationship
         payment = form.save()
-        payment.pay_invoice_full(inv)
+        payment.pay_invoice(inv)
         return super(PaymentCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('invoice-detail',
+                       kwargs={'pk':self.kwargs['invoice_id']})
 
 class PaymentDetailView(LoginRequiredMixin, DetailView):
     model = Payment
@@ -825,7 +847,7 @@ def contact(request):
         context_instance = RequestContext(request,
         {
             'title':'Contact',
-            'message':'Your contact page.',
+            'message':'Contact Ian on 020 8549 8658',
             'year':datetime.now().year,
         })
     )
@@ -838,16 +860,30 @@ def about(request):
         'members/about.html',
         context_instance = RequestContext(request,
         {
-            'title':'About',
-            'message':'Your application description page.',
+            'title':'Administartion system for Coombe Wood membership',
+            'message':'Under continuousd development',
             'year':datetime.now().year,
         })
     )
 
-def fixup(request):
+def fixup_postgresql(request):
 
         cursor = connection.cursor()
         cursor.execute("SELECT setval('members_person_id_seq', (SELECT MAX(id) FROM members_person)+1)")
         cursor.execute("SELECT setval('members_fees_id_seq', (SELECT MAX(id) FROM members_fees)+1)")
         cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
 
+def fixup(request):
+    invs = Invoice.objects.filter(state=Invoice.PART_PAID)
+    pay_count = Payment.objects.filter(state=Payment.PARTLY_MATCHED).count()
+    count = 0
+    for inv in invs:
+        for item in inv.invoiceitem_set.all():
+            if item.paid:
+                payment = item.paid
+
+        if payment:
+            payment.pay_invoice(inv)
+            count += 1
+    end_count = Payment.objects.filter(state=Payment.PARTLY_MATCHED).count()
+    return HttpResponse("{} invoices were fixed. Start: {} payments End: {} payments".format(count, pay_count, end_count))

@@ -352,6 +352,24 @@ class Invoice(models.Model):
             c_note.save()
             return c_note
 
+    def add_context(self, context):
+        ''' set up the context for invoice & payment templates '''
+        context['invoice'] = self
+        context['person'] = self.person
+        context['reference'] = str(self.person.id) + '/' + str(self.id)
+        context['items'] = self.invoiceitem_set.all().order_by('creation_date')
+        context['state_list'] = Invoice.STATES
+        context['types'] = Payment.TYPES
+        context['payment_states'] = Payment.STATES
+        context['full_payment_button'] = self.state == Invoice.UNPAID
+        context['can_delete'] = self.email_count == 0 and self.postal_count == 0 and self.state == Invoice.UNPAID
+        c_note = None
+        if self.creditnote_set.count() > 0:
+            c_note = self.creditnote_set.all()[0]
+        context['credit_note'] = c_note
+
+
+
 class Payment(models.Model):
     CHEQUE = 0
     CASH = 1
@@ -397,20 +415,49 @@ class Payment(models.Model):
             Payment.STATES[self.state][1]
             )
 
-    def pay_invoice_full(self, inv):
-        ''' Pay an invoice in full and update payment state '''
+    def pay_invoice(self, inv):
+        if inv.total == self.amount:
+            items = inv.invoiceitem_set.all()
+            for item in items:
+                item.pay(self)
+            inv.state = Invoice.PAID_IN_FULL
+            self.credited = self.amount
+            self.state = Payment.FULLY_MATCHED
+            self.save()
+            inv.save()
+        else:
+            pay_invoice_part(inv)
+
+    def pay_invoice_part(self, inv):
+        ''' THIS CODE NOT FINISHED '''
         new_paid = 0
         old_paid = 0
         pay_amount = self.amount - self.credited
-        for item in inv.invoiceitem_set.all():
-            if not item.paid:
-                if pay_amount >= item.amount:
-                    item.pay(self)
-                    new_paid += item.amount
-                    pay_amount -= item.amount
-            else:
-                old_paid += item.amount
-        total = old_paid + new_paid
+        items = inv.invoiceitem_set.order_('-amount')
+        discount = 0
+        for item in items:
+            if item.amount < 0:
+                discount += item.amount
+        discount = - discount
+        for item in items:
+            if item.amount >= 0:
+                if not item.paid:
+                    due = item.amount
+                    if due >= discount:
+                        due -= discount
+                        discount = 0
+                    else:
+                        discount -= due
+                        due = 0
+                      
+                    if pay_amount >= due:
+                        item.pay(self)
+                        new_paid += due
+                        pay_amount -= due
+                else:
+                    old_paid += item.amount
+        
+                    total = old_paid + new_paid
         # Update invoice state
         if total == inv.total:
             inv.state = Invoice.PAID_IN_FULL

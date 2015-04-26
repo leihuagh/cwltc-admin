@@ -1,0 +1,95 @@
+﻿{% extends "easy_pdf/base.html" %}
+{% block content %}
+{% load staticfiles %}
+<p style="font-family: 'Arial';font-size:14px; color:#101010;">
+Dear {{ addressee }} </p>
+{% autoescape off %}
+<br />
+{{ text_intro }}
+{% endautoescape %}
+<br />
+{% include "members/_invoice_pdf.html" %}
+
+<p style="font-family: 'arial black', 'avant garde';"> 
+Important notes
+</p>
+<p style="font-family: 'Arial';font-size:14px; color:#101010;">
+{% if junior_notes %}
+    {% autoescape off %}
+    {{junior_notes}}
+    {% endautoescape %}
+{% endif %}
+
+{% autoescape off %}
+{{ text_notes }}
+{% endautoescape %}
+<p style="font-family: 'arial black', 'avant garde';"> 
+ Please check your details
+<p style="font-family: 'Arial'; font-size:14px; color:#101010;">
+We want to ensure that we have accurate information. Please let us know if the address on the invoice
+     or any of the details of you or your family are incorrect. <br />
+{% if unknown %}
+    </p>
+    <p style="font-family: 'Arial';font-size:14px; 'Arial'; color:#ff0000">
+    {{ unknown }} </p>
+{% else %}
+<table style="height: 45px;" width="700">
+    <thead style="font-family: 'Arial'; font-size:14px; color:#101010;">
+        <tr>
+        <td><b>Name</b></td>
+        <td><b>Date of birth</b></td> 
+        <td><b>Home phone</b></td>
+        <td><b>Mobile</b></td>            
+        <td><b>British tennis</b></td>
+        </tr>
+    <tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
+        <tr>
+        <td>{{ person.first_name}} {{ person.last_name }}</td>
+        <td>{{ person.dob|date }}</td>
+        <td>{{ address.home_phone}}</td>
+        <td>{{ person.mobile_phone }}</td>
+        <td>{{ person.british_tennis }}</td>      
+        </tr>
+    </tbody>
+</table>
+{% endif %}
+{% if family %}
+    <p style="font-family: 'Arial';font-size:14px; color:#101010;">
+    We have these details for family members:
+    </p>
+<table style="height: 40px;" width="750">
+    <thead style="font-family: 'Arial'; font-size:14px; color:#020202;">
+        <tr>
+        <td><b>Name</b></td>
+        <td><b>Date of birth</b></td> 
+        <td><b>Mobile</b></td> 
+        <td><b>Email</b></td>          
+        <td><b>British tennis</b></td>
+        </tr>
+    <tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
+    {% for person in family %}
+        <tr>
+        <td>{{ person.first_name}} {{ person.last_name }}</td>
+        <td>{{ person.dob|date }}</td>       
+        <td>{{ person.mobile_phone }}</td>
+        <td>{{ person.email}}</td>
+        <td>{{ person.british_tennis }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %} 
+
+ <p style="font-family: 'Arial';font-size:14px; color:#101010;">
+     Please do not reply to this email unless you have a query regarding the account,
+      or want to inform us about a resignation or change of membership category or details.        
+<br /> <br />
+Regards<br />
+<b>Ian Stewart</b><br />
+<a href="mailto:membership@coombewoodltc.co.uk">Membership secretary</a>
+<br />
+<br />
+<b>Meryl Lloyd</b><br />
+<a href="mailto:juniors@coombewoodltc.co.uk" >Juniors secretary</a>
+<p></p>
+{% endblock %}
