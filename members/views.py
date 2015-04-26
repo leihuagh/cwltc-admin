@@ -880,7 +880,8 @@ def fixup(request):
     for inv in invs:
         for item in inv.invoiceitem_set.all():
             if item.paid:
-                payment = item.paid
+                payment = item.payment
+                break
 
         if payment:
             payment.pay_invoice(inv)
