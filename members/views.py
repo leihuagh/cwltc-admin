@@ -241,6 +241,12 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
         context['children'] = parent.person_set.all()
         return context
 
+    def form_valid(self, form):
+        address = form.save()
+        self.person.address = address
+        self.person.save()
+        return super(AddressUpdateView, self).form_valid(form)
+   
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
 
@@ -428,7 +434,7 @@ class InvoiceListView(LoginRequiredMixin, ListView):
         elif option == 'Unpaid':
             self.queryset = Invoice.objects.filter(state=Invoice.UNPAID) 
         elif option == 'Cancelled':
-            self.queryset = Invoice.objects.filter(state=Invoice.CANCELLED)   
+            self.queryset = Invoice.objects.filter(state=Invoice.CANCELLED)              
         else:
             self.queryset =  Invoice.objects.exclude(state=Invoice.CANCELLED)
         return self.queryset
