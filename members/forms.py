@@ -60,10 +60,12 @@ class PersonForm(ModelForm):
         self.link = kwargs.pop('link', None)
         super(PersonForm, self).__init__(*args, **kwargs)
         self.fields['dob'].label = 'Date of birth'
-        self.fields['dob'].widget.format = '%d/%m/%Y'
+        self.fields['dob'].widget.format = settings.DATE_FORMAT
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
+        self.fields['date_joined'].widget.format = settings.DATE_FORMAT
+        self.fields['date_joined'].input_formats = settings.DATE_INPUT_FORMATS
         instance = getattr(self, 'instance', None)
-           
+        self.updating = instance and instance.id   
         self.helper = FormHelper(self)
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -97,7 +99,7 @@ class PersonForm(ModelForm):
             )       
             
         self.helper.layout = Layout(name_set)
-        if not self.link and not instance:
+        if not self.link and not self.updating:
             self.helper.layout.append(address_set)
         self.helper.layout.append(contact_set)
         self.helper.layout.append(other_set)
@@ -108,7 +110,7 @@ class PersonForm(ModelForm):
     def clean(self):
         ''' remove address errors if linked person or update '''
         super(PersonForm, self).clean()
-        if self.link or self.instance:
+        if self.link or self.updating:
             del self._errors['address1']
             del self._errors['town']
             del self._errors['post_code']
@@ -122,7 +124,7 @@ class PersonForm(ModelForm):
                 person.linked = parent
                 person.address = parent.address
             else:
-                if not self.instance:
+                if not self.updating:
                     address = Address.objects.create(
                         address1 = self.cleaned_data['address1'],
                         address2 = self.cleaned_data['address2'],

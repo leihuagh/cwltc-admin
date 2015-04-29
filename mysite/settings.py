@@ -101,7 +101,7 @@ USE_TZ = True
 
 
 # LIST: https://docs.djangoproject.com/en/dev/ref/templates/builtins/#date
-DATE_FORMAT = 'd-m-Y'
+DATE_FORMAT = 'd/m/Y'
 TIME_FORMAT = 'H:i'
 DATETIME_FORMAT = 'd-m-Y H:i'
 YEAR_MONTH_FORMAT = 'F Y'
