@@ -60,9 +60,9 @@ class PersonForm(ModelForm):
         self.link = kwargs.pop('link', None)
         super(PersonForm, self).__init__(*args, **kwargs)
         self.fields['dob'].label = 'Date of birth'
-        self.fields['dob'].widget.format = settings.DATE_FORMAT
+        self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
-        self.fields['date_joined'].widget.format = settings.DATE_FORMAT
+        self.fields['date_joined'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['date_joined'].input_formats = settings.DATE_INPUT_FORMATS
         instance = getattr(self, 'instance', None)
         self.updating = instance and instance.id   
