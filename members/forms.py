@@ -11,6 +11,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
 
+from .widgets import MonthYearWidget
 from .models import (Person, Address, Subscription, Membership, Invoice, InvoiceItem,
                      Payment, CreditNote, ExcelBook, TextBlock)
 from .excel import *
@@ -170,6 +171,8 @@ class JuniorForm(ModelForm):
 
     success_url = '/list'
     ''' additional fields for this form '''
+    child_email = forms.EmailField(max_length=75, required=False)
+    child_mobile_phone = forms.CharField(max_length=20, required=False)
     parent_gender = forms.ChoiceField(choices=Person.GENDERS, initial='F')
     parent_first_name = forms.CharField(max_length=30)
     parent_last_name = forms.CharField(max_length=30)
@@ -180,13 +183,16 @@ class JuniorForm(ModelForm):
     address2 = forms.CharField(max_length=50, required=False)
     town = forms.CharField(max_length=30)
     post_code = forms.CharField(max_length=15)
-    start_date = forms.DateField(widget=forms.widgets.DateInput(format='%d/%m/%Y'))
+    start_date = forms.DateField(widget=MonthYearWidget())
 
     def __init__(self, *args, **kwargs):
         super(JuniorForm, self).__init__(*args, **kwargs)
-        self.fields['dob'].widget.format = '%d/%m/%Y'
-        self.fields['dob'].input_formats = ['%d/%m/%Y']
-
+        self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
+        self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
+        self.fields['dob'].label = "Date of birth"
+        self.fields['dob'].required = True
+        self.fields['start_date'].input_formats = settings.DATE_INPUT_FORMATS
+        
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-juniorForm'
         self.helper.form_class = 'form-horizontal'
@@ -198,18 +204,15 @@ class JuniorForm(ModelForm):
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
         self.helper.layout = Layout(
-            Fieldset(
-                'Child details',
-                'start_date',
+            Fieldset('Child details',
                 'gender',
                 'first_name',
                 'last_name',
                 'dob',
-                'email',
-                'mobile_phone'
+                'child_email'
+                'child_mobile_phone'
             ),
-            Fieldset(
-                'Parent details',
+            Fieldset('Parent details',
                 'parent_gender',
                 'parent_first_name',
                 'parent_last_name',
@@ -217,12 +220,17 @@ class JuniorForm(ModelForm):
                 'parent_mobile_phone',
                 'home_phone', 
             ),
-            Fieldset(
-                'Address',
+            Fieldset('Address',
                 'address1',
                 'address2',
                 'town',
                 'post_code',   
+            ),
+            Fieldset('Notes',
+                'notes'
+            ),
+            Fieldset('Subscription',
+                'start_date'
             ),
             ButtonHolder(
                 Submit('submit', 'Save', css_class='btn-group-lg'),
@@ -236,15 +244,27 @@ class JuniorForm(ModelForm):
                 'first_name',
                 'last_name',
                 'dob',
-                'email',
-                'mobile_phone']
+                'notes'
+                ]
 
-  
     def clean(self):
-        self.errorString = "\n".join(self.errors)
-        #self.cleaned_data['membership'] = Membership.objects.get(id= int(self.cleaned_data['mem_type']))
-        if self.errorString:
-            raise forms.ValidationError(self.errorString)      
+        self.cleaned_data = super(JuniorForm, self).clean()
+
+        if (len(self.cleaned_data['parent_mobile_phone']) == 0 and
+            len(self.cleaned_data['home_phone']) == 0):
+            raise forms.ValidationError('Please enter at least one of home phone or mobile phone')  
+        if len(self.cleaned_data['child_email']) > 0:
+            self.cleaned_data['email'] = self.cleaned_data['child_email']
+        else:
+            self.cleaned_data['email'] = self.cleaned_data['parent_email']
+        if len(self.cleaned_data['child_mobile']) > 0:
+            self.cleaned_data['mobile'] = self.cleaned_data['child_mobile']
+        else:
+            self.cleaned_data['monile'] = self.cleaned_data['parent_mobile']
+
+        #self.errorString = "\n".join(self.errors)
+        #if self.errorString:
+        #    raise forms.ValidationError(self.errorString)      
         return self.cleaned_data    
 
     def save(self, commit=True):

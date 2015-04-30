@@ -145,7 +145,7 @@ class PersonUnlinkView(LoginRequiredMixin, View):
 class JuniorCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     model = Person
     template_name = 'members/junior_form.html'
-    success_msg = "Junior created"
+    success_msg = "Junior and parent created"
     form_class = JuniorForm
     form = JuniorForm()
 

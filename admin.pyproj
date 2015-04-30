@@ -461,6 +461,9 @@
   <ItemGroup>
     <Compile Include="manage.py" />
     <Compile Include="members\admin.py" />
+    <Compile Include="members\widgets.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="members\excel.py" />
     <Compile Include="members\forms.py" />
     <Compile Include="members\ftpService.py" />
