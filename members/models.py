@@ -645,11 +645,11 @@ class Subscription(models.Model):
         if membership_id == Membership.AUTO:
             
             age = person.age(datetime(sub_year, Subscription.START_MONTH, 1))
-            if age <= Subscription.CADET_AGE:
+            if age < Subscription.CADET_AGE:
                 sub.membership_id = Membership.CADET
-            elif age <= Subscription.JUNIOR_AGE:              
+            elif age < Subscription.JUNIOR_AGE:              
                 sub.membership_id = Membership.JUNIOR
-            elif age <= Subscription.STUDENT_AGE:
+            elif age < Subscription.STUDENT_AGE:
                 sub.membership_id = Membership.STUDENT
             else:
                 sub.membership_id = Membership.FULL
