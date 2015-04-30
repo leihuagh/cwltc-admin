@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
 from django.core.urlresolvers import reverse_lazy
 from django.conf import settings
-
+from django.forms.extras import SelectDateWidget
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
@@ -60,6 +60,7 @@ class PersonForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.link = kwargs.pop('link', None)
         super(PersonForm, self).__init__(*args, **kwargs)
+        #self.fields['dob'].widget = SelectDateWidget
         self.fields['dob'].label = 'Date of birth'
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
@@ -187,6 +188,7 @@ class JuniorForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(JuniorForm, self).__init__(*args, **kwargs)
+        self.fields['dob'].widget = SelectDateWidget
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
         self.fields['dob'].label = "Date of birth"
@@ -209,7 +211,7 @@ class JuniorForm(ModelForm):
                 'first_name',
                 'last_name',
                 'dob',
-                'child_email'
+                'child_email',
                 'child_mobile_phone'
             ),
             Fieldset('Parent details',
