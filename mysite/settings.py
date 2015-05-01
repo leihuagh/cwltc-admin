@@ -6,7 +6,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # openshift is our PAAS for now.
 ON_PAAS = 'OPENSHIFT_REPO_DIR' in os.environ
-
+REMOTE_ADMIN= False
 if ON_PAAS:
     SECRET_KEY = os.environ['OPENSHIFT_SECRET_TOKEN']
 else:
@@ -74,8 +74,19 @@ if ON_PAAS:
                 'HOST':     os.environ['OPENSHIFT_POSTGRESQL_DB_HOST'],
                 'PORT':     os.environ['OPENSHIFT_POSTGRESQL_DB_PORT'],
             }
-        }    
-else:   
+        } 
+elif REMOTE_ADMIN:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'admin',
+            'USER': 'admin3vrx6bg',
+            'PASSWORD': 'PED2kJfZ8DWL',
+            'HOST': '127.0.0.1',
+            'PORT': '5433',
+            }
+        }  
+else:  
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',

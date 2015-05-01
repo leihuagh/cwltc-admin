@@ -211,7 +211,7 @@ class Membership(models.Model):
         mem = cls(id = id, description = description)
         mem.save()
         return mem
-
+    
 class Fees(models.Model):
     membership = models.ForeignKey('Membership')
     sub_year = models.SmallIntegerField()
@@ -818,6 +818,20 @@ class TextBlock(models.Model):
     
     def __unicode__(self):
         return self.name
+
+    @classmethod
+    def add_email_context(self, context):
+        params = TextBlock.objects.filter(name='_email_params')[0].text
+        blocks = params.split('|')
+        context['text_intro'] = TextBlock.objects.filter(name=blocks[0])[0]
+        context['text_notes'] = TextBlock.objects.filter(name=blocks[1])[0]
+        context['text_closing'] = TextBlock.objects.filter(name=blocks[2])[0]
+    
+    @classmethod
+    def exists(cls, name):
+        if len(TextBlock.objects.filter(name=name)) == 1:
+            return True
+        return False
 
 class ExcelBook(models.Model):
     file = models.FileField(upload_to='excel')

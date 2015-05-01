@@ -450,7 +450,6 @@
     <Content Include="members\templates\members\_how_to_pay.html" />
     <Content Include="members\templates\members\_invoiceitem_list.html" />
     <Content Include="members\templates\members\_invoice_detail.html" />
-    <Content Include="members\templates\members\_invoice_email.html" />
     <Content Include="members\templates\members\_invoice_list.html" />
     <Content Include="members\templates\members\_invoice_pdf.html" />
     <Content Include="members\templates\members\_payment_list.html" />

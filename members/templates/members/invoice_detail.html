@@ -5,7 +5,7 @@
 <a href="{% url "person-detail"  person.id %}">{{ person.first_name }} {{ person.last_name }}</a>
 </h4>
 <hr />
-{% include "members/_invoice_email.html" %}
+{% include "members/_invoice_detail.html" %}
 <hr />
 <p>State: {{ state_list|get_option:invoice.state }}</p>
 {% if credit_note %}
@@ -18,6 +18,12 @@
 <p>Posted count: {{ invoice.postal_count }} </p>
 <hr />
 {% if full_payment_button %}
+Email text blocks:
+    <a href="{% url "text-update" pk=text_intro.id %}">{{ text_intro }}</a>, 
+    <a href="{% url "text-update" pk=text_notes.id %}">{{ text_notes }}</a>, 
+    <a href="{% url "text-update" pk=text_closing.id %}">{{ text_closing }}</a>
+<br /><br />
+    <a href="{% url "invoice-mail-config" pk=invoice.id %}" class="btn btn-primary">Configure mail</a>
     <a href="{% url "invoice-mail" pk=invoice.id option='view' %}" class="btn btn-primary">Preview mail</a>
     <a href="{% url "invoice-mail" pk=invoice.id option='test' %}" class="btn btn-primary">Send test mail</a>
     <a href="{% url "invoice-mail" pk=invoice.id option='send' %}" class="btn btn-primary">Send mail</a>

@@ -26,7 +26,9 @@ from .models import (Person, Address, Membership, Subscription, InvoiceItem, Inv
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook)
 from .forms import (PersonForm, PersonLinkForm, JuniorForm, FilterMemberForm, AddressForm,
                     SubscriptionForm,  XlsInputForm, XlsMoreForm, SelectSheetsForm,
-                    InvoiceItemForm, PaymentForm, CreditNoteForm, TextBlockForm, InvoiceSelectForm)
+                    InvoiceItemForm, PaymentForm, CreditNoteForm, TextBlockForm, InvoiceSelectForm,
+                    EmailTextForm)
+
 from .excel import *
 import ftpService
 import xlrd
@@ -432,7 +434,6 @@ class InvoiceDeleteView(LoginRequiredMixin, View):
 
 class InvoiceListView(LoginRequiredMixin, ListView):
     model = Invoice
-    paginate_by = 15
     template_name = 'members/invoice_list.html'
     context_object_name = 'invoices'
 
@@ -444,6 +445,8 @@ class InvoiceListView(LoginRequiredMixin, ListView):
             dict = self.queryset.aggregate(Sum('total'))
             context['count'] = self.queryset.count()
             context['total'] = dict['total__sum']
+        else:
+            context['invoices'] = self.queryset
         return context
 
     def get_queryset(self):
@@ -457,8 +460,12 @@ class InvoiceListView(LoginRequiredMixin, ListView):
             q_state = Invoice.CANCELLED
         if q_state <> -1:
             self.queryset = Invoice.objects.filter(
-                state=q_state
-                ).order_by('person__last_name')          
+                    state=q_state
+                ).select_related(
+                    'person'
+                ).order_by(
+                    'person__last_name'
+                )          
         else:
             if option == 'cadets':
                 qs = InvoiceItem.objects.filter(
@@ -481,6 +488,8 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
         context = super(InvoiceDetailView, self).get_context_data(**kwargs)
         inv = self.get_object()
         inv.add_context(context)
+        TextBlock.add_email_context(context)
+
         context['show_buttons'] = True
         return context
 
@@ -506,6 +515,32 @@ class InvoiceMailView(LoginRequiredMixin, View):
             return result
         return redirect(invoice)
 
+class InvoiceMailConfigView(LoginRequiredMixin, FormView):
+    form_class = EmailTextForm
+    template_name = 'members/generic_crispy_form.html'
+
+    def form_valid(self, form):     
+        intro = form.cleaned_data['intro']
+        if intro == "":
+            intro = "invoice_intro"
+        notes = form.cleaned_data['notes']
+        if notes == "":
+            notes = "invoice_notes"
+        closing = form.cleaned_data['closing']
+        if closing == "":
+            closing = "invoice_closing"
+        blocks = TextBlock.objects.filter(name='_email_params')
+        if len(blocks) == 0:
+            block = TextBlock(name='_email_params')
+        else:
+            block = blocks[0]
+        block.text = intro + "|" + notes + "|" + closing
+        block.save()
+        return super(InvoiceMailConfigView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('invoice-detail', kwargs={'pk':self.kwargs['pk']})
+
 class InvoiceMailBatchView(LoginRequiredMixin, View):
     ''' Send email for all invoices that are unpaid and have not been emailed
         get asks for confirmation
@@ -530,12 +565,8 @@ class InvoiceMailBatchView(LoginRequiredMixin, View):
 def do_mail(invoice, option):
         count = 0
         family = invoice.person.person_set.all()
-        
-        context={
-            'text_intro': TextBlock.objects.filter(name='invoice_intro')[0].text,
-            'text_notes': TextBlock.objects.filter(name='invoice_notes')[0].text,
-            'text_closing': TextBlock.objects.filter(name='invoice_closing')[0].text,
-            }
+        context={}
+        TextBlock.add_email_context(context)
         invoice.add_context(context)
         if invoice.email_count > 0:
             context['reminder'] = True

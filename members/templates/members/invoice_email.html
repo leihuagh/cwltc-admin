@@ -10,9 +10,9 @@ Dear {{ addressee }} </p>
     <p>
 {% endif %}
 {% autoescape off %}
-{{ text_intro }}
+{{ text_intro.text }}
 {% endautoescape %}
-{% include "members/_invoice_email.html" %}
+{% include "members/_invoice_detail.html" %}
 {% include "members/_how_to_pay.html" %}
 <p style="font-family: 'Arial'; font-size:18px;" > 
 <strong>Important notes</strong>
@@ -25,16 +25,16 @@ Dear {{ addressee }} </p>
 {% endif %}
 
 {% autoescape off %}
-{{ text_notes }}
+{{ text_notes.text }}
 {% endautoescape %}
 <p style="font-family: 'Arial'; font-size:18px;" > 
 <strong>Please check your details</strong> 
 <p style="font-family: 'Arial'; font-size:14px; color:#101010;">
 We want to ensure that we have accurate information. Please let us know if the address on the invoice
-     or any of the details of you or your family are incorrect. <br />
+     or any of the details of you or your family are incorrect or missing. <br />
 {% if unknown %}
     </p>
-    <p style="font-family: 'Arial';font-size:14px; 'Arial'; color:#ff0000">
+    <p style="font-family: 'Arial';font-size:14px; color:#ff0000">
     {{ unknown }} </p>
 {% else %}
 <table style="height: 45px;" width="700">
@@ -82,18 +82,8 @@ We want to ensure that we have accurate information. Please let us know if the a
     {% endfor %}
     </tbody>
 </table>
-{% endif %} 
+{% endif %}
+{% autoescape off %}
+{{ text_closing.text }}
+{% endautoescape %}
 
- <p style="font-family: 'Arial';font-size:14px; color:#101010;">
-     Please do not reply to this email unless you have a query regarding the account,
-      or want to inform us about a resignation or change of membership category or details.        
-<br /> <br />
-Regards<br />
-<b>Ian Stewart</b><br />
-<a href="mailto:membership@coombewoodltc.co.uk">Membership secretary</a>
-<br />
-<br />
-<b>Meryl Lloyd</b><br />
-<a href="mailto:juniors@coombewoodltc.co.uk" >Juniors secretary</a>
-<p></p></body>
-</html> 

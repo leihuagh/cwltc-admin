@@ -1,38 +1,51 @@
-﻿{% load members_extras %}
-<h2>Invoice</h2>
-Invoice number: {{ reference }}
-<p>
-Date: {{ invoice.date|date }}</p>
+﻿<table width="650" cellspacing="2" cellpadding="3" border="0" bgcolor="#808080">
+    <tr bgcolor="#ffffff"><td>
 
-<table id="invoiceitem" class="table table-condensed">
+<p style="font-family: 'Arial'; font-size:18px;" ><strong>Coombe Wood LTC Invoice</strong>  
+<p style="font-family: 'Arial'; font-size:14px; color:#020202;">
+Reference: {{ person.id }}/{{ invoice.id }}<br />
+Date: {{ invoice.date }}
+</p>
+<p style="font-family: 'Arial';font-size:14px;  color:#101010;">
+{{ addressee }}<br />
+{% if unknown %}
+    </p>
+    <p style="font-family: 'Arial';font-size:14px; color:#ff0000">
+    {{ unknown }} </p>
+    <p style="font-family: 'Arial';font-size:14px; color:#101010;">
+{% endif %}
+{% include "members/_address_block.html" %}
+</p>
 
+<table style="height: 40px;" width="650">
+<tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
 {% for item in items %}
 <tr>
-    <td>{{ item.item_type.description }}</td>
-    <td>{{ item.person.full_name }}</td>
-    <td>{{ item.description}}</td>
-    <td align="right">£{{ item.amount }}</td>
+    <td>{{ item.person.fullname }}</td>
     <td>
-    {% if item.paid %}
-     <a href="{% url "payment-detail"  item.payment_id %}" class="btn btn-primary btn-xs">Paid</a>
-    {% else %} Unpaid {% endif %}</td>
+    {% if item.description %}
+        {{ item.description }}
+    {% else %}
+        {{ item.item_type.description }}
+    {% endif %}
+    </td>
+    <td align="right">£ {{ item.amount }}</td>
+    {% if show_buttons %}
+        <td>
+        {% if item.paid %}
+        <a href="{% url "payment-detail"  item.payment_id %}" class="btn btn-primary btn-xs">Paid</a>
+        {% else %} Unpaid {% endif %}</td>
+    {% endif %}
 </tr>
 {% endfor sub %}
+
 <tr>
     <td></td>
-    <td></td>
-    <td align="right"><b>Total</b></td>
+    <td align="right"><b>Total now due</b></td>
     <td align="right"><b>£{{ invoice.total }}</b></td>
-    <td></td>
 </tr>
 </table>
-<hr />
-<p>State: {{ state_list|get_option:invoice.state }}</p>
-{% if credit_note %}
-<p>Credit note: {{ credit_note.id }} </p>
-<p>Issued: {{ credit_note.update_date}}</p>
-<p>Amount: {{ credit_note.amount }}</p>
-<p>{{ credit_note.reference }}</p>
-{% endif %}
-<p>Email count: {{ invoice.email_count }} </p>
-<p>Posted count: {{ invoice.postal_count }} </p>
+        </td>
+    </tr>
+</table>
+
