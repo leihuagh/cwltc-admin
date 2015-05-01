@@ -481,6 +481,7 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
         context = super(InvoiceDetailView, self).get_context_data(**kwargs)
         inv = self.get_object()
         inv.add_context(context)
+        context['show_buttons'] = True
         return context
 
 class InvoiceGenerateView(LoginRequiredMixin, View):
@@ -538,14 +539,7 @@ def do_mail(invoice, option):
         invoice.add_context(context)
         if invoice.email_count > 0:
             context['reminder'] = True
-        addressee = invoice.person.fullname()
-        if invoice.person.first_name == 'Unknown':
-            addressee = 'Parent or guardian of '
-            for person in family:
-                addressee += person.first_name +' ' + person.last_name + ', '
-            addressee = addressee[:-2]
-            context['unknown'] = "Please supply your details!"  
-        context['addressee'] = addressee
+
         if family.count() > 0:
             context['junior_notes'] = TextBlock.objects.filter(name='junior_notes')[0].text
             context['family'] = family

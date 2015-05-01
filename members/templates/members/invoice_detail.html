@@ -1,17 +1,31 @@
 ﻿{% extends "members/layout.html" %}
+{% load members_extras %}
 {% block content %}
 <h4>
 <a href="{% url "person-detail"  person.id %}">{{ person.first_name }} {{ person.last_name }}</a>
 </h4>
-{% include "members/_invoice_detail.html" %}
+<hr />
+{% include "members/_invoice_email.html" %}
+<hr />
+<p>State: {{ state_list|get_option:invoice.state }}</p>
+{% if credit_note %}
+<p>Credit note: {{ credit_note.id }} </p>
+<p>Issued: {{ credit_note.update_date}}</p>
+<p>Amount: {{ credit_note.amount }}</p>
+<p>{{ credit_note.reference }}</p>
+{% endif %}
+<p>Email count: {{ invoice.email_count }} </p>
+<p>Posted count: {{ invoice.postal_count }} </p>
+<hr />
 {% if full_payment_button %}
     <a href="{% url "invoice-mail" pk=invoice.id option='view' %}" class="btn btn-primary">Preview mail</a>
     <a href="{% url "invoice-mail" pk=invoice.id option='test' %}" class="btn btn-primary">Send test mail</a>
     <a href="{% url "invoice-mail" pk=invoice.id option='send' %}" class="btn btn-primary">Send mail</a>
-    <a href="{% url "payment-invoice" invoice.id %}" class="btn btn-primary">Full payment</a>
-    <a href="{% url "invoice-cancel"  invoice.id %}" class="btn btn-warning">Cancel invoice</a>   
+<br />    <br /> 
+<a href="{% url "payment-invoice" invoice.id %}" class="btn btn-success">Full payment</a>
+    <a href="{% url "invoice-cancel"  invoice.id %}" class="btn btn-danger">Cancel invoice</a>   
 {% endif %}
 {% if can_delete %}
-    <a href="{% url "invoice-delete"  invoice.id %}" class="btn btn-warning">Delete invoice</a>
+    <a href="{% url "invoice-delete"  invoice.id %}" class="btn btn-danger">Delete invoice</a>
 {% endif %}
 {% endblock content %}

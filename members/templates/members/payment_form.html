@@ -1,7 +1,12 @@
 ﻿{% extends "members/layout.html" %}
 {% block content %}
 {% load crispy_forms_tags %}
-{% include "members/_invoice_detail.html" %}
+<h4>
+<a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
+</h4>
+<hr />
+{% include "members/_invoice_email.html" %}
+<hr />
 <h4>Payment</h4>
 {% crispy form %}
 {% endblock content %}

@@ -10,9 +10,9 @@ Date: {{ invoice.date }}
 {{ addressee }}<br />
 {% if unknown %}
     </p>
-    <p style="font-family: 'Arial';font-size:14px; 'Arial'; color:#ff0000">
+    <p style="font-family: 'Arial';font-size:14px; color:#ff0000">
     {{ unknown }} </p>
-    <p style="font-family: 'Arial';font-size:14px; 'Arial'; color:#101010;">
+    <p style="font-family: 'Arial';font-size:14px; color:#101010;">
 {% endif %}
 {% include "members/_address_block.html" %}
 </p>
@@ -21,7 +21,7 @@ Date: {{ invoice.date }}
 <tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
 {% for item in items %}
 <tr>
-    <td>{{ item.person.first_name }} {{ item.person.last_name }}</td>
+    <td>{{ item.person.fullname }}</td>
     <td>
     {% if item.description %}
         {{ item.description }}
@@ -30,6 +30,12 @@ Date: {{ invoice.date }}
     {% endif %}
     </td>
     <td align="right">£ {{ item.amount }}</td>
+    {% if show_buttons %}
+        <td>
+        {% if item.paid %}
+        <a href="{% url "payment-detail"  item.payment_id %}" class="btn btn-primary btn-xs">Paid</a>
+        {% else %} Unpaid {% endif %}</td>
+    {% endif %}
 </tr>
 {% endfor sub %}
 

@@ -80,12 +80,13 @@
                 {% endfor child %}
             </table>
         <div class="panel-footer">
-            <a href="{% url "person-create" link=person.id %}" class="btn btn-primary btn-sm">Add family member</a>
+            <a href="{% url "person-create" link=person.id %}" class="btn btn-primary btn-sm">Add new family member</a>
         </div> 
         {% else %}
            Not part of family
             <div class="panel-footer">
                 <a href="{% url "person-link" pk=person.id %}" class="btn btn-primary btn-sm">Link to family</a>
+                <a href="{% url "person-create" link=person.id %}" class="btn btn-primary btn-sm">Add new family member</a>
             </div> 
         {% endif %}
        </div>

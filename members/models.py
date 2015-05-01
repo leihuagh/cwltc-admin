@@ -368,6 +368,15 @@ class Invoice(models.Model):
         if self.creditnote_set.count() > 0:
             c_note = self.creditnote_set.all()[0]
         context['credit_note'] = c_note
+        addressee = self.person.fullname()
+        if self.person.first_name == 'Unknown':
+            if self.person.person_set.count() > 0:
+                addressee = 'Parent or guardian of '
+                for person in self.person.person_set.all():
+                    addressee += person.first_name +' ' + person.last_name + ', '
+                addressee = addressee[:-2]
+            context['unknown'] = "Please supply your full name"  
+        context['addressee'] = addressee
 
 
 
