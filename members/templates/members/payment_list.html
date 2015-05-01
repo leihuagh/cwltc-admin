@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Payments</h2>
 
-<table id="payment" class="table table-condensed">
+<table id="payments" class="table table-condensed">
 <thead>
     <tr>
         <th>Date</th>
@@ -18,7 +18,7 @@
 </thead>
 {% for payment in object_list %}
 <tr>
-    <td>{{ payment.date|date }}</td>
+    <td>{{ payment.creation_date|date }}</td>
     <td>{{ payment_types|get_option:payment.type }}</td>
     <td>{{ payment.person.fullname }}</td>
     <td>{% if payment.reference %}{{ payment.reference }}{% endif %}</td>
@@ -46,3 +46,13 @@
 {% endif %}
 <h4>Total = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} payments)</h4>
 {%  endblock content %}
+{% block scripts %}
+<script>
+    $('#payments').dataTable({
+        "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
+    });
+    $(document).ready(function () {
+        $('#payments').DataTable();
+    });
+</script>
+{% endblock %}

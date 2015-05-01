@@ -1,7 +1,44 @@
 ﻿{% extends "members/layout.html" %}
+{% load members_extras %}
 {% block content %}
 <h2>{{ option }} invoices</h2>
-    {% include "members/_invoice_list.html" %}
-<h4>Total = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} invoices)</h4>
-<a href="{% url "filter" %}" class="btn btn-primary">Filter</a> 
+<table id="invoices" class="table table-condensed">
+<thead>
+    <tr>
+        <th>Number</th>
+        <th>State</th>
+        <th>Date</th>
+        <th>Person</th>
+        <th>Reference</th>
+        <th>Email count</th>
+        <th>Posted count</th>
+        <th class = "text-right">Total</th>
+        <th></th>
+    </tr>
+</thead>
+{% for inv in invoices %}
+    <tr>
+        <td>{{ inv.id }}</td>
+        <td>{{ state_list|get_option:inv.state }}</td>
+        <td>{{ inv.update_date|date }}</td>
+        <td>{{ inv.person.fullname }}</td>
+        <td>{{ inv.reference}}</td> 
+        <td>{{ inv.email_count}}</td>
+        <td>{{ inv.postal_count}}</td>
+        <td class = "text-right">£{{ inv.total }}</td>
+        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View</a></td>
+    </tr>
+{% endfor sub %}
+</table>
+<h4>Total of all invoices = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} invoices)</h4>
+{% endblock %}
+{% block scripts %}
+<script>
+    $('#invoices').dataTable({
+        "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
+    });
+    $(document).ready(function () {
+        $('#invoices').DataTable();
+    });
+</script>
 {% endblock %}
