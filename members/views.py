@@ -474,7 +474,7 @@ class InvoiceListView(LoginRequiredMixin, ListView):
                 list = []
                 for q in qs:
                     list.append(q.invoice)
-                return list
+                self.queryset = list
             else:
                 self.queryset =  Invoice.objects.exclude(
                     state=Invoice.CANCELLED)
