@@ -6,6 +6,7 @@
         <th>Number</th>
         <th>State</th>
         <th>Date</th>
+        <th>Person</th>
         <th>Reference</th>
         <th>Email count</th>
         <th>Posted count</th>
@@ -18,6 +19,7 @@
         <td>{{ inv.id }}</td>
         <td>{{ state_list|get_option:inv.state }}</td>
         <td>{{ inv.update_date|date }}</td>
+        <td>{{ inv.person.fullname }}</td>
         <td>{{ inv.reference}}</td> 
         <td>{{ inv.email_count}}</td>
         <td>{{ inv.postal_count}}</td>

@@ -173,12 +173,12 @@ class JuniorForm(ModelForm):
     success_url = '/list'
     ''' additional fields for this form '''
     child_email = forms.EmailField(max_length=75, required=False)
-    child_mobile_phone = forms.CharField(max_length=20, required=False)
+    child_mobile = forms.CharField(max_length=20, required=False)
     parent_gender = forms.ChoiceField(choices=Person.GENDERS, initial='F')
     parent_first_name = forms.CharField(max_length=30)
     parent_last_name = forms.CharField(max_length=30)
     parent_email =  forms.EmailField(max_length=75)
-    parent_mobile_phone = forms.CharField(max_length=20, required=False)
+    parent_mobile = forms.CharField(max_length=20, required=False)
     home_phone = forms.CharField(max_length=20, required=False)
     address1 = forms.CharField(max_length=50)
     address2 = forms.CharField(max_length=50, required=False)
@@ -188,7 +188,7 @@ class JuniorForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(JuniorForm, self).__init__(*args, **kwargs)
-        self.fields['dob'].widget = SelectDateWidget
+        #self.fields['dob'].widget = SelectDateWidget
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
         self.fields['dob'].label = "Date of birth"
@@ -212,14 +212,14 @@ class JuniorForm(ModelForm):
                 'last_name',
                 'dob',
                 'child_email',
-                'child_mobile_phone'
+                'child_mobile'
             ),
             Fieldset('Parent details',
                 'parent_gender',
                 'parent_first_name',
                 'parent_last_name',
                 'parent_email',
-                'parent_mobile_phone',
+                'parent_mobile',
                 'home_phone', 
             ),
             Fieldset('Address',
@@ -252,7 +252,7 @@ class JuniorForm(ModelForm):
     def clean(self):
         self.cleaned_data = super(JuniorForm, self).clean()
 
-        if (len(self.cleaned_data['parent_mobile_phone']) == 0 and
+        if (len(self.cleaned_data['parent_mobile']) == 0 and
             len(self.cleaned_data['home_phone']) == 0):
             raise forms.ValidationError('Please enter at least one of home phone or mobile phone')  
         if len(self.cleaned_data['child_email']) > 0:
@@ -262,7 +262,7 @@ class JuniorForm(ModelForm):
         if len(self.cleaned_data['child_mobile']) > 0:
             self.cleaned_data['mobile'] = self.cleaned_data['child_mobile']
         else:
-            self.cleaned_data['monile'] = self.cleaned_data['parent_mobile']
+            self.cleaned_data['mobile'] = self.cleaned_data['parent_mobile']
 
         #self.errorString = "\n".join(self.errors)
         #if self.errorString:
@@ -286,7 +286,7 @@ class JuniorForm(ModelForm):
             gender=self.cleaned_data['parent_gender'],
             first_name=self.cleaned_data['parent_first_name'],
             last_name=self.cleaned_data['parent_last_name'],
-            mobile_phone=self.cleaned_data['parent_mobile_phone'],
+            mobile_phone=self.cleaned_data['parent_mobile'],
             email=self.cleaned_data['parent_email'],
             address=address
             )

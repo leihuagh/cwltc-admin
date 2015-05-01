@@ -15,6 +15,7 @@ from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.db.models import QuerySet
 
 from easy_pdf.views import PDFTemplateView
 #from django.contrib.auth.views import login, logout
@@ -29,6 +30,23 @@ from .forms import (PersonForm, PersonLinkForm, JuniorForm, FilterMemberForm, Ad
 from .excel import *
 import ftpService
 import xlrd
+
+class CadetListView(LoginRequiredMixin, ListView):
+    model = Person
+    template_name = 'members/person_table.html'
+    
+    def get_queryset(self):
+        qset =  Person.objects.filter(
+            membership_id=Membership.CADET
+            ).filter(
+            dob__range=["2007-05-01", "2008-05-01"]
+            )
+        return qset
+
+    def get_context_data(self, **kwargs):
+        context = super(CadetListView, self).get_context_data(**kwargs)
+        add_membership_context(context)
+        return context
 
 class PersonList(LoginRequiredMixin, ListView):
     model = Person
@@ -421,22 +439,38 @@ class InvoiceListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(InvoiceListView, self).get_context_data(**kwargs)
         context['state_list'] = Invoice.STATES
-        dict = self.queryset.aggregate(Sum('total'))
-        context['count'] = self.queryset.count()
-        context['total'] = dict['total__sum']
         context['option']= self.kwargs['option']
+        if isinstance(self.queryset, QuerySet):
+            dict = self.queryset.aggregate(Sum('total'))
+            context['count'] = self.queryset.count()
+            context['total'] = dict['total__sum']
         return context
 
     def get_queryset(self):
         option = self.kwargs['option']
+        q_state = -1
         if option == 'Paid':
-            self.queryset = Invoice.objects.filter(state=Invoice.PAID_IN_FULL)
+            q_state = Invoice.PAID_IN_FULL
         elif option == 'Unpaid':
-            self.queryset = Invoice.objects.filter(state=Invoice.UNPAID) 
+            q_state = Invoice.UNPAID
         elif option == 'Cancelled':
-            self.queryset = Invoice.objects.filter(state=Invoice.CANCELLED)              
+            q_state = Invoice.CANCELLED
+        if q_state <> -1:
+            self.queryset = Invoice.objects.filter(
+                state=q_state
+                ).order_by('person__last_name')          
         else:
-            self.queryset =  Invoice.objects.exclude(state=Invoice.CANCELLED)
+            if option == 'cadets':
+                qs = InvoiceItem.objects.filter(
+                    person__dob__range=["2007-05-01", "2008-05-01"]
+                    )
+                list = []
+                for q in qs:
+                    list.append(q.invoice)
+                return list
+            else:
+                self.queryset =  Invoice.objects.exclude(
+                    state=Invoice.CANCELLED)
         return self.queryset
 
 class InvoiceDetailView(LoginRequiredMixin, DetailView):

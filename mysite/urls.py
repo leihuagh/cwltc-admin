@@ -20,6 +20,11 @@ urlpatterns = patterns('',
         name='home'
     ),
     url(
+        r'^cadets/$',
+        CadetListView.as_view(),
+        name='cadets'
+    ),
+    url(
         r'^fixup$',
         'members.views.fixup',
         name='test'
