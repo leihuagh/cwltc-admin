@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'djrill',
     'jquery_ui',
     'easy_pdf',
+    'django_wysiwyg',
 	'members',
 )
 
@@ -185,3 +186,4 @@ else:
     MANDRILL_API_KEY = "GlGcSfGZhHlpO75odVYTAQ"
     EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
 
+DJANGO_WYSIWYG_FLAVOR = 'yui'

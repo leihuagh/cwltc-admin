@@ -460,6 +460,9 @@
   <ItemGroup>
     <Compile Include="manage.py" />
     <Compile Include="members\admin.py" />
+    <Compile Include="members\templatetags\wysiwyg.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="members\widgets.py">
       <SubType>Code</SubType>
     </Compile>
@@ -475,7 +478,6 @@
     <Compile Include="members\templatetags\__init__.py" />
     <Compile Include="members\tests.py" />
     <Compile Include="members\views.py" />
-    <Compile Include="members\wsgi.py" />
     <Compile Include="members\__init__.py" />
     <Compile Include="mysite\settings.py" />
     <Compile Include="mysite\urls.py" />

@@ -1,8 +1,9 @@
 ﻿{% extends "members/layout.html" %}
+{% load wysiwyg %}
 {% block content %}
 {% load crispy_forms_tags %}
 <h2>Standard text block</h2>
-<div class="col-md-10">
 {% crispy form %}
+{% wysiwyg_editor "id_text" %}
 {% endblock content %}
-</div>
+
