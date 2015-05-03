@@ -16,3 +16,4 @@ six==1.9.0
 django-braces
 django-easy-pdf
 git+https://github.com/chrisglass/xhtml2pdf.git
+django-wysiwyg==0.7.0
