@@ -1,4 +1,5 @@
 from os import path
+from datetime import date, datetime, timedelta
 from django import forms
 from django.forms import Form, ModelForm
 from django.contrib.auth.forms import AuthenticationForm
@@ -356,8 +357,10 @@ class PersonLinkForm(Form):
             raise forms.ValidationError('Too many matching people')
 
 class SubscriptionForm(ModelForm):
+    membership_id = forms.ChoiceField()
     
     def __init__(self, *args, **kwargs):
+        person_id = kwargs.pop('person_id')
         super(SubscriptionForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         self.helper = FormHelper(self)
@@ -372,12 +375,12 @@ class SubscriptionForm(ModelForm):
         self.helper.layout = Layout(
             Fieldset(
                 'Edit subscription',
+                'membership_id',
                 'sub_year',
                 'period',
                 'start_date',
                 'end_date',
                 'no_renewal',              
-                'membership'
                 ),
             HTML("""{% if items %}
             <h3>Subscription cannot be edited unless linked items / invoice are deleted</h3>
@@ -388,10 +391,48 @@ class SubscriptionForm(ModelForm):
             {% endfor %}
             {% endif %}""")
            ) 
-        self.fields['start_date'].widget.format = '%d/%m/%Y'
-        self.fields['end_date'].widget.format = '%d/%m/%Y'
-        self.fields['start_date'].input_formats = ['%d/%m/%Y']
-        self.fields['end_date'].input_formats = ['%d/%m/%Y']
+        self.fields['start_date'].widget = MonthYearWidget()
+        self.fields['start_date'].input_formats = settings.DATE_INPUT_FORMATS
+        self.fields['start_date'].initial = date(2015, 5, 1)
+        self.fields['end_date'].widget = MonthYearWidget()
+        self.fields['end_date'].input_formats = settings.DATE_INPUT_FORMATS
+        
+        now = date.today()
+        start_month = now.month
+        start_year = now.year    
+        if now.day > 15:
+            start_month += 1
+            if start_month > 12:
+                start_month = 1
+                start_year += 1
+        sub_year = now.year
+        end_year = start_year + 1
+        if start_month < Subscription.START_MONTH:
+            end_year = start_year
+            sub_year -= 1
+        self.fields['start_date'].initial = date(start_year, start_month, 1)
+        self.fields['end_date'].initial = date(end_year, 4, 1)           
+        self.fields['sub_year'].initial = sub_year
+
+        # Set the available membership choices according to the age
+        person = Person.objects.get(pk=person_id)
+        age = person.age(date(sub_year, Subscription.START_MONTH,1))
+        choices = Membership.ADULT_CHOICES
+        if age:
+            if age < Subscription.CADET_AGE:
+                choices = (
+                    (Membership.CADET, "Cadet")
+                    )
+            elif age < Subscription.JUNIOR_AGE:
+                choices = (
+                    (Membership.JUNIOR, "Junior")
+                    )
+            elif age < Subscription.UNDER_26_AGE:
+                choices = (
+                    (Membership.UNDER_26, "Under 26")
+                    )
+            
+        self.fields['membership_id'] = forms.ChoiceField(choices = choices)
         
         if instance and instance.pk:
             if instance.invoiceitem_set.all().count() > 0:
@@ -416,9 +457,20 @@ class SubscriptionForm(ModelForm):
         else:
             self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
 
+    def clean(self):
+        cleaned_data = super(SubscriptionForm, self).clean()
+        end_date = cleaned_data.get('end_date')
+        y = end_date.year
+        m = end_date.month
+        m += 1
+        if m > 12:
+            m = 1
+            Y += 1
+        cleaned_data['end_date'] = date(y, m, 1) - timedelta(days=1)
+
     class Meta:
         model = Subscription
-        fields = ['sub_year', 'start_date', 'end_date', 'period', 'membership', 'no_renewal']
+        fields = ['sub_year', 'start_date', 'end_date', 'period', 'no_renewal']
 
 
 class InvoiceItemForm(ModelForm):
@@ -445,7 +497,7 @@ class InvoiceItemForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(InvoiceItemForm, self).clean()
-        item_type = (cleaned_data.get('item_type'))
+        item_type = cleaned_data.get('item_type')
         amount = float(cleaned_data.get('amount'))
         if item_type.credit:
             if amount >=0:

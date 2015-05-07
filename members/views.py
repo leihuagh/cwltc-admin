@@ -275,14 +275,13 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
 class SubCreateView(LoginRequiredMixin, CreateView):
     model = Subscription
     form_class = SubscriptionForm
-    form = SubscriptionForm()
     template_name = 'members/subscription_form.html'
 
-    def get_success_url(self):
-        sub = self.object
-        sub.activate()
-        sub.generate_invoice_items(month=5)
-        return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
+    def get_form_kwargs(self):
+        ''' pass the person_id to the form '''
+        kwargs = super(SubCreateView,self).get_form_kwargs()
+        kwargs.update({'person_id': self.kwargs['person_id']})
+        return kwargs
     
     def get_context_data(self, **kwargs):
         context = super(SubCreateView, self).get_context_data(**kwargs)
@@ -292,19 +291,28 @@ class SubCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.person_member = Person.objects.get(pk = self.kwargs['person_id'])
         form.instance.invoiced_month = 0
+        form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
         result = super(SubCreateView, self).form_valid(form)
         return result
+
+    def get_success_url(self):
+        sub = self.object
+        sub.activate()
+        sub.generate_invoice_items(sub.start_date.month)
+        return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
 
 class SubUpdateView(LoginRequiredMixin, UpdateView):
     model = Subscription
     form_class = SubscriptionForm
-    template_name = 'members/subscription_form.html'
-
-    def get_success_url(self):
+    template_name = 'members/subscription_form.html'                 
+    
+    def get_form_kwargs(self):
+        ''' pass the person_id to the form '''
         sub = self.get_object()
-        sub.activate()
-        sub.generate_invoice_items(month=5)
-        return reverse('person-detail', kwargs={'pk':sub.person_member_id})                    
+        kwargs = super(SubUpdateView,self).get_form_kwargs()
+        kwargs.update({'person_id': sub.person_id})
+        return kwargs 
+   
     
     def get_context_data(self, **kwargs):
         context = super(SubUpdateView, self).get_context_data(**kwargs)
@@ -320,6 +328,12 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
             sub = self.get_object()
             sub.delete_invoice_items()
             return redirect(sub)
+
+    def get_success_url(self):
+        sub = self.get_object()
+        sub.activate()
+        sub.generate_invoice_items(sub.start_date.month)
+        return reverse('person-detail', kwargs={'pk':sub.person_member_id}) 
 
 class SubDetailView(LoginRequiredMixin, DetailView):
     model = Subscription

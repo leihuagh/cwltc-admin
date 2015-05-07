@@ -198,8 +198,27 @@ class Membership(models.Model):
     FULL = 1
     JUNIOR = 2
     CADET = 3
-    STUDENT = 4
+    UNDER_26 = 4
+    BRIDGE = 5
+    COUNTRY = 6
+    COACH = 7
+    HON_LIFE = 8
+    LIFE = 9
+    MIDWEEK = 10
+    NON_PLAYING = 11
+    RESIGNED = 12
     NON_MEMBER = 13
+    PARENT = 14
+    OFF_PEAK = 15
+
+    ADULT_CHOICES = (
+        (FULL, "Full"),
+        (OFF_PEAK, "Off peak"),
+        (PARENT, "Parent"),
+        (COUNTRY, "Country"),
+        (BRIDGE, "Bridge"),
+        (NON_PLAYING, "Non playing"),
+        )
 
     description = models.CharField(max_length=20)
     
@@ -620,7 +639,7 @@ class Subscription(models.Model):
 
     CADET_AGE = 8
     JUNIOR_AGE = 18
-    STUDENT_AGE = 26
+    UNDER_26_AGE = 26
 
     person_member = models.ForeignKey(Person)
     sub_year = models.SmallIntegerField()
@@ -658,8 +677,8 @@ class Subscription(models.Model):
                 sub.membership_id = Membership.CADET
             elif age < Subscription.JUNIOR_AGE:              
                 sub.membership_id = Membership.JUNIOR
-            elif age < Subscription.STUDENT_AGE:
-                sub.membership_id = Membership.STUDENT
+            elif age < Subscription.UNDER_26_AGE:
+                sub.membership_id = Membership.UNDER_26
             else:
                 sub.membership_id = Membership.FULL
         else:
@@ -705,7 +724,7 @@ class Subscription(models.Model):
                 new_mem_id = self.membership_id
                 if (new_mem_id == Membership.CADET or 
                     new_mem_id  == Membership.JUNIOR or
-                    new_mem_id  == Membership.STUDENT):
+                    new_mem_id  == Membership.UNDER_26):
                     new_mem_id = Membership.AUTO
                 new_sub = Subscription.create(
                     person=self.person_member,
@@ -797,6 +816,7 @@ class Subscription(models.Model):
                     item.delete()
             else:
                 item.delete()
+
 
 class BarTransaction(models.Model):
     id = models.IntegerField(primary_key=True)

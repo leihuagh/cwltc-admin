@@ -17,7 +17,7 @@ class MembersTestCase(TestCase):
         full = Membership.objects.create(id=Membership.FULL, description="Full")
         junior = Membership.objects.create(id=Membership.JUNIOR, description="Junior")
         cadet = Membership.objects.create(id=Membership.CADET, description="Cadet")
-        student = Membership.objects.create(id=Membership.STUDENT, description="Student")
+        UNDER_26 = Membership.objects.create(id=Membership.UNDER_26, description="UNDER_26")
         
         # Define fees
         fee1 = Fees.objects.create(
@@ -42,7 +42,7 @@ class MembersTestCase(TestCase):
             joining_fee = 0
         )
         fee4 = Fees.objects.create(
-            membership = student,
+            membership = UNDER_26,
             sub_year = 2015,
             annual_sub = 95.00,
             monthly_sub = 7.00,
@@ -233,12 +233,12 @@ class MembersTestCase(TestCase):
 
         child.active_sub().renew(2026, 5)
         sub_26 = child.subscription_set.all().filter(sub_year=2026)[0]
-        self.assertEqual(sub_26.membership.description, 'Student', 'Sub wrong: %s' % sub_26.membership.description)
+        self.assertEqual(sub_26.membership.description, 'UNDER_26', 'Sub wrong: %s' % sub_26.membership.description)
         sub_26.activate
 
         child.active_sub().renew(2032, 5)
         sub_32 = child.subscription_set.all().filter(sub_year=2032)[0]
-        self.assertEqual(sub_32.membership.description, 'Student', 'Sub wrong: %s' % sub_32.membership.description)
+        self.assertEqual(sub_32.membership.description, 'UNDER_26', 'Sub wrong: %s' % sub_32.membership.description)
         sub_32.activate
 
         child.active_sub().renew(2033, 5)
@@ -246,7 +246,7 @@ class MembersTestCase(TestCase):
         self.assertEqual(sub_33.membership.description, 'Full', 'Sub wrong: %s' % sub_33.membership.description)
         sub_33.activate
 
-    def test_sub_student_age25(self):
+    def test_sub_UNDER_26_age25(self):
         child = Person.objects.all().filter(last_name = "Child")[0]
         child.dob = datetime.date(1989,5,2)
         sub = Subscription.create(
@@ -256,9 +256,9 @@ class MembersTestCase(TestCase):
         )
         self.assertEqual(child.subscription_set.count(), 1, 'actual is: %d' % child.subscription_set.count())
         category = child.subscription_set.all()[0].membership.description
-        self.assertEqual(category, "Student", 'Actual is: %s' % category)
+        self.assertEqual(category, "UNDER_26", 'Actual is: %s' % category)
 
-    def test_sub_student_age26(self):
+    def test_sub_UNDER_26_age26(self):
         child = Person.objects.all().filter(last_name = "Child")[0]
         child.dob = datetime.date(1989,5,1)
         sub = Subscription.create(
