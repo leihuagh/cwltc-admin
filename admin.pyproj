@@ -453,7 +453,7 @@
     <Content Include="members\templates\members\_invoice_list.html" />
     <Content Include="members\templates\members\_invoice_pdf.html" />
     <Content Include="members\templates\members\_payment_list.html" />
-    <Content Include="members\templates\members\_subscription_list.html" />
+    <Content Include="members\templates\members\subscription_list.html" />
     <Content Include="requirements.txt" />
     <Content Include="static\README.txt" />
   </ItemGroup>

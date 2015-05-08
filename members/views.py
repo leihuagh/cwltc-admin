@@ -221,6 +221,7 @@ def set_person_context(context, pers):
     context['person'] = pers
     context['address'] = pers.address
     context['subs'] = pers.subscription_set.all().order_by('sub_year')
+    context['sub'] = pers.active_sub()
     context['statement'] = statement
     context['invoices'] = pers.invoice_set.all().order_by('update_date')
     own_items = pers.invoiceitem_set.filter(invoice=None).order_by('update_date')
@@ -325,10 +326,16 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         if 'submit' in form.data:
             form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
             return super(SubUpdateView, self).form_valid(form)
+
         if 'delete_items' in form.data:
             sub = self.get_object()
             sub.delete_invoice_items()
             return redirect(sub)
+
+        if 'resign' in form.data:
+            form.instance.membership = Membership.objects.get(pk = Membership.RESIGNED)
+            form.instance.no_renewal = True
+            return super(SubUpdateView, self).form_valid(form)
 
     def get_success_url(self):
         sub = self.get_object()
@@ -349,6 +356,21 @@ class SubDetailView(LoginRequiredMixin, DetailView):
             if item.invoice and item.invoice.state == Invoice.UNPAID:
                 context['cancel_invoice'] = True
                 break
+        return context
+
+class SubListView(LoginRequiredMixin, ListView):
+    ''' Subs history for 1 person '''
+    model = Subscription
+    template_name = 'members/subscription_list.html'
+    context_object_name = 'subs'
+
+    def get_queryset(self):
+        self.person = get_object_or_404(Person, pk = self.kwargs['person_id'])
+        return Subscription.objects.filter(person_member=self.person).order_by('start_date')
+
+    def get_context_data(self, **kwargs):
+        context = super(SubListView, self).get_context_data(**kwargs)
+        context['person'] = self.person
         return context
 
 class SubRenewView(LoginRequiredMixin, View):

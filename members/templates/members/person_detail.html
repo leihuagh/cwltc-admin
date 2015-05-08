@@ -87,23 +87,43 @@
             <div class="panel-footer">
                 <a href="{% url "person-link" pk=person.id %}" class="btn btn-primary btn-sm">Link to family</a>
                 <a href="{% url "person-create" link=person.id %}" class="btn btn-primary btn-sm">Add new family member</a>
-            </div> 
+        </div> 
         {% endif %}
-       </div>
+    </div>
+  </div><!--/col-->
+</div>
+ 
+{% if sub %}
+  <div class="row">    
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">Current subscription</div>
+          <div class="panel-body">
+              {{ sub.membership.description }} <br />
+             From {{ sub.start_date }} to {{ sub.end_date }} <br />
+             State: 
+                {% if sub.has_paid_invoice %}
+                Paid invoice
+                {% elif sub.has_unpaid_invoice %}
+                    Unpaid invoice
+                {% elif sub.has_items %}
+                    Uninvoiced item
+                {% else %}
+                    Not billed
+                {% endif %} 
+          </div>
+          <div class="panel-footer">
+            {% if sub.has_paid_invoice %}              
+                <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change subscription</a>
+            {% else %}
+                <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">Edit current sub</a>
+            {% endif %} 
+                <a href="{% url "sub-history" person_id=person.id %}" class="btn btn-primary btn-xs">History</a>
+          </div> 
      </div>
     </div><!--/col-->
-  </div>
-
-
-
-
-
-{% if subs %}
-    {% include "members/_subscription_list.html" %}
-{% else %}
-     <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Add subscription</a>
+  </div>  
 {% endif %}
-
 {% if statement %}
 <h4>Statement of account</h4>
 <table id="statement" class="table table-condensed">

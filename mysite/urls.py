@@ -56,6 +56,11 @@ urlpatterns = patterns('',
         SubRenewBatch.as_view(),
         name='sub-renew-batch'
     ),
+    url(
+        r'^sub/history/(?P<person_id>\d+)/',
+        SubListView.as_view(),
+        name='sub-history'
+    ),
 
     #   INVOICES
     url(

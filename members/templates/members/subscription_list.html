@@ -1,4 +1,11 @@
-﻿<table id="subs" class="table table-condensed" >
+﻿{% extends "members/layout.html" %}
+{% load members_extras %}
+{% block content %}
+<h2>Subscription history</h2>
+<h4>
+<a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
+</h4>
+<table id="subs" class="table table-condensed" >
 <caption class="text-left"><h4>Subscriptions</h4></caption>
 <thead>
         <tr>
@@ -6,10 +13,8 @@
         <th>Year</th>
         <th>From</th>
         <th>To</th>
-        <th>Category</th>
-        <th>Active</th>
-        <th>Invoice</th>
-        <th>Paid</th>
+        <th>Membership</th>
+        <th>Payment state</th>
     </tr>
 </thead>
 {% for sub in subs %}
@@ -24,16 +29,18 @@
     <td>{{ sub.end_date }}</td>
     <td>{{ sub.membership.description }}</td>
     <td>
-    {% if sub.active%}
-        Active
+    {% if sub.has_paid_invoice %}
+        Paid invoice
+    {% elif sub.has_unpaid_invoice %}
+        Unpaid invoice
+    {% elif sub.has_items %}
+        Uninvoiced item
+    {% else %}
+        Not billed
     {% endif %} 
     </td>
     <td>
-    {% if sub.invoice_item %}
-        Invoice
-    {% endif %} 
-    </td>
-    <td>{{ sub.paid }}</td>
-    {#<td>{{ person.current_sub.membership.description }}</td>#}  
+
 {% endfor sub %}
 </table>
+{% endblock %}

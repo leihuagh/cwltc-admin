@@ -357,7 +357,7 @@ class PersonLinkForm(Form):
             raise forms.ValidationError('Too many matching people')
 
 class SubscriptionForm(ModelForm):
-    membership_type = forms.ChoiceField()
+    membership_id = forms.ChoiceField()
     
     def __init__(self, *args, **kwargs):
         person_id = kwargs.pop('person_id')
@@ -378,7 +378,7 @@ class SubscriptionForm(ModelForm):
         self.helper.layout = Layout(
             Fieldset(
                 'Edit subscription',
-                'membership_type',
+                'membership_id',
                 'sub_year',
                 'period',
                 'start_date',
@@ -430,39 +430,44 @@ class SubscriptionForm(ModelForm):
         choices = Membership.ADULT_CHOICES
         if age:
             if age < Subscription.CADET_AGE:
-                choices = (
-                    (Membership.CADET, "Cadet"),
-                    )
+                choices = [
+                    (Membership.CADET, "Cadet")
+                    ]
             elif age < Subscription.JUNIOR_AGE:
-                choices = (
-                    (Membership.JUNIOR, "Junior"),
-                    )
+                choices = [
+                    (Membership.JUNIOR, "Junior")
+                    ]
             elif age < Subscription.UNDER_26_AGE:
-                choices = (
-                    (Membership.UNDER_26, "Under 26"),
-                    )           
-        self.fields['membership_type'] = forms.ChoiceField(choices = choices)
+                choices = [
+                    (Membership.UNDER_26, "Under 26")
+                    ]
+        if self.updating:
+            choices.append((Membership.RESIGNED, "Resigned"))        
+        self.fields['membership_id'] = forms.ChoiceField(choices = choices)
  
         
         if self.updating:
-            self.fields['membership_type'].initial = instance.membership_id
-            if instance.invoiceitem_set.all().count() > 0:
+            self.fields['membership_id'].initial = instance.membership_id
+            if instance.has_items():
                 for key in self.fields:
                     self.fields[key].widget.attrs['disabled'] = 'disabled'
-                self.has_invoice = False
-                for item in instance.invoiceitem_set.all():
-                    if item.invoice and item.invoice.state == Invoice.UNPAID:
-                        self.has_invoice = True
-                        break
-                if self.has_invoice:
-                    self.helper.add_input(Submit('delete_items', 'Delete item & invoice', css_class='btn-danger'))
+                if instance.has_paid_invoice:
+                    self.helper.add_input(Submit('new_sub', 'Create new subscription', css_class='btn-primary'))
+                    self.add_resign()
+                if instance.has_unpaid_invoice():
+                    self.helper.add_input(Submit('delete_items', 'Delete invoice', css_class='btn-danger'))
                 else:
                     self.helper.add_input(Submit('delete_items', 'Delete item', css_class='btn-danger'))
             else:
                 self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
+                self.add_resign
         else:
             self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
-
+            self.add_resign
+    
+    def add_resign(self):
+        self.helper.add_input(Submit('resign', 'Resign', css_class='btn-warning'))
+            
     def clean(self):
         cleaned_data = super(SubscriptionForm, self).clean()
         if self.updating:
@@ -504,6 +509,7 @@ class SubscriptionForm(ModelForm):
     class Meta:
         model = Subscription
         fields = ['sub_year', 'start_date', 'end_date', 'period', 'no_renewal']
+
 
 
 class InvoiceItemForm(ModelForm):
