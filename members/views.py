@@ -323,6 +323,7 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         if 'submit' in form.data:
+            form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
             return super(SubUpdateView, self).form_valid(form)
         if 'delete_items' in form.data:
             sub = self.get_object()

@@ -357,12 +357,13 @@ class PersonLinkForm(Form):
             raise forms.ValidationError('Too many matching people')
 
 class SubscriptionForm(ModelForm):
-    membership_id = forms.ChoiceField()
+    membership_type = forms.ChoiceField()
     
     def __init__(self, *args, **kwargs):
         person_id = kwargs.pop('person_id')
         super(SubscriptionForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
+        self.updating = False
         if instance and instance.id:
             self.updating = True
         self.helper = FormHelper(self)
@@ -371,13 +372,13 @@ class SubscriptionForm(ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
-        self.helper.form_show_errors = True
-        self.helper.form_error_title = 'Errors'
-        self.helper.error_text_inline = True
+        #self.helper.form_show_errors = True
+        #self.helper.form_error_title = 'Errors'
+        #self.helper.error_text_inline = True
         self.helper.layout = Layout(
             Fieldset(
                 'Edit subscription',
-                'membership_id',
+                'membership_type',
                 'sub_year',
                 'period',
                 'start_date',
@@ -440,9 +441,11 @@ class SubscriptionForm(ModelForm):
                 choices = (
                     (Membership.UNDER_26, "Under 26"),
                     )           
-        self.fields['membership_id'] = forms.ChoiceField(choices = choices)
+        self.fields['membership_type'] = forms.ChoiceField(choices = choices)
+ 
         
         if self.updating:
+            self.fields['membership_type'].initial = instance.membership_id
             if instance.invoiceitem_set.all().count() > 0:
                 for key in self.fields:
                     self.fields[key].widget.attrs['disabled'] = 'disabled'
@@ -466,7 +469,10 @@ class SubscriptionForm(ModelForm):
             # Add missing fields from the instance
             instance = getattr(self, 'instance', None)
             for key in self.fields:
-                if key in cleaned_data and not cleaned_data[key]:          
+                if key in cleaned_data:
+                    if not cleaned_data[key]:          
+                        cleaned_data[key] = getattr(instance, key)
+                else:
                     cleaned_data[key] = getattr(instance, key)
             # Remove the error fields
             for key in self.errors.keys():

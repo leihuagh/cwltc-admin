@@ -766,6 +766,21 @@ class Subscription(models.Model):
     def get_absolute_url(self):
         return reverse("sub-update", kwargs={"pk": self.pk})
 
+    def has_uninvoiced_items(self):
+        return self.invoiceitem_set.all().count() > 0
+
+    def has_unpaid_invoice(self):
+        for item in self.invoiceitem_set.all():
+            if item.invoice and item.invoice.state == Invoice.UNPAID:
+                return True
+        return False
+
+    def has_paid_invoice(self):
+        for item in self.invoiceitem_set.all():
+            if item.invoice and item.invoice.state == Invoice.PAID_IN_FULL:
+                return True
+        return False
+    
     def is_invoiced(self):
         return self.invoice_item is not None
    
