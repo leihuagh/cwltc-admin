@@ -363,6 +363,8 @@ class SubscriptionForm(ModelForm):
         person_id = kwargs.pop('person_id')
         super(SubscriptionForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
+        if instance and instance.id:
+            self.updating = True
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-SubscriptionForm'
         self.helper.form_class = 'form-horizontal'
@@ -393,26 +395,33 @@ class SubscriptionForm(ModelForm):
            ) 
         self.fields['start_date'].widget = MonthYearWidget()
         self.fields['start_date'].input_formats = settings.DATE_INPUT_FORMATS
-        self.fields['start_date'].initial = date(2015, 5, 1)
+        
         self.fields['end_date'].widget = MonthYearWidget()
         self.fields['end_date'].input_formats = settings.DATE_INPUT_FORMATS
         
-        now = date.today()
-        start_month = now.month
-        start_year = now.year    
-        if now.day > 15:
-            start_month += 1
-            if start_month > 12:
-                start_month = 1
-                start_year += 1
-        sub_year = now.year
-        end_year = start_year + 1
-        if start_month < Subscription.START_MONTH:
-            end_year = start_year
-            sub_year -= 1
-        self.fields['start_date'].initial = date(start_year, start_month, 1)
-        self.fields['end_date'].initial = date(end_year, 4, 1)           
-        self.fields['sub_year'].initial = sub_year
+        if not self.updating:
+            # initialise start and end dates
+            self.fields['start_date'].initial = date(2015, 5, 1)
+            now = date.today()
+            start_month = now.month
+            start_year = now.year    
+            if now.day > 15:
+                start_month += 1
+                if start_month > 12:
+                    start_month = 1
+                    start_year += 1
+            sub_year = now.year
+            end_year = start_year + 1
+            if start_month < Subscription.START_MONTH:
+                end_year = start_year
+                sub_year -= 1
+            self.fields['start_date'].initial = date(start_year, start_month, 1)
+            self.fields['end_date'].initial = date(end_year, 4, 1)           
+            self.fields['sub_year'].initial = sub_year
+        else:
+            sub_year = instance.sub_year
+            self.fields['start_date'].initial = instance.start_date
+            self.fields['end_date'].initial = instance.end_date        
 
         # Set the available membership choices according to the age
         person = Person.objects.get(pk=person_id)
@@ -421,28 +430,22 @@ class SubscriptionForm(ModelForm):
         if age:
             if age < Subscription.CADET_AGE:
                 choices = (
-                    (Membership.CADET, "Cadet")
+                    (Membership.CADET, "Cadet"),
                     )
             elif age < Subscription.JUNIOR_AGE:
                 choices = (
-                    (Membership.JUNIOR, "Junior")
+                    (Membership.JUNIOR, "Junior"),
                     )
             elif age < Subscription.UNDER_26_AGE:
                 choices = (
-                    (Membership.UNDER_26, "Under 26")
-                    )
-            
+                    (Membership.UNDER_26, "Under 26"),
+                    )           
         self.fields['membership_id'] = forms.ChoiceField(choices = choices)
         
-        if instance and instance.pk:
+        if self.updating:
             if instance.invoiceitem_set.all().count() > 0:
-                self.helper['sub_year'].wrap(Field, readonly="true")
-                self.helper['period'].wrap(Field, readonly="true")
-                self.helper['start_date'].wrap(Field, readonly="true")
-                self.helper['end_date'].wrap(Field, readonly="true")
-                self.helper['no_renewal'].wrap(Field, readonly="true")
-                self.helper['membership'].wrap(Field, readonly="true")
-
+                for key in self.fields:
+                    self.fields[key].widget.attrs['disabled'] = 'disabled'
                 self.has_invoice = False
                 for item in instance.invoiceitem_set.all():
                     if item.invoice and item.invoice.state == Invoice.UNPAID:
@@ -459,6 +462,16 @@ class SubscriptionForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(SubscriptionForm, self).clean()
+        if self.updating:
+            # Add missing fields from the instance
+            instance = getattr(self, 'instance', None)
+            for key in self.fields:
+                if key in cleaned_data and not cleaned_data[key]:          
+                    cleaned_data[key] = getattr(instance, key)
+            # Remove the error fields
+            for key in self.errors.keys():
+                del self.errors[key]
+
         end_date = cleaned_data.get('end_date')
         y = end_date.year
         m = end_date.month
@@ -466,7 +479,21 @@ class SubscriptionForm(ModelForm):
         if m > 12:
             m = 1
             Y += 1
-        cleaned_data['end_date'] = date(y, m, 1) - timedelta(days=1)
+        end_date = date(y, m, 1) - timedelta(days=1)
+        cleaned_data['end_date'] = end_date
+        start_date = cleaned_data['start_date']
+        sub_start = date(cleaned_data['sub_year'], Subscription.START_MONTH, 1)
+        sub_end = date(sub_start.year+1, Subscription.START_MONTH, 1)
+        errors = []
+        if start_date < sub_start or start_date >= sub_end:
+            errors.append(forms.ValidationError(_('Start date must be inside the subscription year'), code ='invalid'))
+        if end_date < sub_start or end_date >= sub_end:
+            errors.append(forms.ValidationError(_('End date must be inside the subscription year'), code ='invalid'))                
+        if end_date <= start_date:
+            errors.append(forms.ValidationError(_('End date must be after start date'), code = 'invalid'))
+        if errors:
+            raise forms.ValidationError(errors)
+        return cleaned_data
 
     class Meta:
         model = Subscription

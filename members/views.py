@@ -310,7 +310,7 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         ''' pass the person_id to the form '''
         sub = self.get_object()
         kwargs = super(SubUpdateView,self).get_form_kwargs()
-        kwargs.update({'person_id': sub.person_id})
+        kwargs.update({'person_id': sub.person_member_id})
         return kwargs 
    
     
@@ -483,7 +483,7 @@ class InvoiceListView(LoginRequiredMixin, ListView):
         else:
             if option == 'cadets':
                 qs = InvoiceItem.objects.filter(
-                    person__dob__range=["2007-05-01", "2008-05-01"]
+                    person__dob__range=["2006-05-01", "2007-05-01"]
                     )
                 list = []
                 for q in qs:

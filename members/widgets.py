@@ -8,7 +8,8 @@ from django.conf import settings
 
 __all__ = ('MonthYearWidget',)
 
-RE_DATE = re.compile(r'(\d{4})-(\d\d?)-(\d\d?)$')
+#RE_DATE = re.compile(r'(\d{4})-(\d\d?)-(\d\d?)$')
+RE_DATE = re.compile(r'(\d\d?)/(\d\d?)/(\d{4})$')
 
 class MonthYearWidget(Widget):
     """
@@ -19,6 +20,8 @@ class MonthYearWidget(Widget):
     
     django/trunk/django/forms/extras/widgets.py
     https://djangosnippets.org/snippets/1688/
+
+    Note date format must be d/m/yyyy
     
     """
     none_value = (0, '---')
@@ -43,7 +46,7 @@ class MonthYearWidget(Widget):
             if isinstance(value, basestring):
                 match = RE_DATE.match(value)
                 if match:
-                    year_val, month_val, day_val = [int(v) for v in match.groups()]
+                    day_val, month_val, year_val = [int(v) for v in match.groups()]
 
         output = []
 
