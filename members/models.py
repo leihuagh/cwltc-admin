@@ -76,6 +76,9 @@ class Person(models.Model):
         if self.dob:
             return date.year - self.dob.year - ((date.month, date.day) < (self.dob.month, self.dob.day))
     
+    def age_today(self):
+        return self.age(date.today())
+
     def active_sub(self):
         ''' Return the active subscription if one exists. ''' 
         if self.subscription_set.count():
