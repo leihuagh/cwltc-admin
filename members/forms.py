@@ -453,17 +453,17 @@ class SubscriptionForm(ModelForm):
                     self.fields[key].widget.attrs['disabled'] = 'disabled'
                 if instance.has_paid_invoice:
                     self.helper.add_input(Submit('new_sub', 'Create new subscription', css_class='btn-primary'))
-                    self.add_resign()
+                    #self.add_resign()
                 if instance.has_unpaid_invoice():
                     self.helper.add_input(Submit('delete_items', 'Delete invoice', css_class='btn-danger'))
                 else:
                     self.helper.add_input(Submit('delete_items', 'Delete item', css_class='btn-danger'))
             else:
                 self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
-                self.add_resign
+                #self.add_resign
         else:
             self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
-            self.add_resign
+            #self.add_resign
     
     def add_resign(self):
         self.helper.add_input(Submit('resign', 'Resign', css_class='btn-warning'))

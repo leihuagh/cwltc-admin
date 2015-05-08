@@ -116,9 +116,9 @@
             {% if sub.has_paid_invoice %}              
                 <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change subscription</a>
             {% else %}
-                <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">Edit current sub</a>
+                <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-sm">Edit current sub</a>
             {% endif %} 
-                <a href="{% url "sub-history" person_id=person.id %}" class="btn btn-primary btn-xs">History</a>
+                <a href="{% url "sub-history" person_id=person.id %}" class="btn btn-primary btn-sm">History</a>
           </div> 
      </div>
     </div><!--/col-->
