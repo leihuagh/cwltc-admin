@@ -125,7 +125,12 @@ class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
         kwargs.update({'link': self.kwargs['link']})
         return kwargs
 
+    def form_valid(self, form):
+        result =  super(PersonCreateView, self).form_valid(form)
+        return result
+
     def get_success_url(self):
+        #return reverse('sub-create', kwargs={'person_id': self.object.id})
         return reverse('person-list')
 
 class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
@@ -229,7 +234,15 @@ def set_person_context(context, pers):
         invoice=None,
         person__linked=pers).order_by('update_date')
     context['items'] = own_items | family_items
-    context['children'] = pers.person_set.all()
+    parent = None
+    if pers.linked:
+        parent = pers.linked
+    else:
+        if pers.person_set.count() > 0:
+            parent = pers
+    if parent:
+        context['parent'] = parent   
+        context['children'] = parent.person_set.all()
     context['state_list'] = Invoice.STATES
     context['types'] = Payment.TYPES
     context['payment_states'] = Payment.TYPES
@@ -344,11 +357,12 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('person-detail', kwargs={'pk':sub.person_member_id}) 
 
 class SubCorrectView(LoginRequiredMixin, UpdateView):
+    ''' standard model view that skips validation '''
     model = Subscription
     form_class = SubCorrectForm
 
     def get_success_url(self):
-        sub = self.get_object()
+        self.get_object().activate
         return reverse('person-detail', kwargs={'pk':sub.person_member_id}) 
 
 class SubDetailView(LoginRequiredMixin, DetailView):

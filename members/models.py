@@ -676,14 +676,15 @@ class Subscription(models.Model):
         if membership_id == Membership.AUTO:
             
             age = person.age(datetime(sub_year, Subscription.START_MONTH, 1))
-            if age < Subscription.CADET_AGE:
-                sub.membership_id = Membership.CADET
-            elif age < Subscription.JUNIOR_AGE:              
-                sub.membership_id = Membership.JUNIOR
-            elif age < Subscription.UNDER_26_AGE:
-                sub.membership_id = Membership.UNDER_26
-            else:
-                sub.membership_id = Membership.FULL
+            sub.membership_id = Membership.FULL
+            if age:
+                if age < Subscription.CADET_AGE:
+                    sub.membership_id = Membership.CADET
+                elif age < Subscription.JUNIOR_AGE:              
+                    sub.membership_id = Membership.JUNIOR
+                elif age < Subscription.UNDER_26_AGE:
+                    sub.membership_id = Membership.UNDER_26
+                   
         else:
             sub.membership_id = membership_id
         sub.new_member = new_member
@@ -728,7 +729,7 @@ class Subscription(models.Model):
                 if (new_mem_id == Membership.CADET or 
                     new_mem_id  == Membership.JUNIOR or
                     new_mem_id  == Membership.UNDER_26):
-                    new_mem_id = Membership.AUTO
+                        new_mem_id = Membership.AUTO
                 new_sub = Subscription.create(
                     person=self.person_member,
                     sub_year=sub_year,
