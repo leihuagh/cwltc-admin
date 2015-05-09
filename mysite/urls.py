@@ -37,6 +37,11 @@ urlpatterns = patterns('',
         name='sub-update'
     ),
     url(
+        r'^sub/correct/(?P<pk>\d+)/',
+        SubCorrectView.as_view(),
+        name='sub-correct'
+    ),
+    url(
         r'^sub/create/(?P<person_id>\d+)/',
         SubCreateView.as_view(),
         name='sub-create'

@@ -25,7 +25,7 @@ from braces.views import LoginRequiredMixin
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook)
 from .forms import (PersonForm, PersonLinkForm, JuniorForm, FilterMemberForm, AddressForm,
-                    SubscriptionForm,  XlsInputForm, XlsMoreForm, SelectSheetsForm,
+                    SubscriptionForm, SubCorrectForm, XlsInputForm, XlsMoreForm, SelectSheetsForm,
                     InvoiceItemForm, PaymentForm, CreditNoteForm, TextBlockForm, InvoiceSelectForm,
                     EmailTextForm)
 
@@ -341,6 +341,14 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         sub = self.get_object()
         sub.activate()
         sub.generate_invoice_items(sub.start_date.month)
+        return reverse('person-detail', kwargs={'pk':sub.person_member_id}) 
+
+class SubCorrectView(LoginRequiredMixin, UpdateView):
+    model = Subscription
+    form_class = SubCorrectForm
+
+    def get_success_url(self):
+        sub = self.get_object()
         return reverse('person-detail', kwargs={'pk':sub.person_member_id}) 
 
 class SubDetailView(LoginRequiredMixin, DetailView):

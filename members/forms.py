@@ -372,9 +372,6 @@ class SubscriptionForm(ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
-        #self.helper.form_show_errors = True
-        #self.helper.form_error_title = 'Errors'
-        #self.helper.error_text_inline = True
         self.helper.layout = Layout(
             Fieldset(
                 'Edit subscription',
@@ -510,7 +507,18 @@ class SubscriptionForm(ModelForm):
         model = Subscription
         fields = ['sub_year', 'start_date', 'end_date', 'period', 'no_renewal']
 
+class SubCorrectForm(ModelForm):
+    ''' Allow changes without age validation '''
 
+    def __init__(self, *args, **kwargs):
+        super(SubCorrectForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_method = 'post'
+        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+
+    class Meta:
+        model = Subscription
+        fields = ['membership', 'sub_year', 'start_date', 'end_date']
 
 class InvoiceItemForm(ModelForm):
 

@@ -214,14 +214,14 @@ class Membership(models.Model):
     PARENT = 14
     OFF_PEAK = 15
 
-    ADULT_CHOICES = (
+    ADULT_CHOICES = [
         (FULL, "Full"),
         (OFF_PEAK, "Off peak"),
         (PARENT, "Parent"),
         (COUNTRY, "Country"),
         (BRIDGE, "Bridge"),
         (NON_PLAYING, "Non playing"),
-        )
+        ]
 
     description = models.CharField(max_length=20)
     
