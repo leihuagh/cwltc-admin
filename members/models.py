@@ -221,6 +221,9 @@ class Membership(models.Model):
         (COUNTRY, "Country"),
         (BRIDGE, "Bridge"),
         (NON_PLAYING, "Non playing"),
+        (COACH, "Coach"),
+        (UNDER_26, "Under 26"),
+        (HON_LIFE, "Honorary life"),
         ]
 
     description = models.CharField(max_length=20)

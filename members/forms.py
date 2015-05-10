@@ -382,14 +382,19 @@ class SubscriptionForm(ModelForm):
                 'end_date',
                 'no_renewal',              
                 ),
-            HTML("""{% if items %}
-            <h3>Subscription cannot be edited unless linked items / invoice are deleted</h3>
+            HTML("""
+            {% if sub.has_paid_invoice %}
+              <h3>Subscription is linked to paid invoice and cannot be changed<h3>
+            {% elif sub.has_unpaid_invoice %}
+              <h3>Subscription is linked to and paid and cannot be changed unless the invoice is deleted<h3>
+            {% elif sub.has_items %}
+              <h3>Subscription has linked invoice items and cannot be edited unless the item is deleted</h3>
+            {% endif %}
             {% for item in items %}
-            <ul>{{ item.date|date }} {{ item.description }}
-            {% if item.invoice %} Invoice: {{ item.invoice.id }}
-            {% else %} Not invoiced {% endif %} </ul>
+              <ul>{% if item.invoice %} Invoice: {{ item.invoice.id }} <br /> {% endif %}
+                {{ item.description }}
             {% endfor %}
-            {% endif %}""")
+            """)
            ) 
         self.fields['start_date'].widget = MonthYearWidget()
         self.fields['start_date'].input_formats = settings.DATE_INPUT_FORMATS
@@ -424,7 +429,7 @@ class SubscriptionForm(ModelForm):
         # Set the available membership choices according to the age
         person = Person.objects.get(pk=person_id)
         age = person.age(date(sub_year, Subscription.START_MONTH,1))
-        choices = Membership.ADULT_CHOICES
+        choices = list(Membership.ADULT_CHOICES)
         if age:
             if age < Subscription.CADET_AGE:
                 choices = [
@@ -439,7 +444,9 @@ class SubscriptionForm(ModelForm):
                     (Membership.UNDER_26, "Under 26")
                     ]
         if self.updating:
-            choices.append((Membership.RESIGNED, "Resigned"))        
+            choices.append((Membership.RESIGNED, "Resigned"))  
+        
+                  
         self.fields['membership_id'] = forms.ChoiceField(choices = choices)
  
         
@@ -452,9 +459,9 @@ class SubscriptionForm(ModelForm):
                     self.helper.add_input(Submit('new_sub', 'Create new subscription', css_class='btn-primary'))
                     #self.add_resign()
                 if instance.has_unpaid_invoice():
-                    self.helper.add_input(Submit('delete_items', 'Delete invoice', css_class='btn-danger'))
+                    self.helper.add_input(Submit('delete', 'Delete unoiad invoice', css_class='btn-danger'))
                 else:
-                    self.helper.add_input(Submit('delete_items', 'Delete item', css_class='btn-danger'))
+                    self.helper.add_input(Submit('delete', 'Delete item', css_class='btn-danger'))
             else:
                 self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
                 #self.add_resign

@@ -331,6 +331,7 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super(SubUpdateView, self).get_context_data(**kwargs)
         sub = self.get_object()
+        context['sub'] = sub
         context['person'] = sub.person_member
         context['items'] = sub.invoiceitem_set.all().order_by('item_type')
         return context
@@ -340,7 +341,7 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
             form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
             return super(SubUpdateView, self).form_valid(form)
 
-        if 'delete_items' in form.data:
+        if 'delete' in form.data:
             sub = self.get_object()
             sub.delete_invoice_items()
             return redirect(sub)
