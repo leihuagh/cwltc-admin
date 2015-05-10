@@ -2,27 +2,9 @@
 {% block content %}
 {% load crispy_forms_tags %}
 <h2>Subscription</h2>
-<p>
-{{ person.first_name }} {{ person.last_name}}
-</p>
+<h4>
+<a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
+</h4>
+
 {% crispy form %}
-<table>
-<tbody>
-    {% for item in items %}
-    <tr>
-        <td><a href="{% url "item-update" item.id %}" class="btn btn-primary btn-xs">Edit</a></td>
-        <td>{{ item.item_date|date }}</td>
-        <td>{{ item.description}}</td>
-        <td>
-        {% if item.payment %}
-            {{ item.payment_id }}
-        {% else %}
-            Unpaid
-        {% endif %}          
-        </td>
-        <td class = "text-right">£{{ item.amount }}</td>
-    </tr>
-    {% endfor item %}
-</tbody>
-</table>
 {% endblock content %}

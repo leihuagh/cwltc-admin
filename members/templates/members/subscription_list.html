@@ -6,7 +6,6 @@
 <a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
 </h4>
 <table id="subs" class="table table-condensed" >
-<caption class="text-left"><h4>Subscriptions</h4></caption>
 <thead>
         <tr>
         <th>Action</th>
@@ -19,11 +18,13 @@
 </thead>
 {% for sub in subs %}
 <tr>
+    <td>
     {% if sub.active %}
-        <td><a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+        <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">Edit </a>
     {% else %}
-        <td></td>
+        <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">View</a>
     {% endif %}
+    </td>
     <td>{{ sub.sub_year }}</td>
     <td>{{ sub.start_date }}</td> 
     <td>{{ sub.end_date }}</td>

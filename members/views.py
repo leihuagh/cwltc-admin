@@ -68,23 +68,35 @@ class FilteredPersonList(LoginRequiredMixin, ListView):
     template_name = 'members/person_table.html'
 
     def get_queryset(self):
-        tag_ids = self.kwargs['tags'].split('+')
-        tag_list = []
-        for id in tag_ids:
-            tag_list.append(int(id))
-        qset =  Person.objects.filter(
-            Q(membership_id__in = tag_list)
-        )
+        if self.kwargs['tags'] == 'families':
+            people = Person.objects.filter(linked__isnull = True)
+            qset=[]
+            for p in people:
+                if p.person_set.count()>0:
+                    qset.append(p)
+        else:
+            tag_ids = self.kwargs['tags'].split('+')
+            tag_list = []
+            for id in tag_ids:
+                tag_list.append(int(id))
+            qset =  Person.objects.filter(
+                Q(membership_id__in = tag_list)
+            )
         return qset 
 
     def get_context_data(self, **kwargs):
         context = super(FilteredPersonList, self).get_context_data(**kwargs)
-        fields = self.request.path_info.split('/')      
+        fields = self.request.path_info.split('/') 
+        tags = self.kwargs['tags']
+             
         taglist = fields[2].split('+')
         if len(taglist) > 0:
             context['tags'] = 'Filtered by: '
             for tagid in taglist:
-                context['tags'] += Membership.objects.get(pk=tagid).description + ", "
+                if tagid == 'families':
+                    context['tags'] += 'Families, '
+                else:
+                    context['tags'] += Membership.objects.get(pk=tagid).description + ', '
             context['tags'] = context['tags'][:-2]
         else:
             context['tags']=''

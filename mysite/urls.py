@@ -157,6 +157,7 @@ urlpatterns = patterns('',
     ),
 
     #   PEOPLE
+
     url(
         r'^list$',
        PersonList.as_view(),

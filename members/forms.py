@@ -360,8 +360,9 @@ class SubscriptionForm(ModelForm):
     membership_id = forms.ChoiceField()
     
     def __init__(self, *args, **kwargs):
-        person_id = kwargs.pop('person_id')
+        person_id = kwargs.pop('person_id')              
         super(SubscriptionForm, self).__init__(*args, **kwargs)
+        person = Person.objects.get(pk=person_id)
         instance = getattr(self, 'instance', None)
         self.updating = False
         if instance and instance.id:
@@ -372,9 +373,22 @@ class SubscriptionForm(ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
+        message = 'New subscription'
+        if person.subscription_set.count > 0:
+            message += ' (add to history)'
+        if self.updating:
+            
+            if instance.has_paid_invoice():
+                message = 'This sub is linked to a paid invoice and cannot be changed'
+            elif instance.has_unpaid_invoice():
+                message = 'This sub cannot be changed until the linked unpaid invoice is deleted'
+            elif instance.has_items():
+                message = 'This sub cannot be changed until the linked unbilled item is deleted'
+            else:
+                message = 'Change subscription'
         self.helper.layout = Layout(
             Fieldset(
-                'Edit subscription',
+                message,
                 'membership_id',
                 'sub_year',
                 'period',
@@ -383,17 +397,16 @@ class SubscriptionForm(ModelForm):
                 'no_renewal',              
                 ),
             HTML("""
-            {% if sub.has_paid_invoice %}
-              <h3>Subscription is linked to paid invoice and cannot be changed<h3>
-            {% elif sub.has_unpaid_invoice %}
-              <h3>Subscription is linked to and paid and cannot be changed unless the invoice is deleted<h3>
-            {% elif sub.has_items %}
-              <h3>Subscription has linked invoice items and cannot be edited unless the item is deleted</h3>
-            {% endif %}
-            {% for item in items %}
-              <ul>{% if item.invoice %} Invoice: {{ item.invoice.id }} <br /> {% endif %}
-                {{ item.description }}
-            {% endfor %}
+                {% for item in items %}
+                    {{ item.item_date|date }} {{ item.description}}
+                    {% if item.payment %}
+                        {{ item.payment_id }}
+                    {% else %}
+                        Unpaid
+                    {% endif %}          
+                    {{ item.amount }}
+                {% endfor item %}
+                <br />
             """)
            ) 
         self.fields['start_date'].widget = MonthYearWidget()
@@ -423,11 +436,8 @@ class SubscriptionForm(ModelForm):
             self.fields['sub_year'].initial = sub_year
         else:
             sub_year = instance.sub_year
-            self.fields['start_date'].initial = instance.start_date
-            self.fields['end_date'].initial = instance.end_date        
 
         # Set the available membership choices according to the age
-        person = Person.objects.get(pk=person_id)
         age = person.age(date(sub_year, Subscription.START_MONTH,1))
         choices = list(Membership.ADULT_CHOICES)
         if age:
@@ -444,24 +454,21 @@ class SubscriptionForm(ModelForm):
                     (Membership.UNDER_26, "Under 26")
                     ]
         if self.updating:
-            choices.append((Membership.RESIGNED, "Resigned"))  
-        
-                  
+            choices.append((Membership.RESIGNED, "Resigned"))                       
         self.fields['membership_id'] = forms.ChoiceField(choices = choices)
  
-        
+       
         if self.updating:
             self.fields['membership_id'].initial = instance.membership_id
             if instance.has_items():
                 for key in self.fields:
                     self.fields[key].widget.attrs['disabled'] = 'disabled'
-                if instance.has_paid_invoice:
-                    self.helper.add_input(Submit('new_sub', 'Create new subscription', css_class='btn-primary'))
-                    #self.add_resign()
-                if instance.has_unpaid_invoice():
-                    self.helper.add_input(Submit('delete', 'Delete unoiad invoice', css_class='btn-danger'))
+                if instance.has_paid_invoice():
+                    pass
+                elif instance.has_unpaid_invoice():
+                    self.helper.add_input(Submit('delete', 'Delete unpaid invoice', css_class='btn-danger'))
                 else:
-                    self.helper.add_input(Submit('delete', 'Delete item', css_class='btn-danger'))
+                    self.helper.add_input(Submit('delete', 'Delete unbilled item', css_class='btn-danger'))
             else:
                 self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
                 #self.add_resign
