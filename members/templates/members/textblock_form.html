@@ -4,6 +4,8 @@
 {% load crispy_forms_tags %}
 <h2>Standard text block</h2>
 {% crispy form %}
-{% wysiwyg_editor "id_text" %}
+{% if option = None%}
+    {% wysiwyg_editor "id_text" %}
+{% endif %}
 {% endblock content %}
 

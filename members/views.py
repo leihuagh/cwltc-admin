@@ -137,13 +137,11 @@ class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
         kwargs.update({'link': self.kwargs['link']})
         return kwargs
 
-    def form_valid(self, form):
-        result =  super(PersonCreateView, self).form_valid(form)
-        return result
-
-    def get_success_url(self):
-        #return reverse('sub-create', kwargs={'person_id': self.object.id})
-        return reverse('person-list')
+    def form_valid(self, form):        
+        if 'submit_sub' in form.data:
+            return reverse('sub-create', kwargs={'person_id': self.get_object().id})
+        return reverse('person-detail', kwargs={'pk': self.get_object().id})          
+        
 
 class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
     model = Person
@@ -769,7 +767,8 @@ class PaymentListView(LoginRequiredMixin, ListView):
         return self.queryset
 
 
- # ================== CREDIT NOTES
+# ================== CREDIT NOTES
+
 class CreditNoteCreateView(LoginRequiredMixin, CreateView):
     model = CreditNote
     form_class = CreditNoteForm
@@ -792,6 +791,9 @@ class CreditNoteCreateView(LoginRequiredMixin, CreateView):
         return reverse('person-detail',
                        kwargs={'pk':self.kwargs['person_id']})
 
+
+# ================== TEXT BLOCKS
+
 class TextBlockCreateView(LoginRequiredMixin, CreateView):
     model = TextBlock
     form_class = TextBlockForm
@@ -806,8 +808,33 @@ class TextBlockUpdateView(LoginRequiredMixin, UpdateView):
     form_class = TextBlockForm
     template_name = 'members/textblock_form.html'
 
-    def get_success_url(self):
-        return reverse('text-list') 
+    def get_form_kwargs(self):
+        kwargs = super(TextBlockUpdateView, self).get_form_kwargs()
+        kwargs.update({'option':self.kwargs['option']})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(TextBlockUpdateView, self).get_context_data(**kwargs)
+        context['option'] = self.kwargs['option']
+        return context
+
+    def form_valid(self, form):
+        form.save()
+        if 'save' in form.data:
+            return redirect(reverse('text-list') )
+        elif 'html' in form.data:
+            return redirect(
+                reverse('text-update', kwargs={'pk':self.kwargs['pk'],
+                                               'option':'html'}
+                        )
+                )  
+        elif 'editor' in form.data:
+            return redirect(
+                reverse('text-update', kwargs={'pk':self.kwargs['pk']})
+                )
+
+        return super(TextBlockUpdateView, self).form_valid(form)
+       
     
 class TextBlockListView(LoginRequiredMixin, ListView):
     model = TextBlock               

@@ -61,14 +61,19 @@ class PersonForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.link = kwargs.pop('link', None)
         super(PersonForm, self).__init__(*args, **kwargs)
-        #self.fields['dob'].widget = SelectDateWidget
+        self.parent = Person.objects.get(pk=self.link)
+        self.updating =False
+        instance = getattr(self, 'instance', None)
+        self.updating = instance and instance.id
+
         self.fields['dob'].label = 'Date of birth'
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
         self.fields['date_joined'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['date_joined'].input_formats = settings.DATE_INPUT_FORMATS
-        instance = getattr(self, 'instance', None)
-        self.updating = instance and instance.id   
+        if self.link:
+            self.fields['email'].required = False  
+             
         self.helper = FormHelper(self)
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -97,45 +102,49 @@ class PersonForm(ModelForm):
                 'notes',
                 'british_tennis',
                 'pays_own_bill',
-                'pays_family_bill',
-                'date_joined'      
+                'pays_family_bill',    
             )       
             
         self.helper.layout = Layout(name_set)
+
         if not self.link and not self.updating:
             self.helper.layout.append(address_set)
         self.helper.layout.append(contact_set)
         self.helper.layout.append(other_set)
         self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        self.helper.add_input(Submit('submit_sub', 'Save and add sub', css_class='btn-group-lg'))
         self.helper.add_input(Submit('cancel', 'Cancel', css_class='btn-group-lg'))            
-
 
     def clean(self):
         ''' remove address errors if linked person or update '''
         super(PersonForm, self).clean()
+        if not self.updating:
+            self.cleaned_data['date_joined'] = date.today()
         if self.link or self.updating:
             del self._errors['address1']
             del self._errors['town']
             del self._errors['post_code']
+        if self.link:
+            if not self.cleaned_data['email']:
+                self.cleaned_data['email'] = self.parent.email
         return self.cleaned_data
 
     def save(self, commit=True):
-        if 'submit' in self.data:
-            person = super(PersonForm, self).save(commit=False)
-            if self.link:
-                parent = Person.objects.get(pk=self.link)
-                person.linked = parent
-                person.address = parent.address
-            else:
-                if not self.updating:
-                    address = Address.objects.create(
-                        address1 = self.cleaned_data['address1'],
-                        address2 = self.cleaned_data['address2'],
-                        town = self.cleaned_data['town'],
-                        post_code = self.cleaned_data['post_code']
-                    )
-                    person.address = address
-            person.save()
+        self.person = super(PersonForm, self).save(commit=False)
+        if self.link:
+            self.person.linked = self.parent
+            self.person.address = self.parent.address
+        else:
+            if not self.updating:
+                address = Address.objects.create(
+                    address1 = self.cleaned_data['address1'],
+                    address2 = self.cleaned_data['address2'],
+                    town = self.cleaned_data['town'],
+                    post_code = self.cleaned_data['post_code']
+                )
+                self.person.address = address
+        self.person.save()
+ 
 
 class AddressForm(ModelForm):
     
@@ -189,7 +198,7 @@ class JuniorForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(JuniorForm, self).__init__(*args, **kwargs)
-        #self.fields['dob'].widget = SelectDateWidget
+
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
         self.fields['dob'].label = "Date of birth"
@@ -675,6 +684,7 @@ class CreditNoteForm(ModelForm):
 class TextBlockForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
+        option = kwargs.pop('option')
         super(TextBlockForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.field_class = 'input-xlarge'
@@ -682,8 +692,13 @@ class TextBlockForm(ModelForm):
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        if option:
+            self.helper.add_input(Submit('editor', 'Editor view', css_class='btn-group-lg'))
+        else:
+            self.helper.add_input(Submit('html', 'HTML view', css_class='btn-group-lg'))
+        self.helper.add_input(Submit('save', 'Save', css_class='btn-group-lg'))
 
+       
     class Meta:
         model = TextBlock
         fields = ['name', 'text']
