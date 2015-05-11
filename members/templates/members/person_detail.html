@@ -29,6 +29,8 @@
                    {% if person.dob %}{{ person.dob|date }}
                     {% else %}Unknown{% endif %}
                </td></tr>
+               <tr><td>British tennis:</td><td>{{ person.british_tennis}}</td></tr>
+                <tr><td>Joined date:</td><td>{{ person.date_joined|date}}</td></tr>
                <tr><td>Mobile:</td><td> 
                 {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}   
                 </td></tr>

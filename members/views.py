@@ -137,11 +137,14 @@ class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
         kwargs.update({'link': self.kwargs['link']})
         return kwargs
 
-    def form_valid(self, form):        
-        if 'submit_sub' in form.data:
-            return reverse('sub-create', kwargs={'person_id': self.get_object().id})
-        return reverse('person-detail', kwargs={'pk': self.get_object().id})          
-        
+    def form_valid(self, form): 
+        self.form = form
+        return super(PersonCreateView, self).form_valid(form)
+            
+    def get_success_url(self):
+        if 'submit_sub' in self.form.data:
+            return reverse('sub-create', kwargs={'person_id': self.form.person.id})
+        return reverse('person-detail', kwargs={'pk': self.form.person.id})  
 
 class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
     model = Person
@@ -316,8 +319,7 @@ class SubCreateView(LoginRequiredMixin, CreateView):
         form.instance.person_member = Person.objects.get(pk = self.kwargs['person_id'])
         form.instance.invoiced_month = 0
         form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
-        result = super(SubCreateView, self).form_valid(form)
-        return result
+        return super(SubCreateView, self).form_valid(form)
 
     def get_success_url(self):
         sub = self.object
@@ -347,19 +349,14 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
     def form_valid(self, form):
+        sub = self.get_object()
         if 'submit' in form.data:
             form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
             return super(SubUpdateView, self).form_valid(form)
 
-        if 'delete' in form.data:
-            sub = self.get_object()
+        if 'delete' in form.data:         
             sub.delete_invoice_items()
             return redirect(sub)
-
-        if 'resign' in form.data:
-            form.instance.membership = Membership.objects.get(pk = Membership.RESIGNED)
-            form.instance.no_renewal = True
-            return super(SubUpdateView, self).form_valid(form)
 
     def get_success_url(self):
         sub = self.get_object()

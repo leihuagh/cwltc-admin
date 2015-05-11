@@ -54,14 +54,16 @@ class PersonForm(ModelForm):
                 'mobile_phone',
                 'british_tennis',
                 'pays_own_bill',
-                'pays_family_bill',
-                'date_joined',
                 'notes']
 
     def __init__(self, *args, **kwargs):
         self.link = kwargs.pop('link', None)
         super(PersonForm, self).__init__(*args, **kwargs)
-        self.parent = Person.objects.get(pk=self.link)
+        if self.link:
+            self.parent = Person.objects.get(pk=self.link)
+            self.fields['last_name'].initial = self.parent.last_name
+            self.fields['mobile_phone'].initial = self.parent.mobile_phone
+            self.fields['email'].initial = self.parent.email
         self.updating =False
         instance = getattr(self, 'instance', None)
         self.updating = instance and instance.id
@@ -69,8 +71,7 @@ class PersonForm(ModelForm):
         self.fields['dob'].label = 'Date of birth'
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
-        self.fields['date_joined'].widget.format = settings.DATE_INPUT_FORMATS[0]
-        self.fields['date_joined'].input_formats = settings.DATE_INPUT_FORMATS
+
         if self.link:
             self.fields['email'].required = False  
              
@@ -112,8 +113,8 @@ class PersonForm(ModelForm):
         self.helper.layout.append(contact_set)
         self.helper.layout.append(other_set)
         self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
-        self.helper.add_input(Submit('submit_sub', 'Save and add sub', css_class='btn-group-lg'))
-        self.helper.add_input(Submit('cancel', 'Cancel', css_class='btn-group-lg'))            
+        if not self.updating:
+            self.helper.add_input(Submit('submit_sub', 'Save and add sub', css_class='btn-group-lg'))
 
     def clean(self):
         ''' remove address errors if linked person or update '''
@@ -124,13 +125,12 @@ class PersonForm(ModelForm):
             del self._errors['address1']
             del self._errors['town']
             del self._errors['post_code']
-        if self.link:
-            if not self.cleaned_data['email']:
-                self.cleaned_data['email'] = self.parent.email
         return self.cleaned_data
 
     def save(self, commit=True):
         self.person = super(PersonForm, self).save(commit=False)
+        if not self.updating:
+            self.person.date_joined = date.today()
         if self.link:
             self.person.linked = self.parent
             self.person.address = self.parent.address
@@ -383,7 +383,7 @@ class SubscriptionForm(ModelForm):
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
         message = 'New subscription'
-        if person.subscription_set.count > 0:
+        if person.subscription_set.count() > 0:
             message += ' (add to history)'
         if self.updating:
             
@@ -480,14 +480,9 @@ class SubscriptionForm(ModelForm):
                     self.helper.add_input(Submit('delete', 'Delete unbilled item', css_class='btn-danger'))
             else:
                 self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
-                #self.add_resign
         else:
             self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
-            #self.add_resign
-    
-    def add_resign(self):
-        self.helper.add_input(Submit('resign', 'Resign', css_class='btn-warning'))
-            
+                
     def clean(self):
         cleaned_data = super(SubscriptionForm, self).clean()
         if self.updating:

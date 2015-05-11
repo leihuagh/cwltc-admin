@@ -49,7 +49,6 @@ class Person(models.Model):
     british_tennis = models.IntegerField(null=True, blank=True)
     notes = models.TextField(blank=True)  
     pays_own_bill = models.BooleanField(default = False)
-    pays_family_bill = models.BooleanField(default = False)
     state = models.SmallIntegerField(choices=STATES, default=ACTIVE)
     date_joined = models.DateField(null=True, blank=True)  
     #
