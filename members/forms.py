@@ -369,7 +369,7 @@ class SubscriptionForm(ModelForm):
     membership_id = forms.ChoiceField()
     
     def __init__(self, *args, **kwargs):
-        person_id = kwargs.pop('person_id')              
+        person_id = kwargs.pop('person_id', None)              
         super(SubscriptionForm, self).__init__(*args, **kwargs)
         person = Person.objects.get(pk=person_id)
         instance = getattr(self, 'instance', None)
@@ -679,7 +679,7 @@ class CreditNoteForm(ModelForm):
 class TextBlockForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
-        option = kwargs.pop('option')
+        option = kwargs.pop('option', None)
         super(TextBlockForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.field_class = 'input-xlarge'
