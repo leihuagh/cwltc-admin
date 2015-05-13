@@ -378,55 +378,73 @@ def export_invoices():
     book.save(response)
     return response  
 
-def export_members():
+def export_members(option):
     response = HttpResponse(content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename=Members.xls'
     book = Workbook(encoding='utf-8')
     sheet = book.add_sheet('Members')
     people = Person.objects.all()  
+    if option == 'parents':
+        people = Person.parent_objects.all() 
+    else:
+        people = Person.objects.all() 
 
     columns = [
-        'id',
-        'gender',   
-        'first_name',
-        'last_name', 
-        'mobile_phone', 
-        'email',      
-        'dob',
-        'british_tennis',
-        'notes',
-        'pays_own_bill',
-        'pays_family_bill', 
-        'state',
-        'membership_id',
-        'linked_id',
-        'address_id'
+        'Id',
+        'Gender',   
+        'First name',
+        'Last name', 
+        'Address 1',
+        'Address 2',
+        'Town',
+        'Post code',
+        'Home phone',
+        'Mobile phone',
+        'Email',
+        'Year joined',
+        'Membership'
         ]
     for col_num in xrange(len(columns)):
         sheet.write(0, col_num, columns[col_num].decode('utf-8','ignore'))     
         
     row_num = 0
     for person in people:
-        row_num += 1
-        row = [
-        person.id,
-        person.gender,   
-        person.first_name,
-        person.last_name, 
-        person.mobile_phone, 
-        person.email,      
-        person.dob,
-        person.british_tennis,
-        person.notes,
-        person.pays_own_bill,
-        person.pays_family_bill, 
-        person.state,
-        person.membership_id,
-        person.linked_id,
-        person.address_id
-        ]
-        for col_num in xrange(len(row)):
-            sheet.write(row_num, col_num, row[col_num]) 
+        if person.state ==Person.ACTIVE:
+            mem_id = person.membership_id
+            if not mem_id:
+                mem_id = Membership.NON_MEMBER
+                category = Membership.objects.get(pk=mem_id).description
+            else:
+                category = person.membership.description
+            valid = False
+            if option == 'bar':
+                if not mem_id in Membership.NO_BAR_ACCOUNT:
+                    valid = True
+            else:
+                valid=True
+            if valid:
+                row_num += 1
+                address = person.address              
+                joined = date.today()
+                if person.date_joined:
+                    joined = person.date_joined
+                row = [
+                    person.id,
+                    person.gender,   
+                    person.first_name,
+                    person.last_name,
+                    address.address1,
+                    address.address2,
+                    address.town,
+                    address.post_code,
+                    address.home_phone,
+                    person.mobile_phone, 
+                    person.email,      
+                    joined.year,
+                    category
+                ]
+                for col_num in xrange(len(row)):
+                    sheet.write(row_num, col_num, row[col_num]) 
     book.save(response)
     return response   
 

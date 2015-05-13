@@ -9,13 +9,13 @@ from django.views.generic.edit import FormView
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, QuerySet
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from django.db.models import QuerySet
+
 
 from easy_pdf.views import PDFTemplateView
 #from django.contrib.auth.views import login, logout
@@ -265,8 +265,8 @@ def set_person_context(context, pers):
 
 class PersonExportView(LoginRequiredMixin, View):
 
-    def get(self, request, *args, **kwargs):
-        return export_members()
+    def get(self, request, option = "all"):
+        return export_members(option)
 
 # ============== Address
 

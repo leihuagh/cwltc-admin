@@ -1,10 +1,12 @@
 from datetime import date, datetime, timedelta
 import os
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.dispatch import receiver 
 
+from sets import Set
 #import pdb; pdb.set_trace()
 
 def formatted_date(d):
@@ -22,6 +24,20 @@ class Address(models.Model):
 
     def get_absolute_url(self):
         return reverse("person-detail", kwargs={"pk": self.pk})
+
+class ParentsManager(models.Manager):
+    def get_queryset(self):
+        kids = Person.objects.filter(
+            Q(membership_id = Membership.CADET) |
+            Q(membership_id = Membership.JUNIOR)
+            )
+        parent_set = Set([])
+        for kid in kids:
+            if kid.linked:
+                if not kid.linked_id in parent_set:
+                    parent_set.add(kid.linked_id)
+        parents = Person.objects.filter(id__in=parent_set)
+        return parents
 
 class Person(models.Model):
     GENDERS = (
@@ -62,6 +78,8 @@ class Person(models.Model):
     # subscription_set
     # payment_set
     # creditnote_set
+    objects = models.Manager()
+    parent_objects = ParentsManager()
 
     def __unicode__(self):
         return self.fullname()
@@ -78,6 +96,9 @@ class Person(models.Model):
     def age_today(self):
         return self.age(date.today())
 
+    def fullname(self):
+        return self.first_name + " " + self.last_name    
+    
     def active_sub(self):
         ''' Return the active subscription if one exists. ''' 
         if self.subscription_set.count():
@@ -175,9 +196,6 @@ class Person(models.Model):
                 return invoice
             return None
 
-    def fullname(self):
-        return self.first_name + " " + self.last_name
-
     def link(self, parent):
         ''' link child to parent
             If parent = None, just unlink
@@ -194,6 +212,9 @@ class Person(models.Model):
                 old_parent.delete()
         if old_address.person_set.count() == 0:
             address.delete()
+
+                                   
+
 
 class Membership(models.Model):
     AUTO = -1
@@ -224,6 +245,8 @@ class Membership(models.Model):
         (UNDER_26, "Under 26"),
         (HON_LIFE, "Honorary life"),
         ]
+
+    NO_BAR_ACCOUNT  = [JUNIOR, CADET, RESIGNED, NON_MEMBER, PARENT]
 
     description = models.CharField(max_length=20)
     

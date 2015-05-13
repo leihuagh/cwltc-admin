@@ -256,10 +256,10 @@ urlpatterns = patterns('',
         name='text-list'
     ),
 
-    # EXCEL IMPORT
+    # EXCEL IMPORT AND EXPORRT
 
     url(
-        r'^import$',
+        r'^import/$',
         ImportExcelView.as_view(),
         name='import'
     ),
@@ -275,9 +275,14 @@ urlpatterns = patterns('',
     ),
 
     url(
-        r'^export$',
+        r'^export/$',
         'members.views.export',
         name='export'
+    ),
+    url(
+        r'^export/(?P<option>\w+)/$',
+        PersonExportView.as_view(),
+        name='export-option'
     ),
     url(
         r'^import_backup$',
