@@ -137,7 +137,14 @@ class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
         kwargs.update({'link': self.kwargs['link']})
         return kwargs
 
+    def form_invalid(self, form):
+        if 'cancel' in form.data:
+            return(redirect('home'))
+        return super(PersonCreateView, self).form_invalid(form)
+
     def form_valid(self, form): 
+        if 'cancel' in form.data:
+            return(redirect('home'))
         self.form = form
         return super(PersonCreateView, self).form_valid(form)
             
@@ -185,15 +192,20 @@ class JuniorCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     template_name = 'members/junior_form.html'
     success_msg = "Junior and parent created"
     form_class = JuniorForm
-    form = JuniorForm()
 
-    def get_context_data(self, **kwargs):
-        context = super(JuniorCreateView, self).get_context_data(**kwargs)
-        context['action'] = reverse('junior-create')
-        return context
-    
+    def form_invalid(self, form):
+        if 'cancel' in form.data:
+            return HttpResponseRedirect(reverse('home'))
+        return super(JuniorCreateView, self).form_invalid(form)
+
+    def form_valid(self, form):
+        self.form = form
+        if 'cancel' in form.data:
+            return HttpResponseRedirect(reverse('home'))   
+        return super(JuniorCreateView, self).form_valid(form) 
+            
     def get_success_url(self):
-        return reverse('person-list')
+        return reverse('sub-create', kwargs={'person_id': self.form.junior.id}) 
 
 class PersonDetailView(LoginRequiredMixin, DetailView):
     model = Person
@@ -288,7 +300,14 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
         context['children'] = parent.person_set.all()
         return context
 
+    def form_invalid(self, form):
+        if 'cancel' in form.data:
+            return redirect(self.get_success_url())
+        return super(AddressUpdateView, self).form_invalid(form)
+
     def form_valid(self, form):
+        if 'cancel' in form.data:
+            return redirect(self.get_success_url())
         address = form.save()
         self.person.address = address
         self.person.save()
@@ -348,13 +367,23 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         context['items'] = sub.invoiceitem_set.all().order_by('item_type')
         return context
 
-    def form_valid(self, form):
+    def form_invalid(self, form):
         sub = self.get_object()
+        if 'cancel' in form.data:
+            return redirect(sub.person_member)
+        return super(SubUpdateView, self).form_invalid(form)
+    
+    def form_valid(self, form):
+        sub = self.get_object() 
+        if 'cancel' in form.data:
+            return redirect(sub.person_member)
+
         if 'submit' in form.data:
             form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
             return super(SubUpdateView, self).form_valid(form)
 
-        if 'delete' in form.data:         
+        if 'delete' in form.data:  
+            sub = self.get_object()  
             sub.delete_invoice_items()
             return redirect(sub)
 

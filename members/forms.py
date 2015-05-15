@@ -9,7 +9,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.conf import settings
 from django.forms.extras import SelectDateWidget
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder
+from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder, BaseInput
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
 
 from .widgets import MonthYearWidget
@@ -17,13 +17,25 @@ from .models import (Person, Address, Subscription, Membership, Invoice, Invoice
                      Payment, CreditNote, ExcelBook, TextBlock)
 from .excel import *
 
+from django.conf import settings
+
+# 
+TEMPLATE_PACK = getattr(settings, 'CRISPY_TEMPLATE_PACK', 'bootstrap')
+class SubmitButton(BaseInput):
+    ''' Replacement for Submit that allows button class to be defined
+        https://github.com/maraujop/django-crispy-forms/issues/242
+    '''
+    input_type = 'submit'
+    field_classes = 'button' if TEMPLATE_PACK == 'uni_form' else 'btn' #removed btn-primary
+
+
 class FilterMemberForm(Form):
    
     success_url = '/list'
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.form_class = 'form-horizontal'
-    helper.add_input(Submit('submit', 'Go', css_class='btn-group-lg'))
+    helper.add_input(SubmitButton('submit', 'Go', css_class='btn-primary'))
 
     def __init__(self, *args, **kwargs):
         super(FilterMemberForm, self).__init__(*args, **kwargs)
@@ -112,9 +124,10 @@ class PersonForm(ModelForm):
             self.helper.layout.append(address_set)
         self.helper.layout.append(contact_set)
         self.helper.layout.append(other_set)
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         if not self.updating:
-            self.helper.add_input(Submit('submit_sub', 'Save and add sub', css_class='btn-group-lg'))
+            self.helper.add_input(SubmitButton('submit_sub', 'Save and add sub', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
 
     def clean(self):
         ''' remove address errors if linked person or update '''
@@ -174,14 +187,22 @@ class AddressForm(ModelForm):
                 'home_phone' 
              ),    
              ButtonHolder(
-                Submit('submit', 'Save', css_class='btn-group-lg')
+                SubmitButton('submit', 'Save', css_class='btn-primary'),
+                SubmitButton('cancel', 'Cancel', css_class='btn-default')
                 )
              )
               
 class JuniorForm(ModelForm):
 
-    success_url = '/list'
-    ''' additional fields for this form '''
+    class Meta:
+        model = Person
+        fields = ['gender',
+                'first_name',
+                'last_name',
+                'dob',
+                'notes'
+                ]
+
     child_email = forms.EmailField(max_length=75, required=False)
     child_mobile = forms.CharField(max_length=20, required=False)
     parent_gender = forms.ChoiceField(choices=Person.GENDERS, initial='F')
@@ -194,7 +215,6 @@ class JuniorForm(ModelForm):
     address2 = forms.CharField(max_length=50, required=False)
     town = forms.CharField(max_length=30)
     post_code = forms.CharField(max_length=15)
-    start_date = forms.DateField(widget=MonthYearWidget())
 
     def __init__(self, *args, **kwargs):
         super(JuniorForm, self).__init__(*args, **kwargs)
@@ -203,7 +223,6 @@ class JuniorForm(ModelForm):
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
         self.fields['dob'].label = "Date of birth"
         self.fields['dob'].required = True
-        self.fields['start_date'].input_formats = settings.DATE_INPUT_FORMATS
         
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-juniorForm'
@@ -211,10 +230,6 @@ class JuniorForm(ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
-        self.helper.form_action = 'junior-create'
-        self.helper.form_show_errors = True
-        self.helper.form_error_title = 'Errors'
-        self.helper.error_text_inline = True
         self.helper.layout = Layout(
             Fieldset('Child details',
                 'gender',
@@ -241,23 +256,11 @@ class JuniorForm(ModelForm):
             Fieldset('Notes',
                 'notes'
             ),
-            Fieldset('Subscription',
-                'start_date'
-            ),
             ButtonHolder(
-                Submit('submit', 'Save', css_class='btn-group-lg'),
-                HTML('<a class="btn btn-default btn-group-lg" href={% url "person-list" %}>Cancel</a>')
+                SubmitButton('submit', 'Save', css_class='btn-primary'),
+                SubmitButton('cancel', 'Cancel', css_class='btn-default')
             )
         )
-
-    class Meta:
-        model = Person
-        fields = ['gender',
-                'first_name',
-                'last_name',
-                'dob',
-                'notes'
-                ]
 
     def clean(self):
         self.cleaned_data = super(JuniorForm, self).clean()
@@ -282,7 +285,6 @@ class JuniorForm(ModelForm):
     def save(self, commit=True):
         ''' Create a child record linked to a parent record '''
         junior = super(JuniorForm, self).save(commit=False)
-
         address = Address.objects.create(
             address1=self.cleaned_data['address1'],
             address2=self.cleaned_data['address2'],
@@ -290,7 +292,6 @@ class JuniorForm(ModelForm):
             post_code=self.cleaned_data['post_code'],
             home_phone=self.cleaned_data['home_phone']
             )
-
         parent = Person.objects.create(
             state=Person.ACTIVE,
             gender=self.cleaned_data['parent_gender'],
@@ -300,20 +301,11 @@ class JuniorForm(ModelForm):
             email=self.cleaned_data['parent_email'],
             address=address
             )
-
         junior.state = Person.ACTIVE
         junior.linked = parent
         junior.address = address
         junior.save()
-        
-        start_date = self.cleaned_data['start_date']
-        month = start_date.month
-        year = start_date.year
-        if month < Subscription.START_MONTH:
-            year -= 1
-        sub  = Subscription.create(person=junior, sub_year=year, start_month=month, new_member=True)
-        sub.activate()
-        sub.generate_invoice_items(month)
+        self.junior = junior
 
 class PersonLinkForm(Form):
     ''' Link a person to another '''
@@ -335,8 +327,8 @@ class PersonLinkForm(Form):
                 'last_name'
                 ),
             ButtonHolder(
-                Submit('link', 'Link', css_class='btn-group-lg'),
-                Submit('cancel', 'Cancel', css_class='btn-group-lg')
+                SubmitButton('link', 'Link', css_class='btn-primary'),
+                SubmitButton('cancel', 'Cancel', css_class='btn-default')
             )
         )
 
@@ -475,13 +467,14 @@ class SubscriptionForm(ModelForm):
                 if instance.has_paid_invoice():
                     pass
                 elif instance.has_unpaid_invoice():
-                    self.helper.add_input(Submit('delete', 'Delete unpaid invoice', css_class='btn-danger'))
+                    self.helper.add_input(SubmitButton('delete', 'Delete unpaid invoice', css_class='btn-danger'))
                 else:
-                    self.helper.add_input(Submit('delete', 'Delete unbilled item', css_class='btn-danger'))
+                    self.helper.add_input(SubmitButton('delete', 'Delete unbilled item', css_class='btn-danger'))
             else:
-                self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
+                self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         else:
-            self.helper.add_input(Submit('submit', 'Save', css_class='btn-primary'))
+            self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
                 
     def clean(self):
         cleaned_data = super(SubscriptionForm, self).clean()
@@ -532,7 +525,7 @@ class SubCorrectForm(ModelForm):
         super(SubCorrectForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_method = 'post'
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
 
     class Meta:
         model = Subscription
@@ -555,8 +548,8 @@ class InvoiceItemForm(ModelForm):
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
         if instance and instance.id:
-            self.helper.add_input(Submit('delete', 'Delete', css_class='btn-danger'))
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group_lg'))
+            self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         self.fields['item_date'].widget.format = '%d/%m/%Y'
         self.fields['item_date'].input_formats = ['%d/%m/%Y']
 
@@ -587,7 +580,7 @@ class InvoiceSelectForm(Form):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
-        self.helper.add_input(Submit('submit', 'GO', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'GO', css_class='btn-primary'))
         self.initial['choice'] = 1
         
     def clean(self):
@@ -617,7 +610,7 @@ class EmailTextForm(Form):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
 
     def clean(self):
         cleaned_data = super(EmailTextForm, self).clean()
@@ -652,7 +645,7 @@ class PaymentForm(ModelForm):
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
     
     class Meta:
         model = Payment
@@ -670,7 +663,7 @@ class CreditNoteForm(ModelForm):
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
-        self.helper.add_input(Submit('submit', 'Save', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
     
     class Meta:
         model = CreditNote
@@ -688,10 +681,10 @@ class TextBlockForm(ModelForm):
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
         if option:
-            self.helper.add_input(Submit('editor', 'Editor view', css_class='btn-group-lg'))
+            self.helper.add_input(SubmitButton('editor', 'Editor view', css_class='btn-primary'))
         else:
-            self.helper.add_input(Submit('html', 'HTML view', css_class='btn-group-lg'))
-        self.helper.add_input(Submit('save', 'Save', css_class='btn-group-lg'))
+            self.helper.add_input(SubmitButton('html', 'HTML view', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('save', 'Save', css_class='btn-primary'))
 
        
     class Meta:
@@ -724,7 +717,7 @@ class XlsInputForm(Form):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
-        self.helper.add_input(Submit('submit', 'Start', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'Start', css_class='btn-primary'))
         self.initial['sheet_type'] = XlsInputForm.MEMBERS
         self.initial['batch_size'] = 100
 
@@ -743,7 +736,7 @@ class XlsMoreForm(Form):
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.form_method = 'post'
-        self.helper.add_input(Submit('submit', 'Next', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'Next', css_class='btn-primary'))
 
 class GenericMoreForm(Form):
     
@@ -752,7 +745,7 @@ class GenericMoreForm(Form):
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.form_method = 'post'
-        self.helper.add_input(Submit('submit', 'Go', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'Go', css_class='btn-primary'))
 
 class BootstrapAuthenticationForm(AuthenticationForm):
     """Authentication form which uses boostrap CSS."""
@@ -772,7 +765,7 @@ class SelectSheetsForm(Form):
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.form_method = 'post'
-        self.helper.add_input(Submit('submit', 'Import', css_class='btn-group-lg'))
+        self.helper.add_input(SubmitButton('submit', 'Import', css_class='btn-primary'))
         
         my_book = ExcelBook.objects.all()[0]
         with open_excel_workbook(my_book.file) as book:
