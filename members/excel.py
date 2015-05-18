@@ -4,7 +4,7 @@ from django.db import connection, transaction
 from django.conf import settings
 from datetime import date, datetime
 from xlrd import open_workbook, xldate_as_tuple
-from xlwt import Workbook
+from xlwt import Workbook, Style, easyxf
 
 from members.models import (Membership, Person, Address, Fees, Subscription, ItemType,
                             Invoice, InvoiceItem)
@@ -341,44 +341,54 @@ def import_sheet(book, model_name):
         return False
     return True
 
-def export_invoices():
+def export_invoices(invoices):
     response = HttpResponse(content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename=Invoices.xls'
     book = Workbook(encoding='utf-8')
     sheet = book.add_sheet('Invoices')
-    invs = Invoice.objects.all()
-
+    date_style = easyxf(num_format_str='dd/mm/yyyy')
+    default_style = Style.default_style
+    
     columns = [
         'Id',
-        'State',   
+        'State',
+        'Date', 
         'Person_id',
+        'Person',
         'Total', 
-        'Emailed', 
-        'Posted',      
+        'Emailed',   
         'Reference'
     ]
     for col_num in xrange(len(columns)):
         sheet.write(0, col_num, columns[col_num].decode('utf-8','ignore'))
                              
     row_num = 0
-    for inv in invs:
+    for inv in invoices:
         row_num += 1
         row = [
-        inv.id,
-        inv.state,
-        inv.person_id,
-        inv.total,
-        inv.email_count,
-        inv.posted_count,         
-        inv.reference
+            inv.id,
+            Invoice.STATES[inv.state][1],
+            inv.update_date,
+            inv.person_id,
+            inv.person.fullname(),
+            inv.total,
+            inv.email_count,    
+            inv.reference
         ]
         for col_num in xrange(len(row)):
-            sheet.write(row_num, col_num, row[col_num].decode('utf-8','ignore'))  
+            data = row[col_num]
+            if isinstance(data, datetime):
+                style = date_style
+                data = date(data.year, data.month, data.day)
+            else:
+                style = default_style
+            sheet.write(row_num, col_num, data, style=style)  
       
     book.save(response)
     return response  
 
 def export_members(option):
+    ''' Export a members list in the format used by the bar system '''
     response = HttpResponse(content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename=Members.xls'
     book = Workbook(encoding='utf-8')

@@ -1,37 +1,52 @@
-from datetime import datetime
+from datetime import *
 from operator import attrgetter
 from django import forms
 from django.shortcuts import render, render_to_response
 from django.http import HttpRequest, HttpResponseRedirect, HttpResponse
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
-from django.views.generic.edit import FormView
+from django.views.generic.edit import FormView, FormMixin
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Sum, QuerySet
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 
-
 from easy_pdf.views import PDFTemplateView
-#from django.contrib.auth.views import login, logout
-#from django.utils.decorators import method_decorator
 from braces.views import LoginRequiredMixin
 
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook)
-from .forms import (PersonForm, PersonLinkForm, JuniorForm, FilterMemberForm, AddressForm,
-                    SubscriptionForm, SubCorrectForm, XlsInputForm, XlsMoreForm, SelectSheetsForm,
-                    InvoiceItemForm, PaymentForm, CreditNoteForm, TextBlockForm, InvoiceSelectForm,
-                    EmailTextForm)
-
+from .forms import *
+from .mail import *
 from .excel import *
 import ftpService
 import xlrd
+
+class FormListView(FormMixin, ListView):
+    ''' new CBV combining a form and a listview '''
+    
+    def get(self, request, *args, **kwargs):
+        # From ProcessFormMixin
+        form_class = self.get_form_class()
+        self.form = self.get_form(form_class)
+
+        # From BaseListView
+        self.object_list = self.get_queryset()
+        allow_empty = self.get_allow_empty()
+        if not allow_empty and len(self.object_list) == 0:
+            raise Http404(_(u"Empty list and '%(class_name)s.allow_empty' is False.")
+                          % {'class_name': self.__class__.__name__})
+
+        context = self.get_context_data(object_list=self.object_list, form=self.form)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
 
 class CadetListView(LoginRequiredMixin, ListView):
     model = Person
@@ -528,53 +543,83 @@ class InvoiceDeleteView(LoginRequiredMixin, View):
         invoice.delete()
         return redirect(invoice.person)
 
-class InvoiceListView(LoginRequiredMixin, ListView):
+class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
+    form_class = DateFilterForm
     model = Invoice
     template_name = 'members/invoice_list.html'
-    context_object_name = 'invoices'
+    
+    def __init__(self, *args, **kwargs):
+        self.start_date = date(2015,1,1)
+        self.end_date = date.today()
+        return super(InvoiceListView, self).__init__(*args, **kwargs)
 
+    def get(self, request, *args, **kwargs):
+        # From ProcessFormMixin
+        self.form = self.get_form(self.form_class)
+
+        # From BaseListView
+        self.object_list = self.get_queryset()
+        context = self.get_context_data()
+        return self.render_to_response(context)
+      
+    def post(self, request, *args, **kwargs):
+        self.form = self.get_form(self.form_class)
+        self.object_list = self.get_queryset()
+        if self.form.is_valid():
+            self.object_list = self.get_queryset()
+            if 'mail' in self.form.data:
+                option = 'send'
+                count = 0
+                for inv in self.object_list:
+                    count += do_mail(inv, option)
+                return HttpResponse("Sent {} mails for {} invoices".format(count, invs.count()))
+            elif 'export' in self.form.data:
+                return export_invoices(self.object_list)
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
+    def get_queryset(self):
+        form = self.form
+        q_paid = Invoice.PAID_IN_FULL
+        q_unpaid = Invoice.UNPAID
+        q_cancelled = -1
+        if getattr(form, 'cleaned_data', None):
+            q_paid = -1
+            q_unpaid = -1
+            q_cancelled = -1
+            if form.cleaned_data['paid']:
+                q_paid = Invoice.PAID_IN_FULL
+            if form.cleaned_data['unpaid']:
+                q_unpaid = Invoice.UNPAID
+            if form.cleaned_data['cancelled']:
+                q_cancelled = Invoice.CANCELLED
+        queryset = Invoice.objects.filter(
+            Q(state=q_paid) |
+            Q(state=q_unpaid) |
+            Q(state=q_cancelled)
+            ).select_related(
+                'person'
+            ).order_by(
+                'person__last_name'
+            ) 
+        if getattr(form, 'cleaned_data', None):
+            if form.cleaned_data['start_date']:
+                self.start_date = form.cleaned_data['start_date'] 
+            if form.cleaned_data['end_date']:
+                self.end_date = form.cleaned_data['end_date'] + timedelta(days=1)
+            queryset = queryset.filter(update_date__gte=self.start_date, update_date__lte=self.end_date)
+        return queryset
+    
     def get_context_data(self, **kwargs):
         context = super(InvoiceListView, self).get_context_data(**kwargs)
         context['state_list'] = Invoice.STATES
-        context['option']= self.kwargs['option']
-        if isinstance(self.queryset, QuerySet):
-            dict = self.queryset.aggregate(Sum('total'))
-            context['count'] = self.queryset.count()
-            context['total'] = dict['total__sum']
-        else:
-            context['invoices'] = self.queryset
+        context['invoices'] = self.object_list
+        context['form'] = self.form
+        dict = self.object_list.aggregate(Sum('total'))
+        context['count'] = self.object_list.count()
+        context['total'] = dict['total__sum']
         return context
 
-    def get_queryset(self):
-        option = self.kwargs['option']
-        q_state = -1
-        if option == 'Paid':
-            q_state = Invoice.PAID_IN_FULL
-        elif option == 'Unpaid':
-            q_state = Invoice.UNPAID
-        elif option == 'Cancelled':
-            q_state = Invoice.CANCELLED
-        if q_state <> -1:
-            self.queryset = Invoice.objects.filter(
-                    state=q_state
-                ).select_related(
-                    'person'
-                ).order_by(
-                    'person__last_name'
-                )          
-        else:
-            if option == 'cadets':
-                qs = InvoiceItem.objects.filter(
-                    person__dob__range=["2006-05-01", "2007-05-01"]
-                    )
-                list = []
-                for q in qs:
-                    list.append(q.invoice)
-                self.queryset = list
-            else:
-                self.queryset =  Invoice.objects.exclude(
-                    state=Invoice.CANCELLED)
-        return self.queryset
 
 class InvoiceDetailView(LoginRequiredMixin, DetailView):
     model = Invoice
@@ -658,37 +703,6 @@ class InvoiceMailBatchView(LoginRequiredMixin, View):
             count += do_mail(inv, option)
         return HttpResponse("Sent {} mails for {} invoices".format(count, invs.count()))
 
-def do_mail(invoice, option):
-        count = 0
-        family = invoice.person.person_set.all()
-        context={}
-        TextBlock.add_email_context(context)
-        invoice.add_context(context)
-        if invoice.email_count > 0:
-            context['reminder'] = True
-
-        if family.count() > 0:
-            context['junior_notes'] = TextBlock.objects.filter(name='junior_notes')[0].text
-            context['family'] = family
-        subject = "Coombe Wood LTC account"
-        if option == 'view':
-            return render_to_response("members/invoice_email.html", context)
-        
-        html_body = render_to_string("members/invoice_email.html", context)
-        target = invoice.person.email if option == 'send' else "is@ktconsultants.co.uk"
-        if target <> '':
-            text_plain = strip_tags(html_body)
-            msg = EmailMultiAlternatives(subject=subject,
-                                            from_email="subs@coombewoodltc.co.uk",
-                                            to=[target],
-                                            body=text_plain)
-            msg.attach_alternative(html_body, "text/html")
-            msg.send()
-            if option == 'send':
-                invoice.email_count += 1
-                count += 1
-            invoice.save()
-        return count
 
 class InvoicePDFView(LoginRequiredMixin, PDFTemplateView):
     template_name = "members/invoice_pdf.html"

@@ -1,5 +1,5 @@
 from os import path
-from datetime import date, datetime, timedelta
+import datetime
 from django import forms
 from django.forms import Form, ModelForm
 from django.contrib.auth.forms import AuthenticationForm
@@ -28,6 +28,13 @@ class SubmitButton(BaseInput):
     input_type = 'submit'
     field_classes = 'button' if TEMPLATE_PACK == 'uni_form' else 'btn' #removed btn-primary
 
+def DefaultHelper(form):
+    helper = FormHelper(form)
+    helper.form_class = 'form-horizontal'
+    helper.label_class = 'col-lg-2'
+    helper.field_class = 'col-lg-6'
+    helper.form_method = 'post'
+    return helper
 
 class FilterMemberForm(Form):
    
@@ -191,6 +198,7 @@ class AddressForm(ModelForm):
                 SubmitButton('cancel', 'Cancel', css_class='btn-default')
                 )
              )
+
               
 class JuniorForm(ModelForm):
 
@@ -356,6 +364,7 @@ class PersonLinkForm(Form):
             raise forms.ValidationError('No matching person')
         else:
             raise forms.ValidationError('Too many matching people')
+
 
 class SubscriptionForm(ModelForm):
     membership_id = forms.ChoiceField()
@@ -531,6 +540,41 @@ class SubCorrectForm(ModelForm):
         model = Subscription
         fields = ['membership', 'sub_year', 'start_date', 'end_date']
 
+class DateFilterForm(Form):
+
+    start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
+                                    initial=date(2015,1,1), required=False)
+    end_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
+                                  initial=date.today(), required=False)
+    paid = forms.BooleanField(initial=True, required=False)
+    unpaid = forms.BooleanField(initial=True, required=False)
+    cancelled = forms.BooleanField(initial=False, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(DateFilterForm, self).__init__(*args, **kwargs)
+        #self.helper = FormHelper(self)
+        #self.helper.form_class = 'form-inline'
+        #self.helper.form_show_labels = False
+        self.fields['start_date'].widget.format = settings.DATE_INPUT_FORMATS[0]
+        #self.fields['start_date'].widget.attrs={'class': 'datepicker',}
+        self.fields['end_date'].widget.format = settings.DATE_INPUT_FORMATS[0]
+        #self.helper.layout = Layout(
+        #    Row(
+        #        HTML("""From: """),
+        #        Field('start_date', placeholder='Start date', css_class='datepicker input-xs'),
+        #        HTML("""To: """),
+        #        Field('end_date', placeholder = 'End date', css_class='datepicker'),
+        #        'paid',
+        #        HTML("""Paid&nbsp;&nbsp;"""),
+        #        'unpaid',
+        #        HTML("""Unpaid&nbsp;&nbsp;"""),
+        #        'cancelled',
+        #        HTML("""Cancelled &nbsp;&nbsp;"""),
+        #        SubmitButton('submit', 'Go', css_class='btn btn-primary btn-sm'),
+        #        HTML("""<hr />""")
+        #        )
+        #    )
+
 class InvoiceItemForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
@@ -551,7 +595,7 @@ class InvoiceItemForm(ModelForm):
             self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         self.fields['item_date'].widget.format = '%d/%m/%Y'
-        self.fields['item_date'].input_formats = ['%d/%m/%Y']
+        self.fields['item_date'].input_formats = settings.DATE_INPUT_FORMATS
 
     def clean(self):
         cleaned_data = super(InvoiceItemForm, self).clean()
@@ -597,6 +641,7 @@ class InvoiceSelectForm(Form):
                 p = Person.objects.get(pk=ref)
             except:
                 raise forms.ValidationError("Person with id {} not found".format(ref))
+
 
 class EmailTextForm(Form):
     intro = forms.CharField(max_length=30, required=False)

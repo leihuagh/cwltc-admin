@@ -1,7 +1,44 @@
 ﻿{% extends "members/layout.html" %}
 {% load members_extras %}
 {% block content %}
-<h2>{{ option }} invoices</h2>
+<h2>Invoices</h2>
+
+<form action="." method="post" class="form-inline">
+    {% csrf_token %}
+    <div class="row">
+        
+        <div class="form-group">
+            <label for="id_start_date" class="col-md-3 control-label">From</label>
+            {{ form.start_date|add_attributes:'datepicker col-md-6' }}
+        </div>
+        <div class="form-group">
+            <label for="id_end_date" class="col-md-3 control-label">To</label>
+            {{ form.end_date|add_attributes:'datepicker col-md-6' }}
+        </div>
+        <div class="form-group">
+            <label for="id_paid" class="control-label">Paid</label>
+                {{ form.paid }}
+        </div>
+        <div class="form-group">
+            <label for="id_unpaid" class="control-label">Unpaid</label>
+                {{ form.unpaid}}
+        </div>
+        <div class="form-group">
+            <label for="id_unpaid" class="control-label">Cancelled</label>
+                {{ form.cancelled }}
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Update list" class="btn btn-primary btn-xs" />
+            </div>
+        </div>
+        {% if form.errors %}
+        <p class="validation-summary-errors">Please enter valid dates</p>
+        {% endif %}
+    </div>
+    <hr />
+
+
 <table id="invoices" class="table table-condensed">
 <thead>
     <tr>
@@ -32,7 +69,11 @@
 {% endfor sub %}
     {% endif %}
 </table>
-<h4>Total of all invoices = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} invoices)</h4>
+<h4>Total of selected invoices = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} invoices)</h4>
+
+    <input type="submit" name="export" value="Export">
+    <input type="submit" name=" mail" value="Send Mail">
+</form>
 {% endblock %}
 {% block scripts %}
 <script>
@@ -40,6 +81,10 @@
         "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
     });
     $(document).ready(function () {
+        var options = {
+            dateFormat: 'dd/mm/yy'
+        };
+        $('.datepicker').datepicker(options);
         $('#invoices').DataTable();
     });
 </script>

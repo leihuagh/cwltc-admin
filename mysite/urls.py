@@ -75,7 +75,7 @@ urlpatterns = patterns('',
     ),
    
     url(
-        r'^invoices/(?P<option>[a-zA-Z]+)$',
+        r'^invoices/$',
         InvoiceListView.as_view(),
         name='invoice-list'
     ),

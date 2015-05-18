@@ -41,10 +41,7 @@
           <li><a href="{% url 'junior-create' %}">Create junior</a></li>
           <li class="divider"></li>
           
-          <li><a href="{% url 'invoice-list' 'All' %}">All invoices except cancelled</a></li>
-          <li><a href="{% url 'invoice-list' 'Paid' %}">Paid invoices</a></li>
-          <li><a href="{% url 'invoice-list' 'Unpaid' %}">Unpaid invoices</a></li>
-          <li><a href="{% url 'invoice-list' 'Cancelled' %}">Cancelled invoices</a></li>
+          <li><a href="{% url 'invoice-list' %}">List invoices</a></li>
           <li><a href="{% url 'select' %}">Select an invoice</a></li>
           <li><a href="{% url 'invoice-batch' %}">Create a batch of invoices</a></li>
           <li><a href="{% url 'invoice-mail-batch' %}">Mail all unpaid invoices</a></li>
