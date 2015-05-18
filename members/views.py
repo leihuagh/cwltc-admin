@@ -607,7 +607,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
                 self.start_date = form.cleaned_data['start_date'] 
             if form.cleaned_data['end_date']:
                 self.end_date = form.cleaned_data['end_date'] + timedelta(days=1)
-            queryset = queryset.filter(update_date__gte=self.start_date, update_date__lte=self.end_date)
+            queryset = queryset.filter(creation_date__gte=self.start_date, creation_date__lte=self.end_date)
         return queryset
     
     def get_context_data(self, **kwargs):
