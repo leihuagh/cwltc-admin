@@ -544,12 +544,13 @@ class InvoiceFilterForm(Form):
 
     start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                     initial=date(2015,1,1), required=False)
+    start_date.widget.format = settings.DATE_INPUT_FORMATS[0]
     end_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                   initial=date.today(), required=False)
+    end_date.widget.format = settings.DATE_INPUT_FORMATS[0]
     paid = forms.BooleanField(initial=True, required=False)
     unpaid = forms.BooleanField(initial=True, required=False)
     cancelled = forms.BooleanField(initial=False, required=False)
-
 
 class InvoiceItemForm(ModelForm):
 
