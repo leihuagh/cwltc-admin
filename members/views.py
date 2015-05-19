@@ -534,7 +534,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             if 'mail' in self.form.data:
                 count = 0
                 for inv in self.object_list:
-                    if inv.state == Invoice.UNPAID and inv.total >0:
+                    if inv.state == Invoice.UNPAID and inv.total > 0:
                         count += do_mail(inv, 'send')
                 return HttpResponse("Sent {} mails for {} invoices".format(count, self.object_list.count()))
 
