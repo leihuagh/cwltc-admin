@@ -1084,5 +1084,5 @@ def fixup(request):
     for i in invs:
         if i.invoiceitem_set.count()==0:
             count +=1
-
-    return HttpResponse('{} invoices were counted'.format(count))
+            i.delete()
+    return HttpResponse('{} invoices were deleted'.format(count))
