@@ -1080,6 +1080,7 @@ def fixup_postgresql(request):
 
 def fixup(request):
     invs = Invoice.objects.filter(total=0)
+    count = 0
     for i in invs:
         if i.invoiceitem_set.count()==0:
             count +=1

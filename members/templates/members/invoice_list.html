@@ -48,6 +48,7 @@
         <th>Updated</th>
         <th>First name</th>
         <th>Last name</th>
+        <th>Items</th>
         <th>Email count</th>
         <th class = "text-right">Total</th>
         <th></th>
@@ -62,6 +63,7 @@
         <td>{{ inv.update_date|date }}</td>
         <td>{{ inv.person.first_name }}</td>
         <td>{{ inv.person.last_name }}</td> 
+        <td>{{ inv.invoiceitem_set.count }}</td> 
         <td>{{ inv.email_count}}</td>
         <td class = "text-right">£{{ inv.total }}</td>
         <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View</a></td>
