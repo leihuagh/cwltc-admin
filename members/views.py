@@ -12,7 +12,6 @@ from django.contrib import messages
 from django.db.models import Q, Sum, QuerySet
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.conf import settings
 
@@ -27,43 +26,6 @@ from .excel import *
 import ftpService
 import xlrd
 
-class FormListView(FormMixin, ListView):
-    ''' new CBV combining a form and a listview '''
-    
-    def get(self, request, *args, **kwargs):
-        # From ProcessFormMixin
-        form_class = self.get_form_class()
-        self.form = self.get_form(form_class)
-
-        # From BaseListView
-        self.object_list = self.get_queryset()
-        allow_empty = self.get_allow_empty()
-        if not allow_empty and len(self.object_list) == 0:
-            raise Http404(_(u"Empty list and '%(class_name)s.allow_empty' is False.")
-                          % {'class_name': self.__class__.__name__})
-
-        context = self.get_context_data(object_list=self.object_list, form=self.form)
-        return self.render_to_response(context)
-
-    def post(self, request, *args, **kwargs):
-        return self.get(request, *args, **kwargs)
-
-class CadetListView(LoginRequiredMixin, ListView):
-    model = Person
-    template_name = 'members/person_table.html'
-    
-    def get_queryset(self):
-        qset =  Person.objects.filter(
-            membership_id=Membership.CADET
-            ).filter(
-            dob__range=["2007-05-01", "2008-05-01"]
-            )
-        return qset
-
-    def get_context_data(self, **kwargs):
-        context = super(CadetListView, self).get_context_data(**kwargs)
-        add_membership_context(context)
-        return context
 
 class PersonList(LoginRequiredMixin, ListView):
     model = Person
@@ -544,15 +506,10 @@ class InvoiceDeleteView(LoginRequiredMixin, View):
         return redirect(invoice.person)
 
 class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
-    form_class = DateFilterForm
+    form_class = InvoiceFilterForm
     model = Invoice
     template_name = 'members/invoice_list.html'
     
-    def __init__(self, *args, **kwargs):
-        self.start_date = date(2015,1,1)
-        self.end_date = date.today()
-        return super(InvoiceListView, self).__init__(*args, **kwargs)
-
     def get(self, request, *args, **kwargs):
         # From ProcessFormMixin
         self.form = self.get_form(self.form_class)
@@ -567,19 +524,30 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
         self.object_list = self.get_queryset()
         if self.form.is_valid():
             self.object_list = self.get_queryset()
+
+            if 'view' in self.form.data:
+                for inv in self.object_list:
+                    if inv.state == Invoice.UNPAID:
+                        return(do_mail(inv, 'view'))
+                return HttpResponse('No unpaid mails to view')
+
             if 'mail' in self.form.data:
-                option = 'send'
                 count = 0
                 for inv in self.object_list:
-                    count += do_mail(inv, option)
-                return HttpResponse("Sent {} mails for {} invoices".format(count, invs.count()))
-            elif 'export' in self.form.data:
+                    if inv.state == Invoice.UNPAID:
+                        count += do_mail(inv, 'send')
+                return HttpResponse("Sent {} mails for {} invoices".format(count, self.object_list.count()))
+
+            if 'export' in self.form.data:
                 return export_invoices(self.object_list)
+
         context = self.get_context_data()
         return self.render_to_response(context)
 
     def get_queryset(self):
         form = self.form
+        start_date = date(2015,1,1)
+        end_date = date.today()
         q_paid = Invoice.PAID_IN_FULL
         q_unpaid = Invoice.UNPAID
         q_cancelled = -1
@@ -604,10 +572,10 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             ) 
         if getattr(form, 'cleaned_data', None):
             if form.cleaned_data['start_date']:
-                self.start_date = form.cleaned_data['start_date'] 
+                start_date = form.cleaned_data['start_date'] 
             if form.cleaned_data['end_date']:
-                self.end_date = form.cleaned_data['end_date'] + timedelta(days=1)
-            queryset = queryset.filter(creation_date__gte=self.start_date, creation_date__lte=self.end_date)
+                end_date = form.cleaned_data['end_date'] + timedelta(days=1)
+            queryset = queryset.filter(creation_date__gte=start_date, creation_date__lte=end_date)
         return queryset
     
     def get_context_data(self, **kwargs):
@@ -1111,9 +1079,7 @@ def fixup_postgresql(request):
         cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
 
 def fixup(request):
-    p = Payment.objects.get(pk=3)
-    p.delete()
-    p = Payment.objects.get(pk=4)
-    p.delete()
-    p = Payment.objects.get(pk=5)
-    p.delete()
+    invs = Invoice.objects.filter(total=0)
+    count = invs.count()
+    invs.delete()
+    return HttpResponse('{} invoices were deleted'.format(count))

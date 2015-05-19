@@ -3,87 +3,91 @@
 <body>
 <p style="font-family: 'Arial';font-size:14px; color:#101010;">
 Dear {{ addressee }} </p>
-{% if reminder %}
-    <p style="font-family: 'Arial';font-size:14px; color:#ff0000;">
-        <strong>This is a reminder. Pay by 1 May to enter Wimbledon draw and by 18 May to avoid a penalty!</strong> <br />
-        If you have paid your bill within the last few days please ignore this email.
-    <p>
-{% endif %}
+
 {% autoescape off %}
 {{ text_intro.text }}
 {% endautoescape %}
 {% include "members/_invoice_detail.html" %}
 {% include "members/_how_to_pay.html" %}
-<p style="font-family: 'Arial'; font-size:18px;" > 
-<strong>Important notes</strong>
-</p>
+
 <p style="font-family: 'Arial';font-size:14px; color:#101010;">
+
+{% if text_notes %}
+    <p style="font-family: 'Arial'; font-size:18px;" > 
+    <strong>Important notes</strong>
+    </p>
+    <p style="font-family: 'Arial';font-size:14px; color:#101010;">
+    {% autoescape off %}
+    {{ text_notes.text }}
+    {% endautoescape %}
+    </p>
+{% endif %}
 {% if junior_notes %}
     {% autoescape off %}
+    <p style="font-family: 'Arial';font-size:14px; color:#101010;">
     {{junior_notes}}
     {% endautoescape %}
+    </p>
 {% endif %}
-
-{% autoescape off %}
-{{ text_notes.text }}
-{% endautoescape %}
 <p style="font-family: 'Arial'; font-size:18px;" > 
-<strong>Please check your details</strong> 
+<strong>Please check your details.</strong> 
+</p>
 <p style="font-family: 'Arial'; font-size:14px; color:#101010;">
 We want to ensure that we have accurate information. Please let us know if the address on the invoice
-     or any of the details of you or your family are incorrect or missing. <br />
-{% if unknown %}
-    </p>
+     or any of the details below are incorrect or missing. <br />
+</p>
+{% if unknown %}  
     <p style="font-family: 'Arial';font-size:14px; color:#ff0000">
     {{ unknown }} </p>
 {% else %}
-<table style="height: 45px;" width="700">
-    <thead style="font-family: 'Arial'; font-size:14px; color:#101010;">
-        <tr>
-        <td><b>Name</b></td>
-        <td><b>Date of birth</b></td> 
-        <td><b>Home phone</b></td>
-        <td><b>Mobile</b></td>            
-        <td><b>British tennis</b></td>
-        </tr>
-    <tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
-        <tr>
-        <td>{{ person.first_name}} {{ person.last_name }}</td>
-        <td>{{ person.dob|date }}</td>
-        <td>{{ address.home_phone}}</td>
-        <td>{{ person.mobile_phone }}</td>
-        <td>{{ person.british_tennis }}</td>      
-        </tr>
-    </tbody>
-</table>
+    <table style="height: 45px;" width="700">
+        <thead style="font-family: 'Arial'; font-size:14px; color:#101010;">
+            <tr>
+            <td><b>Name</b></td>
+            <td><b>Date of birth</b></td> 
+            <td><b>Home phone</b></td>
+            <td><b>Mobile</b></td>            
+            <td><b>British tennis</b></td>
+            </tr>
+        <tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
+            <tr>
+            <td>{{ person.first_name}} {{ person.last_name }}</td>
+            <td>{{ person.dob|date }}</td>
+            <td>{{ address.home_phone}}</td>
+            <td>{{ person.mobile_phone }}</td>
+            <td>{{ person.british_tennis }}</td>      
+            </tr>
+        </tbody>
+    </table>
 {% endif %}
 {% if family %}
     <p style="font-family: 'Arial';font-size:14px; color:#101010;">
     We have these details for family members:
     </p>
-<table style="height: 40px;" width="750">
-    <thead style="font-family: 'Arial'; font-size:14px; color:#020202;">
-        <tr>
-        <td><b>Name</b></td>
-        <td><b>Date of birth</b></td> 
-        <td><b>Mobile</b></td> 
-        <td><b>Email</b></td>          
-        <td><b>British tennis</b></td>
-        </tr>
-    <tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
-    {% for person in family %}
-        <tr>
-        <td>{{ person.first_name}} {{ person.last_name }}</td>
-        <td>{{ person.dob|date }}</td>       
-        <td>{{ person.mobile_phone }}</td>
-        <td>{{ person.email}}</td>
-        <td>{{ person.british_tennis }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+    <table style="height: 40px;" width="750">
+        <thead style="font-family: 'Arial'; font-size:14px; color:#020202;">
+            <tr>
+            <td><b>Name</b></td>
+            <td><b>Date of birth</b></td> 
+            <td><b>Mobile</b></td> 
+            <td><b>Email</b></td>          
+            <td><b>British tennis</b></td>
+            </tr>
+        <tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
+        {% for person in family %}
+            <tr>
+            <td>{{ person.first_name}} {{ person.last_name }}</td>
+            <td>{{ person.dob|date }}</td>       
+            <td>{{ person.mobile_phone }}</td>
+            <td>{{ person.email}}</td>
+            <td>{{ person.british_tennis }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endif %}
 {% autoescape off %}
 {{ text_closing.text }}
 {% endautoescape %}
-
+</body>
+</html>

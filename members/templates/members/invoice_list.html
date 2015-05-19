@@ -72,7 +72,8 @@
 <h4>Total of selected invoices = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} invoices)</h4>
 
     <input type="submit" name="export" value="Export">
-    <input type="submit" name=" mail" value="Send Mail">
+    <input type="submit" name="mail" value="Send mail to unpaid">
+    <input type="submit" name="view" value="View test mail">
 </form>
 {% endblock %}
 {% block scripts %}

@@ -540,7 +540,7 @@ class SubCorrectForm(ModelForm):
         model = Subscription
         fields = ['membership', 'sub_year', 'start_date', 'end_date']
 
-class DateFilterForm(Form):
+class InvoiceFilterForm(Form):
 
     start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                     initial=date(2015,1,1), required=False)
@@ -550,30 +550,6 @@ class DateFilterForm(Form):
     unpaid = forms.BooleanField(initial=True, required=False)
     cancelled = forms.BooleanField(initial=False, required=False)
 
-    def __init__(self, *args, **kwargs):
-        super(DateFilterForm, self).__init__(*args, **kwargs)
-        #self.helper = FormHelper(self)
-        #self.helper.form_class = 'form-inline'
-        #self.helper.form_show_labels = False
-        self.fields['start_date'].widget.format = settings.DATE_INPUT_FORMATS[0]
-        #self.fields['start_date'].widget.attrs={'class': 'datepicker',}
-        self.fields['end_date'].widget.format = settings.DATE_INPUT_FORMATS[0]
-        #self.helper.layout = Layout(
-        #    Row(
-        #        HTML("""From: """),
-        #        Field('start_date', placeholder='Start date', css_class='datepicker input-xs'),
-        #        HTML("""To: """),
-        #        Field('end_date', placeholder = 'End date', css_class='datepicker'),
-        #        'paid',
-        #        HTML("""Paid&nbsp;&nbsp;"""),
-        #        'unpaid',
-        #        HTML("""Unpaid&nbsp;&nbsp;"""),
-        #        'cancelled',
-        #        HTML("""Cancelled &nbsp;&nbsp;"""),
-        #        SubmitButton('submit', 'Go', css_class='btn btn-primary btn-sm'),
-        #        HTML("""<hr />""")
-        #        )
-        #    )
 
 class InvoiceItemForm(ModelForm):
 
