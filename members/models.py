@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-import datetime
+#import datetime
 import os
 from django.db import models
 from django.db.models import Q
@@ -144,8 +144,7 @@ class Person(models.Model):
                     invoice=None
                     ).filter(
                     item_type=ItemType.SUBSCRIPTION)
-                if items.count() > 0:
-                    item=items[0]
+                for item in items:
                     is_family = True
                     has_adult = has_adult or fam_member.membership_id == Membership.FULL
                     has_junior = has_junior or fam_member.membership_id == Membership.JUNIOR
@@ -192,10 +191,12 @@ class Person(models.Model):
                     item.invoice = invoice
                     invoice.total += item.amount
                     item.save()
-            if invoice.total > 0:
+            if invoice.invoiceitem_set.count() > 0:
                 invoice.save()
                 return invoice
-            return None
+            else:
+                invoice.delete()
+                return None
 
     def link(self, parent):
         ''' link child to parent
