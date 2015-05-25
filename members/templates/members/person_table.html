@@ -10,8 +10,8 @@
             <th>Last name</th>
             <th>Membership</th>
             <th>Age</th>
+            <th>Email</th>
             <th>View</th>
-            <th>Edit</th>
         </tr>
     </thead>
     {% for person in object_list %}
@@ -20,8 +20,8 @@
         <td>{{ person.last_name }}</td>
         <td>{{ mem_dict|get_item:person.membership_id }}</td>  
         <td>{{ person.age_today }}</td>
+        <td>{{ person.email }}</td>
         <td><a href="{% url "person-detail" pk=person.id %}"class="btn btn-primary btn-xs">View</a></td>        
-        <td><a href="{% url "person-edit" pk=person.id %}"class="btn btn-primary btn-xs">Edit</a></td>
     </tr>
     {% endfor %}
 </table>
