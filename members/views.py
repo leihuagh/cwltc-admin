@@ -2,7 +2,7 @@ from datetime import *
 from operator import attrgetter
 from django import forms
 from django.shortcuts import render, render_to_response
-from django.http import HttpRequest, HttpResponseRedirect, HttpResponse
+from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonResponse
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
 from django.views.generic.edit import FormView, FormMixin
@@ -511,19 +511,26 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
     template_name = 'members/invoice_list.html'
     
     def get(self, request, *args, **kwargs):
+        ''' GET return HTML '''
         # From ProcessFormMixin
         self.form = self.get_form(self.form_class)
-
         # From BaseListView
         self.object_list = self.get_queryset()
         context = self.get_context_data()
         return self.render_to_response(context)
       
     def post(self, request, *args, **kwargs):
+        ''' POST handles submit and ajax request '''
         self.form = self.get_form(self.form_class)
-        self.object_list = self.get_queryset()
         if self.form.is_valid():
             self.object_list = self.get_queryset()
+            
+            if request.is_ajax():
+                context = self.get_context_data()
+                context['checkboxes'] = False
+                html = render_to_string("members/_invoice_list.html", context)
+                dict = {"data": html, "search": request.POST['search']}
+                return JsonResponse(dict, safe=False)
 
             if 'view' in self.form.data:
                 for inv in self.object_list:
@@ -540,9 +547,11 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
 
             if 'export' in self.form.data:
                 return export_invoices(self.object_list)
-
+                  
         context = self.get_context_data()
         return self.render_to_response(context)
+ 
+       
 
     def get_queryset(self):
         form = self.form
@@ -1079,10 +1088,7 @@ def fixup_postgresql(request):
         cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
 
 def fixup(request):
-    invs = Invoice.objects.filter(total=0)
-    count = 0
-    for i in invs:
-        if i.invoiceitem_set.count()==0:
-            count +=1
-            i.delete()
-    return HttpResponse('{} invoices were deleted'.format(count))
+    p = Payment.objects.get(pk=216).delete
+    p = Payment.objects.get(pk=193).delete
+    p = Payment.objects.get(pk=278).delete
+    return HttpResponse('3 payments were deleted')

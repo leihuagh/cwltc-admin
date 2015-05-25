@@ -86,8 +86,8 @@ class Person(models.Model):
         return self.fullname()
 
     def get_absolute_url(self):
-        return reverse("person-detail", kwargs={"pk": self.pk})
-
+        return reverse("person-detail", kwargs={"pk": self.pk})   
+    
     def age(self, date):
         ''' return the age in years on given date
         '''
@@ -350,6 +350,30 @@ class Invoice(models.Model):
             self.total
             )
 
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "state": self.STATES[self.state][1],
+            "creation_date": self.creation_date.strftime(settings.DATE_INPUT_FORMATS[0]),
+            "update_date": self.update_date.strftime(settings.DATE_INPUT_FORMATS[0]),
+            "person": self.person.fullname(),
+            "items": self.invoiceitem_set.count(),
+            "email_count": self.email_count,
+            "total": '{0:.2f}'.format(self.total)
+            }
+    def as_array(self):
+        return [
+            self.id,
+            self.STATES[self.state][1],
+            self.creation_date.strftime(settings.DATE_INPUT_FORMATS[0]),
+            self.update_date.strftime(settings.DATE_INPUT_FORMATS[0]),
+            self.person.first_name,
+            self.person.last_name,
+            self.invoiceitem_set.count(),
+            self.email_count,
+            '{0:.2f}'.format(self.total)
+            ]
+   
     def number(self):
         return '{}/{}'.format(self.person.id, self.id)
 

@@ -445,6 +445,7 @@
     <Content Include="members\templates\members\textblock_form.html" />
     <Content Include="members\templates\members\textblock_list.html" />
     <Content Include="members\templates\members\invoice_pdf.html" />
+    <Content Include="members\templates\members\_invoicelist_body.html" />
     <Content Include="members\templates\members\xperson_list.html" />
     <Content Include="members\templates\members\_address_block.html" />
     <Content Include="members\templates\members\_how_to_pay.html" />

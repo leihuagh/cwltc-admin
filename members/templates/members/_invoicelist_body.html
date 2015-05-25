@@ -1,0 +1,17 @@
+﻿{% load members_extras %}
+<tbody>
+{% for inv in invoices %}
+    <tr>
+        <td>{{ inv.id }}</td>
+        <td>{{ state_list|get_option:inv.state }}</td>
+        <td>{{ inv.creation_date|date }}</td>
+        <td>{{ inv.update_date|date }}</td>
+        <td>{{ inv.person.first_name }}</td>
+        <td>{{ inv.person.last_name }}</td> 
+        <td>{{ inv.invoiceitem_set.count }}</td> 
+        <td>{{ inv.email_count}}</td>
+        <td class = "text-right">£{{ inv.total }}</td>
+        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View</a></td>
+    </tr>
+{% endfor sub %}
+</tbody>

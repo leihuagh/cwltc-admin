@@ -3,8 +3,9 @@
 {% block content %}
 <h2>Invoices</h2>
 
-<form action="." method="post" class="form-inline">
+<form action="." method="post" class="form-inline" id="post-form">
     {% csrf_token %}
+
     <div class="row">
         
         <div class="form-group">
@@ -24,54 +25,19 @@
                 {{ form.unpaid}}
         </div>
         <div class="form-group">
-            <label for="id_unpaid" class="control-label">Cancelled</label>
+            <label for="id_cancelled" class="control-label">Cancelled</label>
                 {{ form.cancelled }}
         </div>
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Update list" class="btn btn-primary btn-xs" />
-            </div>
-        </div>
+
         {% if form.errors %}
         <p class="validation-summary-errors">Please enter valid dates</p>
         {% endif %}
     </div>
     <hr />
 
-
-<table id="invoices" class="table table-condensed">
-<thead>
-    <tr>
-        <th>Number</th>
-        <th>State</th>
-        <th>Created</th>
-        <th>Updated</th>
-        <th>First name</th>
-        <th>Last name</th>
-        <th>Items</th>
-        <th>Email count</th>
-        <th class = "text-right">Total</th>
-        <th></th>
-    </tr>
-</thead>
 {% if invoices %}
-{% for inv in invoices %}
-    <tr>
-        <td>{{ inv.id }}</td>
-        <td>{{ state_list|get_option:inv.state }}</td>
-        <td>{{ inv.creation_date|date }}</td>
-        <td>{{ inv.update_date|date }}</td>
-        <td>{{ inv.person.first_name }}</td>
-        <td>{{ inv.person.last_name }}</td> 
-        <td>{{ inv.invoiceitem_set.count }}</td> 
-        <td>{{ inv.email_count}}</td>
-        <td class = "text-right">£{{ inv.total }}</td>
-        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View</a></td>
-    </tr>
-{% endfor sub %}
+{% include "members/_invoice_list.html" %}
     {% endif %}
-</table>
-<h4>Total of selected invoices = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} invoices)</h4>
 
     <input type="submit" name="export" value="Export">
     <input type="submit" name="mail" value="Send mail to unpaid">
@@ -89,6 +55,67 @@
         };
         $('.datepicker').datepicker(options);
         $('#invoices').DataTable();
+        $('#invoices').show();
+
     });
+    $("[id^='id_']").change(function () {
+        console.log("checkbox click!")  // sanity check
+        ajax_post()
+    });
+    //$("[type=text]").change(function () {
+    //    console.log("datepicker change")  // sanity check
+    //    ajax_post()
+    //});
+
+    // from django documentation
+    function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", $("input[name='csrfmiddlewaretoken']").val());
+            }
+        }
+    })
+
+    // AJAX for posting
+    function ajax_post() {
+        //console.log("AJAX post") // sanity check
+        var table = $("#invoices").DataTable();
+        var checks = table.$(".selector").serialize();
+        console.log(checks);
+        $.post("/invoices/", {
+            csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+            paid: $('#id_paid').is(":checked"),
+            unpaid: $('#id_unpaid').is(":checked"),
+            cancelled: $('#id_cancelled').is(":checked"),
+            start_date: $('#id_start_date').val(),
+            end_date: $('#id_end_date').val(),
+            search: table.search(),
+            check_list: checks
+        }
+        ).done(function (json) {
+           
+            var html = json["data"];
+            var key = json["search"];
+            $("#tab_invoices").html(html);
+            $("#invoices").DataTable().search(key).draw();
+        }
+        ).fail(function (xhr, errmsg, err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+        );
+    }
+
+    // //Submit post on submit
+    //$('#post-form').on('submit', function (event) {
+    //    event.preventDefault();
+    //    console.log("form submitted!")  // sanity check
+    //    create_post();
+    //})
 </script>
 {% endblock %}

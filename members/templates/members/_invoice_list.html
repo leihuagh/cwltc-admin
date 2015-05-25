@@ -1,45 +1,42 @@
 ﻿{% load members_extras %}
+<div id="tab_invoices">
 <table id="invoices" class="table table-condensed">
-    <caption class="text-left"><h4>Invoices</h4></caption>
 <thead>
     <tr>
+        {% if checkboxes %}
+            <th></th>
+        {% endif %}
         <th>Number</th>
         <th>State</th>
-        <th>Date</th>
-        <th>Person</th>
-        <th>Reference</th>
+        <th>Created</th>
+        <th>Updated</th>
+        <th>First name</th>
+        <th>Last name</th>
+        <th>Items</th>
         <th>Email count</th>
-        <th>Posted count</th>
         <th class = "text-right">Total</th>
         <th></th>
     </tr>
 </thead>
+    <tbody>
 {% for inv in invoices %}
     <tr>
+        {% if checkboxes %}
+        <td><input type="checkbox" class="selector" name="{{ inv.id }}" value = "1"></td>
+        {% endif %}
         <td>{{ inv.id }}</td>
         <td>{{ state_list|get_option:inv.state }}</td>
+        <td>{{ inv.creation_date|date }}</td>
         <td>{{ inv.update_date|date }}</td>
-        <td>{{ inv.person.fullname }}</td>
-        <td>{{ inv.reference}}</td> 
+        <td>{{ inv.person.first_name }}</td>
+        <td>{{ inv.person.last_name }}</td> 
+        <td>{{ inv.invoiceitem_set.count }}</td> 
         <td>{{ inv.email_count}}</td>
-        <td>{{ inv.postal_count}}</td>
         <td class = "text-right">£{{ inv.total }}</td>
         <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View</a></td>
     </tr>
 {% endfor sub %}
+</tbody>
 </table>
-{% if is_paginated %}
-    <div class="pagination">
-        <span class="page-links">
-            {% if page_obj.has_previous %}
-                <a href="{% url "invoice-list" option %}?page={{ page_obj.previous_page_number }}">previous</a>
-            {% endif %}
-            <span class="page-current">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-            </span>
-            {% if page_obj.has_next %}
-                <a href="{% url "invoice-list" option %}?page={{ page_obj.next_page_number }}">next</a>
-            {% endif %}
-        </span>
-    </div>
-{% endif %}
+<h4>Total of selected invoices = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} invoices)</h4>
+</div>
