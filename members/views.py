@@ -602,10 +602,35 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     model = Invoice
     template_name = 'members/invoice_detail.html'
 
+    def post(self, request, *args, **kwargs):
+        invoice = self.get_object()
+        if 'view' in request.POST:
+            return do_mail(invoice, 'view')
+
+        elif 'test' in request.POST:
+            do_mail(invoice, 'test')
+            return redirect(invoice)
+
+        elif 'send' in request.POST:
+            do_mail(invoice, 'send')
+            return redirect(invoice)
+
+        elif 'pay' in request.POST:
+            return redirect(reverse('payment-invoice', kwargs={'invoice_id': invoice.id}))
+
+        elif 'delete' in request.POST:
+            invoice.cancel()
+            invoice.delete()
+            return redirect(invoice.person)
+
+        elif 'cancel' in request.POST:
+            invoice.cancel()
+            return redirect(invoice.person)
+
     def get_context_data(self, **kwargs):
         context = super(InvoiceDetailView, self).get_context_data(**kwargs)
-        inv = self.get_object()
-        inv.add_context(context)
+        invoice = self.get_object()
+        invoice.add_context(context)
         TextBlock.add_email_context(context)
 
         context['show_buttons'] = True

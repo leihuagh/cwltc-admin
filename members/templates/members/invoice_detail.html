@@ -17,6 +17,8 @@
 <p>Email count: {{ invoice.email_count }} </p>
 <p>Posted count: {{ invoice.postal_count }} </p>
 <hr />
+<form action="." method="post" class="form-inline" id="post-form">
+    {% csrf_token %}
 {% if full_payment_button %}
 Email text blocks:
     <a href="{% url "text-update" pk=text_intro.id %}">{{ text_intro }}</a>, 
@@ -24,14 +26,15 @@ Email text blocks:
     <a href="{% url "text-update" pk=text_closing.id %}">{{ text_closing }}</a>
 <br /><br />
     <a href="{% url "invoice-mail-config" pk=invoice.id %}" class="btn btn-primary">Configure mail</a>
-    <a href="{% url "invoice-mail" pk=invoice.id option='view' %}" class="btn btn-primary">Preview mail</a>
-    <a href="{% url "invoice-mail" pk=invoice.id option='test' %}" class="btn btn-primary">Send test mail</a>
-    <a href="{% url "invoice-mail" pk=invoice.id option='send' %}" class="btn btn-primary">Send mail</a>
+    <input type="submit" name="view" value="Preview mail" class="btn btn-primary">
+    <input type="submit" name="test" value="Send test mail" class="btn btn-primary">
+    <input type="submit" name="send" value="send mail" class="btn btn-primary"> 
 <br />    <br /> 
-<a href="{% url "payment-invoice" invoice.id %}" class="btn btn-success">Full payment</a>
-    <a href="{% url "invoice-cancel"  invoice.id %}" class="btn btn-danger">Cancel invoice</a>   
+    <input type="submit" name="pay" value="Full payment" class="btn btn-success"> 
+    <input type="submit" name="cancel" value="Cancel invoice" class="btn btn-danger"> 
 {% endif %}
 {% if can_delete %}
-    <a href="{% url "invoice-delete"  invoice.id %}" class="btn btn-danger">Delete invoice</a>
+    <input type="submit" name="delete" value="Delete invoice" class="btn btn-danger"> 
 {% endif %}
+</form>
 {% endblock content %}
