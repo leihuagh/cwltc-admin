@@ -1088,7 +1088,25 @@ def fixup_postgresql(request):
         cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
 
 def fixup(request):
-    p = Payment.objects.get(pk=216).delete
-    p = Payment.objects.get(pk=193).delete
-    p = Payment.objects.get(pk=278).delete
-    return HttpResponse('3 payments were deleted')
+    # delphine
+    #p2 = Payment.objects.get(pk=215)
+    #item = InvoiceItem.objects.get(pk=99)
+    #item.payment = p2
+    #item.save()
+    #p1 = Payment.objects.get(pk=216).delete()
+    ## crofton
+    #p1 = Payment.objects.get(pk=192).delete()
+    ## lisbeth
+    #item = InvoiceItem.objects.get(pk=1263).delete()
+    #item = InvoiceItem.objects.get(pk=202)
+    #inv = Invoice.objects.get(pk=651)
+    #pay =  Payment.objects.get(pk=278)
+    #item.invoice = inv
+    #item.payment = pay
+    #item.save()
+
+    #p1 = Payment.objects.get(pk=277)
+    #p1.delete()
+    #inv = Invoice.objects.get(pk=650)
+    #inv.delete()
+    return HttpResponse('Fixed')
