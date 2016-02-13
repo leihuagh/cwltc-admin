@@ -38,18 +38,25 @@ def DefaultHelper(form):
 
 class FilterMemberForm(Form):
    
-    success_url = '/list'
-    helper = FormHelper()
-    helper.form_method = 'POST'
-    helper.form_class = 'form-horizontal'
-    helper.add_input(SubmitButton('submit', 'Go', css_class='btn-primary'))
+    #categories = forms.MultipleChoiceField(widget=forms.SelectMultiple(attrs={'size': 4}),
+    #                                       label="Select categories")
+    categories = forms.ChoiceField()
+
+    #success_url = '/list'
+    #helper = FormHelper()
+    #helper.form_method = 'POST'
+    #helper.form_class = 'form-horizontal'
+    #helper.add_input(SubmitButton('submit', 'Go', css_class='btn-primary'))
 
     def __init__(self, *args, **kwargs):
         super(FilterMemberForm, self).__init__(*args, **kwargs)
-        memcats = Membership.objects.all()
-        self.fields= {}
-        for cat in memcats:
-            self.fields[str(cat.id)] = forms.BooleanField(required = False, label = cat.description)
+        self.fields['categories'].choices = Membership.FILTER_CHOICES + [
+            (x.id, x.description) for x in Membership.objects.all()
+            ]
+        
+    #self.fields= {}
+    #for cat in memcats:
+    #    self.fields[str(cat.id)] = forms.BooleanField(required = False, label = cat.description)
 
 class PersonForm(ModelForm):
     ''' Handles creation of a person with new address

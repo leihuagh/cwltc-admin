@@ -19,11 +19,6 @@ urlpatterns = patterns('',
         'members.views.home',
         name='home'
     ),
-    url(
-        r'^fixup$',
-        'members.views.fixup',
-        name='test'
-    ),
 
     #   SUBSCRIPTIONS
     url(
@@ -92,11 +87,6 @@ urlpatterns = patterns('',
         r'^invoice/mail/(?P<pk>\d+)/(?P<option>[a-zA-Z]+)$',
         InvoiceMailView.as_view(),
         name='invoice-mail'
-    ),
-    url(
-        r'^invoice/pdf/(?P<pk>\d+)/(?P<option>[a-zA-Z]+)$',
-        InvoicePDFView.as_view(),
-        name='invoice-pdf'
     ),
     url(
         r'^invoice/mail/config/(?P<pk>\d+)/$',

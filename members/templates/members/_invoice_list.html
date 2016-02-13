@@ -12,8 +12,9 @@
         <th>Updated</th>
         <th>First name</th>
         <th>Last name</th>
+        <th>Membership</th>
         <th>Items</th>
-        <th>Email count</th>
+        <th>Email</th>
         <th class = "text-right">Total</th>
         <th></th>
     </tr>
@@ -30,6 +31,7 @@
         <td>{{ inv.update_date|date }}</td>
         <td>{{ inv.person.first_name }}</td>
         <td>{{ inv.person.last_name }}</td> 
+        <td>{{ inv.person.membership.description }}</td> 
         <td>{{ inv.invoiceitem_set.count }}</td> 
         <td>{{ inv.email_count}}</td>
         <td class = "text-right">£{{ inv.total }}</td>

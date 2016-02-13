@@ -6,6 +6,7 @@ from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonRes
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
 from django.views.generic.edit import FormView, FormMixin
+from django.core import serializers
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -15,7 +16,6 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from django.conf import settings
 
-from easy_pdf.views import PDFTemplateView
 from braces.views import LoginRequiredMixin
 
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
@@ -40,9 +40,62 @@ class PersonList(LoginRequiredMixin, ListView):
         add_membership_context(context)
         return context
 
-class FilteredPersonList(LoginRequiredMixin, ListView):
+class FilteredPersonList(LoginRequiredMixin, FormMixin, ListView):
     model = Person
+    form_class = FilterMemberForm
     template_name = 'members/person_table.html'
+
+    def get(self, request, *args, **kwargs):
+        self.form = self.get_form(self.form_class)
+        self.object_list = self.get_queryset()
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        ''' POST handles submit and ajax request '''
+        self.form = self.get_form(self.form_class)
+        tag=''
+        #plist = list(Person.objects.values_list(
+        #        'first_name',
+        #        'last_name',
+        #        'email',
+        #        'id'
+        #        ))
+        #dict = {"data": plist}
+        #return JsonResponse(dict)
+
+        if self.form.is_valid():
+            cat = int(self.form.cleaned_data['categories'])
+            if cat == 0:
+                qset = Person.objects.all()
+            elif cat < 100:
+                qset = Person.objects.filter(membership_id=cat)
+            elif cat == Membership.FAMILIES:
+                people = Person.objects.filter(linked__isnull = True)
+                for p in people:
+                    if p.person_set.count()>0:
+                        plist.append(p)
+            else:
+                taglist = []
+                if cat == Membership.PLAYING:
+                    taglist = Membership.PLAYING_LIST
+                elif cat == Membership.JUNIORS:
+                    taglist = Membership.JUNIORS_LIST
+                elif cat == Membership.ALL_NONPLAYING:
+                    taglist = Membership.ALL_NONPLAYING_LIST
+                qset =  Person.objects.filter(
+                    Q(membership_id__in = taglist)
+                    )
+        else:
+            qset = Person.objects.all()
+        plist = list(qset.values_list(
+            'first_name',
+            'last_name',
+            'email',
+            'id'
+            ))
+        dict = {"data": plist}
+        return JsonResponse(dict)
 
     def get_queryset(self):
         if self.kwargs['tags'] == 'families':
@@ -78,6 +131,7 @@ class FilteredPersonList(LoginRequiredMixin, ListView):
         else:
             context['tags']=''
         add_membership_context(context)
+        context['form'] = self.form
         return context
 
 class FilterMemberView(LoginRequiredMixin, FormView):
@@ -86,9 +140,24 @@ class FilterMemberView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         tag=''
-        for k in form.cleaned_data.keys():
-            if form.cleaned_data[k]:
+        for k in form.cleaned_data['categories']:
+            key = int(k)
+            taglist = []
+            if key >= 100:
+                if key == Membership.PLAYING:
+                    taglist = Membership.PLAYING_LIST
+                elif key == Membership.JUNIORS:
+                    taglist = Membership.JUNIORS_LIST
+                elif key == Membership.FAMILIES:
+                    taglist = ['families']
+                for t in taglist:
+                    tag += str(t) + '+'
+            else:
                 tag += k + '+'
+
+        #for k in form.cleaned_data.keys():
+        #    if form.cleaned_data[k]:
+        #        tag += k + '+'
         return HttpResponseRedirect('/list/' + tag[:-1])
 
 class PersonActionMixin(object):
@@ -706,36 +775,6 @@ class InvoiceMailBatchView(LoginRequiredMixin, View):
         return HttpResponse("Sent {} mails for {} invoices".format(count, invs.count()))
 
 
-class InvoicePDFView(LoginRequiredMixin, PDFTemplateView):
-    template_name = "members/invoice_pdf.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(InvoicePDFView, self).get_context_data(**kwargs)
-        invoice= Invoice.objects.get(pk = self.kwargs['pk'])
-        family = invoice.person.person_set.all()
-        context={
-            'invoice': invoice,
-            'person': invoice.person,
-            'address': invoice.person.address,
-            'reference': str(invoice.person.id) + '/' + str(invoice.id),
-            'items': invoice.invoiceitem_set.all().order_by('item_type'),
-            'text_intro': TextBlock.objects.filter(name='invoice_intro')[0].text,
-            'text_notes': TextBlock.objects.filter(name='invoice_notes')[0].text,
-            'text_closing': TextBlock.objects.filter(name='invoice_closing')[0].text,
-            }
-        addressee = invoice.person.first_name + ' ' + invoice.person.last_name
-        if invoice.person.first_name == 'Unknown':
-            addressee = 'Parent or guardian of '
-            for person in family:
-                addressee += person.first_name +' ' + person.last_name + ', '
-            addressee = addressee[:-2]
-            context['unknown'] = "Please supply your details!"  
-        context['addressee'] = addressee
-        if family.count() > 0:
-            context['junior_notes'] = TextBlock.objects.filter(name='junior_notes')[0].text
-            context['family'] = family
-        return context
-
 
 class InvoiceSelectView(LoginRequiredMixin, FormView):
     form_class = InvoiceSelectForm
@@ -1112,26 +1151,3 @@ def fixup_postgresql(request):
         cursor.execute("SELECT setval('members_fees_id_seq', (SELECT MAX(id) FROM members_fees)+1)")
         cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
 
-def fixup(request):
-    # delphine
-    #p2 = Payment.objects.get(pk=215)
-    #item = InvoiceItem.objects.get(pk=99)
-    #item.payment = p2
-    #item.save()
-    #p1 = Payment.objects.get(pk=216).delete()
-    ## crofton
-    #p1 = Payment.objects.get(pk=192).delete()
-    ## lisbeth
-    #item = InvoiceItem.objects.get(pk=1263).delete()
-    #item = InvoiceItem.objects.get(pk=202)
-    #inv = Invoice.objects.get(pk=651)
-    #pay =  Payment.objects.get(pk=278)
-    #item.invoice = inv
-    #item.payment = pay
-    #item.save()
-
-    #p1 = Payment.objects.get(pk=277)
-    #p1.delete()
-    #inv = Invoice.objects.get(pk=650)
-    #inv.delete()
-    return HttpResponse('Fixed')

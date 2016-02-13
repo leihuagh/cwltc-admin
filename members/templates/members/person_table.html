@@ -2,39 +2,93 @@
 {% load members_extras %}
 {% block content %}
 <h2>Members</h2>
-<h4>{{ tags }}</h4><br />
+
+<form action="." method="post" class="form-inline" id="post-form">
+    {% csrf_token %}
+
+    <div class="row">
+        
+        <div class="form-group">
+            <label for="id_categories" class="col-md-5 control-label">Select one or more categories</label>
+            {{ form.categories }}
+        </div>
+        <input type="submit" name="filter" value="Filter">
+    </div>
+    <hr />   
+</form>
+
 <table id="people" class="display" cellspacing="0" >
    <thead>
          <tr>
             <th>First name</th>
             <th>Last name</th>
-            <th>Membership</th>
-            <th>Age</th>
             <th>Email</th>
             <th>View</th>
         </tr>
     </thead>
-    {% for person in object_list %}
-    <tr>
-        <td>{{ person.first_name }}</td> 
-        <td>{{ person.last_name }}</td>
-        <td>{{ mem_dict|get_item:person.membership_id }}</td>  
-        <td>{{ person.age_today }}</td>
-        <td>{{ person.email }}</td>
-        <td><a href="{% url "person-detail" pk=person.id %}"class="btn btn-primary btn-xs">View</a></td>        
-    </tr>
-    {% endfor %}
 </table>
-<a href="{% url "filter" %}" class="btn btn-primary">Filter</a> 
+
+
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-    $('#people').dataTable({
-        "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
-    });
+    //$('#people').dataTable({
+    //    "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
+    //});
     $(document).ready(function () {
-        $('#people').DataTable();
+        $('#people').dataTable({
+            "ajax": {
+                "url": "/list/1/",
+                "type": "POST",
+                "data": function( d ) {
+                    d.csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
+                    d.categories = $('#id_categories').val();
+                }
+            }
+        });
     });
+
+    $('#id_categories').change(function () {
+        console.log("Change!")  // sanity check
+        $('#people').DataTable().ajax.reload();
+    });
+
+    // from django documentation
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", $("input[name='csrfmiddlewaretoken']").val());
+            }
+        }
+    })
+
+    // AJAX for posting
+    function ajax_post() {
+        console.log("AJAX post") // sanity check
+        $.post("/list/1/", {
+            csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+            categories: $('#id_categories').val()
+        }
+        ).done(function (json) {
+
+            var data= json["data"];
+            //var search = json["search"];
+            $("#people").dataTable(json);
+            //$("#people").DataTable().search(search).draw();
+        }
+        ).fail(function (xhr, errmsg, err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+        );
+    }
+
 </script>
 {% endblock %}

@@ -88,6 +88,17 @@ class Person(models.Model):
     def get_absolute_url(self):
         return reverse("person-detail", kwargs={"pk": self.pk})   
     
+    def as_array(self):
+        return [
+            self.first_name,
+            self.last_name,
+            self.membership.description,
+            self.age_today,
+            self.email,
+            self.id,
+            ] 
+ 
+   
     def age(self, date):
         ''' return the age in years on given date
         '''
@@ -213,9 +224,7 @@ class Person(models.Model):
             old_parent.first_name == 'Unknown'):
                 old_parent.delete()
         if old_address.person_set.count() == 0:
-            address.delete()
-
-                                   
+            address.delete()                                  
 
 
 class Membership(models.Model):
@@ -235,7 +244,26 @@ class Membership(models.Model):
     NON_MEMBER = 13
     PARENT = 14
     OFF_PEAK = 15
+    # Groups
+    PLAYING = 100
+    JUNIORS = 101
+    FAMILIES = 102
+    ALL_NONPLAYING = 103
 
+    PLAYING_LIST = [FULL, UNDER_26, COUNTRY, HON_LIFE, LIFE, MIDWEEK, OFF_PEAK, PARENT, COACH]
+    JUNIORS_LIST = [JUNIOR, CADET]   
+    ALL_NONPLAYING_LIST = [BRIDGE, NON_PLAYING]
+
+    FILTER_CHOICES = [
+        (0,'All'),
+        (PLAYING, 'Playing members'),
+        (JUNIORS, 'Juniors & cadets'),
+        (FAMILIES, 'Families'),
+        (ALL_NONPLAYING, 'All non-playing')
+        ]
+
+    
+    NO_BAR_ACCOUNT  = [JUNIOR, CADET, RESIGNED, NON_MEMBER, PARENT]
     ADULT_CHOICES = [
         (FULL, "Full"),
         (OFF_PEAK, "Off peak"),
@@ -248,7 +276,6 @@ class Membership(models.Model):
         (HON_LIFE, "Honorary life"),
         ]
 
-    NO_BAR_ACCOUNT  = [JUNIOR, CADET, RESIGNED, NON_MEMBER, PARENT]
 
     description = models.CharField(max_length=20)
     
@@ -260,7 +287,7 @@ class Membership(models.Model):
         mem = cls(id = id, description = description)
         mem.save()
         return mem
-    
+   
 class Fees(models.Model):
     membership = models.ForeignKey('Membership')
     sub_year = models.SmallIntegerField()
