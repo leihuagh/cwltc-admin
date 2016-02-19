@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.db.models.loading import get_model
+from django.apps import apps
 from django.db import connection, transaction
 from django.conf import settings
 from datetime import date, datetime
@@ -296,7 +296,7 @@ def export_all():
 
 def export_sheet(book, model_name):
     sheet = book.add_sheet(model_name)
-    my_model = get_model ('members', model_name)
+    my_model = apps.get_model ('members', model_name)
     
     # get list of column names including foreign keys with _id
     # but ignore creation_date or update_date

@@ -44,7 +44,6 @@ INSTALLED_APPS = (
     'import_export',
     'crispy_forms',
     'djrill',
-    'jquery_ui',
     'django_wysiwyg',
 	'members',
 )
