@@ -3,7 +3,7 @@ Definition of urls for Cwltc.
 """
 
 from datetime import datetime
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from members.forms import BootstrapAuthenticationForm
 from members.views import *
 
@@ -11,12 +11,13 @@ from members.views import *
 # Uncomment the next lines to enable the admin:
 from django.conf.urls import include
 from django.contrib import admin
+from django.contrib.auth.views import *
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(
         r'^$',
-        'members.views.home',
+        home,
         name='home'
     ),
 
@@ -260,7 +261,7 @@ urlpatterns = patterns('',
 
     url(
         r'^export/$',
-        'members.views.export',
+        export,
         name='export'
     ),
     url(
@@ -270,33 +271,33 @@ urlpatterns = patterns('',
     ),
     url(
         r'^import_backup$',
-        'members.views.import_backup',
+        import_backup,
         name='import-backup'
     ),
 
     url(
         r'^testinv$',
-        'members.views.testinv',
+        testinv,
         name='test'
     ),
     url(
         r'^bar$',
-       'members.views.bar',
+       bar,
        name='bar-view'
     ),
     url(
         r'^contact$',
-        'members.views.contact',
+        contact,
         name='contact'
     ),
     url(
         r'^about',
-        'members.views.about',
+        about,
         name='about'
     ),
     url(
         r'^login/$',
-        'django.contrib.auth.views.login',
+        login,
         {
             'template_name': 'members/login.html',
             'authentication_form': BootstrapAuthenticationForm,
@@ -308,7 +309,7 @@ urlpatterns = patterns('',
         },
         name='login'),
     url(r'^logout$',
-        'django.contrib.auth.views.logout',
+        logout,
         {
             'next_page': '/',
         },
@@ -322,4 +323,4 @@ urlpatterns = patterns('',
         include(admin.site.urls)
     ),
     
-)
+]
