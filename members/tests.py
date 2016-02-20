@@ -9,10 +9,8 @@ from members.models import bill_month, sub_start_date, sub_end_date
 class MembersTestCase(TestCase):
     
     @classmethod
-    def setUpClass(cls):
-        django.setup()
-            
-    def setUp(self):
+    def setUpTestData(cls):
+
         # Define membership records
         full = Membership.objects.create(id=Membership.FULL, description="Full")
         junior = Membership.objects.create(id=Membership.JUNIOR, description="Junior")
@@ -210,7 +208,8 @@ class MembersTestCase(TestCase):
 
     def test_child_subscription_renewal(self):
         child = Person.objects.all().filter(last_name = "Child")[0]
-        child.dob = datetime.date(2007,5,1)
+        child.dob = datetime.date(2007,5,2)
+        #import pdb; pdb.set_trace()
         sub_15 = Subscription.create(
             person=child,
             sub_year=2015,

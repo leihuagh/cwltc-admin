@@ -23,6 +23,9 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="gc_app\templates\gc_app\success.html" />
+    <Content Include="gc_app\templates\index.html" />
+    <Content Include="gc_app\templates\gc_app\index.html" />
     <Content Include="members\static\members\content\bootstrap.css" />
     <Content Include="members\static\members\content\bootstrap.min.css" />
     <Content Include="members\static\members\content\CWLTC logo small.png" />
@@ -460,6 +463,10 @@
     <Content Include="static\README.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="gc_app\models.py" />
+    <Compile Include="gc_app\tests.py" />
+    <Compile Include="gc_app\views.py" />
+    <Compile Include="gc_app\__init__.py" />
     <Compile Include="manage.py" />
     <Compile Include="members\admin.py" />
     <Compile Include="members\templatetags\wysiwyg.py">
@@ -490,6 +497,9 @@
     <Compile Include="wsgi\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="gc_app\" />
+    <Folder Include="gc_app\templates\" />
+    <Folder Include="gc_app\templates\gc_app\" />
     <Folder Include="members" />
     <Folder Include="members\migrations" />
     <Folder Include="members\static\" />

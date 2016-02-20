@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'djrill',
     'django_wysiwyg',
 	'members',
+    'gc_app',
 )
 
 MIDDLEWARE_CLASSES = (

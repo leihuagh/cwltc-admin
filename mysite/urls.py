@@ -4,9 +4,10 @@ Definition of urls for Cwltc.
 
 from datetime import datetime
 from django.conf.urls import url
+from django.views.generic import TemplateView
 from members.forms import BootstrapAuthenticationForm
 from members.views import *
-
+from gc_app.views import *
 
 # Uncomment the next lines to enable the admin:
 from django.conf.urls import include
@@ -19,6 +20,20 @@ urlpatterns = [
         r'^$',
         home,
         name='home'
+    ),
+
+    url(r'^gocardless/$',
+        TemplateView.as_view(template_name='gc_app/index.html'),
+        name='gc_home'
+    ),
+    url(r'^gocardless/submit/$',
+        SubmitGC.as_view(),
+        name='gc_submit'
+    ),
+
+    url(r'^gocardless/confirm/$',
+        ConfirmGC.as_view(template_name = "gc_app/success.html"),
+        name='gc_success'
     ),
 
     #   SUBSCRIPTIONS
