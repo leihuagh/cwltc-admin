@@ -21,7 +21,7 @@ urlpatterns = [
         home,
         name='home'
     ),
-
+    #   GO CARDLESS
     url(r'^gocardless/$',
         TemplateView.as_view(template_name='gc_app/index.html'),
         name='gc_home'
@@ -30,12 +30,15 @@ urlpatterns = [
         SubmitGC.as_view(),
         name='gc_submit'
     ),
-
     url(r'^gocardless/confirm/$',
         ConfirmGC.as_view(template_name = "gc_app/success.html"),
         name='gc_success'
     ),
-
+    url(r'^gocardless/webhook/$',
+        webhook,
+        name='gc_webhook'
+    ),
+ 
     #   SUBSCRIPTIONS
     url(
         r'^sub/update/(?P<pk>\d+)/',

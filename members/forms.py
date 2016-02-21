@@ -17,8 +17,6 @@ from .models import (Person, Address, Subscription, Membership, Invoice, Invoice
                      Payment, CreditNote, ExcelBook, TextBlock)
 from .excel import *
 
-from django.conf import settings
-
 # 
 TEMPLATE_PACK = getattr(settings, 'CRISPY_TEMPLATE_PACK', 'bootstrap')
 class SubmitButton(BaseInput):

@@ -8,31 +8,24 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 ON_PAAS = 'OPENSHIFT_REPO_DIR' in os.environ
 REMOTE_ADMIN = False
 REMOTE_SANDBOX = False
+
+PRODUCTION = False
+DEBUG = False
 if ON_PAAS:
+    DEBUG = 'DEBUG' in os.environ
     SECRET_KEY = os.environ['OPENSHIFT_SECRET_TOKEN']
-else:
-    # SECURITY WARNING: keep the secret key used in production secret!
+    ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
+    if os.environ['OPENSHIFT_APP_NAME'] == "admin":
+        PRODUCTION = True
+else: 
+    DEBUG=True 
     SECRET_KEY = ')_7av^!cy(wfx=k#3*7x+(=j^fzv+ot^1@sh9s9t=8$bu@r(z$'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-# adjust to turn off when on Openshift, but allow an environment variable to override on PAAS
-DEBUG = not ON_PAAS or 'DEBUG' in os.environ
-
-if ON_PAAS and os.environ['OPENSHIFT_APP_NAME'] == "sandbox":
-    DEBUG = True
+    ALLOWED_HOSTS = []
 
 if ON_PAAS and DEBUG:
     print("*** Warning - Debug mode is on ***")
 
-#TEMPLATE_DEBUG = DEBUG
-
-if ON_PAAS:
-    ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
-else:   
-    ALLOWED_HOSTS = []
-
 # Application definition
-
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -77,6 +70,7 @@ if ON_PAAS:
             }
         } 
 elif REMOTE_ADMIN:
+    # local app with connection to live system
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -88,6 +82,7 @@ elif REMOTE_ADMIN:
             }
         }  
 elif REMOTE_SANDBOX:
+    # local app with connection to remote sandbox
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -99,6 +94,7 @@ elif REMOTE_SANDBOX:
             }
         } 
 else:  
+    # local database
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -113,15 +109,10 @@ else:
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 LANGUAGE_CODE = 'en-uk'
-
 TIME_ZONE = 'Europe/London'
-
 USE_I18N = False
-
 USE_L10N = True
-
 USE_TZ = True
-
 
 # LIST: https://docs.djangoproject.com/en/dev/ref/templates/builtins/#date
 DATE_FORMAT = 'd/m/Y'
@@ -155,8 +146,6 @@ DECIMAL_SEPARATOR = u'.'
 THOUSAND_SEPARATOR = u','
 NUMBER_GROUPING = 3
 
-
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 STATIC_URL = '/static/'
@@ -167,13 +156,6 @@ STATICFILES_FINDERS = (
 )
 
 MEDIA_ROOT = os.environ.get('OPENSHIFT_DATA_DIR', '')
-
-#STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-#   os.path.join(BASE_DIR,"static"),
-#)
 
 TEMPLATES = [
     {
@@ -214,3 +196,20 @@ else:
     EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
 
 DJANGO_WYSIWYG_FLAVOR = 'yui'
+
+if PRODUCTION:
+    GO_CARDLESS = {
+        'ENVIRONMENT': 'production',
+        'APP_ID': '8MZAE33KTS90MKJV0QDG8MC1FCG8J6P556NYQ16K0AXRR3SS5YDF1E7V1PENGHPF',
+        'APP_SECRET': 'QCV54646DRQH6YMV8W2WETBN0RT003V3QPZFRMDTYW4B0HKW9455H1HB0PQ9AZ71',
+        'ACCESS_TOKEN': 'YSVM80D2XAT63RY29GHCD7K34E923X80T7A1NTJVNSNK3A33YTD7PB62PH5Z8XXH',
+        'MERCHANT_ID': '0VTW3337YC'
+        }
+else:
+    GO_CARDLESS = {
+        'ENVIRONMENT': 'sandbox',
+        'APP_ID': '2J7RAH17Y3Q2PMGGACBJEQK4EY8X6VGXXB60D3SKR4YAAKWAV9G87K7H6BKSGKCQ',
+        'APP_SECRET': 'K5NNZA4KKTSPCE2TF1PPKP41K9VMNEVWVMZGZEYQWM8T4897J1A1ZAGV6FDQ8QXT',
+        'ACCESS_TOKEN': '6T93JFXX6XTS7C38XCZRWZ7379AJTXXBXE8ZC53FJMYZ0KBPG0S5S77G73N1FCX3',
+        'MERCHANT_ID': '0VTW3337YC'
+        }
