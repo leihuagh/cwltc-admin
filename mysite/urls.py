@@ -35,7 +35,7 @@ urlpatterns = [
         name='gc_success'
     ),
     url(r'^gocardless/webhook/$',
-        webhook,
+        GCWebhook.as_view(),
         name='gc_webhook'
     ),
  

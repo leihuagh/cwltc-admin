@@ -64,7 +64,7 @@ class GCWebhook(View):
                     # Lookup the subscription using subscription['resource_id']
                     # Perform logic to cancel the subscription
                     # Any time-consuming jobs should be performed asynchronously
-                    logger.debug("Subscription {0} cancelled".format(subscription['resource_id']))
+                    print("Subscription {0} cancelled".format(subscription['id']))
             return http.HttpResponse(status=200)
         return http.HttpResponse(status=403)
 @csrf_exempt
