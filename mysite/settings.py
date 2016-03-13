@@ -180,6 +180,41 @@ TEMPLATES = [
     },
 ]
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'admin.log',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers':['file'],
+            'propagate': True,
+            'level':'DEBUG',
+        },
+        'gc_app': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+    }
+}
+
+
+
 LOGIN_URL ='/login/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
@@ -188,12 +223,26 @@ if DEBUG:
     if ON_PAAS:
         EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     else:
-        EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-        EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
+        #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+        #EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
+
+        EMAIL_BACKEND = "sgbackend.SendGridBackend"
+        SENDGRID_API_KEY = "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"
+
 else:
     # Configuration for Djrill
-    MANDRILL_API_KEY = "GlGcSfGZhHlpO75odVYTAQ"
-    EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
+    #MANDRILL_API_KEY = "GlGcSfGZhHlpO75odVYTAQ"
+    #EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
+   
+    # Sendgrid integration
+    EMAIL_BACKEND = "sgbackend.SendGridBackend"
+    SENDGRID_API_KEY = "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"
+
+    #EMAIL_HOST = 'smtp.sendgrid.net'
+    #EMAIL_HOST_USER = 'sendgrid_username'
+    #EMAIL_HOST_PASSWORD = 'sendgrid_password'
+    #EMAIL_PORT = 587
+    #EMAIL_USE_TLS = True
 
 DJANGO_WYSIWYG_FLAVOR = 'yui'
 

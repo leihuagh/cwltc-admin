@@ -6,7 +6,6 @@ from django.db.models import Q
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.dispatch import receiver 
-
 from sets import Set
 #import pdb; pdb.set_trace()
 
@@ -226,7 +225,6 @@ class Person(models.Model):
         if old_address.person_set.count() == 0:
             address.delete()                                  
 
-
 class Membership(models.Model):
     AUTO = -1
     FULL = 1
@@ -362,6 +360,8 @@ class Invoice(models.Model):
     date = models.DateField()
     reference = models.CharField(max_length=80)
     state = models.SmallIntegerField(choices = STATES, default = UNPAID)
+    gocardless_action = models.CharField(max_length=10, blank=True)
+    gocardless_bill_id = models.CharField(max_length=255, blank=True)
     person = models.ForeignKey(Person)
     email_count = models.SmallIntegerField(default=0)
     postal_count = models.SmallIntegerField(default=0)
@@ -452,12 +452,39 @@ class Invoice(models.Model):
             c_note.save()
             return c_note
 
+    def process_cardless(self, action, amount, amount_minus_fees):
+        ''' Process a bill webhook from Go Cardless '''
+        
+        gocardless_action = action
+        if action == 'created':
+            pass
+        elif action == 'paid':
+            p = Payment(type=DIRECT_DEBIT,
+                        person=self.person,
+                        amount=amount,
+                        banked=True)
+            p.pay_invoice(self)
+            return True
+
+        elif action == 'withdrawn':
+            pass
+        elif action == 'failed':
+            pass
+        elif action == 'cancelled':
+            pass
+        elif action == 'refunded':
+            pass
+        elif action == 'chargeback':
+            pass
+        elif action == 'retried':
+            pass
+
     def add_context(self, context):
         ''' set up the context for invoice & payment templates '''
         context['invoice'] = self
         context['person'] = self.person
         context['address'] = self.person.address
-        context['reference'] = str(self.person.id) + '/' + str(self.id)
+        context['reference'] = self.number
         context['items'] = self.invoiceitem_set.all().order_by('creation_date')
         context['state_list'] = Invoice.STATES
         context['types'] = Payment.TYPES

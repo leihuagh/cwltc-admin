@@ -1,0 +1,30 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load staticfiles %}
+    <title>Coombe Wood LTC Invoice</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'members/content/bootstrap.min.css' %}" />
+</head>
+<body>
+
+    {% load members_extras %}
+    <div class="container">
+        {% if invoice %}
+        {% include "members/_invoice_detail.html" %}
+        Use the button below to make a payment to Coombe Wood through GoCardless
+        <form action="{% url 'invoice-public' token %}" method="post" class="form-inline" id="post-form">
+            {% csrf_token %}
+            <input type="submit" name="pay" value="Pay in full" class="btn btn-primary">
+            <input type="submit" name="resign" value="Resign" class="btn btn-primary">
+        </form>
+        {% else %}
+        <h3>Invoice token {{ token }} is invalid!</h3>
+        {% endif %}
+    </div>
+    <script src="{% static 'members/scripts/jquery-1.10.2.js' %}"></script>
+    <script src="{% static 'members/scripts/bootstrap.js' %}"></script>
+</body>
+</html>

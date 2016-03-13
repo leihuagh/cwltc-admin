@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 
 from braces.views import LoginRequiredMixin
-
+from gc_app.views import gc_create_bill_url
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook)
 from .forms import *
@@ -704,6 +704,36 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
 
         context['show_buttons'] = True
         return context
+
+class InvoicePublicView(DetailView):
+    model = Invoice
+    template_name = 'members/invoice_public.html'
+
+    def get_object(self, querset=None):
+        signer = Signer()
+        try:
+            invoice_id = signer.unsign(self.kwargs['token'])
+            self.invoice = Invoice.objects.get(pk = invoice_id)          
+        except:
+            self.invoice = None
+        return self.invoice
+
+    def get_context_data(self, **kwargs):
+       
+        context = super(InvoicePublicView, self).get_context_data(**kwargs) 
+        if self.invoice:  
+            self.invoice.add_context(context)
+            context['token'] = self.kwargs['token']
+        return context
+
+    def post(self, request, *args, **kwargs):
+        invoice = self.get_object()
+        if 'pay' in request.POST:
+            return redirect(gc_create_bill_url(invoice))
+
+        elif 'resign' in request.POST:
+            #TODO
+            return redirect(invoice)
 
 class InvoiceGenerateView(LoginRequiredMixin, View):
 

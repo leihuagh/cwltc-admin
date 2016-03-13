@@ -22,16 +22,8 @@ urlpatterns = [
         name='home'
     ),
     #   GO CARDLESS
-    url(r'^gocardless/$',
-        TemplateView.as_view(template_name='gc_app/index.html'),
-        name='gc_home'
-    ),
-    url(r'^gocardless/submit/$',
-        SubmitGC.as_view(),
-        name='gc_submit'
-    ),
     url(r'^gocardless/confirm/$',
-        ConfirmGC.as_view(template_name = "gc_app/success.html"),
+        GCConfirm.as_view(template_name = "gc_app/success.html"),
         name='gc_success'
     ),
     url(r'^gocardless/webhook/$',
@@ -91,6 +83,11 @@ urlpatterns = [
         r'^invoice/(?P<pk>\d+)/',
         InvoiceDetailView.as_view(),
         name='invoice-detail'
+    ),
+    url(
+        r'^invoice/(?P<token>.+)',
+        InvoicePublicView.as_view(),
+        name='invoice-public'
     ),
     url(
         r'^invoice/generate/(?P<pk>\d+)/',

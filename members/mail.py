@@ -3,6 +3,9 @@ from django.template import Context
 from django.template.loader import render_to_string
 from django.shortcuts import render_to_response
 from django.utils.html import strip_tags
+from django.core.signing import Signer
+from django.core.urlresolvers import reverse
+
 from .models import Invoice, TextBlock
 
 def do_mail(invoice, option):
@@ -11,6 +14,9 @@ def do_mail(invoice, option):
     context={}
     TextBlock.add_email_context(context)
     invoice.add_context(context)
+    signer = Signer()
+    token = signer.sign(invoice.id)
+    context['gc_bill_create'] = reverse('invoice-public', args=(token,))
     if invoice.email_count > 0:
         context['reminder'] = True
 

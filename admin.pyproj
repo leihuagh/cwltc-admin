@@ -411,6 +411,7 @@
     <Content Include="members\static\members\scripts\jquery.validate.min.js" />
     <Content Include="members\static\members\scripts\jquery.validate.unobtrusive.js" />
     <Content Include="members\static\members\scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="members\static\members\scripts\members.js" />
     <Content Include="members\static\members\scripts\modernizr-2.6.2.js" />
     <Content Include="members\static\members\scripts\respond.js" />
     <Content Include="members\static\members\scripts\respond.min.js" />
@@ -431,6 +432,7 @@
     <Content Include="members\templates\members\invoice_detail.html" />
     <Content Include="members\templates\members\invoice_email.html" />
     <Content Include="members\templates\members\invoice_list.html" />
+    <Content Include="members\templates\members\invoice_public.html" />
     <Content Include="members\templates\members\invoice_select.html" />
     <Content Include="members\templates\members\junior_form.html" />
     <Content Include="members\templates\members\layout.html" />
@@ -448,6 +450,7 @@
     <Content Include="members\templates\members\textblock_form.html" />
     <Content Include="members\templates\members\textblock_list.html" />
     <Content Include="members\templates\members\invoice_pdf.html" />
+    <Content Include="members\templates\members\_how_to_pay_old.html" />
     <Content Include="members\templates\members\_person_table.html" />
     <Content Include="members\templates\members\_invoicelist_body.html" />
     <Content Include="members\templates\members\xperson_list.html" />
