@@ -451,6 +451,7 @@
     <Content Include="members\templates\members\textblock_list.html" />
     <Content Include="members\templates\members\invoice_pdf.html" />
     <Content Include="members\templates\members\_how_to_pay_old.html" />
+    <Content Include="members\templates\members\_messages.html" />
     <Content Include="members\templates\members\_person_table.html" />
     <Content Include="members\templates\members\_invoicelist_body.html" />
     <Content Include="members\templates\members\xperson_list.html" />

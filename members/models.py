@@ -223,7 +223,22 @@ class Person(models.Model):
             old_parent.first_name == 'Unknown'):
                 old_parent.delete()
         if old_address.person_set.count() == 0:
-            address.delete()                                  
+            address.delete()
+            
+    def delete_person(self):
+        ''' 
+        Delete a person if they have no family
+        Also deletes the address if no one else linked to it
+        '''
+        if self.person_set.count() > 0:
+            return "person has {0} children".format(self.person_set.count())             
+        for inv in self.invoice_set.all():
+            if not invoice.delete():
+                return "invoice {0} cannot be deleted".format(inv.id)
+        if self.address.person_set.count() == 1:
+            self.address.delete()
+        self.delete()
+        return ""                                
 
 class Membership(models.Model):
     AUTO = -1
@@ -414,6 +429,15 @@ class Invoice(models.Model):
             item.save()
         self.state = Invoice.PAID_IN_FULL
         self.save()
+
+    def delete_invoice(self):
+        ''' Delete the invoice and all invoice items if no invoice item has been paid '''
+        for item in self.invoiceitem_set.all():
+            if item.paid:
+                return False
+        for item in self.invoiceitem_set.all(): 
+            item.delete()
+        self.delete()
 
     def cancel(self):
         ''' Mark invoice as cancelled and disconnect all items from it

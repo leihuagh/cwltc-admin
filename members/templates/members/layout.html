@@ -62,26 +62,17 @@
   </div><!--/.nav-collapse -->
 </div>
 </div>
+
 <div class="container body-content">
-{% if messages %}
-<h3>Messages:</h3>
-    <ul class="messages">
-        {% for message in messages %}
-        <li id="message_{{ forloop.counter }}"
-            {% if message.tags %} class="{{ message.tags }}"
-                {% endif %}>
-                {{ message }}
-        </li>
-        {% endfor %}
-    </ul>
-{% endif %}
+{% include "members/_messages.html" %}
+<div class="container body-content">
 {% block content %}{% endblock %}
         <hr/>
         <footer>
             <p>&copy; {{ year }} KT Consultants</p>
         </footer>
     </div>
-
+ </div>
     <script src="{% static 'members/scripts/jquery-1.10.2.js' %}"></script>
     <script src="{% static 'members/scripts/bootstrap.js' %}"></script>
     <script src="{% static 'members/scripts/respond.js' %}"></script>

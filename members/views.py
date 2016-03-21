@@ -258,10 +258,20 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
     template_name = 'members/person_detail.html'
 
     def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
         context = super(PersonDetailView, self).get_context_data(**kwargs)
         add_membership_context(context)
         return set_person_context(context, self.get_object())
+
+    def post(self, request, *args, **kwargs):
+        person = self.get_object()
+        name = person.fullname()
+        if 'delete' in request.POST:
+            message = person.delete_person()
+            if message == "":
+                messages.success(self.request,"{0} deleted".format(name))
+                return redirect(reverse('person-list'))
+            messages.error(self.request,"{0} not deleted because {1}".format(name, message))
+            return redirect(reverse('person-detail', kwargs={'pk':person.id}))
 
 def add_membership_context(context):
     ''' Add membership dictionary to context '''
