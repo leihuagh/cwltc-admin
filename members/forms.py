@@ -35,7 +35,7 @@ def DefaultHelper(form):
     return helper
 
 class FilterMemberForm(Form):
-   
+    
     success_url = '/list/'
     helper = FormHelper()
     helper.form_method = 'POST'
