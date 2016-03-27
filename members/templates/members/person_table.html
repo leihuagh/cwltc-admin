@@ -1,39 +1,40 @@
 ﻿{% extends "members/layout.html" %}
 {% load members_extras %}
-{% load staticfiles %}
 {% block content %}
 <h2>Members</h2>
-
-<form action="." method="post" class="form-inline" id="post-form">
-    {% csrf_token %}
-
-    <div class="row">
-        
-        <div class="form-group">
-            <label for="id_categories" class="col-md-5 control-label">Select one or more categories</label>
-            {{ form.categories }}
-        </div>
-        <input type="submit" name="filter" value="Filter">
-    </div>
-    <hr />   
-</form>
-
+<h4>{{ tags }}</h4><br />
 <table id="people" class="display" cellspacing="0" >
    <thead>
          <tr>
             <th>First name</th>
             <th>Last name</th>
+            <th>Membership</th>
+            <th>Age</th>
             <th>Email</th>
             <th>View</th>
         </tr>
     </thead>
+    {% for person in object_list %}
+    <tr>
+        <td>{{ person.first_name }}</td> 
+        <td>{{ person.last_name }}</td>
+        <td>{{ mem_dict|get_item:person.membership_id }}</td>  
+        <td>{{ person.age_today }}</td>
+        <td>{{ person.email }}</td>
+        <td><a href="{% url "person-detail" pk=person.id %}"class="btn btn-primary btn-xs">View</a></td>        
+    </tr>
+    {% endfor %}
 </table>
-
-
-
+<a href="{% url "filter" %}" class="btn btn-primary">Filter</a> 
 {% endblock %}
 
 {% block scripts %}
-<script src='{% static 'members/scripts/members.js' %}'></script>
-
+<script>
+    $('#people').dataTable({
+        "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
+    });
+    $(document).ready(function () {
+        $('#people').DataTable();
+    });
+</script>
 {% endblock %}

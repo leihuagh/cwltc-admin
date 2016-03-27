@@ -40,62 +40,9 @@ class PersonList(LoginRequiredMixin, ListView):
         add_membership_context(context)
         return context
 
-class FilteredPersonList(LoginRequiredMixin, FormMixin, ListView):
+class FilteredPersonList(LoginRequiredMixin, ListView):
     model = Person
-    form_class = FilterMemberForm
     template_name = 'members/person_table.html'
-
-    def get(self, request, *args, **kwargs):
-        self.form = self.get_form(self.form_class)
-        self.object_list = self.get_queryset()
-        context = self.get_context_data()
-        return self.render_to_response(context)
-
-    def post(self, request, *args, **kwargs):
-        ''' POST handles submit and ajax request '''
-        self.form = self.get_form(self.form_class)
-        tag=''
-        #plist = list(Person.objects.values_list(
-        #        'first_name',
-        #        'last_name',
-        #        'email',
-        #        'id'
-        #        ))
-        #dict = {"data": plist}
-        #return JsonResponse(dict)
-
-        if self.form.is_valid():
-            cat = int(self.form.cleaned_data['categories'])
-            if cat == 0:
-                qset = Person.objects.all()
-            elif cat < 100:
-                qset = Person.objects.filter(membership_id=cat)
-            elif cat == Membership.FAMILIES:
-                people = Person.objects.filter(linked__isnull = True)
-                for p in people:
-                    if p.person_set.count()>0:
-                        plist.append(p)
-            else:
-                taglist = []
-                if cat == Membership.PLAYING:
-                    taglist = Membership.PLAYING_LIST
-                elif cat == Membership.JUNIORS:
-                    taglist = Membership.JUNIORS_LIST
-                elif cat == Membership.ALL_NONPLAYING:
-                    taglist = Membership.ALL_NONPLAYING_LIST
-                qset =  Person.objects.filter(
-                    Q(membership_id__in = taglist)
-                    )
-        else:
-            qset = Person.objects.all()
-        plist = list(qset.values_list(
-            'first_name',
-            'last_name',
-            'email',
-            'id'
-            ))
-        dict = {"data": plist}
-        return JsonResponse(dict)
 
     def get_queryset(self):
         if self.kwargs['tags'] == 'families':
@@ -131,6 +78,105 @@ class FilteredPersonList(LoginRequiredMixin, FormMixin, ListView):
         else:
             context['tags']=''
         add_membership_context(context)
+        return context
+
+
+class FilteredPersonListAjax(LoginRequiredMixin, FormMixin, ListView):
+    model = Person
+    form_class = FilterMemberAjaxForm
+    template_name = 'members/person_table_ajax.html'
+
+    def get(self, request, *args, **kwargs):
+        if kwargs:
+            self.form = FilterMemberAjaxForm(initial = {'categories': kwargs['tags']})
+        else:
+            self.form = FilterMemberAjaxForm()
+        #self.form = self.get_form(self.form_class)
+        self.object_list = []
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        ''' POST handles submit and ajax request '''
+        self.form = self.get_form(self.form_class)
+        if self.form.is_valid():
+            cat = int(self.form.cleaned_data['categories'])
+            if cat == 0:
+                qset = Person.objects.select_related().all()
+            elif cat < 100:
+                qset = Person.objects.select_related().filter(membership_id=cat)
+            elif cat == Membership.FAMILIES:
+                non_kids = Person.objects.select_related().filter(linked__isnull = True)
+                plist= []
+                for p in non_kids:
+                    if p.person_set.count() > 0:
+                        cat = p.membership.description if p.membership else ""
+                           
+                        qlist =[p.first_name, p.last_name, cat, p.email, p.id]
+                        plist.append(qlist)
+                dict = {"data": plist}
+                return JsonResponse(dict)
+            
+            else:
+                taglist = []    
+                if cat == Membership.PLAYING:
+                    taglist = Membership.PLAYING_LIST
+                elif cat == Membership.JUNIORS:
+                    taglist = Membership.JUNIORS_LIST
+                elif cat == Membership.ALL_NONPLAYING:
+                    taglist = Membership.ALL_NONPLAYING_LIST
+                qset =  Person.objects.filter(
+                    Q(membership_id__in = taglist)
+                    )
+        else:
+            qset = Person.objects.select_related().all()
+
+        plist = list(qset.values_list(
+                'first_name',
+                'last_name',
+                'membership__description',
+                'email',
+                'id'
+                ))
+        dict = {"data": plist}
+        return JsonResponse(dict)
+
+    #def get_queryset(self):
+    #    if self.kwargs:
+    #        if self.kwargs['tags'] == 'families':
+    #            people = Person.objects.select_related().filter(linked__isnull = True)
+    #            qset=[]
+    #            for p in people:
+    #                if p.person_set.count()>0:
+    #                    qset.append(p)
+    #        else:
+    #            tag_ids = self.kwargs['tags'].split('+')
+    #            tag_list = []
+    #            for id in tag_ids:
+    #                tag_list.append(int(id))
+    #            qset =  Person.objects.select_related().filter(
+    #                Q(membership_id__in = tag_list)
+    #            )
+    #    else:
+    #        qset =  Person.objects.select_related().all()
+    #    return qset 
+
+    def get_context_data(self, **kwargs):
+        context = super(FilteredPersonListAjax, self).get_context_data(**kwargs)
+        fields = self.request.path_info.split('/') 
+        context['tags']=''
+        #if self.kwargs:            
+        #    taglist = fields[2].split('+')
+        #    if len(taglist) > 0:
+        #        context['tags'] = 'Filtered by: '
+        #        for tagid in taglist:
+        #            if tagid == 'families':
+        #                context['tags'] += 'Families, '
+        #            else:
+        #                context['tags'] += Membership.objects.get(pk=tagid).description + ', '
+        #        context['tags'] = context['tags'][:-2]
+               
+        add_membership_context(context)
         context['form'] = self.form
         return context
 
@@ -140,25 +186,28 @@ class FilterMemberView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         tag=''
-        for k in form.cleaned_data['categories']:
-            key = int(k)
-            taglist = []
-            if key >= 100:
-                if key == Membership.PLAYING:
-                    taglist = Membership.PLAYING_LIST
-                elif key == Membership.JUNIORS:
-                    taglist = Membership.JUNIORS_LIST
-                elif key == Membership.FAMILIES:
-                    taglist = ['families']
-                for t in taglist:
-                    tag += str(t) + '+'
-            else:
+        for k in form.cleaned_data.keys():
+            if form.cleaned_data[k]:
                 tag += k + '+'
-
-        #for k in form.cleaned_data.keys():
-        #    if form.cleaned_data[k]:
-        #        tag += k + '+'
         return HttpResponseRedirect('/list/' + tag[:-1])
+    
+    #def form_valid(self, form):
+    #    tag=''
+    #    for k in form.cleaned_data['categories']:
+    #        key = int(k)
+    #        taglist = []
+    #        if key >= 100:
+    #            if key == Membership.PLAYING:
+    #                taglist = Membership.PLAYING_LIST
+    #            elif key == Membership.JUNIORS:
+    #                taglist = Membership.JUNIORS_LIST
+    #            elif key == Membership.FAMILIES:
+    #                taglist = ['families']
+    #            for t in taglist:
+    #                tag += str(t) + '+'
+    #        else:
+    #            tag += k + '+'
+    #    return HttpResponseRedirect('/list/' + tag[:-1])
 
 class PersonActionMixin(object):
     """

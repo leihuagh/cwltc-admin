@@ -443,7 +443,7 @@
     <Content Include="members\templates\members\payment_list.html" />
     <Content Include="members\templates\members\person_detail.html" />
     <Content Include="members\templates\members\person_form.html" />
-    <Content Include="members\templates\members\person_table.html" />
+    <Content Include="members\templates\members\person_table_ajax.html" />
     <Content Include="members\templates\members\subscription_detail.html" />
     <Content Include="members\templates\members\subscription_form.html" />
     <Content Include="members\templates\members\subsmail.html" />

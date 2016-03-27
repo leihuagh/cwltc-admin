@@ -1,0 +1,36 @@
+﻿{% extends "members/layout.html" %}
+{% load members_extras %}
+{% load staticfiles %}
+{% block content %}
+<h2>Members</h2>
+
+<form action="." method="post" class="form-inline" id="post-form">
+    {% csrf_token %}
+
+    <div class="row">     
+            <label for="id_categories" class="col-md-1 control-label">Category:</label>
+            {{ form.categories }}
+    </div>
+    <hr />   
+</form>
+
+<table id="people" class="display" cellspacing="0" >
+   <thead>
+         <tr>
+            <th>First name</th>
+            <th>Last name</th>
+            <th>Membership</th>
+            <th>Email</th>
+            <th>View</th>
+        </tr>
+    </thead>
+</table>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src='{% static 'members/scripts/members.js' %}'></script>
+
+{% endblock %}

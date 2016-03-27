@@ -164,9 +164,14 @@ urlpatterns = [
        name='person-list'
     ),
     url(
-       r'^list/(?P<tags>[\w\+]+)/',
-       FilteredPersonList.as_view(),
+       r'^people/$',
+       FilteredPersonListAjax.as_view(),
        name='filteredperson-list'
+    ),
+    url(
+       r'^people/(?P<tags>[\w\+]+)/',
+       FilteredPersonListAjax.as_view(),
+       name='filteredperson-list-tags'
     ),
     url(
         r'^filter$',

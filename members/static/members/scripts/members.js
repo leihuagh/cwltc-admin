@@ -4,19 +4,19 @@
 $(document).ready(function () {
     $('#people').dataTable({
         "ajax": {
-            "url": "/list/1/",
+            "url": "/people/",
             "type": "POST",
             "data": function( d ) {
                 d.csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
                 d.categories = $('#id_categories').val();
                 }
             },
-        "columns": [ null,null,null,
+        "columns": [ null,null,null,null,
             {
                 "render": function (data, type, row, meta) {
                     if (type === 'display') {
                         return $('<a>')
-                            .attr('href', data)
+                            .attr('href', '/' + data)
                             .text(data)
                             .wrap('<div></div>')
                             .parent()
@@ -51,7 +51,7 @@ $.ajaxSetup({
 // AJAX for posting
 function ajax_post() {
     console.log("AJAX post") // sanity check
-    $.post("/list/1/", {
+    $.post("/", {
         csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
         categories: $('#id_categories').val()
     }
