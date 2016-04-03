@@ -433,27 +433,29 @@ class SubscriptionForm(ModelForm):
         self.fields['end_date'].widget = MonthYearWidget()
         self.fields['end_date'].input_formats = settings.DATE_INPUT_FORMATS
         
-        if not self.updating:
-            # initialise start and end dates
-            self.fields['start_date'].initial = date(2015, 5, 1)
-            now = date.today()
-            start_month = now.month
-            start_year = now.year    
-            if now.day > 15:
-                start_month += 1
-                if start_month > 12:
-                    start_month = 1
-                    start_year += 1
-            sub_year = now.year
-            end_year = start_year + 1
-            if start_month < Subscription.START_MONTH:
-                end_year = start_year
-                sub_year -= 1
-            self.fields['start_date'].initial = date(start_year, start_month, 1)
-            self.fields['end_date'].initial = date(end_year, 4, 1)           
-            self.fields['sub_year'].initial = sub_year
-        else:
-            sub_year = instance.sub_year
+        now = date.today()
+        years = []
+        for y in range(now.year - 2, now.year + 2):
+            years.append(y)
+        self.fields['start_date'].widget.years = years
+        self.fields['end_date'].widget.years = years 
+                  
+        # set the default for a new subscription
+        start_month = now.month
+        start_year = now.year    
+        if now.day > 15:
+            start_month += 1
+            if start_month > 12:
+                start_month = 1
+                start_year += 1
+        sub_year = now.year
+        end_year = start_year + 1
+        if start_month < Subscription.START_MONTH:
+            end_year = start_year
+            sub_year -= 1
+        self.fields['start_date'].initial = date(start_year, start_month, 1)
+        self.fields['end_date'].initial = date(end_year, 4, 1)           
+        self.fields['sub_year'].initial = sub_year        
 
         # Set the available membership choices according to the age
         age = person.age(date(sub_year, Subscription.START_MONTH,1))
@@ -474,10 +476,14 @@ class SubscriptionForm(ModelForm):
         if self.updating:
             choices.append((Membership.RESIGNED, "Resigned"))                       
         self.fields['membership_id'] = forms.ChoiceField(choices = choices)
- 
        
         if self.updating:
             self.fields['membership_id'].initial = instance.membership_id
+            self.fields['sub_year'].initial = instance.sub_year
+            self.fields['start_date'].initial = instance.start_date
+            self.fields['end_date'].initial = instance.end_date
+            self.fields['period'].initial=instance.period
+            
             if instance.has_items():
                 for key in self.fields:
                     self.fields[key].widget.attrs['disabled'] = 'disabled'
