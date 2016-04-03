@@ -682,10 +682,14 @@ class PaymentForm(ModelForm):
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-    
+        
+        self.fields['banked_date'].widget.format = '%d/%m/%Y'
+        self.fields['banked_date'].input_formats = settings.DATE_INPUT_FORMATS
+
     class Meta:
         model = Payment
-        fields = ['type', 'reference', 'amount']
+        fields = ['type', 'reference', 'amount', 'banked_date']
+        widgets = {'banked_date': forms.DateInput(attrs={'class':'datepicker'}),}
 
 class CreditNoteForm(ModelForm):
 

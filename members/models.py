@@ -566,6 +566,7 @@ class Payment(models.Model):
     credited = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
     state = models.SmallIntegerField(choices=STATES, default=NOT_MATCHED)
     banked = models.BooleanField(default=False)
+    banked_date = models.DateField(null=True)
     
     def __unicode__(self):
         return "Payment:{} amount:{} credited:{} state:{}".format(

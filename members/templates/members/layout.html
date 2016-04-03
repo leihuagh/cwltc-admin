@@ -32,29 +32,37 @@
   <div class="navbar-collapse collapse">
 
     <!-- Left nav -->
-    <ul class="nav navbar-nav">
-      <li><a href="{% url 'home' %}">Home</a></li>
-      <li><a href="">Menu</a>
-        <ul class="dropdown-menu">
-          <li><a href="{% url 'filteredperson-list' %}">People list</a></li>
-          <li><a href="{% url 'person-create' %}">Create adult</a></li>
-          <li><a href="{% url 'junior-create' %}">Create junior</a></li>
-          <li class="divider"></li>
-          
-          <li><a href="{% url 'invoice-list' %}">List invoices</a></li>
-          <li><a href="{% url 'select' %}">Select an invoice</a></li>
-          <li><a href="{% url 'invoice-batch' %}">Create a batch of invoices</a></li>
-          <li><a href="{% url 'invoice-mail-batch' %}">Mail all unpaid invoices</a></li>
-          <li class="divider"></li>
-          <li><a href="{% url 'payment-list' %}">All payments</a></li>
-          <li class="divider"></li>
-          <li class="dropdown-header">Text blocks</li>
-          <li><a href="{% url 'text-list' %}">All text blocks</a></li>
-          <li><a href="{% url 'text-create' %}">New text block</a></li>
-        </ul>
-      </li>
-      <li><a href="{% url 'select' %}">Go to</a></li>
-    </ul>
+      <ul class="nav navbar-nav">
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li>
+              <a href="">Menu</a>
+              <ul class="dropdown-menu">
+                  <li><a href="{% url 'filteredperson-list' %}">People list</a></li>
+                  <li><a href="{% url 'person-create' %}">Create adult</a></li>
+                  <li><a href="{% url 'junior-create' %}">Create junior</a></li>
+                  <li class="divider"></li>
+
+                  <li><a href="{% url 'invoice-list' %}">List invoices</a></li>
+                  <li><a href="{% url 'select' %}">Select an invoice</a></li>
+                  <li><a href="{% url 'invoice-batch' %}">Create a batch of invoices</a></li>
+                  <li><a href="{% url 'invoice-mail-batch' %}">Mail all unpaid invoices</a></li>
+                  <li class="divider"></li>
+                  <li><a href="{% url 'payment-list' %}">All payments</a></li>
+                  <li class="divider"></li>
+                  <li class="dropdown-header">Text blocks</li>
+                  <li><a href="{% url 'text-list' %}">All text blocks</a></li>
+                  <li><a href="{% url 'text-create' %}">New text block</a></li>
+              </ul>
+          </li>
+          <li>
+              <a href="">Import and export</a>
+                <ul class="dropdown-menu">
+                    <li><a href="{% url 'import' %}">Import data from Excel</a></li>
+                    <li><a href="{% url 'export' %}">Export all data to Excel</a></li>
+                </ul>
+          </li>
+          <li><a href="{% url 'select' %}">Go to</a></li>
+      </ul>
 
     <!-- Right nav -->
     {% include 'members/loginpartial.html' %}
