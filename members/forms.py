@@ -58,7 +58,6 @@ class FilterMemberAjaxForm(Form):
             (x.id, x.description) for x in Membership.objects.all()
             ]
 
-
 class PersonForm(ModelForm):
     ''' Handles creation of a person with new address
         creation of a linked person with linked address
@@ -173,7 +172,6 @@ class PersonForm(ModelForm):
                 self.person.address = address
         self.person.save()
  
-
 class AddressForm(ModelForm):
     
     class Meta:
@@ -206,8 +204,7 @@ class AddressForm(ModelForm):
                 SubmitButton('cancel', 'Cancel', css_class='btn-default')
                 )
              )
-
-              
+             
 class JuniorForm(ModelForm):
 
     class Meta:
@@ -373,6 +370,51 @@ class PersonLinkForm(Form):
         else:
             raise forms.ValidationError('Too many matching people')
 
+class FeesForm(ModelForm):
+    class Meta:
+        model = Fees
+        fields = [
+                'annual_sub',
+                'monthly_sub',
+                'joining_fee'
+                ]
+
+    def __init__(self, *args, **kwargs):
+        year = kwargs.pop('year', None)              
+        super(FeesForm, self).__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        self.updating = False
+        if instance and instance.id:
+            self.updating = True
+        self.helper = FormHelper(self)
+        self.helper.form_id = 'id-FeesForm'
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.form_method = 'post'
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        message = "{}  {}".format(instance.sub_year, instance.membership.description)
+        self.helper.layout = Layout(
+            Fieldset(
+                message,
+                'annual_sub',
+                'monthly_sub',
+                'joining_fee'
+                )
+            )
+
+    def clean(self):
+        cleaned_data = super(FeesForm, self).clean()
+        annual = cleaned_data.get('annual_sub')
+        monthly = cleaned_data.get('monthly_sub')
+        joining = cleaned_data.get('joining_fee')
+        if joining:
+            if joining < 0:
+                raise forms.ValidationError('Value cannot be negative')
+        else:
+            joining = 0
+
 
 class SubscriptionForm(ModelForm):
     membership_id = forms.ChoiceField()
@@ -383,7 +425,7 @@ class SubscriptionForm(ModelForm):
         person = Person.objects.get(pk=person_id)
         instance = getattr(self, 'instance', None)
         self.updating = False
-        if instance and instance.id:
+        if instance and instance.id: 
             self.updating = True
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-SubscriptionForm'
@@ -736,19 +778,19 @@ class TextBlockForm(ModelForm):
 
 class XlsInputForm(Form):
     IMPORT_FILE_TYPES = ['.xls', ]
-    BASE = 0
-    MEMBERS = 1
-    ITEMS = 2
-    BACKUP = 3
-    CHOICES=[(BASE, 'Basic tables'),
-             (MEMBERS, 'Members file'),
-             (ITEMS, 'Invoice items'),
-             (BACKUP, 'Backup file')
-            ]
+    #BASE = 0
+    #MEMBERS = 1
+    #ITEMS = 2
+    #BACKUP = 3
+    #CHOICES=[(BASE, 'Basic tables'),
+    #         (MEMBERS, 'Members file'),
+    #         (ITEMS, 'Invoice items'),
+    #         (BACKUP, 'Backup file')
+    #        ]
 
     input_excel = forms.FileField(required=True, label=u"Select the Excel file")
-    sheet_type = forms.ChoiceField(choices=CHOICES, widget=forms.RadioSelect())
-    batch_size = forms.IntegerField(label=u"Batch size")
+    #sheet_type = forms.ChoiceField(choices=CHOICES, widget=forms.RadioSelect())
+    #batch_size = forms.IntegerField(label=u"Batch size")
     
     def __init__(self, *args, **kwargs):
         super(XlsInputForm, self).__init__(*args, **kwargs)
@@ -757,9 +799,9 @@ class XlsInputForm(Form):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
         self.helper.form_method = 'post'
-        self.helper.add_input(SubmitButton('submit', 'Start', css_class='btn-primary'))
-        self.initial['sheet_type'] = XlsInputForm.MEMBERS
-        self.initial['batch_size'] = 100
+        self.helper.add_input(SubmitButton('submit', 'Open file', css_class='btn-primary'))
+        #self.initial['sheet_type'] = XlsInputForm.MEMBERS
+        #self.initial['batch_size'] = 100
 
     def clean_input_excel(self):
         input_excel = self.cleaned_data['input_excel']
@@ -805,7 +847,8 @@ class SelectSheetsForm(Form):
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.form_method = 'post'
-        self.helper.add_input(SubmitButton('submit', 'Import', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('check', 'Check data', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('import', 'Import data', css_class='btn-primary'))
         
         my_book = ExcelBook.objects.all()[0]
         with open_excel_workbook(my_book.file) as book:

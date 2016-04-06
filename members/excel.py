@@ -5,6 +5,7 @@ from django.conf import settings
 from datetime import date, datetime
 from xlrd import open_workbook, xldate_as_tuple
 from xlwt import Workbook, Style, easyxf
+from numbers import Number
 
 from members.models import (Membership, Person, Address, Fees, Subscription, ItemType,
                             Invoice, InvoiceItem)
@@ -19,7 +20,7 @@ def open_excel_workbook(input_file):
     return book
 
 
-def import_items(sheet):
+def import_items(sheet, save_data):
     ''' Import invoice items an Excel sheets in the book
         Return [count, errorlist] 
     '''
@@ -53,18 +54,25 @@ def import_items(sheet):
                         description = sheet.cell_value(row, col_description)
                     if description == u'':
                         description = ItemType.objects.get(pk=item_id).description
-                    new_item = InvoiceItem(person_id=person_id,
-                                            item_type_id=item_id,
-                                            description=description,
-                                            amount=amount)
+
                     count += 1
-                    new_item.save()  
+                    if save_data:
+                        new_item = InvoiceItem(person_id=person_id,
+                                                item_type_id=item_id,
+                                                description=description,
+                                                amount=amount)
+                        new_item.save()
+                    else:
+                        person = Person.objects.get(id=person_id)
+                        if not isinstance(amount, Number):
+                            raise TypeError()
+                        item = InvoiceItem.objects.get(id=item_id)
             except Exception, e:
-                errors.append(repr(e) + 'Error on row {}' .format(row))
+                errors.append(repr(e) + 'Error on row {}' .format(row + 1))
                 continue  
         return [count, errors]
     else:
-        errors.append('Missing columns')
+        errors.append('Column headers are missing')
         return[0, errors]
 
             

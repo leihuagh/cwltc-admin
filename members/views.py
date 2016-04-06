@@ -554,7 +554,85 @@ class SubInvoiceCancel(LoginRequiredMixin, View):
                 item.invoice.cancel()
             item.delete()
         return redirect(sub)
+
+# ============ Fees
+
+class FeesCreateView(LoginRequiredMixin, CreateView):
+    model = Fees
+    form_class = FeesForm
+    template_name = 'members/fees_form.html'
+
+    def get_success_url(self):
+        return reverse('fees-list')   
+   
+class FeesUpdateView(LoginRequiredMixin, UpdateView):
+    model = Fees
+    form_class = FeesForm
+    template_name = 'members/generic_crispy_form.html'                 
     
+    def get_context_data(self, **kwargs):
+        context = super(FeesUpdateView, self).get_context_data(**kwargs)
+        context['title'] = 'Fees for {}'.format(self.get_object().sub_year)
+        return context
+
+    def form_invalid(self, form):
+        if 'cancel' in form.data:
+            return redirect('fees-list', year=self.get_object().sub_year)
+        return super(FeesUpdateView, self).form_invalid(form)
+
+    def form_valid(self, form):
+        if 'cancel' in form.data:
+            return redirect('fees-list', year=self.get_object().sub_year)
+
+        if 'submit' in form.data:
+            return super(FeesUpdateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('fees-list',
+                       kwargs={'year': self.get_object().sub_year} 
+                      )
+
+class FeesListView(LoginRequiredMixin, ListView):
+    model = Fees
+    template_name = 'members/fees_list.html'
+
+    def get_queryset(self):
+        self.year = int(self.kwargs.get('year', 0))
+        self.latest_year = Fees.objects.all().order_by('-sub_year')[0].sub_year
+        if self.year == 0:
+            self.year = self.latest_year       
+        return Fees.objects.filter(sub_year=self.year).order_by('membership')
+
+    def get_context_data(self, **kwargs):
+        context = super(FeesListView, self).get_context_data(**kwargs)
+        context['year'] = self.year
+        context['latest'] = (self.latest_year == self.year)
+        context['forward'] = self.year + 1
+        context['back'] = self.year - 1
+        return context 
+    
+    def post(self, request, *args, **kwargs):
+        year = int(request.POST['year'])   
+        if 'back' in request.POST:
+            return redirect('fees-list', year - 1)
+        elif 'forward' in request.POST:
+            return redirect('fees-list', year + 1)
+        elif 'copy' in request.POST:
+            for cat in Membership.objects.all():
+                fee = Fees.objects.filter(sub_year=year, membership_id=cat.id)[0]
+                if not fee:
+                    fee = Fees(annual_sub=0, monthly_sub=0, joining_fee=0, Membership_id=cat.id)
+                fee.sub_year = year + 1
+                fee.id = None
+                fee.save()
+            messages.success(self.request,"Records for {} created".format(year + 1))
+            return redirect('fees-list', year + 1)
+        elif 'delete' in request.POST:
+            for fee in Fees.objects.filter(sub_year=year):
+                fee.delete()
+            messages.success(self.request,"All records for {} deleted".format(year))
+            return redirect('fees-list', year - 1)
+
 # ================ Invoice items
 
 class InvoiceItemListView(LoginRequiredMixin, ListView):
@@ -1069,36 +1147,41 @@ class ImportExcelView(LoginRequiredMixin, FormView):
     template_name = 'members/import_excel.html'
 
     def form_valid(self,form):
-        input_excel = form.cleaned_data['input_excel']
-        sheet_type = int(form.cleaned_data['sheet_type'])
-        batch_size = int(form.cleaned_data['batch_size'])
+        try:
+            input_excel = form.cleaned_data['input_excel']
+            #sheet_type = int(form.cleaned_data['sheet_type'])
+            #batch_size = int(form.cleaned_data['batch_size'])
         
-        # When we save the new one, any old file will be overwritten
-        newbook = ExcelBook(file = input_excel)
-        newbook.save()        
+            # When we save the new one, any old file will be overwritten
+            newbook = ExcelBook(file = input_excel)
+            newbook.save() 
+        except Exception, e:       
+            messages.error(self.request,"Error reading Excel file \n" + repr(e))
+            return redirect(reverse('import'))
+
         
-        if sheet_type == XlsInputForm.MEMBERS:
-            # delete all Excelbooks in the data base
-            Person.objects.all().delete()
-            Address.objects.all().delete()
-            return HttpResponseRedirect(reverse('import_more',
-                                                args=[1, 1, batch_size]))
-        elif sheet_type == XlsInputForm.BASE:
-            Fees.objects.all().delete()
-            ItemType.objects.all().delete()
-            Membership.objects.all().delete()
-            my_book = ExcelBook.objects.all()[0]
-            with open_excel_workbook(my_book.file) as book:
-                import_base_tables(book)
-            return HttpResponseRedirect(reverse('import'))
+        #if sheet_type == XlsInputForm.MEMBERS:
+        #    # delete all Excelbooks in the data base
+        #    Person.objects.all().delete()
+        #    Address.objects.all().delete()
+        #    return HttpResponseRedirect(reverse('import_more',
+        #                                        args=[1, 1, batch_size]))
+        #elif sheet_type == XlsInputForm.BASE:
+        #    Fees.objects.all().delete()
+        #    ItemType.objects.all().delete()
+        #    Membership.objects.all().delete()
+        #    my_book = ExcelBook.objects.all()[0]
+        #    with open_excel_workbook(my_book.file) as book:
+        #        import_base_tables(book)
+        #    return HttpResponseRedirect(reverse('import'))
         
-        elif sheet_type == XlsInputForm.BACKUP:
-            my_book = ExcelBook.objects.all()[0]
-            with open_excel_workbook(my_book.file) as book:
-                import_all(book)
-            return HttpResponseRedirect(reverse('import'))                                
-        else:
-            return HttpResponseRedirect(reverse('select-sheets'))
+        #elif sheet_type == XlsInputForm.BACKUP:
+        #    my_book = ExcelBook.objects.all()[0]
+        #    with open_excel_workbook(my_book.file) as book:
+        #        import_all(book)
+        #    return HttpResponseRedirect(reverse('import'))                                
+        #else:
+        return HttpResponseRedirect(reverse('select-sheets'))
 
 class SelectSheets(LoginRequiredMixin, FormView):
     ''' Select itemtype sheets to import ''' 
@@ -1117,17 +1200,23 @@ class SelectSheets(LoginRequiredMixin, FormView):
             total = 0
             sheet_count = 0
             context = {'title': 'Import result'}
+            context['errors']=[]
             for k in form.cleaned_data.keys():
                 if form.cleaned_data[k]:
+                    do_import = 'import' in form.data
                     sheet = book.sheet_by_name(k)
                     sheet_count += 1
-                    result = import_items(sheet)
+                    result = import_items(sheet, do_import)
                     total = total + result[0]
                     if result[1]:
-                        result[1].append('Sheet ' + k)
-                        context['errors'] = result[1]
-                        break          
-            context['message'] = '{} items were imported from {} sheets'.format(total, sheet_count)
+                        context['errors'].append('Sheet {0} contains errors'.format(k))
+                        context['errors'].extend(result[1])
+                        if do_import:
+                            result[1].append('Import aborted')
+                            break
+                    else:
+                        context['errors'].append('Sheet {0} checked OK'.format(k))             
+            context['message'] = '{} items were {} from {} sheets'.format(total, 'imported' if do_import else 'checked', sheet_count)
             return render(self.request, 'members/generic_result.html', context)
                        
 class SubRenewBatch(LoginRequiredMixin, FormView):
@@ -1188,23 +1277,19 @@ def bar(request):
             'message':result,
             'year':datetime.now().year,
         })
-     )        
-              
-def home(request):
-    """Renders the home page."""
-    assert isinstance(request, HttpRequest)
-    db_name = settings.DATABASES['default']['NAME']
-    return render(
-        request,
-        'members/index.html',
-        context_instance = RequestContext(request,
-        {
-            'title':'Home Page',
-            'year':datetime.now().year,
-            'db_name':db_name,
-        })
-    )
+     )   
 
+class HomeView(TemplateView):
+    template_name = 'members/index.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super(HomeView, self).get_context_data(**kwargs)
+        context['title'] = 'Home Page'
+        context['year'] = datetime.now().year
+        context['db_name'] = settings.DATABASES['default']['NAME']
+        return context
+     
+              
 def contact(request):
     """Renders the contact page."""
     assert isinstance(request, HttpRequest)
@@ -1219,19 +1304,6 @@ def contact(request):
         })
     )
 
-def about(request):
-    """Renders the about page."""
-    assert isinstance(request, HttpRequest)
-    return render(
-        request,
-        'members/about.html',
-        context_instance = RequestContext(request,
-        {
-            'title':'Administartion system for Coombe Wood membership',
-            'message':'Under continuousd development',
-            'year':datetime.now().year,
-        })
-    )
 
 def fixup_postgresql(request):
 

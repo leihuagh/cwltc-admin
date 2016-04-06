@@ -18,7 +18,7 @@ admin.autodiscover()
 urlpatterns = [
     url(
         r'^$',
-        home,
+        HomeView.as_view(),
         name='home'
     ),
     #   GO CARDLESS
@@ -30,30 +30,45 @@ urlpatterns = [
         GCWebhook.as_view(),
         name='gc_webhook'
     ),
- 
+    #   FEES
+    url(
+        r'^fees/update/(?P<pk>\d+)/$',
+        FeesUpdateView.as_view(),
+        name='fees-update'
+    ),
+    url(
+        r'^fees/list/$',
+        FeesListView.as_view(),
+        name='fees-list'
+    ),
+    url(
+        r'^fees/list/(?P<year>[0-9]{4})/$',
+        FeesListView.as_view(),
+        name='fees-list'
+    ),
     #   SUBSCRIPTIONS
     url(
-        r'^sub/update/(?P<pk>\d+)/',
+        r'^sub/update/(?P<pk>\d+)/$',
         SubUpdateView.as_view(),
         name='sub-update'
     ),
     url(
-        r'^sub/correct/(?P<pk>\d+)/',
+        r'^sub/correct/(?P<pk>\d+)/$',
         SubCorrectView.as_view(),
         name='sub-correct'
     ),
     url(
-        r'^sub/create/(?P<person_id>\d+)/',
+        r'^sub/create/(?P<person_id>\d+)/$',
         SubCreateView.as_view(),
         name='sub-create'
     ),
     url(
-        r'^sub/(?P<pk>\d+)/',
+        r'^sub/(?P<pk>\d+)/$',
         SubDetailView.as_view(),
         name='sub-detail'
     ),
     url(
-        r'^sub/renew/(?P<pk>\d+)/',
+        r'^sub/renew/(?P<pk>\d+)/$',
         SubRenewView.as_view(),
         name='sub-renew'
     ),
@@ -63,14 +78,14 @@ urlpatterns = [
         name='sub-renew-batch'
     ),
     url(
-        r'^sub/history/(?P<person_id>\d+)/',
+        r'^sub/history/(?P<person_id>\d+)/$',
         SubListView.as_view(),
         name='sub-history'
     ),
 
     #   INVOICES
     url(
-        r'^sub/invoicecancel/(?P<pk>\d+)/',
+        r'^sub/invoicecancel/(?P<pk>\d+)/$',
         SubInvoiceCancel.as_view(),
         name='sub-invoice-cancel'
     ),
@@ -80,22 +95,22 @@ urlpatterns = [
         name='invoice-list'
     ),
     url(
-        r'^invoice/(?P<pk>\d+)/',
+        r'^invoice/(?P<pk>\d+)/$',
         InvoiceDetailView.as_view(),
         name='invoice-detail'
     ),
     url(
-        r'^invoice/(?P<token>.+)',
+        r'^invoice/(?P<token>.+)/$',
         InvoicePublicView.as_view(),
         name='invoice-public'
     ),
     url(
-        r'^invoice/generate/(?P<pk>\d+)/',
+        r'^invoice/generate/(?P<pk>\d+)/$',
         InvoiceGenerateView.as_view(),
         name='invoice-generate'
     ),
     url(
-        r'^invoice/cancel/(?P<pk>\d+)/',
+        r'^invoice/cancel/(?P<pk>\d+)/$',
         InvoiceCancelView.as_view(),
         name='invoice-cancel'
     ),
@@ -125,7 +140,7 @@ urlpatterns = [
         name='invoice-batch'
     ),
     url(
-        r'^invoice/delete/(?P<pk>\d+)/',
+        r'^invoice/delete/(?P<pk>\d+)/$',
         InvoiceDeleteView.as_view(),
         name='invoice-delete'
     ),
@@ -133,17 +148,17 @@ urlpatterns = [
     #   PAYMENTS
 
     url(
-        r'^payment/list/',
+        r'^payment/list/$',
         PaymentListView.as_view(),
         name='payment-list'
     ),
     url(
-        r'^payment/invoice/(?P<invoice_id>\d+)/',
+        r'^payment/invoice/(?P<invoice_id>\d+)/$',
         PaymentCreateView.as_view(),
         name='payment-invoice'
     ),
     url(
-        r'^payment/(?P<pk>\d+)/',
+        r'^payment/(?P<pk>\d+)/$',
         PaymentDetailView.as_view(),
         name='payment-detail'
     ),
@@ -151,7 +166,7 @@ urlpatterns = [
     #   CREDIT NOTES
 
     url(
-        r'^creditnote/create/(?P<person_id>\d+)/',
+        r'^creditnote/create/(?P<person_id>\d+)/$',
         CreditNoteCreateView.as_view(),
         name='creditnote-create'
     ),
@@ -169,7 +184,7 @@ urlpatterns = [
        name='filteredperson-list'
     ),
     url(
-       r'^people/(?P<tags>[\w\+]+)/',
+       r'^people/(?P<tags>[\w\+]+)/$',
        FilteredPersonListAjax.as_view(),
        name='filteredperson-list-tags'
     ),
@@ -194,12 +209,12 @@ urlpatterns = [
        name='person-edit'
     ),
     url(
-        r'^person/unlink/(?P<pk>\d+)/',
+        r'^person/unlink/(?P<pk>\d+)/$',
        PersonUnlinkView.as_view(),
        name='person-unlink'
     ),
     url(
-        r'^person/link/(?P<pk>\d+)/',
+        r'^person/link/(?P<pk>\d+)/$',
        PersonLinkView.as_view(),
        name='person-link'
     ),
@@ -261,7 +276,7 @@ urlpatterns = [
         name='text-list'
     ),
 
-    # EXCEL IMPORT AND EXPORRT
+    # EXCEL IMPORT AND EXPORT
 
     url(
         r'^import/$',
@@ -309,11 +324,6 @@ urlpatterns = [
         r'^contact$',
         contact,
         name='contact'
-    ),
-    url(
-        r'^about',
-        about,
-        name='about'
     ),
     url(
         r'^login/$',
