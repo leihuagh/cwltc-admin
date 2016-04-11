@@ -13,6 +13,7 @@ PRODUCTION = False
 DEBUG = False
 if ON_PAAS:
     DEBUG = 'DEBUG' in os.environ
+    DEBUG = True
     SECRET_KEY = os.environ['OPENSHIFT_SECRET_TOKEN']
     ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
     if os.environ['OPENSHIFT_APP_NAME'] == "admin":
