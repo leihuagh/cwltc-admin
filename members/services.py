@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from operator import attrgetter
 from members.models import *
 
 class Error(Exception):
@@ -306,7 +307,8 @@ def invoice_create_from_items(person):
         invoice = Invoice.objects.create(
             person = person,
             state = Invoice.UNPAID,
-            date = datetime.now()
+            date = datetime.now(),
+            membership_year = Settings.current().membership_year
             )
         # include all own items
         subs_total = 0
@@ -402,3 +404,70 @@ def person_link_to_parent(child, parent):
             old_parent.delete()
     if old_address.person_set.count() == 0:
         address.delete()
+
+
+def person_get_book_entries(person, year):
+    '''
+    Returns a sorted list of invoice, payments and credit notes
+    for a person for the specified year
+    '''
+    entries = []
+    invoices = person.invoice_set.filter(membership_year=year)
+    for i in invoices:
+        entries.append(i)
+    cnotes = person.creditnote_set.filter(membership_year=year)
+    for c in cnotes:
+        entries.append(c)
+    payments = person.payment_set.filter(membership_year=year)
+    for p in payments:
+        entries.append(p)
+    return sorted(entries, key=attrgetter('creation_date'))
+
+
+
+
+
+
+def set_membership_year(new_year):
+   invoices = Invoice.objects.all()
+   invoices.update(membership_year=new_year)
+   payments = Payment.objects.filter(membership_year=0)
+   payments.update(membership_year=new_year)
+   cnotes = CreditNote.objects.filter(membership_year=0)
+   cnotes.update(membership_year=new_year)
+   return invoices.count(), payments.count(), cnotes.count() 
+      
+
+def consolidate(year):
+    # get a set of all people ids from year's invoices
+    people_ids = set(Invoice.objects.filter(membership_year=year).values_list('person_id', flat=True))
+    people = Person.objects.filter(id__in=people_ids)
+    unpaid_count = 0
+    credit_count = 0
+    for person in people:
+        entries = person_get_book_entries(person, year)
+        balance = 0
+        for entry in entries:
+            classname = entry.__class__.__name__
+            if classname == "Invoice":
+                balance += entry.total          
+            elif classname == "Payment":
+                balance -= entry.amount
+            elif classname == "CreditNote":
+                balance -= entry.amount
+        if balance <> 0:
+            if balance > 0:
+                desc = 'Unpaid amount carried forward from ' + str(year)
+                type = ItemType.UNPAID
+                unpaid_count += 1
+            else:
+                desc = 'Credit amount carried forward from ' + str(year)
+                type = ItemType.OTHER_CREDIT
+                credit_count  += 1
+            item = InvoiceItem(item_date=date(year + 1, 4, 1),
+                               amount=balance,
+                               description=desc,
+                               item_type_id=type,
+                               person_id=person.id)
+            item.save()
+    return people.count(), unpaid_count, credit_count 

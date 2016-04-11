@@ -596,7 +596,6 @@ class SubCorrectForm(ModelForm):
         model = Subscription
         fields = ['membership', 'sub_year', 'start_date', 'end_date']
 
-        
 class SubRenewForm(Form):
     ''' Handle renewal process at start of membership year '''
     sub_year = forms.IntegerField(max_value=2100, min_value = 2014, required=True)
@@ -694,6 +693,21 @@ class InvoiceSelectForm(Form):
                 raise forms.ValidationError("Person with id {} not found".format(ref))
 
 
+class SettingsForm(Form):
+    membership_year = forms.IntegerField(max_value=2100, min_value=2014)
+
+    def __init__(self, *args, **kwargs):
+        super(SettingsForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.form_method = 'post'
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('add', 'Add year to all records', css_class='btn-danger'))
+        self.helper.add_input(SubmitButton('consolidate', 'Consolidate', css_class='btn-danger'))
+
 class EmailTextForm(Form):
     intro = forms.CharField(max_length=30, required=False)
     notes = forms.CharField(max_length=30, required=False)
@@ -748,7 +762,7 @@ class PaymentForm(ModelForm):
 
     class Meta:
         model = Payment
-        fields = ['type', 'reference', 'amount', 'banked_date']
+        fields = ['membership_year', 'type', 'reference', 'amount', 'banked_date']
         widgets = {'banked_date': forms.DateInput(attrs={'class':'datepicker'}),}
 
 class CreditNoteForm(ModelForm):

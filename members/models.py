@@ -266,6 +266,7 @@ class Invoice(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     date = models.DateField()
+    membership_year = models.SmallIntegerField(default=0)
     reference = models.CharField(max_length=80)
     state = models.SmallIntegerField(choices = STATES, default = UNPAID)
     gocardless_action = models.CharField(max_length=10, blank=True)
@@ -425,6 +426,7 @@ class Payment(models.Model):
 
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
+    membership_year = models.SmallIntegerField(default=0)
     type = models.SmallIntegerField(choices=TYPES, default=BACS)
     person = models.ForeignKey(Person)
     reference = models.CharField(max_length=80, blank=True, null=True)
@@ -446,6 +448,7 @@ class Payment(models.Model):
 class CreditNote(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
+    membership_year = models.SmallIntegerField(default=0)
     person = models.ForeignKey(Person)
     invoice = models.ForeignKey(Invoice, blank=True, null=True)
     amount = models.DecimalField(max_digits=7, decimal_places=2, null=False)
@@ -584,7 +587,13 @@ class Subscription(models.Model):
     
     def is_invoiced(self):
         return self.invoice_item is not None
-   
+
+class Settings(models.Model):
+    membership_year = models.SmallIntegerField(default=0)
+
+    @classmethod
+    def current(cls):
+        return Settings.objects.get(pk=1)
 
 class BarTransaction(models.Model):
     id = models.IntegerField(primary_key=True)

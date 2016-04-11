@@ -332,17 +332,8 @@ def add_membership_context(context):
     context['mem_dict'] = mem_dict
 
 def set_person_context(context, pers):
-    entries = []
-    invoices = pers.invoice_set.all()
-    for i in invoices:
-        entries.append(i)
-    cnotes = pers.creditnote_set.all()
-    for c in cnotes:
-        entries.append(c)
-    payments = pers.payment_set.all()
-    for p in payments:
-        entries.append(p)
-    entries = sorted(entries, key=attrgetter('creation_date'))
+    year = Settings.current().membership_year
+    entries = person_get_book_entries(pers, year)
     statement= []
     balance = 0
     for entry in entries:
@@ -583,8 +574,56 @@ class SubRenewBatch(LoginRequiredMixin, FormView):
         remaining = subscription_renew_batch(2015, 5, 100)
         return HttpResponseRedirect(reverse('sub-renew-batch'))
 
+# ============ Settings
 
+class SettingsView(LoginRequiredMixin, FormView):
+    ''' Manage setting '''
+    form_class = SettingsForm
+    template_name = 'members/generic_crispy_form.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(SettingsView, self).get_context_data(**kwargs)
+        context['title'] = 'Settings'
+        return context
+
+    def get_initial(self):
+        initial = super(SettingsView, self).get_initial()
+        qset = Settings.objects.all()
+        if qset:
+            year = qset[0].membership_year
+        else:
+            year = 2015
+        initial['membership_year'] = year
+        return initial
+   
+    def form_valid(self,form):
+        year = form.cleaned_data['membership_year']
+        if 'cancel' in form.data:
+            return redirect('home')
+
+        elif 'submit' in form.data:
+            qset = Settings.objects.all()
+            if qset:
+                record = qset[0]
+            else:
+                record = Settings()
+            record.membership_year = year
+            record.save()
+            return redirect('home')
+
+        elif 'add' in form.data:
+            counts = set_membership_year(year)
+            message = '{} invoices, {} payments and {} credit notes updated to {}'.format(
+                counts[0], counts[1], counts[2], year)
+            messages.success(self.request, message)
+            return redirect('settings')
+
+        elif 'consolidate' in form.data:
+            counts  = consolidate(year)
+            message = '{} people processed, {} unpaid  and {} credit notes carried forward'.format(
+                counts[0], counts[1], counts[2])
+            messages.success(self.request, message)
+            return redirect('settings')
 
 class SubInvoiceCancel(LoginRequiredMixin, View):
     ''' Deletes unpaid items and invoices associated with a sub '''

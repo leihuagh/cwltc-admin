@@ -21,6 +21,12 @@ urlpatterns = [
         HomeView.as_view(),
         name='home'
     ),
+    url(
+        r'^settings$',
+        SettingsView.as_view(),
+        name='settings'
+    ),
+
     #   GO CARDLESS
     url(r'^gocardless/confirm/$',
         GCConfirm.as_view(template_name = "gc_app/success.html"),

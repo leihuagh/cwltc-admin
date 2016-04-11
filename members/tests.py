@@ -11,7 +11,7 @@ class MembersTestCase(TestCase):
     
     @classmethod
     def setUpTestData(cls):
-
+        settings = Settings.objects.create(id=1, membership_year=2015)
         # Define membership records
         full = Membership.objects.create(id=Membership.FULL, description="Full")
         junior = Membership.objects.create(id=Membership.JUNIOR, description="Junior")
