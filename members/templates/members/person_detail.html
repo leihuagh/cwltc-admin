@@ -180,7 +180,7 @@
             <td>{{ entry.update_date|date }}</td>
             <td>Payment</td>
             <td>{{ entry.id }}</td>
-            <td>{{ payment_states|get_option:entry.state }}</td>
+            <td>{{ payment_states|get_option:entry.type }}</td>
             <td class="text-right">£{{ entry.amount }}</td>
             <td></td>
             <td class="text-right">£{{ line.1 }}</td>

@@ -17,7 +17,7 @@ def invoice_pay_by_gocardless(invoice, amount, fee):
                         person=invoice.person,
                         amount=amount,
                         banked=True,
-                        banked_date=datetime.now()
+                        banked_date=datetime.now(),
                         )
     payment.save()
     invoice_pay(invoice, payment)
@@ -34,8 +34,10 @@ def invoice_pay(invoice, payment):
             invoice_item_pay(item, payment)
         invoice.state = Invoice.PAID_IN_FULL
         payment.state = Payment.FULLY_MATCHED
+        payment.invoice = invoice
         payment.credited = payment.amount       
     else:
+        payment.invoice = invoice
         invoice.state = Invoice.PART_PAID
         payment.state = Payment.PARTLY_MATCHED  
     payment.save()
@@ -429,13 +431,15 @@ def person_get_book_entries(person, year):
 
 
 def set_membership_year(new_year):
-   invoices = Invoice.objects.all()
-   invoices.update(membership_year=new_year)
-   payments = Payment.objects.filter(membership_year=0)
-   payments.update(membership_year=new_year)
-   cnotes = CreditNote.objects.filter(membership_year=0)
-   cnotes.update(membership_year=new_year)
-   return invoices.count(), payments.count(), cnotes.count() 
+    if new_year == 0:
+        invoices = Invoice.objects.all().update(membership_year=new_year)
+        payments = Payment.objects.all().update(membership_year=new_year)
+        cnotes = CreditNote.objects.all().update(membership_year=new_year)
+    else:
+        invoices = Invoice.objects.filter(membership_year=0).update(membership_year=new_year)
+        payments = Payment.objects.filter(membership_year=0).update(membership_year=new_year)
+        cnotes = CreditNote.objects.filter(membership_year=0).update(membership_year=new_year)
+    return invoices, payments, cnotes 
       
 
 def consolidate(year):

@@ -694,7 +694,7 @@ class InvoiceSelectForm(Form):
 
 
 class SettingsForm(Form):
-    membership_year = forms.IntegerField(max_value=2100, min_value=2014)
+    membership_year = forms.IntegerField(max_value=2100, min_value=0)
 
     def __init__(self, *args, **kwargs):
         super(SettingsForm, self).__init__(*args, **kwargs)
@@ -781,7 +781,7 @@ class CreditNoteForm(ModelForm):
     
     class Meta:
         model = CreditNote
-        fields = ['amount', 'reference']
+        fields = ['membership_year', 'amount', 'reference']
 
 class TextBlockForm(ModelForm):
 

@@ -436,7 +436,7 @@ class Payment(models.Model):
     banked = models.BooleanField(default=False)
     banked_date = models.DateField(null=True)
     fee = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
-
+    invoice = models.ForeignKey(Invoice)
     def __unicode__(self):
         return "Payment:{} amount:{} credited:{} state:{}".format(
             Payment.TYPES[self.type][1],

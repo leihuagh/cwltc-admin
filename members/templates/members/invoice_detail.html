@@ -8,6 +8,7 @@
 <hr />
 {% include "members/_invoice_detail.html" %}
 <hr />
+<p>Membership year : {{ invoice.membership_year }}</p>
 <p>State: {{ state_list|get_option:invoice.state }}</p>
 
 {% if invoice.gocardless_bill_id %}
