@@ -20,11 +20,13 @@ from braces.views import LoginRequiredMixin
 from gc_app.views import gc_create_bill_url
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook)
+from .services import *
 from .forms import *
 from .mail import *
 from .excel import *
 import ftpService
 import xlrd
+
 
 
 class PersonList(LoginRequiredMixin, ListView):
@@ -270,7 +272,7 @@ class PersonLinkView(LoginRequiredMixin, FormView):
     def form_valid(self, form):
         child = Person.objects.get(pk = self.kwargs['pk'])
         if 'link' in form.data:
-            child.link(form.person)          
+            person_link_to_parent(child, form.person)          
             return redirect(form.person)
         else:
             return redirect(child)
@@ -447,8 +449,8 @@ class SubCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         sub = self.object
-        sub.activate()
-        sub.generate_invoice_items(sub.start_date.month)
+        subscription_activate(sub)
+        subscription_create_invoiceitems(sub, sub.start_date.month)
         return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
 
 class SubUpdateView(LoginRequiredMixin, UpdateView):
@@ -489,13 +491,13 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
 
         if 'delete' in form.data:  
             sub = self.get_object()  
-            sub.delete_invoice_items()
+            subscription_delete_invoiceitems(sub)
             return redirect(sub)
 
     def get_success_url(self):
         sub = self.get_object()
-        sub.activate()
-        sub.generate_invoice_items(sub.start_date.month)
+        subscription_activate(sub)
+        subscription_create_invoiceitems(sub, sub.start_date.month)
         return reverse('person-detail', kwargs={'pk':sub.person_member_id}) 
 
 class SubCorrectView(LoginRequiredMixin, UpdateView):
@@ -504,7 +506,7 @@ class SubCorrectView(LoginRequiredMixin, UpdateView):
     form_class = SubCorrectForm
 
     def get_success_url(self):
-        self.get_object().activate
+        subscription_activate(self.get_object())
         return reverse('person-detail', kwargs={'pk':sub.person_member_id}) 
 
 class SubDetailView(LoginRequiredMixin, DetailView):
@@ -537,12 +539,52 @@ class SubListView(LoginRequiredMixin, ListView):
         context['person'] = self.person
         return context
 
-class SubRenewView(LoginRequiredMixin, View):
-    
-    def get(self, request, *args, **kwargs):
-        sub = Subscription.objects.get(pk = self.kwargs['pk'])
+
+        
+class SubRenewView(LoginRequiredMixin, FormView):
+     
+    def get(self, request, *args, **kwargs):    
         sub.renew(sub.sub_year+1, Subscription.START_MONTH)
         return redirect(sub.person_member)
+
+class SubRenewAllView(LoginRequiredMixin, FormView):
+    form_class = SubRenewForm
+    template_name = 'members/generic_crispy_form.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super(SubRenewAllView, self).get_context_data(**kwargs)
+        self.subs = Subscription.objects.filter(active=True, no_renewal=False)
+        context['title'] = 'Renew subscriptions'
+        context['message'] = '{} subscriptions to renew'.format(self.subs.count())   
+        return context
+        
+    def form_valid(self, form):     
+        year = form.cleaned_data['sub_year']
+        if 'renew' in self.request.POST:
+            subscription_renew_batch(year, 5)
+            messages.success(self.request,'Subscriptions for {} generated'.format(year))
+        return redirect(reverse('home'))
+        
+    def get_success_url(self):
+        return reverse('home')
+         
+
+class SubRenewBatch(LoginRequiredMixin, FormView):
+    form_class = XlsMoreForm
+    template_name = 'members/import_more.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SubRenewBatch, self).get_context_data(**kwargs)
+        context['title'] = 'Generate subs'
+        context['remaining'] = subscription_renew_batch(2015, 5, 0)
+        return context
+
+    def form_valid(self,form):
+        remaining = subscription_renew_batch(2015, 5, 100)
+        return HttpResponseRedirect(reverse('sub-renew-batch'))
+
+
+
 
 class SubInvoiceCancel(LoginRequiredMixin, View):
     ''' Deletes unpaid items and invoices associated with a sub '''
@@ -876,7 +918,7 @@ class InvoiceGenerateView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         person = Person.objects.get(pk = self.kwargs['pk'])
-        invoice = person.generate_invoice()
+        invoice = invoice_create_from_items(person)
         if invoice:
             # calls get_absolute_url to display the invoice
             return redirect(invoice)
@@ -976,11 +1018,11 @@ class PaymentCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        inv = Invoice.objects.get(pk = self.kwargs['invoice_id'])
-        form.instance.person = inv.person
+        invoice = Invoice.objects.get(pk = self.kwargs['invoice_id'])
+        form.instance.person = invoice.person
         # save new object before handling many to many relationship
         payment = form.save()
-        payment.pay_invoice(inv)
+        invoice_pay(invoice, payment)
         return super(PaymentCreateView, self).form_valid(form)
 
     def get_success_url(self):
@@ -1219,19 +1261,6 @@ class SelectSheets(LoginRequiredMixin, FormView):
             context['message'] = '{} items were {} from {} sheets'.format(total, 'imported' if do_import else 'checked', sheet_count)
             return render(self.request, 'members/generic_result.html', context)
                        
-class SubRenewBatch(LoginRequiredMixin, FormView):
-    form_class = XlsMoreForm
-    template_name = 'members/import_more.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(SubRenewBatch, self).get_context_data(**kwargs)
-        context['title'] = 'Generate subs'
-        context['remaining'] = Subscription.renew_batch(2015, 5, 0)
-        return context
-
-    def form_valid(self,form):
-        remaining = Subscription.renew_batch(2015, 5, 100)
-        return HttpResponseRedirect(reverse('sub-renew-batch'))
 
 class InvoiceBatchView(LoginRequiredMixin, FormView):
     form_class = XlsMoreForm
@@ -1240,11 +1269,11 @@ class InvoiceBatchView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super(InvoiceBatchView, self).get_context_data(**kwargs)
         context['title'] = 'Generate invoices'
-        context['remaining'] = InvoiceItem.invoice_batch(size=0)
+        context['remaining'] = invoice_create_batch(size=0)
         return context
 
     def form_valid(self,form):
-        remaining = InvoiceItem.invoice_batch(size=100)
+        remaining = invoice_create_batch(size=100)
         return HttpResponseRedirect(reverse('invoice-batch'))
 
 def export(request):
@@ -1252,10 +1281,6 @@ def export(request):
 
 def import_backup(request):
     return import_all()
-
-def testinv(request):
-    p=Person.generate_invoices(100)
-    return HttpResponse("{0} Subs created".format(count))
 
 def test(request):
     from .mail import test_mail_template

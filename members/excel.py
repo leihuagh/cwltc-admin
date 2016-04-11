@@ -170,7 +170,7 @@ def import_members_1(book, start, size):
                     p.address=(a)         
                 p.save()
                 # For initial load generate and activate a sub for 2014
-                s = Subscription.create(
+                s = subscription_create(
                     person=p,
                     sub_year=2014,
                     membership_id =p.membership_id,

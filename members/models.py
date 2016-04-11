@@ -118,113 +118,7 @@ class Person(models.Model):
                     return sub
         return None
 
-    def generate_invoice(self):
-        ''' if there are open invoice items link them to a new invoice
-            process all family members who don't pay own bill
-            Return invoice or False if there are no items '''
-        if self.linked and not self.pays_own_bill:
-            return self.linked.generate_invoice()
-        else:
-            invoice = Invoice.objects.create(
-                person = self,
-                state = Invoice.UNPAID,
-                date = datetime.now()
-                )
-            # include all own items
-            subs_total = 0
-            has_adult = False
-            has_junior = False
-            is_family = False
-            items = self.invoiceitem_set.filter(
-                invoice=None
-                ).filter(
-                item_type=ItemType.SUBSCRIPTION)
-            if items.count()>0:
-                item=items[0]
-                item.invoice = invoice
-                invoice.total += item.amount
-                subs_total += item.amount
-                has_adult = self.membership_id == Membership.FULL
-                item.save()
-            
-            # include family subs
-            family = self.person_set.filter(pays_own_bill=False)
-            for fam_member in family:                         
-                items = fam_member.invoiceitem_set.filter(
-                    invoice=None
-                    ).filter(
-                    item_type=ItemType.SUBSCRIPTION)
-                for item in items:
-                    is_family = True
-                    has_adult = has_adult or fam_member.membership_id == Membership.FULL
-                    has_junior = has_junior or fam_member.membership_id == Membership.JUNIOR
-                    item.invoice = invoice
-                    invoice.total += item.amount
-                    subs_total += item.amount
-                    item.save()
-
-                for item in fam_member.invoiceitem_set.filter(invoice=None):
-                    is_fam_member = True
-                    item.invoice = invoice
-                    invoice.total += item.amount
-                    item.save()
-            
-            # test for family discount
-            if is_family and has_adult and has_junior:
-                disc_item = InvoiceItem.objects.create(
-                    person=self,
-                    invoice=invoice,
-                    item_type_id = ItemType.FAMILY_DISCOUNT,
-                    item_date = datetime.today(),
-                    description = 'Family discount 10%',
-                    amount= -subs_total / 10
-                    )
-                invoice.total += disc_item.amount
-
-            # Now own non Subscription items
-            own_items = self.invoiceitem_set.filter(
-                invoice=None
-                ).exclude(
-                item_type=ItemType.SUBSCRIPTION)
-            for item in own_items:
-                item.invoice = invoice
-                invoice.total += item.amount
-                item.save()
-
-            # include family non Subscription items
-            for fam_member in family:
-                items = fam_member.invoiceitem_set.filter(
-                    invoice=None
-                    ).exclude(
-                    item_type=ItemType.SUBSCRIPTION)
-                for item in items:
-                    item.invoice = invoice
-                    invoice.total += item.amount
-                    item.save()
-            if invoice.invoiceitem_set.count() > 0:
-                invoice.save()
-                return invoice
-            else:
-                invoice.delete()
-                return None
-
-    def link(self, parent):
-        ''' link child to parent
-            If parent = None, just unlink
-            Delete any unknown parents without children '''
-        old_parent = self.linked
-        old_address = self.address
-        self.linked = parent
-        self.save()
-        if (
-            old_parent and
-            old_parent.membership == Membership.NON_MEMBER and
-            old_parent.person_set.count() == 0 and
-            old_parent.first_name == 'Unknown'):
-                old_parent.delete()
-        if old_address.person_set.count() == 0:
-            address.delete()
-            
+           
     def delete_person(self):
         ''' 
         Delete a person if they have no family
@@ -475,33 +369,6 @@ class Invoice(models.Model):
             c_note.save()
             return c_note
 
-    def process_cardless(self, action, amount, amount_minus_fees):
-        ''' Process a bill webhook from Go Cardless '''
-        
-        gocardless_action = action
-        if action == 'created':
-            pass
-        elif action == 'paid':
-            p = Payment(type=DIRECT_DEBIT,
-                        person=self.person,
-                        amount=amount,
-                        banked=True)
-            p.pay_invoice(self)
-            return True
-
-        elif action == 'withdrawn':
-            pass
-        elif action == 'failed':
-            pass
-        elif action == 'cancelled':
-            pass
-        elif action == 'refunded':
-            pass
-        elif action == 'chargeback':
-            pass
-        elif action == 'retried':
-            pass
-
     def add_context(self, context):
         ''' set up the context for invoice & payment templates '''
         context['invoice'] = self
@@ -509,6 +376,7 @@ class Invoice(models.Model):
         context['address'] = self.person.address
         context['reference'] = self.number
         context['items'] = self.invoiceitem_set.all().order_by('creation_date')
+        context['hooks'] = self.webhook_set.all().order_by('-creation_date')
         context['state_list'] = Invoice.STATES
         context['types'] = Payment.TYPES
         context['payment_states'] = Payment.STATES
@@ -527,8 +395,6 @@ class Invoice(models.Model):
                 addressee = addressee[:-2]
             context['unknown'] = "Please supply your full name"  
         context['addressee'] = addressee
-
-
 
 class Payment(models.Model):
     CHEQUE = 0
@@ -567,7 +433,8 @@ class Payment(models.Model):
     state = models.SmallIntegerField(choices=STATES, default=NOT_MATCHED)
     banked = models.BooleanField(default=False)
     banked_date = models.DateField(null=True)
-    
+    fee = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
+
     def __unicode__(self):
         return "Payment:{} amount:{} credited:{} state:{}".format(
             Payment.TYPES[self.type][1],
@@ -575,72 +442,6 @@ class Payment(models.Model):
             self.credited,
             Payment.STATES[self.state][1]
             )
-
-    def pay_invoice(self, inv):
-        if inv.total == self.amount:
-            items = inv.invoiceitem_set.all()
-            for item in items:
-                item.pay(self)
-            inv.state = Invoice.PAID_IN_FULL
-            self.credited = self.amount
-            self.state = Payment.FULLY_MATCHED
-            self.save()
-            inv.save()
-        else:
-            pay_invoice_part(inv)
-
-    def pay_invoice_part(self, inv):
-        ''' THIS CODE NOT FINISHED '''
-        new_paid = 0
-        old_paid = 0
-        pay_amount = self.amount - self.credited
-        items = inv.invoiceitem_set.order_('-amount')
-        discount = 0
-        for item in items:
-            if item.amount < 0:
-                discount += item.amount
-        discount = - discount
-        for item in items:
-            if item.amount >= 0:
-                if not item.paid:
-                    due = item.amount
-                    if due >= discount:
-                        due -= discount
-                        discount = 0
-                    else:
-                        discount -= due
-                        due = 0
-                      
-                    if pay_amount >= due:
-                        item.pay(self)
-                        new_paid += due
-                        pay_amount -= due
-                else:
-                    old_paid += item.amount
-        
-                    total = old_paid + new_paid
-        # Update invoice state
-        if total == inv.total:
-            inv.state = Invoice.PAID_IN_FULL
-        elif total > inv.total:
-            inv.state = Invoice.ERROR
-        elif total > 0:
-            inv.state = Invoice.PART_PAID
-        inv.save()
-        # Update our state
-        self.credited = self.credited + new_paid
-        if self.amount > 0:
-            if self.credited == 0:
-                self.state = Payment.NOT_MATCHED
-            elif self.amount == self.credited:
-                self.state = Payment.FULLY_MATCHED
-            elif self.amount > self.credited:
-                self.state = Payment.PARTLY_MATCHED
-            else:
-                self.state = Payment.ERROR
-        else:
-            self.state = Payment.FULLY_MATCHED
-        self.save()
 
 class CreditNote(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
@@ -650,8 +451,7 @@ class CreditNote(models.Model):
     amount = models.DecimalField(max_digits=7, decimal_places=2, null=False)
     reference = models.CharField(max_length=80, blank=True, null=True)
     detail = models.CharField(max_length=1000, blank=True, null=True)
-
-    
+     
 class ItemType(models.Model):
     SUBSCRIPTION = 1
     JOINING = 2
@@ -702,23 +502,6 @@ class InvoiceItem(models.Model):
         self.paid = True
         self.save()
 
-    @classmethod
-    def create_sub(cls, sub, start_absmonth, end_absmonth, fee):
-        ''' create a subscription invoice item 
-            link it to the subscription '''
-        item = InvoiceItem.objects.create(
-            person=sub.person_member,
-            item_type_id=ItemType.SUBSCRIPTION,
-            item_date=datetime.today(),
-            description=u'{mem} membership from {start} to {end}'.format(
-                mem=str(sub.membership),
-                start=formatted_date(sub_start_date(start_absmonth, sub.sub_year)),
-                end=formatted_date(sub_end_date(end_absmonth, sub.sub_year))
-                ),   
-            amount=fee.calculate(start_absmonth, end_absmonth, sub.period),
-            subscription=sub
-            )
-        item.save()
 
     @classmethod
     def create(cls, person, type_id, description, amount):
@@ -730,29 +513,6 @@ class InvoiceItem(models.Model):
             amount = amount  
             )
         item.save()
-
-    @classmethod
-    def invoice_batch(cls, size=10000):
-        ''' Generate a batch of invoices of specified size
-            Returns the number of people still remaining with uninvoiced items
-            Note: because of family invoices the count returned may not seem correct
-            if size = 0 just return the number of people with uninvoiced items
-        '''
-        # get a list of all people ids from uninvoiced items
-        people_ids = InvoiceItem.objects.filter(invoice=None).values_list('person_id', flat=True)
-        people = Person.objects.filter(id__in=people_ids)
-        remaining = people.count()
-        count = 0
-        if size > 0 :
-            for person in people:
-                person.generate_invoice()
-                count += 1
-                if count == size:
-                    break
-            return remaining - count
-        else:
-            return remaining
-
 
 class Subscription(models.Model):
     START_MONTH = 5
@@ -784,95 +544,6 @@ class Subscription(models.Model):
     active = models.BooleanField(default=False)
     invoiced_month = models.SmallIntegerField()
     no_renewal = models.BooleanField(default=False)
-
-    @classmethod
-    def create(cls, person, sub_year, start_month=START_MONTH, end_month=END_MONTH,
-               membership_id=Membership.AUTO,
-               period=ANNUAL, new_member=False, paid=False, active=False):
-        ''' Create a new subscription and link it to a person but do not activate it. '''
-        sub = cls()
-        sub.person_member = person
-        sub.sub_year = sub_year
-        year = sub_year if start_month >= Subscription.START_MONTH else sub_year+1
-        sub.start_date = datetime(year, start_month, 1)
-        year = sub_year + 1 if end_month <= Subscription.START_MONTH else sub_year
-        if end_month == 12:
-            sub.end_date = datetime(year, 12, 31)
-        else:
-            sub.end_date = datetime(year, end_month + 1, 1) - timedelta(days=1)
-        sub.period = period
-        # Calculate membership from age if not explicitly passed
-        if membership_id == Membership.AUTO:
-            
-            age = person.age(datetime(sub_year, Subscription.START_MONTH, 1))
-            sub.membership_id = Membership.FULL
-            if age:
-                if age < Subscription.CADET_AGE:
-                    sub.membership_id = Membership.CADET
-                elif age < Subscription.JUNIOR_AGE:              
-                    sub.membership_id = Membership.JUNIOR
-                elif age < Subscription.UNDER_26_AGE:
-                    sub.membership_id = Membership.UNDER_26
-                   
-        else:
-            sub.membership_id = membership_id
-        sub.new_member = new_member
-        sub.paid = paid
-        sub.invoiced_month = 0
-        sub.active = active
-        sub.save()
-        return sub
-
-    @classmethod
-    def renew_batch(cls, sub_year, sub_month, size = 100000):
-        '''
-        Renew a batch of subscriptions.
-        Size determines how many to renew.
-        Invoice items are automatically generated for each subscription
-        If size = 0 just return the count
-        Else return the number remaining
-        '''
-        expiry_date = datetime(sub_year, sub_month, 1)
-        expired_subs = Subscription.objects.filter(
-            active=True
-        ).filter(
-            no_renewal=False
-        ).filter(
-            end_date__lt=expiry_date)
-        remaining = expired_subs.count()
-        count = 0
-        if size > 0 :
-            for sub in expired_subs:
-                new_sub = sub.renew(sub_year, sub_month, generate_item=True)
-                count += 1
-                if count == size:
-                    break
-        return remaining - count
-
-    def renew(self, sub_year, sub_month, generate_item=False):
-        ''' Generate a new sub if current sub active and expired '''
-        new_start = datetime(sub_year, sub_month, 1).date()
-        if self.active and not self.no_renewal:
-            if self.end_date < new_start:
-                new_mem_id = self.membership_id
-                if (new_mem_id == Membership.CADET or 
-                    new_mem_id  == Membership.JUNIOR or
-                    new_mem_id  == Membership.UNDER_26):
-                        new_mem_id = Membership.AUTO
-                new_sub = Subscription.create(
-                    person=self.person_member,
-                    sub_year=sub_year,
-                    membership_id=new_mem_id,
-                    period=self.period,
-                    active=True
-                    )
-                self.active=False
-                self.save()
-                self.person_member.membership_id=new_sub.membership_id
-                self.person_member.save()
-                if generate_item:
-                    new_sub.generate_invoice_items(sub_month)
-                return new_sub
 
     def activate(self):
         ''' Activate this subscription and clear all others for the person.'''
@@ -914,57 +585,6 @@ class Subscription(models.Model):
     def is_invoiced(self):
         return self.invoice_item is not None
    
-    def generate_invoice_items(self, month):
-        ''' Generate invoice item for the active subscription record
-            For new members also generate a joining fee record if appropriate '''
-        if self.active:
-            current = bill_month(month)
-            start = bill_month(self.start_date.month)
-            end = bill_month(self.end_date.month)
-            if current > self.invoiced_month and current >= start:
-                fee = Fees.objects.all().filter(membership=self.membership, sub_year=self.sub_year)[0]
-                if fee.annual_sub > 0:
-                    if self.new_member and fee.joining_fee > 0 and self.invoiced_month == 0:
-                        InvoiceItem.create(self.person_member,
-                                           ItemType.JOINING,
-                                           u"Joining fee",
-                                           fee.joining_fee)  
-                
-                    if self.period == Subscription.ANNUAL:
-                        InvoiceItem.create_sub(self, start, end, fee)
-                        self.invoiced_month = end
-
-                    elif self.period == Subscription.QUARTERLY:
-                        bill_months = [1, 4, 7, 10, 12]
-                        if current in bill_months or self.invoiced_month == 0: 
-                            if self.invoiced_month  > start:
-                                start = self.invoiced_month + 1
-                            end = (current + 2) // 3 * 3             
-                            InvoiceItem.create_sub(self, start, end, fee)
-                            self.invoiced_month  = end
-
-                    elif self.period == Subscription.MONTHLY:
-                        if self.invoiced_month  > start:
-                            start = self.invoiced_month +1
-                        end = current                              
-                        InvoiceItem.create_sub(self, start, end, fee)
-                        self.invoiced_month = end
-
-                    elif self.period == Subscription.NON_RECURRING:
-                        pass
-    
-    def delete_invoice_items(self):
-        ''' Delete uninvoice items attached to sub
-        If item is linked to an unpaid invoice, 
-        cancel the invoice and delete the item '''
-        for item in self.invoiceitem_set.all():
-            if item.invoice:
-                if item.invoice.state == Invoice.UNPAID:
-                    item.invoice.cancel()
-                    item.delete()
-            else:
-                item.delete()
-
 
 class BarTransaction(models.Model):
     id = models.IntegerField(primary_key=True)

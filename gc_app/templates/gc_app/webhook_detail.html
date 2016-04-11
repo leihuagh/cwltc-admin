@@ -1,0 +1,16 @@
+﻿{% extends "members/layout.html" %}
+{% block content %}
+<h2>Webhook detail</h2>
+<table>
+    <tr><td>Date:</td><td>{{ hook.creation_date }}</td></tr>   
+    <tr><td>Resource:</td><td>{{ hook.resource_type }}</td></tr>
+    <tr><td>Action:</td><td>{{ hook.action }}</td></tr>
+    <tr><td>Processed:</td><td>{{ hook.processed }}</td></tr>
+    <tr><td>Error:</td><td>{{ hook.error}}</td></tr>
+    <tr><td><a href="{% url "invoice-detail" hook.invoice_id %}" class="btn btn-primary btn-sm">Invoice {{ hook.invoice_id }}</a></td></tr>
+</table>
+<br />
+{{ message|safe }}
+{% endblock content %}
+
+

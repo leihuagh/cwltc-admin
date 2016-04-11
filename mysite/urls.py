@@ -30,6 +30,14 @@ urlpatterns = [
         GCWebhook.as_view(),
         name='gc_webhook'
     ),
+    url(r'^webhook/list/$',
+        WebHookList.as_view(),
+        name='webhook-list'
+    ),
+    url(r'^webhook/(?P<pk>\d+)/$',
+        WebHookDetailView.as_view(),
+        name='webhook-detail'
+    ),
     #   FEES
     url(
         r'^fees/update/(?P<pk>\d+)/$',
@@ -78,6 +86,11 @@ urlpatterns = [
         name='sub-renew-batch'
     ),
     url(
+        r'^sub/renew/all$',
+        SubRenewAllView.as_view(),
+        name='sub-renew-all'
+    ),
+    url(
         r'^sub/history/(?P<person_id>\d+)/$',
         SubListView.as_view(),
         name='sub-history'
@@ -100,7 +113,7 @@ urlpatterns = [
         name='invoice-detail'
     ),
     url(
-        r'^invoice/(?P<token>.+)/$',
+        r'^invoice/public/(?P<token>.+)/$',
         InvoicePublicView.as_view(),
         name='invoice-public'
     ),
@@ -308,12 +321,6 @@ urlpatterns = [
         r'^import_backup$',
         import_backup,
         name='import-backup'
-    ),
-
-    url(
-        r'^testinv$',
-        testinv,
-        name='test'
     ),
     url(
         r'^bar$',

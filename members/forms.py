@@ -596,6 +596,24 @@ class SubCorrectForm(ModelForm):
         model = Subscription
         fields = ['membership', 'sub_year', 'start_date', 'end_date']
 
+        
+class SubRenewForm(Form):
+    ''' Handle renewal process at start of membership year '''
+    sub_year = forms.IntegerField(max_value=2100, min_value = 2014, required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(SubRenewForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_method = 'post'
+        self.helper.add_input(SubmitButton('renew', 'Renew all subs', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        self.fields['sub_year'].initial = datetime.now().year
+
+    def clean(self):
+        cleaned_data = super(SubRenewForm, self).clean()
+        year = cleaned_data.get('sub_year')
+
+
 class InvoiceFilterForm(Form):
 
     start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
