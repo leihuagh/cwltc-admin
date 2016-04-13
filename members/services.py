@@ -1,12 +1,13 @@
 from datetime import date, datetime, timedelta
 from operator import attrgetter
 from members.models import *
+import pdb
 
 class Error(Exception):
     """ Base class for exceptions in this module """
     pass
 
-class PaymentError(Error):
+class ServicesError(Error):
     """ Error while processing payment """
     def __init__(self, message):
         self.message = message
@@ -25,7 +26,7 @@ def invoice_pay_by_gocardless(invoice, amount, fee):
 def invoice_pay(invoice, payment):
     ''' Pay invoice with payment '''
     if invoice.state == Invoice.PAID_IN_FULL:
-        raise PaymentError("Already paid in full")
+        raise ServicesError("Already paid in full")
         return
 
     if invoice.total == payment.amount:
@@ -425,10 +426,20 @@ def person_get_book_entries(person, year):
         entries.append(p)
     return sorted(entries, key=attrgetter('creation_date'))
 
-
-
-
-
+def group_get_or_create(slug):
+    '''
+    Returns the group with given slug if it exists
+    Otherwise it creates it
+    '''
+    qset = Group.objects.filter(slug=slug)
+    if qset.count() == 0:
+        group = Group(slug=slug)
+        group.save()
+    elif qset.count() == 1:
+        group = qset[0]
+    else:
+        raise ServicesError("{} groups matches slug {}".format(qset.count(), slug))
+    return group
 
 def set_membership_year(new_year):
     if new_year == 0:
@@ -443,6 +454,9 @@ def set_membership_year(new_year):
       
 
 def consolidate(year):
+    slug = '2015UnpaidInvoices'
+    group = group_get_or_create(slug)
+ 
     # get a set of all people ids from year's invoices
     people_ids = set(Invoice.objects.filter(membership_year=year).values_list('person_id', flat=True))
     people = Person.objects.filter(id__in=people_ids)
@@ -464,6 +478,7 @@ def consolidate(year):
                 desc = 'Unpaid amount carried forward from ' + str(year)
                 type = ItemType.UNPAID
                 unpaid_count += 1
+                person.groups.add(group)
             else:
                 desc = 'Credit amount carried forward from ' + str(year)
                 type = ItemType.OTHER_CREDIT

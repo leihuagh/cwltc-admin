@@ -142,6 +142,25 @@
                     </div>
                 </div>
             </div><!--/col-->
+                        <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Groups</div>
+                    <div class="panel-body">
+                        <table>
+                        {% for group in person.groups.all %}
+                        <tr>
+                        <td width="75%">{{ group.slug }}</td>
+                        <td>
+                        <button type="submit" name="remove" value="{{ group.slug }}" class="btn btn-danger btn-xs">Remove</button>
+                        </td>
+                        {% endfor %}
+                        </table>
+                    </div>
+                    <div class="panel-footer">
+                        <a href="{% url "group-add-person" person_id=person.id %}" class="btn btn-primary btn-sm">Add to a group</a>
+                    </div>
+                </div>
+            </div><!--/col-->
         </div> <!--/row-->
     </div>
 

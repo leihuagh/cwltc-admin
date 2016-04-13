@@ -1,0 +1,23 @@
+﻿{% extends "members/layout.html" %}
+{% load members_extras %}
+{% block content %}
+<h2>Groups</h2>
+<table id="groups" class="table table-condensed" >
+<thead>
+        <tr>
+        <th>Slug</th>
+        <th> Description</th>
+        <th>Members</th> 
+        <th>View</th> 
+        </tr>
+</thead>
+{% for group in groups %}
+<tr>
+    <td>{{ group.slug }}</td>
+    <td {{ group.description }}</td>
+    <td {{ group.person_set.count }}</td> 
+    <td><a href="{% url "group-detail" slug=group.slug %}">View</a></td>
+</tr>
+{% endfor sub %}
+</table>
+{% endblock %}

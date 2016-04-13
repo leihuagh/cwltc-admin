@@ -19,7 +19,7 @@ from django.conf import settings
 from braces.views import LoginRequiredMixin
 from gc_app.views import gc_create_bill_url
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
-                     Payment, CreditNote, ItemType, TextBlock, ExcelBook)
+                     Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group)
 from .services import *
 from .forms import *
 from .mail import *
@@ -323,6 +323,11 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
                 return redirect(reverse('person-list'))
             messages.error(self.request,"{0} not deleted because {1}".format(name, message))
             return redirect(reverse('person-detail', kwargs={'pk':person.id}))
+        elif 'remove' in request.POST:
+            slug=request.POST['remove']
+            group = Group.objects.filter(slug=slug)[0]
+            person.groups.remove(group)
+            return redirect(reverse('person-detail', kwargs={'pk':person.id}))
 
 def add_membership_context(context):
     ''' Add membership dictionary to context '''
@@ -413,6 +418,38 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
    
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
+
+# ============== Groups
+
+class GroupCreateView(LoginRequiredMixin, CreateView):
+    model = Group
+    form_class = GroupForm
+    template_name = 'members/generic_crispy_form.html'
+
+    def get_success_url(self):
+        messages.success(self.request, 'Group {} created'.format(form.cleaned_data['description']))
+        return reverse('home')
+
+class GroupListView(LoginRequiredMixin, ListView):
+    ''' List all groups'''
+    model = Group
+    template_name = 'members/group_list.html'
+    context_object_name = 'groups'
+
+class GroupDetailView(LoginRequiredMixin, DetailView):
+    model = Group
+    template_name = 'members/group_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(GroupDetailView, self).get_context_data(**kwargs)
+        context['group'] = self.get_object()
+        context['object_list'] = context['group'].person_set.all()
+        add_membership_context(context)
+        return context
+
+class GroupAddPersonView(LoginRequiredMixin, ListView):
+    def get(request):
+        return HttpResponse("not implemented yet")
 
 # ============== Subscriptions
 

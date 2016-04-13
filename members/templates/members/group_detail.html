@@ -1,0 +1,10 @@
+﻿{% extends "members/layout.html" %}
+{% load members_extras %}
+{% block content %}
+<h2>Group: {{ group.slug }}</h2>
+<P>{{ group.description }}</P>
+{% include "members/_person_table.html" %}
+{% endblock content %}
+{% block scripts %}
+<script src='{% static 'members/scripts/members.js' %}'></script>
+{% endblock %}

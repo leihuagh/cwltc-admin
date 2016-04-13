@@ -426,6 +426,8 @@
     <Content Include="members\templates\members\filter_member.html" />
     <Content Include="members\templates\members\generic_crispy_form.html" />
     <Content Include="members\templates\members\generic_result.html" />
+    <Content Include="members\templates\members\group_detail.html" />
+    <Content Include="members\templates\members\group_list.html" />
     <Content Include="members\templates\members\import_excel.html" />
     <Content Include="members\templates\members\import_more.html" />
     <Content Include="members\templates\members\index.html" />

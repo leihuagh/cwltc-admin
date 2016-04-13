@@ -22,11 +22,30 @@ urlpatterns = [
         name='home'
     ),
     url(
-        r'^settings$',
+        r'^settings/$',
         SettingsView.as_view(),
         name='settings'
     ),
-
+    url(
+        r'^group/create/$',
+        GroupCreateView.as_view(),
+        name='group-create'
+    ),
+    url(
+        r'^group/(?P<slug>[\w-]+)/$',
+        GroupDetailView.as_view(),
+        name='group-detail'
+    ),
+    url(
+        r'^groups/$',
+        GroupListView.as_view(),
+        name='group-list'
+    ),
+    url(
+        r'^groups/addperson/(?P<person_id>\d+)$',
+        GroupAddPersonView.as_view(),
+        name='group-add-person'
+    ),
     #   GO CARDLESS
     url(r'^gocardless/confirm/$',
         GCConfirm.as_view(template_name = "gc_app/success.html"),

@@ -4,7 +4,7 @@ import django
 import pdb
 from django.test import TestCase
 from members.models import (Person, Address, Membership, Subscription, Fees, Invoice, Payment,
-                            InvoiceItem, ItemType, CreditNote)
+                            InvoiceItem, ItemType, CreditNote, Group)
 from members.models import bill_month, sub_start_date, sub_end_date
 from members.services import *
 class MembersTestCase(TestCase):
@@ -196,15 +196,15 @@ class MembersTestCase(TestCase):
 
     def test_child_age_calculation(self):
         child = Person.objects.all().filter(last_name = "Child")[0]
-        age = child.age(date(2015,5,1))
-        self.assertEqual(age, 15, 'Age wrong: %d' % age)
-        child.dob = date(2007,5,1)
-        age = child.age(date(2015,5,1))
+        child.dob = date(2000, 5, 1)
+        age = child.age(date(2008, 5, 1))
         self.assertEqual(age, 8, 'Age wrong: %d' % age)
-        child.dob = date(2007,5,2)
-        age = child.age(date(2015,5,1))
+        child.dob = date(2000, 4, 30)
+        age = child.age(date(2008, 5, 1))
+        self.assertEqual(age, 8, 'Age wrong: %d' % age)
+        child.dob = date(2000, 5, 2)
+        age = child.age(date(2008, 5, 1))
         self.assertEqual(age, 7, 'Age wrong: %d' % age)
-        child.dob = date(2007,5,2)
 
     def test_child_subscription_renewal(self):
         child = Person.objects.all().filter(last_name = "Child")[0]
@@ -235,14 +235,10 @@ class MembersTestCase(TestCase):
         self.assertEqual(sub_26.membership.description, 'UNDER_26', 'Sub wrong: %s' % sub_26.membership.description)
         subscription_activate(sub_26)
 
-        subscription_renew(child.active_sub(), 2032, 5)
-        sub_32 = child.subscription_set.all().filter(sub_year=2032)[0]
-        self.assertEqual(sub_32.membership.description, 'UNDER_26', 'Sub wrong: %s' % sub_32.membership.description)
-        subscription_activate(sub_32)
 
         subscription_renew(child.active_sub(), 2033, 5)
         sub_33 = child.subscription_set.all().filter(sub_year=2033)[0]
-        self.assertEqual(sub_33.membership.description, 'Full', 'Sub wrong: %s' % sub_33.membership.description)
+        self.assertEqual(sub_33.membership.description, 'UNDER_26', 'Sub wrong: %s' % sub_33.membership.description)
         subscription_activate(sub_33)
 
         subscription_renew(child.active_sub(), 2034, 5)
@@ -486,7 +482,35 @@ class MembersTestCase(TestCase):
         self.assertEqual(inv.state, Invoice.PAID_IN_FULL)  
         items = inv.invoiceitem_set.filter(paid=True).count()
         self.assertEqual(items, 6)
-        
+      
+    def test_group_create(self):
+        # Group creation is unique
+        group = group_get_or_create('test')
+        count = Group.objects.all().count()
+        self.assertEqual(count, 1)
+        group2 = group_get_or_create('test')
+        count = Group.objects.all().count()
+        self.assertEqual(count , 1)
+        # Add 1 person
+        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+        adult.groups.add(group)
+        self.assertEqual(group.person_set.all().count(), 1)
+        # adding a second time does not increase group size
+        adult.groups.add(group)
+        self.assertEqual(group.person_set.all().count(), 1)
+        # check person has a group
+        self.assertEqual(adult.groups.count(), 1)
+        # check person is in the group
+        self.assertTrue(adult.groups.filter(slug='test').exists())
+        # Add another person
+        wife = Person.objects.all().filter(first_name = "Wife of", last_name = "Adult")[0]
+        wife.groups.add(group)
+        self.assertEqual(group.person_set.all().count(), 2)
+        # remove the first person
+        adult.groups.remove(group)
+        self.assertFalse(adult.groups.filter(slug='test').exists())
+
+
         
     #def test_generate_adult_invoice_item_joining(self):
     #    self.assertEqual(InvoiceItem.objects.all().count(), 0, 'actual is: %d' % InvoiceItem.objects.all().count())

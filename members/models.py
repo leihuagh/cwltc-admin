@@ -39,6 +39,14 @@ class ParentsManager(models.Manager):
         parents = Person.objects.filter(id__in=parent_set)
         return parents
 
+class Group(models.Model):
+    slug =  models.SlugField(max_length=20)
+    description = models.CharField(max_length=80)
+    #generated = models.BooleanField(default = False)
+    
+    def __unicode__(self):
+        return self.slug 
+
 class Person(models.Model):
     GENDERS = (
         ('M','Male'),
@@ -71,6 +79,7 @@ class Person(models.Model):
     membership = models.ForeignKey('Membership', blank=True, null=True)
     linked = models.ForeignKey('self', blank=True, null=True)
     address = models.ForeignKey('address', blank=True, null=True)
+    groups = models.ManyToManyField(Group)
     # -- Navigation --
     # person_set
     # invoice_set
@@ -639,6 +648,7 @@ class ExcelBook(models.Model):
         '''
         ExcelBook.objects.all().delete()
         super(ExcelBook, self).save(*args, **kwargs)
+
 
 @receiver(models.signals.post_delete, sender=ExcelBook)
 def auto_delete_file_on_delete(sender, instance, **kwargs):

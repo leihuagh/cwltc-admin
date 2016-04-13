@@ -14,7 +14,7 @@ from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
 
 from .widgets import MonthYearWidget
 from .models import (Person, Address, Subscription, Membership, Invoice, InvoiceItem,
-                     Payment, CreditNote, ExcelBook, TextBlock)
+                     Payment, CreditNote, ExcelBook, TextBlock, Group)
 from .excel import *
 
 # 
@@ -707,6 +707,22 @@ class SettingsForm(Form):
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         self.helper.add_input(SubmitButton('add', 'Add year to all records', css_class='btn-danger'))
         self.helper.add_input(SubmitButton('consolidate', 'Consolidate', css_class='btn-danger'))
+
+class GroupForm(ModelForm):
+
+    class Meta:
+        model = Group
+        fields = ('slug', 'description')
+
+    def __init__(self, *args, **kwargs):
+        super(GroupForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.form_method = 'post'
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
 
 class EmailTextForm(Form):
     intro = forms.CharField(max_length=30, required=False)

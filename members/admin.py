@@ -1,6 +1,6 @@
 from django.contrib import admin
 from members.models import (Person, Membership, Fees, Invoice, Payment, ItemType, InvoiceItem,
-     Subscription, BarTransaction)
+     Subscription, BarTransaction, Group)
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
@@ -91,6 +91,9 @@ class BarTransactionAdmin(ImportExportModelAdmin):
     resource_class = MembershipResource
     pass
 
+class GroupAdmin(admin.ModelAdmin):
+    pass
+
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Membership, MembershipAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
@@ -100,3 +103,4 @@ admin.site.register(Payment, PaymentAdmin)
 admin.site.register(ItemType, ItemTypeAdmin)
 admin.site.register(InvoiceItem, InvoiceItemAdmin)
 admin.site.register(BarTransaction, BarTransactionAdmin)
+admin.site.register(Group, GroupAdmin)

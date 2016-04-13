@@ -23,7 +23,7 @@
 {% endfor sub %}
 </table>
 
-<form action="." method="post" class="form-inline" id="post-form"/>
+<form action="." method="post" class="form-inline" id="post-form">
     {% csrf_token %}
     <input type="submit" name="back" value="{{ back }}" class="btn btn-default"/>
     {% if latest %}
