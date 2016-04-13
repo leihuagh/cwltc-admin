@@ -619,12 +619,12 @@ class YearEndView(LoginRequiredMixin, FormView):
     template_name = 'members/generic_crispy_form.html'
 
     def get_context_data(self, **kwargs):
-        context = super(SettingsView, self).get_context_data(**kwargs)
+        context = super(YearEndView, self).get_context_data(**kwargs)
         context['title'] = 'Settings'
         return context
 
     def get_initial(self):
-        initial = super(SettingsView, self).get_initial()
+        initial = super(YearEndView, self).get_initial()
         qset = Settings.objects.all()
         if qset:
             year = qset[0].membership_year
