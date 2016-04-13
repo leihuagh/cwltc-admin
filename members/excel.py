@@ -66,7 +66,7 @@ def import_items(sheet, save_data):
                         person = Person.objects.get(id=person_id)
                         if not isinstance(amount, Number):
                             raise TypeError()
-                        item = InvoiceItem.objects.get(id=item_id)
+                        item = ItemType.objects.get(id=item_id)
             except Exception, e:
                 errors.append(repr(e) + 'Error on row {}' .format(row + 1))
                 continue  
