@@ -127,21 +127,7 @@ class Person(models.Model):
                     return sub
         return None
 
-           
-    def delete_person(self):
-        ''' 
-        Delete a person if they have no family
-        Also deletes the address if no one else linked to it
-        '''
-        if self.person_set.count() > 0:
-            return "person has {0} children".format(self.person_set.count())             
-        for inv in self.invoice_set.all():
-            if not invoice.delete():
-                return "invoice {0} cannot be deleted".format(inv.id)
-        if self.address.person_set.count() == 1:
-            self.address.delete()
-        self.delete()
-        return ""                                
+                                       
 
 class Membership(models.Model):
     AUTO = -1

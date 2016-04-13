@@ -317,7 +317,7 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
         person = self.get_object()
         name = person.fullname()
         if 'delete' in request.POST:
-            message = person.delete_person()
+            message = person_delete(person)
             if message == "":
                 messages.success(self.request,"{0} deleted".format(name))
                 return redirect(reverse('person-list'))

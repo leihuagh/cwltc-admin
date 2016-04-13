@@ -409,6 +409,21 @@ def person_link_to_parent(child, parent):
         address.delete()
 
 
+def person_delete(person):
+    ''' 
+    Delete a person if they have no family
+    Also deletes the address if no one else linked to it
+    '''
+    if person.person_set.count() > 0:
+        return "Person has {0} children".format(self.person_set.count())             
+    for inv in person.invoice_set.all():
+        if not inv.delete():
+            return "Invoice {0} cannot be deleted".format(inv.id)
+    if person.address.person_set.count() == 1:
+        person.address.delete()
+    person.delete()
+    return ""  
+     
 def person_get_book_entries(person, year):
     '''
     Returns a sorted list of invoice, payments and credit notes

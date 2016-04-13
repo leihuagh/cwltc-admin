@@ -510,7 +510,33 @@ class MembersTestCase(TestCase):
         adult.groups.remove(group)
         self.assertFalse(adult.groups.filter(slug='test').exists())
 
-
+    def test_person_services(self):
+        address = Address.objects.create(
+            address1 = 'test',
+            address2 = 'Address2',
+            town = 'Kingston',
+            post_code = 'KT2 7QX',
+            home_phone = '02085498658')
+        address.save()
+        adult = Person.objects.create(
+            gender = 'M',
+            first_name = 'My',
+            last_name = 'person',
+            mobile_phone = '07985748548',
+            email = 'is@ktconsultants.co.uk',
+            dob = '1954-07-07',
+            british_tennis = '123456',
+            notes = 'Notes',
+            membership_id = Membership.FULL,
+            linked = None,
+            address=address,
+            state = Person.ACTIVE)
+        adult.save()
+        self.assertTrue(Address.objects.filter(address1='test').exists())
+        self.assertTrue(Person.objects.filter(first_name='My').exists())
+        person_delete(adult)
+        self.assertFalse(Address.objects.filter(address1='test').exists())
+        self.assertFalse(Person.objects.filter(first_name='My').exists())
         
     #def test_generate_adult_invoice_item_joining(self):
     #    self.assertEqual(InvoiceItem.objects.all().count(), 0, 'actual is: %d' % InvoiceItem.objects.all().count())
