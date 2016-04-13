@@ -248,7 +248,7 @@ def subscription_create_invoiceitems(sub, month):
 
 
 def subscription_delete_invoiceitems(sub):
-    ''' Delete uninvoice items attached to sub
+    ''' Delete invoice items attached to sub
     If item is linked to an unpaid invoice, 
     cancel the invoice and delete the item '''
     for item in sub.invoiceitem_set.all():
@@ -278,7 +278,7 @@ def subscription_create_invoiceitem(sub, start_absmonth, end_absmonth, fee):
     item.save()
 
 
-def invoice_create_batch(size=10000):
+def invoice_create_batch(exclude_slug='', size=10000):
     ''' Generate a batch of invoices of specified size
         Returns the number of people still remaining with uninvoiced items
         Note: because of family invoices the count returned may not seem correct
@@ -291,10 +291,15 @@ def invoice_create_batch(size=10000):
     count = 0
     if size > 0 :
         for person in people:
-            invoice_create_from_items(person)
-            count += 1
-            if count == size:
-                break
+            if exclude_slug <> '':
+                include = not person.groups.filter(slug=exclude_slug).exists()
+            else:
+                include = True
+            if include:
+                invoice_create_from_items(person)
+                count += 1
+                if count == size:
+                    break
         return remaining - count
     else:
         return remaining

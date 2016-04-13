@@ -28,6 +28,9 @@ gocardless.environment = GO_CARDLESS['ENVIRONMENT']
 
     
 def gc_create_bill_url(invoice):
+    '''
+    Create a GoCardless bill for an invoice
+    '''
     user = invoice.person
     if gocardless.environment == 'sandbox':
         email = 'ian@ktconsultants.co.uk' 

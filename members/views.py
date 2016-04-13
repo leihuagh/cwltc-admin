@@ -613,7 +613,7 @@ class SubRenewBatch(LoginRequiredMixin, FormView):
 
 # ============ Settings
 
-class SettingsView(LoginRequiredMixin, FormView):
+class YearEndView(LoginRequiredMixin, FormView):
     ''' Manage setting '''
     form_class = SettingsForm
     template_name = 'members/generic_crispy_form.html'
@@ -653,14 +653,32 @@ class SettingsView(LoginRequiredMixin, FormView):
             message = '{} invoices, {} payments and {} credit notes updated to {}'.format(
                 counts[0], counts[1], counts[2], year)
             messages.success(self.request, message)
-            return redirect('settings')
+            return redirect('year-end')
 
         elif 'consolidate' in form.data:
             counts  = consolidate(year)
             message = '{} people processed, {} unpaid  and {} credit notes carried forward'.format(
                 counts[0], counts[1], counts[2])
             messages.success(self.request, message)
-            return redirect('settings')
+            return redirect('year-end')
+
+        elif 'renew' in form.data:
+            count = subscription_renew_batch(year, Subscription.START_MONTH)
+            message = '{} subscriptions generated'.format(count)
+            messages.success(self.request, message)
+            return redirect('year-end')
+
+        elif 'invoices' in form.data:
+            count = invoice_create_batch(exclude_slug='2015UnpaidImvoices')
+            message = '{} invoices created'.format(count)
+            messages.success(self.request, message)
+            return redirect('year-end')     
+        
+        elif 'mail' in form.data:
+            count = invoice_create_batch(exclude_slug='2015UnpaidImvoices')
+            message = '{} invoices created'.format(count)
+            messages.success(self.request, message)
+            return redirect('year-end')
 
 class SubInvoiceCancel(LoginRequiredMixin, View):
     ''' Deletes unpaid items and invoices associated with a sub '''
@@ -960,35 +978,7 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
         context['show_buttons'] = True
         return context
 
-class InvoicePublicView(DetailView):
-    model = Invoice
-    template_name = 'members/invoice_public.html'
 
-    def get_object(self, querset=None):
-        signer = Signer()
-        try:
-            invoice_id = signer.unsign(self.kwargs['token'])
-            self.invoice = Invoice.objects.get(pk = invoice_id)          
-        except:
-            self.invoice = None
-        return self.invoice
-
-    def get_context_data(self, **kwargs):
-       
-        context = super(InvoicePublicView, self).get_context_data(**kwargs) 
-        if self.invoice:  
-            self.invoice.add_context(context)
-            context['token'] = self.kwargs['token']
-        return context
-
-    def post(self, request, *args, **kwargs):
-        invoice = self.get_object()
-        if 'pay' in request.POST:
-            return redirect(gc_create_bill_url(invoice))
-
-        elif 'resign' in request.POST:
-            #TODO
-            return redirect(invoice)
 
 class InvoiceGenerateView(LoginRequiredMixin, View):
 
@@ -1044,7 +1034,7 @@ class InvoiceMailBatchView(LoginRequiredMixin, View):
         put sends the mail '''
 
     def get(self, request, *args, **kwargs):
-        count = Invoice.objects.filter(state=Invoice.UNPAID).count()
+        count = self.get_list().count
         context = RequestContext(request)
         context['message'] = "This will send {} emails. Continue?".format(count)
         context['action_link'] = reverse('invoice-mail-batch')
@@ -1052,12 +1042,51 @@ class InvoiceMailBatchView(LoginRequiredMixin, View):
         return render_to_response('members/confirm.html', context)
 
     def post(self, request, *args, **kwargs):
-        invs = Invoice.objects.filter(state=Invoice.UNPAID)
-        option = 'send'
+        invs = self.get_list()
         count = 0
         for inv in invs:
             count += do_mail(inv, option)
         return HttpResponse("Sent {} mails for {} invoices".format(count, invs.count()))
+
+    def get_list(self):
+        year = Settings.current().membership_year
+        return Invoice.objects.filter(state=Invoice.UNPAID, membership_year=year)
+
+# ================= Public Views
+
+class ResignedView(TemplateView):
+    template_name = 'members/resigned.html'
+
+class InvoicePublicView(DetailView):
+    model = Invoice
+    template_name = 'members/invoice_public.html'
+
+    def get_object(self, querset=None):
+        signer = Signer()
+        try:
+            invoice_id = signer.unsign(self.kwargs['token'])
+            self.invoice = Invoice.objects.get(pk = invoice_id)          
+        except:
+            self.invoice = None
+        return self.invoice
+
+    def get_context_data(self, **kwargs):
+       
+        context = super(InvoicePublicView, self).get_context_data(**kwargs) 
+        if self.invoice:  
+            self.invoice.add_context(context)
+            context['token'] = self.kwargs['token']
+        return context
+
+    def post(self, request, *args, **kwargs):
+        invoice = self.get_object()
+        if 'pay' in request.POST:
+            return redirect(gc_create_bill_url(invoice))
+
+        elif 'resign' in request.POST:
+            group = group_get_or_create("2016Resign")
+            invoice.person.groups.add(group)
+            return redirect(invoice)
 
 
 

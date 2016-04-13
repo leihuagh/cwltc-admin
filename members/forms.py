@@ -705,8 +705,10 @@ class SettingsForm(Form):
         self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-        self.helper.add_input(SubmitButton('add', 'Add year to all records', css_class='btn-danger'))
         self.helper.add_input(SubmitButton('consolidate', 'Consolidate', css_class='btn-danger'))
+        self.helper.add_input(SubmitButton('renew', 'Renew subs', css_class='btn-danger'))
+        self.helper.add_input(SubmitButton('invoices', 'Create invoices', css_class='btn-danger'))
+        self.helper.add_input(SubmitButton('mail', 'mail invoices', css_class='btn-danger'))
 
 class GroupForm(ModelForm):
 

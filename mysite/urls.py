@@ -22,10 +22,11 @@ urlpatterns = [
         name='home'
     ),
     url(
-        r'^settings/$',
-        SettingsView.as_view(),
-        name='settings'
+        r'^yearend/$',
+        YearEndView.as_view(),
+        name='year-end'
     ),
+    # GROUPS
     url(
         r'^group/create/$',
         GroupCreateView.as_view(),
@@ -62,6 +63,10 @@ urlpatterns = [
     url(r'^webhook/(?P<pk>\d+)/$',
         WebHookDetailView.as_view(),
         name='webhook-detail'
+    ),
+    url(r'^resigned/$',
+        ResignedView.as_view(),
+        name='resigned'
     ),
     #   FEES
     url(
