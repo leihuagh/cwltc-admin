@@ -5,7 +5,7 @@
 <h4>
 <a href="{% url "person-detail"  payment.person_id %}">{{ payment.person.first_name }} {{ payment.person.last_name }}</a>
 </h4>
-
+ <form action="." method="post" class="form-inline" id="post-form">
 <table width="300">
     <tr>
         <td>Number:</td><td>{{ payment.id }}</td>       
@@ -44,4 +44,5 @@
     </tr>
 {% endfor %}
 </table>
+</form>
 {% endblock content %}

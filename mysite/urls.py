@@ -213,6 +213,11 @@ urlpatterns = [
         CreditNoteCreateView.as_view(),
         name='creditnote-create'
     ),
+    url(
+        r'^creditnote/(?P<cnote_id>\d+)/$',
+        CreditNoteCreateView.as_view(),
+        name='creditnote-detail'
+    ),
 
     #   PEOPLE
 

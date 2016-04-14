@@ -971,6 +971,8 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(InvoiceDetailView, self).get_context_data(**kwargs)
+        user = self.request.user
+        context['superuser'] = self.request.user.get_username() == "ian"
         invoice = self.get_object()
         invoice.add_context(context)
         TextBlock.add_email_context(context)
@@ -1186,6 +1188,15 @@ class CreditNoteCreateView(LoginRequiredMixin, CreateView):
         return reverse('person-detail',
                        kwargs={'pk':self.kwargs['person_id']})
 
+class CreditNoteDetailView(LoginRequiredMixin, DetailView):
+    model = Payment
+    template_name = 'members/creditnote_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CreditNoteDetailView, self).get_context_data(**kwargs)
+        context['payment_types'] = Payment.TYPES
+        context['payment_states'] = Payment.STATES
+        return context
 
 # ================== TEXT BLOCKS
 

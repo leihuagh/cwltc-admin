@@ -377,7 +377,8 @@ class Invoice(models.Model):
         context['types'] = Payment.TYPES
         context['payment_states'] = Payment.STATES
         context['full_payment_button'] = self.state == Invoice.UNPAID
-        context['can_delete'] = self.email_count == 0 and self.postal_count == 0 and self.state == Invoice.UNPAID
+        context['can_delete'] = (self.email_count == 0 and self.postal_count == 0 and self.state == Invoice.UNPAID)
+         
         c_note = None
         if self.creditnote_set.count() > 0:
             c_note = self.creditnote_set.all()[0]

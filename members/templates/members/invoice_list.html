@@ -6,7 +6,7 @@
 <form action="." method="post" class="form-inline" id="post-form">
     {% csrf_token %}
     <div class="row">
-        
+   
         <div class="form-group">
             <label for="id_start_date" class="col-md-5 control-label">Created from</label>
             {{ form.start_date|add_attributes:'datepicker col-md-6' }}

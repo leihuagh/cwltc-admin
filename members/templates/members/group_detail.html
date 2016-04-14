@@ -1,4 +1,5 @@
 ﻿{% extends "members/layout.html" %}
+{% load staticfiles %}
 {% load members_extras %}
 {% block content %}
 <h2>Group: {{ group.slug }}</h2>
@@ -7,4 +8,4 @@
 {% endblock content %}
 {% block scripts %}
 <script src='{% static 'members/scripts/members.js' %}'></script>
-{% endblock %}
+{% endblock scripts %}

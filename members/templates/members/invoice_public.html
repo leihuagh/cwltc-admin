@@ -15,7 +15,7 @@
 {% include "members/_invoice_detail.html" %}
     {% if invoice %}
         {% if invoice.gocardless_bill_id %}
-            Thankyou for making the payment.
+            Thank you for making the payment through GoCardless.
         {% else %}
         Use the button below to make a payment to Coombe Wood through GoCardless
         <form action="{% url 'invoice-public' token %}" method="post" class="form-inline" id="post-form">

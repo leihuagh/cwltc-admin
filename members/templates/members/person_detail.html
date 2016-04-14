@@ -46,7 +46,9 @@
                     </div>
                     <div class="panel-footer">
                         <a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a>
+                        {% if user.get_username = "ian"  %}
                         <input type="submit" name="delete" value="Delete person" class="btn btn-danger">
+                        {% endif %}
                     </div>
 
                 </div>

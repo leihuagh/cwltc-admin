@@ -54,7 +54,11 @@ Email text blocks:
     <input type="submit" name="cancel" value="Cancel invoice" class="btn btn-danger"> 
 {% endif %}
 {% if can_delete %}
-    <input type="submit" name="delete" value="Delete invoice" class="btn btn-danger"> 
+    <input type="submit" name="delete" value="Delete invoice" class="btn btn-danger">
+{% else %}
+    {% if superuser %}
+        <input type="submit" name="delete" value="Superuser Delete" class="btn btn-danger">
+    {% endif %}
 {% endif %}
 </form>
 {% endblock content %}

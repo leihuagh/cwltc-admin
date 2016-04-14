@@ -8,6 +8,7 @@
         {% endif %}
         <th>Number</th>
         <th>State</th>
+        <th>Year</th>
         <th>Created</th>
         <th>Updated</th>
         <th>First name</th>
@@ -27,6 +28,7 @@
         {% endif %}
         <td>{{ inv.id }}</td>
         <td>{{ state_list|get_option:inv.state }}</td>
+        <td>{{ inv.membership_year }}</td>
         <td>{{ inv.creation_date|date }}</td>
         <td>{{ inv.update_date|date }}</td>
         <td>{{ inv.person.first_name }}</td>
