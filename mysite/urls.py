@@ -64,7 +64,7 @@ urlpatterns = [
         WebHookDetailView.as_view(),
         name='webhook-detail'
     ),
-    url(r'^resigned/$',
+    url(r'^resign/$',
         ResignedView.as_view(),
         name='resigned'
     ),

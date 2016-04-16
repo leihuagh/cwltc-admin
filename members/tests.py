@@ -555,6 +555,9 @@ class MembersTestCase(TestCase):
         invoice_cancel(inv1, with_credit_note=False)
         self.assertEqual(CreditNote.objects.all().count(), 1) 
 
+        inv3 = invoice_create_from_items(adult)  
+        invoice_cancel(inv3, with_credit_note=False, superuser=True)
+
     def test_group_create(self):
         # Group creation is unique
         group = group_get_or_create('test')
