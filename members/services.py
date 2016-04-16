@@ -51,6 +51,124 @@ def invoice_item_pay(invoice_item, payment):
     invoice_item.paid = True
     invoice_item.save()
 
+def invoice_create_batch(exclude_slug='', size=10000):
+    ''' Generate a batch of invoices of specified size
+        Returns the number of people still remaining with uninvoiced items
+        Note: because of family invoices the count returned may not seem correct
+        if size = 0 just return the number of people with uninvoiced items
+    '''
+    # get a list of all people ids from uninvoiced items
+    people_ids = InvoiceItem.objects.filter(invoice=None).values_list('person_id', flat=True)
+    people = Person.objects.filter(id__in=people_ids)
+    remaining = people.count()
+    count = 0
+    if size > 0 :
+        for person in people:
+            if exclude_slug <> '':
+                include = not person.groups.filter(slug=exclude_slug).exists()
+            else:
+                include = True
+            if include:
+                invoice_create_from_items(person)
+                count += 1
+                if count == size:
+                    break
+        return remaining - count
+    else:
+        return remaining
+
+def invoice_create_from_items(person):
+    ''' if there are open invoice items link them to a new invoice
+        process all family members who don't pay own bill
+        Return invoice or False if there are no items '''
+        
+    if person.linked and not person.pays_own_bill:
+        return invoice_create_from_items(person.linked)
+    else:
+        invoice = Invoice.objects.create(
+            person = person,
+            state = Invoice.UNPAID,
+            date = datetime.now(),
+            membership_year = Settings.current().membership_year
+            )
+        # include all own items
+        subs_total = 0
+        has_adult = False
+        has_junior = False
+        is_family = False
+        items = person.invoiceitem_set.filter(
+            invoice=None
+            ).filter(
+            item_type=ItemType.SUBSCRIPTION)
+        if items.count()>0:
+            item=items[0]
+            item.invoice = invoice
+            invoice.total += item.amount
+            subs_total += item.amount
+            has_adult = person.membership_id == Membership.FULL
+            item.save()
+            
+        # include family subs
+        family = person.person_set.filter(pays_own_bill=False)
+        for fam_member in family:                         
+            items = fam_member.invoiceitem_set.filter(
+                invoice=None
+                ).filter(
+                item_type=ItemType.SUBSCRIPTION)
+            for item in items:
+                is_family = True
+                has_adult = has_adult or fam_member.membership_id == Membership.FULL
+                has_junior = has_junior or fam_member.membership_id == Membership.JUNIOR
+                item.invoice = invoice
+                invoice.total += item.amount
+                subs_total += item.amount
+                item.save()
+
+            for item in fam_member.invoiceitem_set.filter(invoice=None):
+                is_fam_member = True
+                item.invoice = invoice
+                invoice.total += item.amount
+                item.save()
+            
+        # test for family discount
+        if is_family and has_adult and has_junior:
+            disc_item = InvoiceItem.objects.create(
+                person=person,
+                invoice=invoice,
+                item_type_id = ItemType.FAMILY_DISCOUNT,
+                item_date = datetime.today(),
+                description = 'Family discount 10%',
+                amount= -subs_total / 10
+                )
+            invoice.total += disc_item.amount
+
+        # Now own non Subscription items
+        own_items = person.invoiceitem_set.filter(
+            invoice=None
+            ).exclude(
+            item_type=ItemType.SUBSCRIPTION)
+        for item in own_items:
+            item.invoice = invoice
+            invoice.total += item.amount
+            item.save()
+
+        # include family non Subscription items
+        for fam_member in family:
+            items = fam_member.invoiceitem_set.filter(
+                invoice=None
+                ).exclude(
+                item_type=ItemType.SUBSCRIPTION)
+            for item in items:
+                item.invoice = invoice
+                invoice.total += item.amount
+                item.save()
+        if invoice.invoiceitem_set.count() > 0:
+            invoice.save()
+            return invoice
+        else:
+            invoice.delete()
+            return None
+
     #def pay_invoice_part(self, inv):
     #    ''' THIS CODE NOT FINISHED '''
     #    new_paid = 0
@@ -103,6 +221,50 @@ def invoice_item_pay(invoice_item, payment):
     #    else:
     #        self.state = Payment.FULLY_MATCHED
     #    self.save()
+
+def invoice_cancel(invoice, with_credit_note=True):
+    ''' 
+    Disconnect all items from an invoice
+    Delete Family discount items, the others remain
+    If with credit_note, mark invoice as cancelled and create a credit note
+    Else delete the invoice but not any attached credit note
+    '''
+    # no item can be paid
+    if invoice.paid_items_count():
+        return False
+
+    amount = 0
+    description = u''
+    for item in invoice.invoiceitem_set.all():
+        amount += item.amount
+        description = description + 'Item: {0} {1}{2}'.format(
+            item.item_type.description,
+            item.amount,
+            '<br>')
+        if item.item_type_id == ItemType.FAMILY_DISCOUNT:
+            item.delete()
+        else:
+            item.invoice = None
+            item.save()
+    
+    if with_credit_note:
+        invoice.state = Invoice.CANCELLED
+        invoice.save()
+        c_note = CreditNote(invoice=invoice,
+                            person=invoice.person,
+                            reference='Cancelled invoice {}'.format(invoice.number())
+                            )
+        c_note.amount = amount
+        c_note.detail = description
+        c_note.save()
+        return c_note
+    else:
+        # disconnect any credit note else it will cascade the delete
+        for cnote in invoice.creditnote_set.all():
+            cnote.invoice = None
+            cnote.save()
+        invoice.delete()
+    return True
 
 
 def subscription_create(person, sub_year,
@@ -277,125 +439,6 @@ def subscription_create_invoiceitem(sub, start_absmonth, end_absmonth, fee):
         )
     item.save()
 
-
-def invoice_create_batch(exclude_slug='', size=10000):
-    ''' Generate a batch of invoices of specified size
-        Returns the number of people still remaining with uninvoiced items
-        Note: because of family invoices the count returned may not seem correct
-        if size = 0 just return the number of people with uninvoiced items
-    '''
-    # get a list of all people ids from uninvoiced items
-    people_ids = InvoiceItem.objects.filter(invoice=None).values_list('person_id', flat=True)
-    people = Person.objects.filter(id__in=people_ids)
-    remaining = people.count()
-    count = 0
-    if size > 0 :
-        for person in people:
-            if exclude_slug <> '':
-                include = not person.groups.filter(slug=exclude_slug).exists()
-            else:
-                include = True
-            if include:
-                invoice_create_from_items(person)
-                count += 1
-                if count == size:
-                    break
-        return remaining - count
-    else:
-        return remaining
-
-def invoice_create_from_items(person):
-    ''' if there are open invoice items link them to a new invoice
-        process all family members who don't pay own bill
-        Return invoice or False if there are no items '''
-        
-    if person.linked and not person.pays_own_bill:
-        return invoice_create_from_items(person.linked)
-    else:
-        invoice = Invoice.objects.create(
-            person = person,
-            state = Invoice.UNPAID,
-            date = datetime.now(),
-            membership_year = Settings.current().membership_year
-            )
-        # include all own items
-        subs_total = 0
-        has_adult = False
-        has_junior = False
-        is_family = False
-        items = person.invoiceitem_set.filter(
-            invoice=None
-            ).filter(
-            item_type=ItemType.SUBSCRIPTION)
-        if items.count()>0:
-            item=items[0]
-            item.invoice = invoice
-            invoice.total += item.amount
-            subs_total += item.amount
-            has_adult = person.membership_id == Membership.FULL
-            item.save()
-            
-        # include family subs
-        family = person.person_set.filter(pays_own_bill=False)
-        for fam_member in family:                         
-            items = fam_member.invoiceitem_set.filter(
-                invoice=None
-                ).filter(
-                item_type=ItemType.SUBSCRIPTION)
-            for item in items:
-                is_family = True
-                has_adult = has_adult or fam_member.membership_id == Membership.FULL
-                has_junior = has_junior or fam_member.membership_id == Membership.JUNIOR
-                item.invoice = invoice
-                invoice.total += item.amount
-                subs_total += item.amount
-                item.save()
-
-            for item in fam_member.invoiceitem_set.filter(invoice=None):
-                is_fam_member = True
-                item.invoice = invoice
-                invoice.total += item.amount
-                item.save()
-            
-        # test for family discount
-        if is_family and has_adult and has_junior:
-            disc_item = InvoiceItem.objects.create(
-                person=person,
-                invoice=invoice,
-                item_type_id = ItemType.FAMILY_DISCOUNT,
-                item_date = datetime.today(),
-                description = 'Family discount 10%',
-                amount= -subs_total / 10
-                )
-            invoice.total += disc_item.amount
-
-        # Now own non Subscription items
-        own_items = person.invoiceitem_set.filter(
-            invoice=None
-            ).exclude(
-            item_type=ItemType.SUBSCRIPTION)
-        for item in own_items:
-            item.invoice = invoice
-            invoice.total += item.amount
-            item.save()
-
-        # include family non Subscription items
-        for fam_member in family:
-            items = fam_member.invoiceitem_set.filter(
-                invoice=None
-                ).exclude(
-                item_type=ItemType.SUBSCRIPTION)
-            for item in items:
-                item.invoice = invoice
-                invoice.total += item.amount
-                item.save()
-        if invoice.invoiceitem_set.count() > 0:
-            invoice.save()
-            return invoice
-        else:
-            invoice.delete()
-            return None
-
 def person_link_to_parent(child, parent):
     ''' link child to parent
         If parent = None, just unlink
@@ -428,6 +471,7 @@ def person_delete(person):
         person.address.delete()
     person.delete()
     return ""  
+
      
 def person_get_book_entries(person, year):
     '''

@@ -832,21 +832,6 @@ class InvoiceItemDetailView(LoginRequiredMixin, DetailView):
 
 # ================= INVOICES
 
-class InvoiceCancelView(LoginRequiredMixin, View):
-
-    def get(self, request, *args, **kwargs):
-        invoice = Invoice.objects.get(pk = self.kwargs['pk'])
-        invoice.cancel()
-        return redirect(invoice.person)
-
-class InvoiceDeleteView(LoginRequiredMixin, View):
-    
-    def get(self, request, *args, **kwargs):
-        invoice= Invoice.objects.get(pk = self.kwargs['pk'])
-        invoice.cancel()
-        invoice.delete()
-        return redirect(invoice.person)
-
 class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
     form_class = InvoiceFilterForm
     model = Invoice
@@ -961,12 +946,11 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
             return redirect(reverse('payment-invoice', kwargs={'invoice_id': invoice.id}))
 
         elif 'delete' in request.POST:
-            invoice.cancel()
-            invoice.delete()
+            invoice_cancel(invoice, with_credit_note=False)
             return redirect(invoice.person)
 
         elif 'cancel' in request.POST:
-            invoice.cancel()
+            invoice_cancel(invoice, with_credit_note=True)
             return redirect(invoice.person)
 
     def get_context_data(self, **kwargs):

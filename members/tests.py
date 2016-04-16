@@ -482,7 +482,79 @@ class MembersTestCase(TestCase):
         self.assertEqual(inv.state, Invoice.PAID_IN_FULL)  
         items = inv.invoiceitem_set.filter(paid=True).count()
         self.assertEqual(items, 6)
-      
+     
+    def test_invoice_cancel(self):
+        ''' Create family invoice. pay it and check invoice and payment are correct '''
+        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+        wife = Person.objects.all().filter(first_name = "Wife of", last_name = "Adult")[0]
+        junior = Person.objects.all().filter(first_name = "First", last_name = "Child")[0]
+        cadet = Person.objects.all().filter(first_name = "Second", last_name = "Child")[0]      
+        sub = subscription_create(
+            person=adult,
+            sub_year=2014,
+            active=True,
+            membership_id=Membership.FULL
+            )
+        sub = subscription_create(
+            person=wife,
+            sub_year=2014,
+            active=True,
+            membership_id=Membership.FULL
+            )
+        sub = subscription_create(
+            person=junior,
+            sub_year=2014,
+            active=True,
+            membership_id=Membership.JUNIOR
+            )
+        sub = subscription_create(
+            person=cadet,
+            sub_year=2014,
+            active=True,
+            membership_id=Membership.CADET
+            )
+        subscription_renew_batch(2015,5)
+        self.assertEqual(Subscription.objects.all().count() ,8)
+        bar = ItemType.objects.all().filter(id=ItemType.BAR)[0]
+        item1 = InvoiceItem.objects.create(
+            person=adult,
+            item_type=bar,
+            description='Test BAR',
+            amount=100)
+        invoice_create_from_items(junior)
+        self.assertEqual(Invoice.objects.all().count(), 1)
+        inv = Invoice.objects.all()[0]
+        self.assertEqual(inv.person, adult)
+        self.assertEqual(inv.state, Invoice.UNPAID)
+        self.assertEqual(inv.invoiceitem_set.count(), 6)
+        self.assertEqual(inv.unpaid_items_count(), 6)
+        self.assertEqual(inv.paid_items_count(), 0)
+        substotal = 240 + 240 + 75 + 35
+        discount = substotal/10
+        total = substotal - discount + 100
+        self.assertEqual(inv.total, total)
+
+        # test cancel with credit node issued
+        self.assertTrue(invoice_cancel(inv))
+        self.assertEqual(CreditNote.objects.all().count(), 1)
+        cnote = CreditNote.objects.all()[0]
+        inv1 = Invoice.objects.all()[0]
+        self.assertEqual(inv1.state, Invoice.CANCELLED)
+        self.assertEqual(inv1.invoiceitem_set.count(),0)
+        self.assertEqual(cnote.amount, inv.total)
+
+        # create new invoice and test cancel without credit_note
+        invoice_create_from_items(adult)   
+        self.assertEqual(Invoice.objects.all().count(), 2)
+        inv2 = Invoice.objects.filter(state=Invoice.UNPAID)[0]     
+        invoice_cancel(inv2, with_credit_note=False)
+        self.assertEqual(Invoice.objects.all().count(), 1)
+        self.assertEqual(CreditNote.objects.all().count(), 1)
+
+        # cancel invoice 1 - credit note should remain
+        invoice_cancel(inv1, with_credit_note=False)
+        self.assertEqual(CreditNote.objects.all().count(), 1) 
+
     def test_group_create(self):
         # Group creation is unique
         group = group_get_or_create('test')

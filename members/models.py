@@ -311,6 +311,12 @@ class Invoice(models.Model):
     def get_absolute_url(self):
         return reverse("invoice-detail", kwargs={"pk": self.pk})
 
+    def paid_items_count(self):
+        return self.invoiceitem_set.filter(paid=True).count()
+
+    def unpaid_items_count(self):
+        return self.invoiceitem_set.filter(paid=False).count()
+
     def pay_full(self):
         ''' Mark all items in the invoice as paid in full '''
         for item in self.invoiceitem_set.all():

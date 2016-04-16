@@ -153,11 +153,6 @@ urlpatterns = [
         name='invoice-generate'
     ),
     url(
-        r'^invoice/cancel/(?P<pk>\d+)/$',
-        InvoiceCancelView.as_view(),
-        name='invoice-cancel'
-    ),
-    url(
         r'^invoice/mail/(?P<pk>\d+)/(?P<option>[a-zA-Z]+)$',
         InvoiceMailView.as_view(),
         name='invoice-mail'
@@ -181,11 +176,6 @@ urlpatterns = [
         r'^invoice/batch$',
         InvoiceBatchView.as_view(),
         name='invoice-batch'
-    ),
-    url(
-        r'^invoice/delete/(?P<pk>\d+)/$',
-        InvoiceDeleteView.as_view(),
-        name='invoice-delete'
     ),
 
     #   PAYMENTS
