@@ -862,14 +862,14 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             if 'view' in self.form.data:
                 for inv in self.object_list:
                     if inv.state == Invoice.UNPAID:
-                        return(do_mail(inv, 'view'))
+                        return(request, do_mail(inv, 'view'))
                 return HttpResponse('No unpaid mails to view')
 
             if 'mail' in self.form.data:
                 count = 0
                 for inv in self.object_list:
                     if inv.state == Invoice.UNPAID and inv.total > 0:
-                        count += do_mail(inv, 'send')
+                        count += do_mail(request, inv, 'send')
                 return HttpResponse("Sent {} mails for {} invoices".format(count, self.object_list.count()))
 
             if 'export' in self.form.data:
@@ -932,14 +932,14 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     def post(self, request, *args, **kwargs):
         invoice = self.get_object()
         if 'view' in request.POST:
-            return do_mail(invoice, 'view')
+            return do_mail(request, invoice, 'view')
 
         elif 'test' in request.POST:
-            do_mail(invoice, 'test')
+            do_mail(request, invoice, 'test')
             return redirect(invoice)
 
         elif 'send' in request.POST:
-            do_mail(invoice, 'send')
+            do_mail(request, invoice, 'send')
             return redirect(invoice)
 
         elif 'pay' in request.POST:
@@ -987,7 +987,7 @@ class InvoiceMailView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         invoice= Invoice.objects.get(pk = self.kwargs['pk'])
         option = self.kwargs['option']
-        result = do_mail(invoice, option)
+        result = do_mail(request, invoice, option)
         if option == 'view':
             return result
         return redirect(invoice)
@@ -1035,7 +1035,7 @@ class InvoiceMailBatchView(LoginRequiredMixin, View):
         invs = self.get_list()
         count = 0
         for inv in invs:
-            count += do_mail(inv, option)
+            count += do_mail(request, inv, option)
         return HttpResponse("Sent {} mails for {} invoices".format(count, invs.count()))
 
     def get_list(self):

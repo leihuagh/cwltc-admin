@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 
 from .models import Invoice, TextBlock
 
-def do_mail(invoice, option):
+def do_mail(request, invoice, option):
     count = 0
     family = invoice.person.person_set.all()
     context={}
@@ -16,8 +16,8 @@ def do_mail(invoice, option):
     invoice.add_context(context)
     signer = Signer()
     token = signer.sign(invoice.id)
-    context['gc_bill_create'] = reverse('invoice-public', args=(token,))
-    context['resign'] = reverse('resigned')
+    context['gc_bill_create'] = request.build_absolute_uri(reverse('invoice-public', args=(token,)))
+    context['resign'] = request.build_absolute_uri(reverse('resigned'))
     if invoice.email_count > 0:
         context['reminder'] = True
 
