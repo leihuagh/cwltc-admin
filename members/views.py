@@ -882,7 +882,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
 
     def get_queryset(self):
         form = self.form
-        start_date = date(2015,1,1)
+        start_date = date(2016,4,1)
         end_date = date.today()
         q_paid = Invoice.PAID_IN_FULL
         q_unpaid = Invoice.UNPAID
@@ -945,12 +945,16 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
         elif 'pay' in request.POST:
             return redirect(reverse('payment-invoice', kwargs={'invoice_id': invoice.id}))
 
+        elif 'cancel' in request.POST:
+            invoice_cancel(invoice, with_credit_note=True)
+            return redirect(invoice.person)
+
         elif 'delete' in request.POST:
             invoice_cancel(invoice, with_credit_note=False)
             return redirect(invoice.person)
-
-        elif 'cancel' in request.POST:
-            invoice_cancel(invoice, with_credit_note=True)
+        
+        elif 'superdelete' in request.POST:
+            invoice_cancel(invoice, with_credit_note=False, superuser=True)
             return redirect(invoice.person)
 
     def get_context_data(self, **kwargs):

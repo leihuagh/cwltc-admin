@@ -222,7 +222,7 @@ def invoice_create_from_items(person):
     #        self.state = Payment.FULLY_MATCHED
     #    self.save()
 
-def invoice_cancel(invoice, with_credit_note=True):
+def invoice_cancel(invoice, with_credit_note=True, superuser=False):
     ''' 
     Disconnect all items from an invoice
     Delete Family discount items, the others remain
@@ -230,8 +230,9 @@ def invoice_cancel(invoice, with_credit_note=True):
     Else delete the invoice but not any attached credit note
     '''
     # no item can be paid
-    if invoice.paid_items_count():
-        return False
+    if not superuser:
+        if invoice.paid_items_count():
+            return False
 
     amount = 0
     description = u''
