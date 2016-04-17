@@ -907,7 +907,7 @@ class SelectSheetsForm(Form):
 
 class ContactForm(Form):
     message = forms.CharField(max_length=2000, required=True, widget=forms.Textarea)
-
+    email = forms.EmailField(required=True)
     def __init__(self, *args, **kwargs):
         super(ContactForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()

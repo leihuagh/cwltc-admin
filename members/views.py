@@ -1095,6 +1095,8 @@ class ContactView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(ContactView, self).get_context_data(**kwargs)
+        if len(self.kwargs) == 1:
+            context['person'] = Person.objects.get(pk = self.kwargs['person_id'])
         if self.resigned:
             context['message'] = "Please tell us briefly why you have resigned"
         else:
@@ -1102,9 +1104,17 @@ class ContactView(FormView):
         return context
 
     def form_valid(self,form):
+        if len(self.kwargs) == 1:
+            person = Person.objects.get(pk = self.kwargs['person_id'])
+            message = "From {} id {} >".format(person.email, person.id)
+        else:
+            message = ""
+        message += form.cleaned_data['email']
+        message += "   "
+        message += form.cleaned_data['message']
         send_mail(subject='CWLTC contact',
                   from_email = 'contact@coombewoodltc.co.uk',
-                  message = form.cleaned_data['message'],
+                  message = message,
                   recipient_list = ["subs@coombewoodltc.co.uk","info@coombewoodltc.co.uk"]
                   )
         return HttpResponseRedirect(reverse('thankyou'))

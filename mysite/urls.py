@@ -72,7 +72,11 @@ urlpatterns = [
         ContactView.as_view(),
         name='contact'
     ),
-    url(r'^contact/resigned/$',
+    url(r'^contact/(?P<person_id>\d+)/$',
+        ContactView.as_view(),
+        name='contact'
+    ),
+    url(r'^contact/resigned/(?P<person_id>\d+)$',
         ContactView.as_view(resigned=True),
         name='contact-resigned'
     ),
