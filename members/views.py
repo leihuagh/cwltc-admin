@@ -633,7 +633,7 @@ class YearEndView(LoginRequiredMixin, FormView):
         initial['membership_year'] = year
         return initial
    
-    def form_valid(self,form):
+    def form_valid(self, form):
         year = form.cleaned_data['membership_year']
         if 'cancel' in form.data:
             return redirect('home')
@@ -682,7 +682,7 @@ class YearEndView(LoginRequiredMixin, FormView):
             count=0
             for inv in invs:
                 if not group.person_set.filter(id=inv.person.id).exists():
-                    count += do_mail(request, inv, option)
+                    count += do_mail(self.request, inv, option='send')
             message = "Sent {} mails for {} invoices".format(count, invs.count())
             messages.success(self.request, message)
         return redirect('year-end')
