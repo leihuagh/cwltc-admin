@@ -675,10 +675,17 @@ class YearEndView(LoginRequiredMixin, FormView):
             return redirect('year-end')     
         
         elif 'mail' in form.data:
-            count = invoice_create_batch(exclude_slug='2015UnpaidImvoices')
-            message = '{} invoices created'.format(count)
+            group = group_get_or_create('2015UnpaidInvoices')
+            year = Settings.current().membership_year
+            invs = Invoice.objects.filter(
+                state=Invoice.UNPAID, membership_year=year)
+            count=0
+            for inv in invs:
+                if not group.person_set.filter(id=inv.person.id).exists():
+                    count += do_mail(request, inv, option)
+            message = "Sent {} mails for {} invoices".format(count, invs.count())
             messages.success(self.request, message)
-            return redirect('year-end')
+        return redirect('year-end')
 
 class SubInvoiceCancel(LoginRequiredMixin, View):
     ''' Deletes unpaid items and invoices associated with a sub '''
@@ -1442,7 +1449,7 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
         context['title'] = 'Home Page'
-        context['year'] = datetime.now().year
+        context['membership_year'] = Settings.current().membership_year
         context['db_name'] = settings.DATABASES['default']['NAME']
         return context
      

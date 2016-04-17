@@ -16,7 +16,7 @@
     <hr />
 {% if invoice %}
     {% if invoice.gocardless_bill_id %}
-        Thank you for making the payment through GoCardless.
+        Thank you. This invoice has already been paid through GoCardless.
     {% else %}
         <form action="{% url 'invoice-public' token %}" method="post" class="form-inline" id="post-form">
         {% csrf_token %}

@@ -169,6 +169,7 @@ def invoice_create_from_items(person):
             invoice.delete()
             return None
 
+
     #def pay_invoice_part(self, inv):
     #    ''' THIS CODE NOT FINISHED '''
     #    new_paid = 0

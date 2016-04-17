@@ -14,8 +14,8 @@
 {% for group in groups %}
 <tr>
     <td>{{ group.slug }}</td>
-    <td {{ group.description }}</td>
-    <td {{ group.person_set.count }}</td> 
+    <td> {{ group.description }}</td>
+    <td> {{ group.person_set.count }}</td> 
     <td><a href="{% url "group-detail" slug=group.slug %}">View</a></td>
 </tr>
 {% endfor sub %}
