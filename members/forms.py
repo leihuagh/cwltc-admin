@@ -904,3 +904,16 @@ class SelectSheetsForm(Form):
         with open_excel_workbook(my_book.file) as book:
             for sheet_name in book.sheet_names():
                 self.fields[sheet_name] = forms.BooleanField(required = False)
+
+class ContactForm(Form):
+    message = forms.CharField(max_length=2000, required=True, widget=forms.Textarea)
+
+    def __init__(self, *args, **kwargs):
+        super(ContactForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        #self.helper.form_class = 'form-horizontal'
+        #self.helper.label_class = 'col-lg-2'
+        #self.helper.field_class = 'col-lg-6'
+        self.helper.form_method = 'post'
+        self.helper.add_input(SubmitButton('submit', 'Send', css_class='btn-primary'))
+

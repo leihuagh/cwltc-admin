@@ -68,6 +68,18 @@ urlpatterns = [
         ResignedView.as_view(),
         name='resigned'
     ),
+    url(r'^contact/$',
+        ContactView.as_view(),
+        name='contact'
+    ),
+    url(r'^contact/resigned/$',
+        ContactView.as_view(resigned=True),
+        name='contact-resigned'
+    ),
+    url(r'^thankyou/$',
+        ThankyouView.as_view(),
+        name='thankyou'
+    ),
     #   FEES
     url(
         r'^fees/update/(?P<pk>\d+)/$',
@@ -347,16 +359,11 @@ urlpatterns = [
         import_backup,
         name='import-backup'
     ),
-    url(
-        r'^bar$',
-       bar,
-       name='bar-view'
-    ),
-    url(
-        r'^contact$',
-        contact,
-        name='contact'
-    ),
+    #url(
+    #    r'^bar$',
+    #   bar,
+    #   name='bar-view'
+    #),
     url(
         r'^login/$',
         login,

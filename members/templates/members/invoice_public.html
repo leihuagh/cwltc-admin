@@ -13,19 +13,24 @@
 <div class="container">
 <img src="{% static "members/content/CWLTC logo small.png" %}"/>
 {% include "members/_invoice_detail.html" %}
-    {% if invoice %}
-        {% if invoice.gocardless_bill_id %}
-            Thank you for making the payment through GoCardless.
-        {% else %}
-        Use the button below to make a payment to Coombe Wood through GoCardless
-        <form action="{% url 'invoice-public' token %}" method="post" class="form-inline" id="post-form">
-            {% csrf_token %}
-            <input type="submit" name="pay" value="Pay in full" class="btn btn-primary">
-        </form>
-        {% endif %}
+    <hr />
+{% if invoice %}
+    {% if invoice.gocardless_bill_id %}
+        Thank you for making the payment through GoCardless.
     {% else %}
-        <h3>Invoice token {{ token }} is invalid!</h3>
+        <form action="{% url 'invoice-public' token %}" method="post" class="form-inline" id="post-form">
+        {% csrf_token %}
+        Make a payment to Coombe Wood through GoCardless: <br />
+        <input type="submit" name="pay" value="Pay in full" class="btn btn-primary"><br /><br />
+        If you have a query about the bill or want to change your membership:<br />
+        <input type="submit" name="query" value="Query bill" class="btn btn-primary"><br /><br />
+        If you want to resign from the club please let us know:<br />
+        <input type="submit" name="resign" value="Resign " class="btn btn-primary"><br /><br />
+        </form>
     {% endif %}
+{% else %}
+    <h3>Invoice token {{ token }} is invalid!</h3>
+{% endif %}
 </div>
 <script src="{% static 'members/scripts/jquery-1.10.2.js' %}"></script>
 <script src="{% static 'members/scripts/bootstrap.js' %}"></script>
