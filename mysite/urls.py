@@ -363,6 +363,11 @@ urlpatterns = [
         import_backup,
         name='import-backup'
     ),
+    url(
+        r'^testmailgun',
+        testmailgun,
+        name='testmailgun'
+    ),
     #url(
     #    r'^bar$',
     #   bar,

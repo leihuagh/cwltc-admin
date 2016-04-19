@@ -5,8 +5,11 @@ from django.shortcuts import render_to_response
 from django.utils.html import strip_tags
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse
-
+import requests 
 from .models import Invoice, TextBlock
+
+mailgun_api_key = 'key-44e941ede1264ea215021bb0b3634eb4'
+mailgun_api_url = 'https://api.mailgun.net/v3/mg.coombewoodltc.co.uk'
 
 def do_mail(request, invoice, option):
     count = 0
@@ -43,3 +46,22 @@ def do_mail(request, invoice, option):
             count += 1
         invoice.save()
     return count
+
+def send_simple_message():
+    return requests.post(
+        "https://api.mailgun.net/v3/sandbox5a84048e8637412db9d84372e91751d9.mailgun.org/messages",
+        auth=("api", "key-44e941ede1264ea215021bb0b3634eb4"),
+        data={"from": "Mailgun Sandbox <postmaster@sandbox5a84048e8637412db9d84372e91751d9.mailgun.org>",
+              "to": "Heather <heathermca@hotmail.com>",
+              "subject": "Hello Ian Stewart",
+              "text": "Congratulations Ian Stewart, you just sent an email with Mailgun!  You are truly awesome!  You can see a record of this email in your logs: https://mailgun.com/cp/log .  You can send up to 300 emails/day from this sandbox server.  Next, you should add your own domain so you can send 10,000 emails/month for free."})
+
+def mailgun_send():
+    xx = requests.post(
+        mailgun_api_url + '/messages',
+        auth=("api", mailgun_api_key),
+        data={"from": "info@coombewoodltc.co.uk",
+              "to": "Ian Stewart <is@ktconsultants.co.uk>",
+              "subject": "Hello Ian Stewart",
+              "text": "Sent by the real thing"})
+    return xx  

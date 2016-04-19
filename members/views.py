@@ -611,7 +611,7 @@ class SubRenewBatch(LoginRequiredMixin, FormView):
         remaining = subscription_renew_batch(2015, 5, 100)
         return HttpResponseRedirect(reverse('sub-renew-batch'))
 
-# ============ Settings
+# ============ Year end
 
 class YearEndView(LoginRequiredMixin, FormView):
     ''' Manage setting '''
@@ -678,15 +678,31 @@ class YearEndView(LoginRequiredMixin, FormView):
             group = group_get_or_create('2015UnpaidInvoices')
             year = Settings.current().membership_year
             invs = Invoice.objects.filter(
-                state=Invoice.UNPAID, membership_year=year)
+                state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='')
             count=0
             for inv in invs:
                 if not group.person_set.filter(id=inv.person.id).exists():
                     count += do_mail(self.request, inv, option='send')
             message = "Sent {} mails for {} invoices".format(count, invs.count())
             messages.success(self.request, message)
-        return redirect('year-end')
+            return redirect('year-end')
 
+        elif 'count' in form.data:
+            inv_group = group_get_or_create('invoiceTest')
+            inv_group.person_set.clear()
+            year = Settings.current().membership_year
+            invs = Invoice.objects.filter(
+                state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='')
+            count=0
+            group = group_get_or_create('2015UnpaidInvoices')
+            for inv in invs:
+                if not group.person_set.filter(id=inv.person.id).exists():
+                    count += 1
+                    inv.person.groups.add(inv_group)
+            message = "Will send {} mails for {} invoices".format(count, invs.count())
+            messages.success(self.request, message)
+
+        return redirect('year-end')
 class SubInvoiceCancel(LoginRequiredMixin, View):
     ''' Deletes unpaid items and invoices associated with a sub '''
     
@@ -1472,3 +1488,7 @@ def fixup_postgresql(request):
         cursor.execute("SELECT setval('members_fees_id_seq', (SELECT MAX(id) FROM members_fees)+1)")
         cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
 
+def testmailgun(request):
+    #send_simple_message()
+    mailgun_send()
+    return HttpResponse("sent")
