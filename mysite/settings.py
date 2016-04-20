@@ -222,7 +222,12 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 if DEBUG:
     if ON_PAAS:
-        EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+        EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
+        MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
+        MAILGUN_SERVER_NAME = 'mg.coombewoodltc.co.uk'
+
+        #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     else:
         #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
         #EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
