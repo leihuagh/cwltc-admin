@@ -678,7 +678,7 @@ class YearEndView(LoginRequiredMixin, FormView):
             group = group_get_or_create('2015UnpaidInvoices')
             year = Settings.current().membership_year
             invs = Invoice.objects.filter(
-                state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='')
+                state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='', amount__gt = 0)
             count=0
             for inv in invs:
                 if not group.person_set.filter(id=inv.person.id).exists():

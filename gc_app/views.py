@@ -112,7 +112,7 @@ class GCWebhook(View):
                             fee = 2
                     else:
                         amount = Decimal(bill['amount'])
-                        fee = amount - Decimal(bill('amount_minus_fees'))
+                        fee = amount - Decimal(bill['amount_minus_fees'])
 
                     if action == 'paid':
                         try:
