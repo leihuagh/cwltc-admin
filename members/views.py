@@ -1144,7 +1144,7 @@ class ContactView(FormView):
         send_mail(subject='CWLTC contact',
                   from_email = 'contact@coombewoodltc.co.uk',
                   message = message,
-                  recipient_list = ["subs@coombewoodltc.co.uk"]
+                  recipient_list = ["subs.cwltc@gmail.com","is@ktconsultants.co.uk"]
                   )
         if self.resigned:
             return HttpResponseRedirect(reverse('resigned'))
