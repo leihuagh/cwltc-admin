@@ -676,13 +676,11 @@ class YearEndView(LoginRequiredMixin, FormView):
         
         elif 'mail' in form.data:
             group = group_get_or_create('2015UnpaidInvoices')
-            year = Settings.current().membership_year
-            invs = Invoice.objects.filter(
-                state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='', amount__gt = 0)
-            count=0
+            invs = self.get_unpaid_invoices()
             for inv in invs:
                 if not group.person_set.filter(id=inv.person.id).exists():
-                    count += do_mail(self.request, inv, option='send')
+                    count += 1
+                    do_mail(self.request, inv, option='send')
             message = "Sent {} mails for {} invoices".format(count, invs.count())
             messages.success(self.request, message)
             return redirect('year-end')
@@ -690,10 +688,7 @@ class YearEndView(LoginRequiredMixin, FormView):
         elif 'count' in form.data:
             inv_group = group_get_or_create('invoiceTest')
             inv_group.person_set.clear()
-            year = Settings.current().membership_year
-            invs = Invoice.objects.filter(
-                state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='')
-            count=0
+            invs = self.get_unpaid_invoices()
             group = group_get_or_create('2015UnpaidInvoices')
             for inv in invs:
                 if not group.person_set.filter(id=inv.person.id).exists():
@@ -703,6 +698,13 @@ class YearEndView(LoginRequiredMixin, FormView):
             messages.success(self.request, message)
 
         return redirect('year-end')
+
+    def get_unpaid_invoices():
+        year = Settings.current().membership_year
+        invs = Invoice.objects.filter(
+            state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='', amount__gt = 0)
+        return invs
+
 class SubInvoiceCancel(LoginRequiredMixin, View):
     ''' Deletes unpaid items and invoices associated with a sub '''
     
