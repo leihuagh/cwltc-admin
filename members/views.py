@@ -1100,43 +1100,60 @@ class InvoicePublicView(DetailView):
         if 'query' in request.POST:
             group = group_get_or_create("2016Query")
             invoice.person.groups.add(group)
-            return redirect(reverse('contact'))
+            return redirect(reverse('contact-person', kwargs={'person_id': invoice.person.id}))
         elif 'resign' in request.POST:
             group = group_get_or_create("2016Resign")
             invoice.person.groups.add(group)
-            return redirect(reverse('contact-resigned'))
+            return redirect(reverse('contact-resigned', kwargs={'person_id': invoice.person.id}))
 
 class ContactView(FormView):
     form_class = ContactForm
     template_name = 'members/contact.html'
     resigned = False
 
+    #def get_form(self, form_class):
+    #    id = ''
+    #    if len(self.kwargs) == 1:
+    #        id = self.kwargs['person_id']
+    #    return form_class(
+    #        resigned=self.resigned,
+    #        id=id
+    #        )
+
     def get_context_data(self, **kwargs):
         context = super(ContactView, self).get_context_data(**kwargs)
-        if len(self.kwargs) == 1:
-            context['person'] = Person.objects.get(pk = self.kwargs['person_id'])
         if self.resigned:
             context['message'] = "Please tell us briefly why you have resigned"
         else:
             context['message'] = "Please enter your query"
         return context
 
-    def form_valid(self,form):
-        if len(self.kwargs) == 1:
+    def form_valid(self, form):
+        if self.kwargs['person_id']:
             person = Person.objects.get(pk = self.kwargs['person_id'])
             message = "From {} id {} >".format(person.email, person.id)
         else:
             message = ""
         message += form.cleaned_data['email']
-        message += "   "
+        message += '  '
+        if self.resigned:
+            message += 'Resignation:  '
+        else:
+            message += 'Query:  '
         message += form.cleaned_data['message']
         send_mail(subject='CWLTC contact',
                   from_email = 'contact@coombewoodltc.co.uk',
                   message = message,
-                  recipient_list = ["subs@coombewoodltc.co.uk","info@coombewoodltc.co.uk"]
+                  recipient_list = ["subs@coombewoodltc.co.uk"]
                   )
-        return HttpResponseRedirect(reverse('thankyou'))
- 
+        if self.resigned:
+            return HttpResponseRedirect(reverse('resigned'))
+        else:
+            return HttpResponseRedirect(reverse('thankyou'))
+        
+    
+    def form_invalid(self, form):
+        return super(ContactView, self).form_invalid(form)
     
 class ThankyouView(TemplateView):
     template_name = 'members/thankyou.html'

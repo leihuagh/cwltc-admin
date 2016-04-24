@@ -101,7 +101,7 @@
                         <a href="{% url "person-create" link=person.id %}" class="btn btn-primary btn-sm">New family member</a>
                         {% endif %}
                         {% if person != parent %}
-                        <a href="{% url "person-link" pk=person.id %}" class="btn btn-primary btn-sm">Change {{ person.first_name }}'s parent</a>
+                        <a href="{% url "person-link" pk=person.id %}" class="btn btn-primary btn-sm"></a>
                         {% endif %}
                     </div>
                 </div>
