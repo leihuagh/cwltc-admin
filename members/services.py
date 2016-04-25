@@ -60,8 +60,8 @@ def invoice_create_batch(exclude_slug='', size=10000):
     # get a list of all people ids from uninvoiced items
     people_ids = InvoiceItem.objects.filter(invoice=None).values_list('person_id', flat=True)
     people = Person.objects.filter(id__in=people_ids)
-    remaining = people.count()
-    count = 0
+    total = people.count()
+    done = 0
     if size > 0 :
         for person in people:
             if exclude_slug <> '':
@@ -70,12 +70,10 @@ def invoice_create_batch(exclude_slug='', size=10000):
                 include = True
             if include:
                 invoice_create_from_items(person)
-                count += 1
-                if count == size:
+                done += 1
+                if done == size:
                     break
-        return remaining - count
-    else:
-        return remaining
+    return (total, done)
 
 def invoice_create_from_items(person):
     ''' if there are open invoice items link them to a new invoice

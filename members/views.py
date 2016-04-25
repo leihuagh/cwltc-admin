@@ -669,14 +669,15 @@ class YearEndView(LoginRequiredMixin, FormView):
             return redirect('year-end')
 
         elif 'invoices' in form.data:
-            count = invoice_create_batch(exclude_slug='2015UnpaidImvoices')
-            message = '{} invoices created'.format(count)
+            counts = invoice_create_batch(exclude_slug='2015UnpaidImvoices')
+            message = '{} invoices created from {} people'.format(counts[1], counts[0])
             messages.success(self.request, message)
             return redirect('year-end')     
         
         elif 'mail' in form.data:
             group = group_get_or_create('2015UnpaidInvoices')
             invs = self.get_unpaid_invoices()
+            count = 0
             for inv in invs:
                 if not group.person_set.filter(id=inv.person.id).exists():
                     count += 1
@@ -690,6 +691,7 @@ class YearEndView(LoginRequiredMixin, FormView):
             inv_group.person_set.clear()
             invs = self.get_unpaid_invoices()
             group = group_get_or_create('2015UnpaidInvoices')
+            count = 0
             for inv in invs:
                 if not group.person_set.filter(id=inv.person.id).exists():
                     count += 1
@@ -699,10 +701,10 @@ class YearEndView(LoginRequiredMixin, FormView):
 
         return redirect('year-end')
 
-    def get_unpaid_invoices():
+    def get_unpaid_invoices(self):
         year = Settings.current().membership_year
         invs = Invoice.objects.filter(
-            state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='', amount__gt = 0)
+            state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='', total__gt = 0)
         return invs
 
 class SubInvoiceCancel(LoginRequiredMixin, View):
@@ -1453,7 +1455,8 @@ class InvoiceBatchView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super(InvoiceBatchView, self).get_context_data(**kwargs)
         context['title'] = 'Generate invoices'
-        context['remaining'] = invoice_create_batch(size=0)
+        result = invoice_create_batch(size=0)
+        context['remaining'] = result[0] - result[1]
         return context
 
     def form_valid(self,form):
