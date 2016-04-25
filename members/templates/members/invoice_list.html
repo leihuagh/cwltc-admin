@@ -6,7 +6,10 @@
 <form action="." method="post" class="form-inline" id="post-form">
     {% csrf_token %}
     <div class="row">
-   
+        <div class="form-group">
+            <label for="id_membership_year">Year</label>
+            {{ form.membership_year }}
+        </div>
         <div class="form-group">
             <label for="id_start_date" class="col-md-5 control-label">Created from</label>
             {{ form.start_date|add_attributes:'datepicker col-md-6' }}
@@ -87,6 +90,7 @@
         console.log(checks);
         $.post("/invoices/", {
             csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+            membership_year: $('#id_membership_year').val(),
             paid: $('#id_paid').is(":checked"),
             unpaid: $('#id_unpaid').is(":checked"),
             cancelled: $('#id_cancelled').is(":checked"),

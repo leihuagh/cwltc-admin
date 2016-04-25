@@ -316,9 +316,13 @@ urlpatterns = [
         testmailgun,
         name='testmailgun'
     ),
-    url(r'^fix_cnote$',
+    url(r'^fix_cnote/$',
         fix_cnote,
         name='fix-cnote'
+    ),
+    url(r'^reports/$',
+        reports,
+        name='reports'
     ),
     #url(
     #    r'^bar$',

@@ -14,19 +14,19 @@ import json
 import logging
 import gc_app
 
-logger =logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # Read settings from setting.py and initialise go cardless api
-GO_CARDLESS=getattr(settings, 'GO_CARDLESS')
+GO_CARDLESS = getattr(settings, 'GO_CARDLESS')
 
 gocardless.set_details(app_id=GO_CARDLESS['APP_ID'],
-        app_secret=GO_CARDLESS['APP_SECRET'],
-        access_token=GO_CARDLESS['ACCESS_TOKEN'],
-        merchant_id=GO_CARDLESS['MERCHANT_ID'])
+                       app_secret=GO_CARDLESS['APP_SECRET'],
+                       access_token=GO_CARDLESS['ACCESS_TOKEN'],
+                       merchant_id=GO_CARDLESS['MERCHANT_ID'])
 
 gocardless.environment = GO_CARDLESS['ENVIRONMENT']
 
-    
+   
 def gc_create_bill_url(invoice):
     '''
     Create a GoCardless bill for an invoice
@@ -39,15 +39,15 @@ def gc_create_bill_url(invoice):
     url = gocardless.client.new_bill_url(
         amount=invoice.total,
         state=invoice.id,
-        name = 'Payment for Coombe Wood invoice',
-        description = 'Reference: '+ invoice.number(),
+        name='Payment for Coombe Wood invoice',
+        description='Reference: '+ invoice.number(),
         user={'email': email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'billing_address1': user.address.address1,
-            'billing_address2': user.address.address2,
-            'billing_town': user.address.town,
-            'billing_postcode': user.address.post_code}
+              'first_name': user.first_name,
+              'last_name': user.last_name,
+              'billing_address1': user.address.address1,
+              'billing_address2': user.address.address2,
+              'billing_town': user.address.town,
+              'billing_postcode': user.address.post_code}
         )
     return url
 
@@ -61,7 +61,7 @@ class GCConfirm(TemplateView):
         gocardless.client.confirm_resource(request.GET)
         # store the bill id in the invoice record
         invoice_id = request.GET.get('state')
-        invoice= Invoice.objects.get(pk = invoice_id)
+        invoice = Invoice.objects.get(pk=invoice_id)
         invoice.gocardless_bill_id = request.GET.get('resource_id')
         invoice.gocardless_action = "created"
         invoice.save()

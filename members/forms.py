@@ -14,7 +14,7 @@ from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
 
 from .widgets import MonthYearWidget
 from .models import (Person, Address, Subscription, Membership, Invoice, InvoiceItem,
-                     Payment, CreditNote, ExcelBook, TextBlock, Group)
+                     Payment, CreditNote, ExcelBook, TextBlock, Group, Settings)
 from .excel import *
 
 # 
@@ -614,7 +614,8 @@ class SubRenewForm(Form):
 
 
 class InvoiceFilterForm(Form):
-
+    membership_year = forms.IntegerField(min_value=2015, max_value=2100,
+                              initial=Settings.current().membership_year)
     start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                     initial=date(2015,1,1), required=False)
     start_date.widget.format = settings.DATE_INPUT_FORMATS[0]

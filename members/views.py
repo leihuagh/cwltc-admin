@@ -26,7 +26,7 @@ from .mail import *
 from .excel import *
 import ftpService
 import xlrd
-
+from report_builder.models import Report
 
 
 class PersonList(LoginRequiredMixin, ListView):
@@ -934,11 +934,16 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
                 'person__last_name'
             ) 
         if getattr(form, 'cleaned_data', None):
+            mem_year = Settings.current().membership_year
+            if form.cleaned_data['membership_year']:
+                mem_year = form.cleaned_data['membership_year']          
             if form.cleaned_data['start_date']:
                 start_date = form.cleaned_data['start_date'] 
             if form.cleaned_data['end_date']:
                 end_date = form.cleaned_data['end_date'] + timedelta(days=1)
-            queryset = queryset.filter(creation_date__gte=start_date, creation_date__lte=end_date)
+            queryset = queryset.filter(membership_year=mem_year,
+                                       creation_date__gte=start_date,
+                                       creation_date__lte=end_date)
         return queryset
     
     def get_context_data(self, **kwargs):
@@ -950,7 +955,6 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
         context['count'] = self.object_list.count()
         context['total'] = dict['total__sum']
         return context
-
 
 class InvoiceDetailView(LoginRequiredMixin, DetailView):
     model = Invoice
@@ -994,8 +998,6 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
 
         context['show_buttons'] = True
         return context
-
-
 
 class InvoiceGenerateView(LoginRequiredMixin, View):
 
@@ -1068,6 +1070,18 @@ class InvoiceMailBatchView(LoginRequiredMixin, View):
     def get_list(self):
         year = Settings.current().membership_year
         return Invoice.objects.filter(state=Invoice.UNPAID, membership_year=year)
+
+class InvoiceSelectView(LoginRequiredMixin, FormView):
+    form_class = InvoiceSelectForm
+    template_name = 'members/invoice_select.html'
+
+    def form_valid(self, form):
+        choice = int(form.cleaned_data['choice'])
+        ref = form.cleaned_data['ref']
+        if choice == 1:
+            return HttpResponseRedirect(reverse('invoice-detail', kwargs={'pk':ref}))
+        else:
+            return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':ref}))
 
 # ================= Public Views
 
@@ -1159,20 +1173,6 @@ class ContactView(FormView):
     
 class ThankyouView(TemplateView):
     template_name = 'members/thankyou.html'
-
-        
-
-class InvoiceSelectView(LoginRequiredMixin, FormView):
-    form_class = InvoiceSelectForm
-    template_name = 'members/invoice_select.html'
-
-    def form_valid(self, form):
-        choice = int(form.cleaned_data['choice'])
-        ref = form.cleaned_data['ref']
-        if choice == 1:
-            return HttpResponseRedirect(reverse('invoice-detail', kwargs={'pk':ref}))
-        else:
-            return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':ref}))
 
 # ================== PAYMENTS
 
@@ -1470,9 +1470,22 @@ def import_backup(request):
     return import_all()
 
 def fix_cnote(request):
+    pdb.set_trace()
     cnotes = CreditNote.objects.filter(membership_year=0).update(membership_year=2016)
 
     return HttpResponse("Credit notes fixed")
+
+
+
+def reports(request):
+    report=Report.objects.all()[0]
+    qset = report.get_query()
+    list = report.report_to_list(queryset=qset)
+    fields = report.displayfield_set.all()
+    html = ""
+    for f in fields:
+        html += "<br \>" + f.name
+    return HttpResponse(html)
 
 #def bar(request):
 #    """
