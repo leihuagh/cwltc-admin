@@ -3,19 +3,28 @@ Definition of urls for Cwltc.
 """
 
 from datetime import datetime
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.views.generic import TemplateView
 from members.forms import BootstrapAuthenticationForm
 from members.views import *
 from gc_app.views import *
+from members.viewsets import *
 
 # Uncomment the next lines to enable the admin:
-from django.conf.urls import include
 from django.contrib import admin
 from django.contrib.auth.views import *
 admin.autodiscover()
 
+from rest_framework import routers
+router = routers.DefaultRouter()
+router.register(r'users', UserViewSet)
+router.register(r'groups', GroupViewSet)
+
 urlpatterns = [
+
+    url(r'^api/', include(router.urls)),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^report_builder/', include('report_builder.urls')),
     url(r'^$',
         HomeView.as_view(),
         name='home'

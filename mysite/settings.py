@@ -41,6 +41,8 @@ INSTALLED_APPS = (
     'django_wysiwyg',
 	'members',
     'gc_app',
+    'rest_framework',
+    'report_builder'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -51,6 +53,11 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
+    'PAGE_SIZE': 10
+}
 
 ROOT_URLCONF = 'mysite.urls'
 
