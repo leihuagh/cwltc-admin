@@ -14,7 +14,7 @@ django-wysiwyg==0.7.1
 djrill==2.0
 gocardless==0.5.3
 jdcal==1.2
-Markdown==2.6.6
+Markdown==2.6.5
 openpyxl==2.2.1
 psycopg2==2.6.1
 python-dateutil==2.5.3
