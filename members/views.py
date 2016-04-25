@@ -1469,11 +1469,10 @@ def export(request):
 def import_backup(request):
     return import_all()
 
-def test(request):
-    from .mail import test_mail_template
-    from django.http import HttpResponse
-    test_mail_template()
-    return HttpResponse("Test mail sent")
+def fix_cnote(request):
+    cnotes = CreditNote.objects.filter(membership_year=0).update(membership_year=2016)
+
+    return HttpResponse("Credit notes fixed")
 
 #def bar(request):
 #    """

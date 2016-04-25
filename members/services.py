@@ -252,10 +252,11 @@ def invoice_cancel(invoice, with_credit_note=True, superuser=False):
         invoice.save()
         c_note = CreditNote(invoice=invoice,
                             person=invoice.person,
-                            reference='Cancelled invoice {}'.format(invoice.number())
+                            reference='Cancelled invoice {}'.format(invoice.number()),
+                            amount=amount,
+                            detail=description,
+                            membership_year=invoice.membership_year
                             )
-        c_note.amount = amount
-        c_note.detail = description
         c_note.save()
         return c_note
     else:

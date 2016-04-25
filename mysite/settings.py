@@ -37,7 +37,6 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'import_export',
     'crispy_forms',
-    'djrill',
     'django_wysiwyg',
 	'members',
     'gc_app',

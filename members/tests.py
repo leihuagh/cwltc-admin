@@ -542,6 +542,7 @@ class MembersTestCase(TestCase):
         self.assertEqual(inv1.state, Invoice.CANCELLED)
         self.assertEqual(inv1.invoiceitem_set.count(),0)
         self.assertEqual(cnote.amount, inv.total)
+        self.assertEqual(cnote.membership_year, inv.membership_year)
 
         # create new invoice and test cancel without credit_note
         invoice_create_from_items(adult)   
