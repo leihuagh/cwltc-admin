@@ -1470,12 +1470,8 @@ def import_backup(request):
     return import_all()
 
 def fix_cnote(request):
-    pdb.set_trace()
     cnotes = CreditNote.objects.filter(membership_year=0).update(membership_year=2016)
-
     return HttpResponse("Credit notes fixed")
-
-
 
 def reports(request):
     report=Report.objects.all()[0]

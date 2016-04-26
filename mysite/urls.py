@@ -192,7 +192,7 @@ urlpatterns = [
     ),
 
     #   CREDIT NOTES
-        url(r'^creditnote/create/(?P<person_id>\d+)/$',
+    url(r'^creditnote/create/(?P<person_id>\d+)/$',
         CreditNoteCreateView.as_view(),
         name='creditnote-create'
     ),
