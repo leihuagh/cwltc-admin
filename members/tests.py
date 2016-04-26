@@ -314,7 +314,7 @@ class MembersTestCase(TestCase):
         self.assertEqual(inv.total, 240, 'Wrong total: {}'.format(inv.total))
         self.assertEqual(inv.invoiceitem_set.count(), 1)
         # test cancellation whole invoice
-        inv.cancel()
+        invoice_cancel(inv)
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.invoiceitem_set.count(), 0)
         cnote = CreditNote.objects.all()[0]

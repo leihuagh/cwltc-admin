@@ -167,6 +167,51 @@ def invoice_create_from_items(person):
             invoice.delete()
             return None
 
+def invoice_cancel(invoice, with_credit_note=True, superuser=False):
+    ''' 
+    Disconnect all items from an invoice
+    Delete Family discount items, the others remain
+    If with credit_note, mark invoice as cancelled and create a credit note
+    Else delete the invoice but not any attached credit note
+    '''
+    # no item can be paid
+    if not superuser:
+        if invoice.paid_items_count():
+            return False
+
+    amount = 0
+    description = u''
+    for item in invoice.invoiceitem_set.all():
+        amount += item.amount
+        description = description + 'Item: {0} {1}{2}'.format(
+            item.item_type.description,
+            item.amount,
+            '<br>')
+        if item.item_type_id == ItemType.FAMILY_DISCOUNT:
+            item.delete()
+        else:
+            item.invoice = None
+            item.save()
+    
+    if with_credit_note:
+        invoice.state = Invoice.CANCELLED
+        invoice.save()
+        c_note = CreditNote(invoice=invoice,
+                            person=invoice.person,
+                            reference='Cancelled invoice {}'.format(invoice.number()),
+                            amount=amount,
+                            detail=description,
+                            membership_year=invoice.membership_year
+                            )
+        c_note.save()
+        return c_note
+    else:
+        # disconnect any credit note else it will cascade the delete
+        for cnote in invoice.creditnote_set.all():
+            cnote.invoice = None
+            cnote.save()
+        invoice.delete()
+    return True
 
     #def pay_invoice_part(self, inv):
     #    ''' THIS CODE NOT FINISHED '''
@@ -221,53 +266,6 @@ def invoice_create_from_items(person):
     #        self.state = Payment.FULLY_MATCHED
     #    self.save()
 
-def invoice_cancel(invoice, with_credit_note=True, superuser=False):
-    ''' 
-    Disconnect all items from an invoice
-    Delete Family discount items, the others remain
-    If with credit_note, mark invoice as cancelled and create a credit note
-    Else delete the invoice but not any attached credit note
-    '''
-    # no item can be paid
-    if not superuser:
-        if invoice.paid_items_count():
-            return False
-
-    amount = 0
-    description = u''
-    for item in invoice.invoiceitem_set.all():
-        amount += item.amount
-        description = description + 'Item: {0} {1}{2}'.format(
-            item.item_type.description,
-            item.amount,
-            '<br>')
-        if item.item_type_id == ItemType.FAMILY_DISCOUNT:
-            item.delete()
-        else:
-            item.invoice = None
-            item.save()
-    
-    if with_credit_note:
-        invoice.state = Invoice.CANCELLED
-        invoice.save()
-        c_note = CreditNote(invoice=invoice,
-                            person=invoice.person,
-                            reference='Cancelled invoice {}'.format(invoice.number()),
-                            amount=amount,
-                            detail=description,
-                            membership_year=invoice.membership_year
-                            )
-        c_note.save()
-        return c_note
-    else:
-        # disconnect any credit note else it will cascade the delete
-        for cnote in invoice.creditnote_set.all():
-            cnote.invoice = None
-            cnote.save()
-        invoice.delete()
-    return True
-
-
 def subscription_create(person, sub_year,
                         start_month=Subscription.START_MONTH,
                         end_month=Subscription.END_MONTH,
@@ -318,7 +316,6 @@ def subscription_activate(sub):
     sub.person_member.membership_id = sub.membership_id
     sub.person_member.save()
 
-
 def subscription_renew(sub, sub_year, sub_month, generate_item=False):
     ''' Generate a new sub if current sub active and expired '''
     new_start = datetime(sub_year, sub_month, 1).date()
@@ -344,7 +341,6 @@ def subscription_renew(sub, sub_year, sub_month, generate_item=False):
                 subscription_create_invoiceitems(new_sub, sub_month)
             return new_sub
 
-       
 def subscription_renew_batch(sub_year, sub_month, size = 100000):
     '''
     Renew a batch of subscriptions.
@@ -409,7 +405,6 @@ def subscription_create_invoiceitems(sub, month):
                 elif sub.period == Subscription.NON_RECURRING:
                     pass
 
-
 def subscription_delete_invoiceitems(sub):
     ''' Delete invoice items attached to sub
     If item is linked to an unpaid invoice, 
@@ -417,11 +412,10 @@ def subscription_delete_invoiceitems(sub):
     for item in sub.invoiceitem_set.all():
         if item.invoice:
             if item.invoice.state == Invoice.UNPAID:
-                item.invoice.cancel()
+                invoice_cancel(item.invoice)
                 item.delete()
         else:
             item.delete()
-
 
 def subscription_create_invoiceitem(sub, start_absmonth, end_absmonth, fee):
     ''' create a subscription invoice item 
@@ -440,6 +434,7 @@ def subscription_create_invoiceitem(sub, start_absmonth, end_absmonth, fee):
         )
     item.save()
 
+
 def person_link_to_parent(child, parent):
     ''' link child to parent
         If parent = None, just unlink
@@ -457,7 +452,6 @@ def person_link_to_parent(child, parent):
     if old_address.person_set.count() == 0:
         address.delete()
 
-
 def person_delete(person):
     ''' 
     Delete a person if they have no family
@@ -473,7 +467,6 @@ def person_delete(person):
     person.delete()
     return ""  
 
-     
 def person_get_book_entries(person, year):
     '''
     Returns a sorted list of invoice, payments and credit notes
@@ -491,6 +484,7 @@ def person_get_book_entries(person, year):
         entries.append(p)
     return sorted(entries, key=attrgetter('creation_date'))
 
+
 def group_get_or_create(slug):
     '''
     Returns the group with given slug if it exists
@@ -505,18 +499,7 @@ def group_get_or_create(slug):
     else:
         raise ServicesError("{} groups matches slug {}".format(qset.count(), slug))
     return group
-
-def set_membership_year(new_year):
-    if new_year == 0:
-        invoices = Invoice.objects.all().update(membership_year=new_year)
-        payments = Payment.objects.all().update(membership_year=new_year)
-        cnotes = CreditNote.objects.all().update(membership_year=new_year)
-    else:
-        invoices = Invoice.objects.filter(membership_year=0).update(membership_year=new_year)
-        payments = Payment.objects.filter(membership_year=0).update(membership_year=new_year)
-        cnotes = CreditNote.objects.filter(membership_year=0).update(membership_year=new_year)
-    return invoices, payments, cnotes 
-      
+     
 
 def consolidate(year):
     slug = '2015UnpaidInvoices'

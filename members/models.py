@@ -126,8 +126,7 @@ class Person(models.Model):
                 if sub.active:
                     return sub
         return None
-
-                                       
+                                    
 
 class Membership(models.Model):
     AUTO = -1
@@ -317,60 +316,6 @@ class Invoice(models.Model):
     def unpaid_items_count(self):
         return self.invoiceitem_set.filter(paid=False).count()
 
-    def pay_full(self):
-        ''' Mark all items in the invoice as paid in full '''
-        for item in self.invoiceitem_set.all():
-            item.paid = True
-            item.save()
-        self.state = Invoice.PAID_IN_FULL
-        self.save()
-
-    def delete_invoice(self):
-        ''' Delete the invoice and all invoice items if no invoice item has been paid '''
-        for item in self.invoiceitem_set.all():
-            if item.paid:
-                return False
-        for item in self.invoiceitem_set.all(): 
-            item.delete()
-        self.delete()
-
-    def cancel(self):
-        ''' Mark invoice as cancelled and disconnect all items from it
-            Relink it to the person
-            Create a credit note for total
-            Return the credit note or False if invoice has paid items
-        '''
-        c_note = CreditNote(invoice=self,
-                            person=self.person,
-                           reference='Cancelled invoice {}'.format(self.number())
-                           )
-        amount = 0
-        description = u''
-        paid_items = False
-        for item in self.invoiceitem_set.all():
-            if not item.paid:
-                amount += item.amount
-                description = description + 'Item: {0} {1}{2}'.format(
-                    item.item_type.description,
-                    item.amount,
-                    '\n')
-                if item.item_type_id == ItemType.FAMILY_DISCOUNT:
-                    item.delete()
-                else:
-                    item.invoice = None
-                    item.save()
-            else:
-                paid_items = True
-        if paid_items:
-            return False
-        else:
-            self.state = Invoice.CANCELLED
-            self.save()
-            c_note.amount = amount
-            c_note.detail = description
-            c_note.save()
-            return c_note
-
     def add_context(self, context):
         ''' set up the context for invoice & payment templates '''
         context['invoice'] = self
@@ -439,6 +384,7 @@ class Payment(models.Model):
     banked_date = models.DateField(null=True)
     fee = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
     invoice = models.ForeignKey(Invoice,blank=True, null=True)
+
     def __unicode__(self):
         return "Payment:{} amount:{} credited:{} state:{}".format(
             Payment.TYPES[self.type][1],
@@ -651,10 +597,7 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
     if instance.file:
         if os.path.isfile(instance.file.path):
-            os.remove(instance.file.path)        
-        
-      
-        
+            os.remove(instance.file.path)             
               
 def diff_month(end, start):
     return (end.year - start.year)*12 + end.month - start.month

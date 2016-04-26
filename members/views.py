@@ -648,13 +648,6 @@ class YearEndView(LoginRequiredMixin, FormView):
             record.save()
             return redirect('home')
 
-        elif 'add' in form.data:
-            counts = set_membership_year(year)
-            message = '{} invoices, {} payments and {} credit notes updated to {}'.format(
-                counts[0], counts[1], counts[2], year)
-            messages.success(self.request, message)
-            return redirect('year-end')
-
         elif 'consolidate' in form.data:
             counts  = consolidate(year)
             message = '{} people processed, {} unpaid  and {} credit notes carried forward'.format(
@@ -714,7 +707,7 @@ class SubInvoiceCancel(LoginRequiredMixin, View):
         sub = get_object_or_404(Subscription, pk = self.kwargs['pk'])
         for item in sub.invoiceitem_set.all():
             if item.invoice and item.invoice.state == Invoice.UNPAID:
-                item.invoice.cancel()
+                invoice_cancel(item.invoice)
             item.delete()
         return redirect(sub)
 
