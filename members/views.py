@@ -1492,7 +1492,7 @@ def import_backup(request):
 def fix_fees(request):
     payments = Payment.objects.filter(type=Payment.DIRECT_DEBIT)
     for p in payments:
-        fee = amount / 100
+        fee = p.amount / 100
         if fee > 2:
             fee = 2
         p.fee = fee
