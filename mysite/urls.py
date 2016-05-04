@@ -316,9 +316,9 @@ urlpatterns = [
         testmailgun,
         name='testmailgun'
     ),
-    url(r'^fix_cnote/$',
-        fix_cnote,
-        name='fix-cnote'
+    url(r'^fix_fees/$',
+        fix_fees,
+        name='fix-fees'
     ),
     url(r'^reports/$',
         reports,

@@ -1,9 +1,10 @@
 from os import path
 from datetime import date, datetime, timedelta
 from django import forms
-from django.forms import Form, ModelForm
+from django.forms import Form, ModelForm, ModelMultipleChoiceField
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
+from django.utils.safestring import mark_safe
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
 from django.core.urlresolvers import reverse_lazy
 from django.conf import settings
@@ -726,6 +727,34 @@ class GroupForm(ModelForm):
         self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+
+class GroupAddPersonForm(Form):
+    #class meta:
+    #    model = Group
+    #    fields ['slug']
+
+    #class MultipleGroupField(forms.ModelMultipleChoiceField):
+        #def label_from_instance(self, group):
+        #    url = reverse('group-detail', kwargs={'slug': group.slug})
+        #    label = '<a href="%s">%s</a>' % (url, group.__unicode__())
+        #    return mark_safe(label)
+    
+    groups = ModelMultipleChoiceField(queryset=[])
+        #Widget=CheckboxSelectMultiple()
+        #)
+
+    def __init__(self, *args, **kwargs):
+        super(GroupAddPersonForm, self).__init__(*args, **kwargs)
+        self.fields['groups'].queryset = Group.objects.all()
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.form_method = 'post'
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        self.helper.add_input(SubmitButton('submit', 'Add', css_class='btn-primary'))
+    
 
 class EmailTextForm(Form):
     intro = forms.CharField(max_length=30, required=False)

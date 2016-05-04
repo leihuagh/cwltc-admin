@@ -17,6 +17,7 @@ def invoice_pay_by_gocardless(invoice, amount, fee):
     payment = Payment(type=Payment.DIRECT_DEBIT,
                         person=invoice.person,
                         amount=amount,
+                        fee=fee,
                         banked=True,
                         banked_date=datetime.now(),
                         )

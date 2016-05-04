@@ -467,7 +467,10 @@ class MembersTestCase(TestCase):
         items = inv.invoiceitem_set.filter(paid=True).count()
         self.assertEqual(items, 0)
         # create a payment
-        payment = Payment.objects.create(type=Payment.CHEQUE,
+        fee = total/100
+        if fee > 2:
+            fee = 2
+        payment = Payment.objects.create(type=Payment.DIRECT_DEBIT,
                                          person=adult,
                                          reference='test',
                                          amount=total,

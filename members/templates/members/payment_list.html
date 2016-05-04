@@ -12,6 +12,7 @@
         <th>Person</th>
         <th>Reference</th>
         <th class = "text-right">Amount</th>
+        <th class = "text-right">Fee</th>
         <th>State</th>
         <th>Banked</th>
         <th></th>
@@ -25,6 +26,7 @@
     <td>{{ payment.person.fullname }}</td>
     <td>{% if payment.reference %}{{ payment.reference }}{% endif %}</td>
     <td class = "text-right">£{{ payment.amount }}</td>
+    <td class = "text-right">£{{ payment.fee }}</td>
     <td>{{ payment_states|get_option:payment.state}}</td>
     <td>{% if payment.banked %}Yes{% endif %}</td>
     <td><a href="{% url "payment-detail" payment.id %}" class="btn btn-primary btn-xs">View</a></td>
@@ -46,7 +48,7 @@
         </span>
     </div>
 {% endif %}
-<h4>Total = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} payments)</h4>
+<h4>Total = £{% if total %}{{ total }} Fee = {{ fees }}{% else %}0{% endif %} ({{ count }} payments)</h4>
 {%  endblock content %}
 {% block scripts %}
 <script>

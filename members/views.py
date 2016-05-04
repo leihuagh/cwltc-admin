@@ -440,17 +440,42 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
     model = Group
     template_name = 'members/group_detail.html'
 
+ 
     def get_context_data(self, **kwargs):
         context = super(GroupDetailView, self).get_context_data(**kwargs)
         context['group'] = self.get_object()
-        context['object_list'] = context['group'].person_set.all()
+        context['object_list'] = context['group'].person_set.order_by('last_name')
         add_membership_context(context)
         return context
+    
+    def post(self, request, *args, **kwargs):
+        group = self.get_object()
+        if 'delete' in request.POST:
+            group.delete()
+        elif 'clear' in request.POST:
+            group.person_set.clear()
+        return redirect(reverse('group-list'))
 
-class GroupAddPersonView(LoginRequiredMixin, ListView):
-    def get(request):
-        return HttpResponse("not implemented yet")
+class GroupAddPersonView(LoginRequiredMixin, FormView):
+    form_class = GroupAddPersonForm
+    template_name = 'members/generic_crispy_form.html'
+    
+    #def __init__(self, *args, **kwargs):
+    #    self.person = Person.objects.get(pk = self.kwargs['person_id']).fullname()
+    #    return super(GroupDetailView, self).__init__(*args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super(GroupAddPersonView, self).get_context_data(**kwargs)
+        #context['groups'] = Group.objects.all()
+        self.person = Person.objects.get(pk = self.kwargs['person_id'])
+        context['message'] = self.person.fullname()
+        return super(GroupAddPersonView, self).get_context_data(**kwargs)
+
+    def form_valid(self, form):
+        return super(GroupAddPersonView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('group-list')
 # ============== Subscriptions
 
 class SubCreateView(LoginRequiredMixin, CreateView):
@@ -1217,13 +1242,15 @@ class PaymentListView(LoginRequiredMixin, ListView):
         context = super(PaymentListView, self).get_context_data(**kwargs)
         context['payment_types'] = Payment.TYPES
         context['payment_states'] = Payment.STATES
-        dict = self.queryset.aggregate(Sum('amount'))
+        dict = self.queryset.aggregate(Sum('amount'),Sum('fee'))
         context['count'] = self.queryset.count()
         context['total'] = dict['amount__sum']
+        context['fees'] = dict['fee__sum']
         return context
 
     def get_queryset(self):
-        self.queryset = Payment.objects.select_related()
+        year = Settings.current().membership_year
+        self.queryset = Payment.objects.filter(invoice__membership_year=year).select_related()
         return self.queryset
 
 
@@ -1462,9 +1489,15 @@ def export(request):
 def import_backup(request):
     return import_all()
 
-def fix_cnote(request):
-    cnotes = CreditNote.objects.filter(membership_year=0).update(membership_year=2016)
-    return HttpResponse("Credit notes fixed")
+def fix_fees(request):
+    payments = Payment.objects.filter(type=Payment.DIRECT_DEBIT)
+    for p in payments:
+        fee = amount / 100
+        if fee > 2:
+            fee = 2
+        p.fee = fee
+        p.save()
+    return HttpResponse("payments fixed")
 
 def reports(request):
     report=Report.objects.all()[0]
