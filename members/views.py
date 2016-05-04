@@ -1516,7 +1516,7 @@ def fix_fees(request):
         if fee > 2:
             fee = 2
         p.fee = fee
-        p,membership_year = 2016
+        p.membership_year = 2016
         p.save()
     return HttpResponse("payments fixed")
 
