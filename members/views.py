@@ -1234,12 +1234,14 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         context['payment_states'] = Payment.STATES
         return context
 
-class PaymentListView(LoginRequiredMixin, ListView):
+class PaymentListView(LoginRequiredMixin, FormMixin, ListView):
+    form_class = PaymentFilterForm
     model = Payment
     template_name = 'members/payment_list.html'
 
     def get_context_data(self, **kwargs):
         context = super(PaymentListView, self).get_context_data(**kwargs)
+        context['form'] = self.get_form(self.form_class)
         context['payment_types'] = Payment.TYPES
         context['payment_states'] = Payment.STATES
         dict = self.queryset.aggregate(Sum('amount'),Sum('fee'))
@@ -1253,6 +1255,24 @@ class PaymentListView(LoginRequiredMixin, ListView):
         self.queryset = Payment.objects.filter(invoice__membership_year=year).select_related()
         return self.queryset
 
+    def post(self, request, *args, **kwargs):
+        ''' POST handles submit and ajax request '''
+        self.form = self.get_form(self.form_class)
+        if self.form.is_valid():
+            self.object_list = self.get_queryset()
+            
+            if request.is_ajax():
+                context = self.get_context_data()
+                context['checkboxes'] = False
+                html = render_to_string("members/_invoice_list.html", context)
+                dict = {"data": html, "search": request.POST['search']}
+                return JsonResponse(dict, safe=False)
+
+            if 'export' in self.form.data:
+                return export_payments(self.object_list)
+                  
+        context = self.get_context_data()
+        return self.render_to_response(context)
 
 # ================== CREDIT NOTES
 
@@ -1496,6 +1516,7 @@ def fix_fees(request):
         if fee > 2:
             fee = 2
         p.fee = fee
+        p,membership_year = 2016
         p.save()
     return HttpResponse("payments fixed")
 

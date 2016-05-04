@@ -618,7 +618,7 @@ class InvoiceFilterForm(Form):
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
                               initial=Settings.current().membership_year)
     start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
-                                    initial=date(2015,1,1), required=False)
+                                    initial=date(Settings.current().membership_year,4,1), required=False)
     start_date.widget.format = settings.DATE_INPUT_FORMATS[0]
     end_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                   initial=date.today(), required=False)
@@ -812,6 +812,17 @@ class PaymentForm(ModelForm):
         model = Payment
         fields = ['membership_year', 'type', 'reference', 'amount', 'banked_date']
         widgets = {'banked_date': forms.DateInput(attrs={'class':'datepicker'}),}
+
+class PaymentFilterForm(Form):
+    membership_year = forms.IntegerField(min_value=2015, max_value=2100,
+                              initial=Settings.current().membership_year)
+    start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
+                                    initial=date(Settings.current().membership_year,4,1), required=False)
+    start_date.widget.format = settings.DATE_INPUT_FORMATS[0]
+    end_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
+                                  initial=date.today(), required=False)
+    end_date.widget.format = settings.DATE_INPUT_FORMATS[0]
+
 
 class CreditNoteForm(ModelForm):
 

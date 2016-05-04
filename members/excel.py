@@ -8,7 +8,7 @@ from xlwt import Workbook, Style, easyxf
 from numbers import Number
 
 from members.models import (Membership, Person, Address, Fees, Subscription, ItemType,
-                            Invoice, InvoiceItem)
+                            Invoice, InvoiceItem, Payment)
 
 
 def open_local_workbook():
@@ -393,7 +393,61 @@ def export_invoices(invoices):
             sheet.write(row_num, col_num, data, style=style)  
       
     book.save(response)
-    return response  
+    return response
+
+def export_payments(payments):
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=Payments.xls'
+    book = Workbook(encoding='utf-8')
+    sheet = book.add_sheet('Payments')
+    date_style = easyxf(num_format_str='dd/mm/yyyy')
+    default_style = Style.default_style
+    
+    columns = [
+        'Year',
+        'Number',
+        'Date',
+        'Type',
+        'Person_Id',
+        'Person',
+        'Reference',
+        'Invoice_Id',
+        'Amount',
+        'Fee',
+        'Banked',
+        'Banked date'
+    ]
+    for col_num in xrange(len(columns)):
+        sheet.write(0, col_num, columns[col_num].decode('utf-8','ignore'))
+                             
+    row_num = 0
+    for pay in payments:
+        row_num += 1
+        row = [
+            pay.membership_year,
+            pay.id,
+            pay.update_date,
+            Payment.TYPES[pay.type][1],
+            pay.person_id,
+            pay.person.fullname(),
+            pay.reference,
+            pay.invoice.id,
+            pay.amount,
+            pay.fee,
+            pay.banked,
+            pay.banked_date
+        ]
+        for col_num in xrange(len(row)):
+            data = row[col_num]
+            if isinstance(data, datetime) or isinstance(data, date):
+                style = date_style
+                data = date(data.year, data.month, data.day)
+            else:
+                style = default_style
+            sheet.write(row_num, col_num, data, style=style)  
+      
+    book.save(response)
+    return response    
 
 def export_members(option):
     ''' Export a members list in the format used by the bar system '''

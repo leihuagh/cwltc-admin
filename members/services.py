@@ -14,10 +14,12 @@ class ServicesError(Error):
 
 def invoice_pay_by_gocardless(invoice, amount, fee):
     ''' Create a gocardless payment record and pay an invoice '''
+    year = Settings.current().membership_year
     payment = Payment(type=Payment.DIRECT_DEBIT,
                         person=invoice.person,
                         amount=amount,
                         fee=fee,
+                        membership_year=year,
                         banked=True,
                         banked_date=datetime.now(),
                         )

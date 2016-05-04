@@ -455,6 +455,8 @@ class MembersTestCase(TestCase):
             description='Test BAR',
             amount=100)
         invoice_create_from_items(junior)
+        
+        # check the invoice
         self.assertEqual(Invoice.objects.all().count(), 1)
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.person,adult)
@@ -466,20 +468,16 @@ class MembersTestCase(TestCase):
         self.assertEqual(inv.total, total)
         items = inv.invoiceitem_set.filter(paid=True).count()
         self.assertEqual(items, 0)
-        # create a payment
+        
+        # create a payment by gocardless
         fee = total/100
         if fee > 2:
             fee = 2
-        payment = Payment.objects.create(type=Payment.DIRECT_DEBIT,
-                                         person=adult,
-                                         reference='test',
-                                         amount=total,
-                                         credited=0)
-        self.assertEqual(payment.state, Payment.NOT_MATCHED)
-        # pay the invoice
-        invoice_pay(inv, payment)
+        invoice_pay_by_gocardless(inv, total, fee)
         payment = Payment.objects.all()[0]
-        self.assertEqual(payment.state, Payment.FULLY_MATCHED)    
+        self.assertEqual(payment.state, Payment.FULLY_MATCHED)  
+        self.assertEqual(payment.membership_year, 2015)  
+        
         # check the invoice and items are paid
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.state, Invoice.PAID_IN_FULL)  
