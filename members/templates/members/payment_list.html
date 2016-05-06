@@ -57,7 +57,7 @@
             dateFormat: 'dd/mm/yy'
         };
         $('.datepicker').datepicker(options);
-        $('#payments').DataTable();
+        $('#paymentsTable').DataTable();
     });
     // from django documentation
     function csrfSafeMethod(method) {
@@ -95,7 +95,7 @@
         ).done(function (json) {
             //console.log(json);
             var html = json["data"];
-            $("#paymentsDiv").html(html);
+            $("#paymentsTable").html(html);
             $("#paymentsTable").DataTable();
         }
         ).fail(function (xhr, errmsg, err) {
