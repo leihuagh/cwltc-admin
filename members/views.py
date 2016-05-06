@@ -476,6 +476,7 @@ class GroupAddPersonView(LoginRequiredMixin, FormView):
 
     def get_success_url(self):
         return reverse('group-list')
+
 # ============== Subscriptions
 
 class SubCreateView(LoginRequiredMixin, CreateView):
@@ -591,9 +592,7 @@ class SubListView(LoginRequiredMixin, ListView):
         context = super(SubListView, self).get_context_data(**kwargs)
         context['person'] = self.person
         return context
-
-
-        
+       
 class SubRenewView(LoginRequiredMixin, FormView):
      
     def get(self, request, *args, **kwargs):    
@@ -620,7 +619,6 @@ class SubRenewAllView(LoginRequiredMixin, FormView):
         
     def get_success_url(self):
         return reverse('home')
-         
 
 class SubRenewBatch(LoginRequiredMixin, FormView):
     form_class = XlsMoreForm
@@ -900,7 +898,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             if request.is_ajax():
                 context = self.get_context_data()
                 context['checkboxes'] = False
-                html = render_to_string("members/_invoice_list.html", context)
+                html = render_to_string(self.template_name, context)
                 dict = {"data": html, "search": request.POST['search']}
                 return JsonResponse(dict, safe=False)
 
@@ -1234,26 +1232,17 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         context['payment_states'] = Payment.STATES
         return context
 
-class PaymentListView(LoginRequiredMixin, FormMixin, ListView):
+class PaymentListView(LoginRequiredMixin, FormMixin, TemplateView):
     form_class = PaymentFilterForm
     model = Payment
     template_name = 'members/payment_list.html'
 
-    def get_context_data(self, **kwargs):
-        context = super(PaymentListView, self).get_context_data(**kwargs)
-        context['form'] = self.get_form(self.form_class)
-        context['payment_types'] = Payment.TYPES
-        context['payment_states'] = Payment.STATES
-        dict = self.queryset.aggregate(Sum('amount'),Sum('fee'))
-        context['count'] = self.queryset.count()
-        context['total'] = dict['amount__sum']
-        context['fees'] = dict['fee__sum']
-        return context
-
-    def get_queryset(self):
-        year = Settings.current().membership_year
-        self.queryset = Payment.objects.filter(invoice__membership_year=year).select_related()
-        return self.queryset
+    def get(self, request, *args, **kwargs):
+        ''' GET returns HTML '''
+        self.form = self.get_form(self.form_class)
+        self.object_list = self.get_queryset()
+        context = self.get_context_data()
+        return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         ''' POST handles submit and ajax request '''
@@ -1263,9 +1252,8 @@ class PaymentListView(LoginRequiredMixin, FormMixin, ListView):
             
             if request.is_ajax():
                 context = self.get_context_data()
-                context['checkboxes'] = False
-                html = render_to_string("members/_invoice_list.html", context)
-                dict = {"data": html, "search": request.POST['search']}
+                html = render_to_string("members/_payment_list.html", context)
+                dict = {"data": html}
                 return JsonResponse(dict, safe=False)
 
             if 'export' in self.form.data:
@@ -1273,6 +1261,78 @@ class PaymentListView(LoginRequiredMixin, FormMixin, ListView):
                   
         context = self.get_context_data()
         return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        #self.object_list = self.get_queryset()
+        context = super(PaymentListView, self).get_context_data(**kwargs)
+        context['form'] = self.get_form(self.form_class)
+        context['payments'] = self.object_list
+        context['payment_types'] = Payment.TYPES
+        context['payment_states'] = Payment.STATES
+        dict = self.queryset.aggregate(Sum('amount'),Sum('fee'))
+        context['count'] = self.queryset.count()
+        context['total'] = dict['amount__sum']
+        context['fees'] = dict['fee__sum']
+        return context
+
+    def get_queryset(self):
+        form = self.form
+        year = Settings.current().membership_year    
+        start_date = date(year,4,1)
+        end_date = date.today()
+        q_direct_debit = Payment.DIRECT_DEBIT
+        q_bacs = Payment.BACS
+        q_cheque = Payment.CHEQUE
+        q_other = Payment.OTHER
+        q_cash = Payment.CASH
+        if getattr(form, 'cleaned_data', None):
+            if form.cleaned_data['membership_year']:
+                year = form.cleaned_data['membership_year']          
+            if form.cleaned_data['start_date']:
+                start_date = form.cleaned_data['start_date'] 
+            if form.cleaned_data['end_date']:
+                end_date = form.cleaned_data['end_date'] + timedelta(days=1)
+            q_direct_debit = -1
+            q_bacs = -1
+            q_cheque = -1
+            q_other = -1
+            q_cash = -1
+            if form.cleaned_data['direct_debit']:
+                q_direct_debit = Payment.DIRECT_DEBIT
+            if form.cleaned_data['bacs']:
+                q_bacs = Payment.BACS
+            if form.cleaned_data['cheque']:
+                q_cheque = Payment.CHEQUE
+            if form.cleaned_data['other']:
+                q_other = Payment.OTHER
+            if form.cleaned_data['cash']:
+                q_cash = Payment.CASH
+        self.queryset = Payment.objects.filter(
+            membership_year=year,
+            creation_date__gte=start_date,
+            creation_date__lte=end_date).filter(
+            Q(type=q_direct_debit) |
+            Q(type=q_bacs) |
+            Q(type=q_cheque) |
+            Q(type=q_cash) |
+            Q(type=q_other)           
+            ).select_related(
+                'person'
+            ).order_by(
+                'person__last_name'
+            ) 
+        return self.queryset
+        #if getattr(form, 'cleaned_data', None):
+        #    mem_year = Settings.current().membership_year
+        #    if form.cleaned_data['membership_year']:
+        #        mem_year = form.cleaned_data['membership_year']          
+        #    if form.cleaned_data['start_date']:
+        #        start_date = form.cleaned_data['start_date'] 
+        #    if form.cleaned_data['end_date']:
+        #        end_date = form.cleaned_data['end_date'] + timedelta(days=1)
+        #    self.queryset = self.queryset.filter(     
+        
+
 
 # ================== CREDIT NOTES
 

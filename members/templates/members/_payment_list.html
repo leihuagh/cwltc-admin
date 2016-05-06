@@ -1,27 +1,44 @@
 ﻿{% load members_extras %}
-<table id="payments" class="table table-condensed">
-    <caption class="text-left"><h4>Payments</h4></caption>
-<thead>
+
+<table id="paymentsTable" class="table table-condensed">
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Person</th>
+            <th>Reference</th>
+            <th class = "text-right">Amount</th>
+            <th class = "text-right">Fee</th>
+            <th>Banked</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th>Totals:</th>
+            <th class = "text-right">£{{ total }}</th>
+            <th class = "text-right">£{{ fees }}</th>
+            <th>({{ count }} payments)</th>
+            <th></th>
+        </tr>
+    </tfoot>
+    {% for payment in payments %}
     <tr>
-        <th>Number</th>
-        <th>Date</th>
-        <th>Type</th>
-        <th>Reference</th>
-        <th>State</th>
-        <th class = "text-right">Matched</th>
-        <th class = "text-right">Amount</th>
+        <td>{{ payment.id }}</td>
+        <td>{{ payment.creation_date|date }}</td>
+        <td>{{ payment_types|get_option:payment.type }}</td>
+        <td>{{ payment.person.fullname }}</td>
+        <td>{% if payment.reference %}{{ payment.reference }}{% endif %}</td>
+        <td class = "text-right">£{{ payment.amount }}</td>
+        <td class = "text-right">£{{ payment.fee }}</td>
+        {#<td>{{ payment_states|get_option:payment.state}}</td>#}
+        <td>{% if payment.banked %}Yes{% endif %}</td>
+        <td><a href="{% url "payment-detail" payment.id %}" class="btn btn-primary btn-xs">View</a></td>
     </tr>
-</thead>
-{% for p in payments %}
-    <tr>
-        <td>{{ p.id}}</td>
-        <td>{{ p.creation_date|date  }}</td>
-        <td>{{ types|get_option:p.type }}</td>
-        <td>{{ p.reference}}</td> 
-        <td>{{ payment_states|get_option:p.state }}</td>
-        <td class = "text-right">£{{ p.credited}}</td>
-        <td class = "text-right">£{{ p.amount}}</td>      
-        <td><a href="{% url "payment-detail"  p.id %}" class="btn btn-primary btn-xs">View</a></td>
-    </tr>
-{% endfor sub %}
+    {% endfor payment %}
 </table>

@@ -815,14 +815,18 @@ class PaymentForm(ModelForm):
 
 class PaymentFilterForm(Form):
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                              initial=Settings.current().membership_year)
+                              initial=Settings.current().membership_year, required=False)
     start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                     initial=date(Settings.current().membership_year,4,1), required=False)
     start_date.widget.format = settings.DATE_INPUT_FORMATS[0]
     end_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                   initial=date.today(), required=False)
     end_date.widget.format = settings.DATE_INPUT_FORMATS[0]
-
+    direct_debit = forms.BooleanField(initial=True, required=False)
+    bacs = forms.BooleanField(initial=True, required=False)
+    cheque = forms.BooleanField(initial=True, required=False)
+    cash = forms.BooleanField(initial=True, required=False)
+    other = forms.BooleanField(initial=True, required=False)
 
 class CreditNoteForm(ModelForm):
 

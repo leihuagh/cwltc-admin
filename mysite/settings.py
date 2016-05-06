@@ -20,6 +20,7 @@ if ON_PAAS:
         DEBUG = False
 else: 
     DEBUG=True 
+    #REMOTE_SANDBOX = True
     SECRET_KEY = ')_7av^!cy(wfx=k#3*7x+(=j^fzv+ot^1@sh9s9t=8$bu@r(z$'
     ALLOWED_HOSTS = []
 

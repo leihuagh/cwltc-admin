@@ -24,7 +24,7 @@
         </div>
         <div class="form-group">
             <label for="id_unpaid" class="control-label">Unpaid</label>
-                {{ form.unpaid}}
+                {{ form.unpaid }}
         </div>
         <div class="form-group">
             <label for="id_cancelled" class="control-label">Cancelled</label>
@@ -38,8 +38,8 @@
     <hr />
 
 {% if invoices %}
-{% include "members/_invoice_list.html" %}
-    {% endif %}
+    {% include "members/_invoice_list.html" %}
+{% endif %}
 
     <input type="submit" name="export" value="Export">
     <input type="submit" name="mail" value="Send mail to unpaid">
@@ -47,7 +47,7 @@
 </form>
 {% endblock %}
 {% block scripts %}
-<script>
+<script type="text/javascript">
     $('#invoices').dataTable({
         "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
     });
@@ -56,8 +56,8 @@
             dateFormat: 'dd/mm/yy'
         };
         $('.datepicker').datepicker(options);
-        $('#invoices').DataTable();
-        $('#invoices').show();
+        //$('#invoices').DataTable();
+        //$('#invoices').show();
 
     });
     $("[id^='id_']").change(function () {
@@ -84,7 +84,7 @@
 
     // AJAX for posting
     function ajax_post() {
-        //console.log("AJAX post") // sanity check
+        console.log("AJAX post") // sanity check
         var table = $("#invoices").DataTable();
         var checks = table.$(".selector").serialize();
         console.log(checks);
