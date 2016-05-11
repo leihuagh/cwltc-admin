@@ -1578,7 +1578,7 @@ def fix_fees(request):
         p.fee = fee
         p.membership_year = 2016
         p.save()
-    cnote=CreditNote.objects.filter(pk=336)
+    cnote=CreditNote.objects.filter(pk=336)[0]
     cnote.amount = 307.20
     cnote.save()
     return HttpResponse("Payments & credit note fixed")
