@@ -251,7 +251,7 @@ class Invoice(models.Model):
     STATES = (
         (UNPAID, "Unpaid"),
         (PART_PAID, "Part paid"),
-        (PAID_IN_FULL, "Paid in full"),
+        (PAID_IN_FULL, "Paid"),
         (CANCELLED, "Cancelled"),
         (PART_CREDIT_NOTE, "Part paid & credit note"),
         (ERROR, "Error - overpaid"),

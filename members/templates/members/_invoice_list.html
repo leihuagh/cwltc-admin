@@ -6,9 +6,7 @@
         {% if checkboxes %}
             <th></th>
         {% endif %}
-        <th>Number</th>
-        <th>State</th>
-        <th>Year</th>
+        <th>No</th>
         <th>Created</th>
         <th>Updated</th>
         <th>First name</th>
@@ -16,29 +14,50 @@
         <th>Membership</th>
         <th>Email</th>
         <th class = "text-right">Total</th>
-        <th></th>
+        <th>State</th>
+        <th>GC</th>
+        <th>Payment</th>
     </tr>
 </thead>
+<tfoot>
+    <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th>Total:</th>
+        <th class = "text-right">£{{ total }}</th>
+        <th>({{ count }} invoices)</th>
+        <th></th>
+        
+        <th></th>
+    </tr>
+</tfoot>
     <tbody>
 {% for inv in invoices %}
     <tr>
         {% if checkboxes %}
         <td><input type="checkbox" class="selector" name="{{ inv.id }}" value = "1"></td>
         {% endif %}
-        <td>{{ inv.id }}</td>
-        <td>{{ state_list|get_option:inv.state }}</td>
-        <td>{{ inv.membership_year }}</td>
+        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View {{ inv.id }}</a></td>    
         <td>{{ inv.creation_date|date }}</td>
         <td>{{ inv.update_date|date }}</td>
-        <td>{{ inv.person.first_name }}</td>
+        <td class = "text-right">{{ inv.person.first_name }}</td>
         <td>{{ inv.person.last_name }}</td> 
         <td>{{ inv.person.membership.description }}</td> 
         <td>{{ inv.email_count}}</td>
         <td class = "text-right">£{{ inv.total }}</td>
-        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View</a></td>
+        <td>{{ state_list|get_option:inv.state }}</td>
+        <td>{% if inv.gocardless_bill_id %}Yes{% endif %} </td> 
+        <td>
+           {% for payment in inv.payment_set.all %}
+               <a href="{% url "payment-detail" payment.id %}" class="btn btn-primary btn-xs">Payment</a>
+           {% endfor %}   
+        </td>
     </tr>
 {% endfor sub %}
 </tbody>
 </table>
-<h4>Total of selected invoices = £{% if total %}{{ total }}{% else %}0{% endif %} ({{ count }} invoices)</h4>
 </div>

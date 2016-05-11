@@ -3,7 +3,7 @@
 <table id="paymentsTable" class="table table-condensed">
     <thead>
         <tr>
-            <th>No</th>
+            <th>Id</th>
             <th>Date</th>
             <th>Type</th>
             <th>Person</th>
@@ -11,7 +11,7 @@
             <th class = "text-right">Amount</th>
             <th class = "text-right">Fee</th>
             <th>Banked</th>
-            <th></th>
+            <th>Invoice</th>
         </tr>
     </thead>
     <tfoot>
@@ -29,7 +29,7 @@
     </tfoot>
     {% for payment in payments %}
     <tr>
-        <td>{{ payment.id }}</td>
+        <<td><a href="{% url "payment-detail" payment.id %}">{{ payment.id }}</a></td>
         <td>{{ payment.creation_date|date }}</td>
         <td>{{ payment_types|get_option:payment.type }}</td>
         <td>{{ payment.person.fullname }}</td>
@@ -38,7 +38,7 @@
         <td class = "text-right">£{{ payment.fee }}</td>
         {#<td>{{ payment_states|get_option:payment.state}}</td>#}
         <td>{% if payment.banked %}Yes{% endif %}</td>
-        <td><a href="{% url "payment-detail" payment.id %}" class="btn btn-primary btn-xs">View</a></td>
+        <td><a href="{% url "invoice-detail" payment.invoice.id %}">{{ payment.invoice.id}}</a></td>
     </tr>
     {% endfor payment %}
 </table>

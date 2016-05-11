@@ -49,15 +49,15 @@
 
 {% block scripts %}
 <script type="text/javascript">
-    $('#paymentsTable').dataTable({
-        "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
-    });
+
     $(document).ready(function () {
         var options = {
             dateFormat: 'dd/mm/yy'
         };
         $('.datepicker').datepicker(options);
-        $('#paymentsTable').DataTable();
+        $('#paymentsTable').DataTable({
+            "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
+        });
     });
     // from django documentation
     function csrfSafeMethod(method) {
@@ -72,14 +72,13 @@
         }
     })
 
-    // any checkbox change causes an ajax post
+    // any control change causes an ajax post
     $("[id^='id_']").change(function () {
         console.log("checkbox click!")  // sanity check
         ajax_post()
     });
 
     function ajax_post() {
-        console.log($('#id_bacs').is(":checked"));
         var table = $("#paymentsTable").DataTable();
         $.post("/payment/list/", {
             csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
@@ -93,9 +92,8 @@
             other: $('#id_other').is(":checked")
         }
         ).done(function (json) {
-            //console.log(json);
             var html = json["data"];
-            $("#paymentsTable").html(html);
+            $("#paymentsDiv").html(html);
             $("#paymentsTable").DataTable();
         }
         ).fail(function (xhr, errmsg, err) {
