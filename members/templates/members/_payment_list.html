@@ -38,7 +38,10 @@
         <td class = "text-right">£{{ payment.fee }}</td>
         {#<td>{{ payment_states|get_option:payment.state}}</td>#}
         <td>{% if payment.banked %}Yes{% endif %}</td>
-        <td><a href="{% url "invoice-detail" payment.invoice.id %}">{{ payment.invoice.id}}</a></td>
+        <td>{% if payment.invoice.id %}
+        <a href="{% url "invoice-detail" payment.invoice.id %}">{{ payment.invoice.id}}</a>
+        {% endif %}
+        </td>
     </tr>
     {% endfor payment %}
 </table>
