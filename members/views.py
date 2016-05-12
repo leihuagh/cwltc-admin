@@ -898,7 +898,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             if request.is_ajax():
                 context = self.get_context_data()
                 context['checkboxes'] = False
-                html = render_to_string(self.template_name, context)
+                html = render_to_string('members/_invoice_list.html', context)
                 dict = {"data": html, "search": request.POST['search']}
                 return JsonResponse(dict, safe=False)
 
@@ -911,7 +911,9 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             if 'mail' in self.form.data:
                 count = 0
                 for inv in self.object_list:
-                    if inv.state == Invoice.UNPAID and inv.total > 0:
+                    if inv.state == Invoice.UNPAID and (
+                        InvoiceGenerateView.gocardless_bill_id == "") and (
+                        inv.total > 0):
                         count += do_mail(request, inv, 'send')
                 return HttpResponse("Sent {} mails for {} invoices".format(count, self.object_list.count()))
 
@@ -919,9 +921,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
                 return export_invoices(self.object_list)
                   
         context = self.get_context_data()
-        return self.render_to_response(context)
- 
-       
+        return self.render_to_response(context)     
 
     def get_queryset(self):
         form = self.form
@@ -967,9 +967,13 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
         context['state_list'] = Invoice.STATES
         context['invoices'] = self.object_list
         context['form'] = self.form
-        dict = self.object_list.aggregate(Sum('total'))
         context['count'] = self.object_list.count()
-        context['total'] = dict['total__sum']
+        context['total'] = self.object_list.aggregate(Sum('total'))['total__sum']
+        context['pending'] = self.object_list.filter(
+            state=Invoice.UNPAID).exclude(
+                gocardless_bill_id="").aggregate(
+                    Sum('total')
+                    )['total__sum']
         return context
 
 class InvoiceDetailView(LoginRequiredMixin, DetailView):

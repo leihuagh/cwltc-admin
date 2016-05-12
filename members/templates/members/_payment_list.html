@@ -29,7 +29,7 @@
     </tfoot>
     {% for payment in payments %}
     <tr>
-        <<td><a href="{% url "payment-detail" payment.id %}">{{ payment.id }}</a></td>
+        <td><a href="{% url "payment-detail" payment.id %}">{{ payment.id }}</a></td>
         <td>{{ payment.creation_date|date }}</td>
         <td>{{ payment_types|get_option:payment.type }}</td>
         <td>{{ payment.person.fullname }}</td>

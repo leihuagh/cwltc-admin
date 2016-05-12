@@ -28,9 +28,9 @@
     <Content Include="gc_app\templates\gc_app\webhook_list.html" />
     <Content Include="gc_app\templates\index.html" />
     <Content Include="gc_app\templates\gc_app\index.html" />
-    <Content Include="members\static\members\content\original_bootstrap.css" />
     <Content Include="members\static\members\content\bootstrap.css" />
-    <Content Include="members\static\members\content\original_bootstrap.min.css" />
+    <Content Include="members\static\members\content\flatly_bootstrap.css" />
+    <Content Include="members\static\members\content\bootstrap.min.css" />
     <Content Include="members\static\members\content\CWLTC logo small.png" />
     <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_diagonals-thick_8_333333_40x40.png" />
     <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_flat_65_ffffff_40x100.png" />
@@ -134,7 +134,7 @@
     <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-icons_fcdd4a_256x240.png" />
     <Content Include="members\static\members\content\jquery-ui\excite-bike\images\ui-icons_ffffff_256x240.png" />
     <Content Include="members\static\members\content\jquery-ui\excite-bike\jquery-ui.css" />
-    <Content Include="members\static\members\content\bootstrap.min.css" />
+    <Content Include="members\static\members\content\flatly_bootstrap.min.css" />
     <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_flat_0_eeeeee_40x100.png" />
     <Content Include="members\static\members\content\jquery-ui\flick\images\ui-bg_flat_55_ffffff_40x100.png" />

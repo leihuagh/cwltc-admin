@@ -354,7 +354,7 @@ class Payment(models.Model):
     TYPES = (
         (CHEQUE, "Cheque"),
         (CASH, "Cash"),
-        (BACS, "BACS transfer"),
+        (BACS, "BACS"),
         (DIRECT_DEBIT, "Direct debit"),
         (PAYPAL, "Paypal"),
         (OTHER, "Other")
