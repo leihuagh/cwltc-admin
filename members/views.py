@@ -925,7 +925,8 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
 
     def get_queryset(self):
         form = self.form
-        start_date = date(2016,4,1)
+        year = Settings.current().membership_year    
+        start_date = date(year,4,1)
         end_date = date.today()
         q_paid = Invoice.PAID_IN_FULL
         q_unpaid = Invoice.UNPAID
@@ -941,6 +942,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             if form.cleaned_data['cancelled']:
                 q_cancelled = Invoice.CANCELLED
         queryset = Invoice.objects.filter(
+            membership_year=year).filter(
             Q(state=q_paid) |
             Q(state=q_unpaid) |
             Q(state=q_cancelled)

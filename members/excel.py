@@ -360,12 +360,18 @@ def export_invoices(invoices):
     columns = [
         'Id',
         'State',
-        'Date', 
+        'Created',
+        'Updated',
+        'Year', 
         'Person_id',
         'Person',
         'Total', 
         'Emailed',   
-        'Reference'
+        'Reference',
+        'GoCardless Id',
+        'GC Action',
+        'Payment Id',
+        'Credit note Id'
     ]
     for col_num in xrange(len(columns)):
         sheet.write(0, col_num, columns[col_num].decode('utf-8','ignore'))
@@ -373,15 +379,27 @@ def export_invoices(invoices):
     row_num = 0
     for inv in invoices:
         row_num += 1
+        payment = ""
+        if inv.payment_set.count():
+            payment = inv.payment_set.all()[0].id
+        cnote = ""
+        if inv.creditnote_set.count():
+            cnote = inv.creditnote_set.all()[0].id
         row = [
             inv.id,
             Invoice.STATES[inv.state][1],
+            inv.creation_date,
             inv.update_date,
+            inv.membership_year,
             inv.person_id,
             inv.person.fullname(),
             inv.total,
             inv.email_count,    
-            inv.reference
+            inv.reference,
+            inv.gocardless_bill_id,
+            inv.gocardless_action,
+            payment,
+            cnote          
         ]
         for col_num in xrange(len(row)):
             data = row[col_num]

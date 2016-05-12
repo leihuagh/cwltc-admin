@@ -3,9 +3,6 @@
 <table id="invoices" class="table table-condensed">
 <thead>
     <tr>
-        {% if checkboxes %}
-            <th></th>
-        {% endif %}
         <th>No</th>
         <th>Created</th>
         <th>Updated</th>
@@ -16,7 +13,6 @@
         <th class = "text-right">Amount</th>
         <th>State</th>
         <th></th>
-        <th>Payment</th>
     </tr>
 </thead>
 <tfoot>
@@ -30,16 +26,12 @@
         <th>Total:</th>
         <th class = "text-right">£{{ total }}</th>
         <th class = "text-right">Pending:</th>
-        <th>£{{ pending }}</th>    
-        <th></th>
+        <th>£{% if pending %}{{ pending }}{% else %}0{% endif %}</th>    
     </tr>
 </tfoot>
     <tbody>
 {% for inv in invoices %}
     <tr>
-        {% if checkboxes %}
-        <td><input type="checkbox" class="selector" name="{{ inv.id }}" value = "1"></td>
-        {% endif %}
         <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View {{ inv.id }}</a></td>    
         <td>{{ inv.creation_date|date }}</td>
         <td>{{ inv.update_date|date }}</td>
@@ -48,13 +40,16 @@
         <td>{{ inv.person.membership.description }}</td> 
         <td>{{ inv.email_count}}</td>
         <td class = "text-right">£{{ inv.total }}</td>
-        <td>{{ state_list|get_option:inv.state }}</td>
-        <td>{% if inv.gocardless_bill_id %}Yes{% endif %} </td> 
         <td>
+        {% if inv.state == 2  %}
            {% for payment in inv.payment_set.all %}
-               <a href="{% url "payment-detail" payment.id %}" class="btn btn-primary btn-xs">Payment</a>
-           {% endfor %}   
+               <a href="{% url "payment-detail" payment.id %}" class="btn btn-primary btn-xs">Paid</a>
+           {% endfor %} 
+        {% else %}
+        {{ state_list|get_option:inv.state }}
+        {% endif %}
         </td>
+        <td>{% if inv.gocardless_bill_id %}Yes{% endif %} </td> 
     </tr>
 {% endfor sub %}
 </tbody>

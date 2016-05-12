@@ -272,7 +272,7 @@ class Invoice(models.Model):
     # -- Navigation --
     # invoiceitem_set
     # creditnote_set
-
+    # payment_set
     def __unicode__(self):
         return "Invoice {}, {} items, total = {}".format(
             Invoice.STATES[self.state][1],
