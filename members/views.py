@@ -935,6 +935,14 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             q_paid = -1
             q_unpaid = -1
             q_cancelled = -1
+            if form.cleaned_data['membership_year']:
+                year = form.cleaned_data['membership_year']          
+            if form.cleaned_data['start_date']:
+                start_date = form.cleaned_data['start_date'] 
+            if form.cleaned_data['end_date']:
+                end_date = form.cleaned_data['end_date'] 
+            if form.cleaned_data['membership_year']:
+                year = form.cleaned_data['membership_year'] 
             if form.cleaned_data['paid']:
                 q_paid = Invoice.PAID_IN_FULL
             if form.cleaned_data['unpaid']:
@@ -942,7 +950,9 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             if form.cleaned_data['cancelled']:
                 q_cancelled = Invoice.CANCELLED
         queryset = Invoice.objects.filter(
-            membership_year=year).filter(
+            membership_year=year,
+            creation_date__gte=start_date,
+            creation_date__lte=end_date).filter(
             Q(state=q_paid) |
             Q(state=q_unpaid) |
             Q(state=q_cancelled)
@@ -951,17 +961,6 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             ).order_by(
                 'person__last_name'
             ) 
-        if getattr(form, 'cleaned_data', None):
-            mem_year = Settings.current().membership_year
-            if form.cleaned_data['membership_year']:
-                mem_year = form.cleaned_data['membership_year']          
-            if form.cleaned_data['start_date']:
-                start_date = form.cleaned_data['start_date'] 
-            if form.cleaned_data['end_date']:
-                end_date = form.cleaned_data['end_date'] + timedelta(days=1)
-            queryset = queryset.filter(membership_year=mem_year,
-                                       creation_date__gte=start_date,
-                                       creation_date__lte=end_date)
         return queryset
     
     def get_context_data(self, **kwargs):
