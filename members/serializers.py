@@ -18,3 +18,4 @@ class InvoiceSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Invoice
         fields = ('url', 'membership_year', 'person', 'total')
+

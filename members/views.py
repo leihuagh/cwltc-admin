@@ -377,6 +377,26 @@ def set_person_context(context, pers):
     context['payments'] = pers.payment_set.all().order_by('update_date')
     return context
 
+class PersonSearchView(LoginRequiredMixin, TemplateView):
+    template_name = 'members/person_search.html'
+
+def ajax_people(request):
+     if request.is_ajax():
+        q = request.GET.get('term', '')
+        people = Person.objects.filter(first_name__icontains = q )[:20]
+        results = []
+        for person in people:
+            person_json = {}
+            person_json['id'] = person.id
+            person_json['label'] = person.first_name
+            person_json['value'] = person.first_name
+            results.append(person_json)
+        return JsonResponse(person_json, safe=False)
+    else:
+        data = 'fail'
+    mimetype = 'application/json'
+    return HttpResponse(data, mimetype)
+
 
 class PersonExportView(LoginRequiredMixin, View):
 
@@ -930,7 +950,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
         end_date = date.today()
         q_paid = Invoice.PAID_IN_FULL
         q_unpaid = Invoice.UNPAID
-        q_cancelled = -1
+        q_cancelled = Invoice.CANCELLED
         if getattr(form, 'cleaned_data', None):
             q_paid = -1
             q_unpaid = -1
@@ -1364,13 +1384,14 @@ class CreditNoteCreateView(LoginRequiredMixin, CreateView):
                        kwargs={'pk':self.kwargs['person_id']})
 
 class CreditNoteDetailView(LoginRequiredMixin, DetailView):
-    model = Payment
-    template_name = 'members/creditnote_detail.html'
+    model = CreditNote
+    template_name = 'members/credit_note.html'
 
     def get_context_data(self, **kwargs):
         context = super(CreditNoteDetailView, self).get_context_data(**kwargs)
-        context['payment_types'] = Payment.TYPES
-        context['payment_states'] = Payment.STATES
+        
+        context['person'] = Person.objects.get(pk=self.get_object().person_id)
+        context['cnote'] = self.get_object()
         return context
 
 # ================== TEXT BLOCKS

@@ -1,0 +1,20 @@
+﻿
+{% extends "members/layout.html" %}
+{% block content %}
+<h2>Search</h2>
+
+<div class="ui-widget">
+  <label for="firstname">First name: </label>
+  <input id="firstname">
+</div>
+{% endblock content %}
+{% block scripts %}
+<script type="text/javascript">
+$(function() {
+  $("#firstname").autocomplete({
+    source: "/ajax/people/",
+    minLength: 2,
+  });
+})
+</script>
+{% endblock scripts %}

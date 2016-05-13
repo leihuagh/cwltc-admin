@@ -24,6 +24,10 @@ router.register(r'invoices', InvoiceViewSet)
 urlpatterns = [
 
     url(r'^api/', include(router.urls)),
+    url(r'ajax/people',
+        ajax_people,
+        name = "ajax-people"
+        ),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
     url(r'^$',
@@ -197,8 +201,8 @@ urlpatterns = [
         CreditNoteCreateView.as_view(),
         name='creditnote-create'
     ),
-    url(r'^creditnote/(?P<cnote_id>\d+)/$',
-        CreditNoteCreateView.as_view(),
+    url(r'^creditnote/(?P<pk>\d+)/$',
+        CreditNoteDetailView.as_view(),
         name='creditnote-detail'
     ),
 
@@ -238,6 +242,10 @@ urlpatterns = [
     url(r'^person/link/(?P<pk>\d+)/$',
        PersonLinkView.as_view(),
        name='person-link'
+    ),
+    url(r'^person/search/$',
+       PersonSearchView.as_view(),
+       name='person-search'
     ),
     url(r'^junior/create$',
        JuniorCreateView.as_view(),
