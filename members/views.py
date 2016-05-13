@@ -381,7 +381,7 @@ class PersonSearchView(LoginRequiredMixin, TemplateView):
     template_name = 'members/person_search.html'
 
 def ajax_people(request):
-     if request.is_ajax():
+    if request.is_ajax():
         q = request.GET.get('term', '')
         people = Person.objects.filter(first_name__icontains = q )[:20]
         results = []
@@ -394,8 +394,8 @@ def ajax_people(request):
         return JsonResponse(person_json, safe=False)
     else:
         data = 'fail'
-    mimetype = 'application/json'
-    return HttpResponse(data, mimetype)
+        mimetype = 'application/json'
+        return HttpResponse(data, mimetype)
 
 
 class PersonExportView(LoginRequiredMixin, View):
