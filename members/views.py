@@ -1,4 +1,5 @@
 from datetime import *
+from itertools import chain
 from operator import attrgetter
 from django import forms
 from django.shortcuts import render, render_to_response
@@ -382,16 +383,25 @@ class PersonSearchView(LoginRequiredMixin, TemplateView):
 
 def ajax_people(request):
     if request.is_ajax():
-        q = request.GET.get('term', '')
-        people = Person.objects.filter(first_name__icontains = q )[:20]
         results = []
-        for person in people:
-            person_json = {}
+        q = request.GET.get('term', '')
+        keys = q.split(" ", 1)
+
+        if len(keys) == 1:
+            people = Person.objects.filter(Q(first_name__icontains=q ) | 
+                                            Q(last_name__icontains=q))[:20]
+        else:
+            people1 = Person.objects.filter(first_name__icontains = keys[0] )
+            people2 = Person.objects.filter(last_name__icontains = keys[1] )
+            people = list(chain(people1, people2))[:20]
+       
+        for person in people: 
+            person_json = {}     
             person_json['id'] = person.id
-            person_json['label'] = person.first_name
-            person_json['value'] = person.first_name
+            person_json['label'] = person.fullname()
+            person_json['value'] = person.fullname()
             results.append(person_json)
-        return JsonResponse(person_json, safe=False)
+        return JsonResponse(results, safe=False)
     else:
         data = 'fail'
         mimetype = 'application/json'
