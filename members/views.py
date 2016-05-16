@@ -388,13 +388,12 @@ def ajax_people(request):
         keys = q.split(" ", 1)
 
         if len(keys) == 1:
-            people = Person.objects.filter(Q(first_name__icontains=q ) | 
-                                            Q(last_name__icontains=q))[:20]
+            people = Person.objects.filter(Q(first_name__istartswith=q ) | 
+                                            Q(last_name__istartswith=q))[:20]
         else:
-            people1 = Person.objects.filter(first_name__icontains = keys[0] )
-            people2 = Person.objects.filter(last_name__icontains = keys[1] )
-            people = list(chain(people1, people2))[:20]
-       
+            people = Person.objects.filter(first_name__istartswith=keys[0],
+                                            last_name__istartswith=keys[1]
+                                            )      
         for person in people: 
             person_json = {}     
             person_json['id'] = person.id
@@ -403,7 +402,7 @@ def ajax_people(request):
             results.append(person_json)
         return JsonResponse(results, safe=False)
     else:
-        data = 'fail'
+        data = 'error'
         mimetype = 'application/json'
         return HttpResponse(data, mimetype)
 

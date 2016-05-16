@@ -4,16 +4,24 @@
 <h2>Search</h2>
 
 <div class="ui-widget">
-  <label for="firstname">First name: </label>
-  <input id="firstname">
+  <label for="searchName">Search name: </label>
+  <input id="searchName">
 </div>
+<input id="hiddenId" value = ""/>
+
 {% endblock content %}
 {% block scripts %}
 <script type="text/javascript">
 $(function() {
-  $("#firstname").autocomplete({
+  $("#searchName").autocomplete({
     source: "/ajax/people/",
-    minLength: 2,
+    minLength: 3,
+    change: function(event, ui) {
+        $("#hiddenId").val("XX");
+    },
+    select: function(event, ui) {
+        $("#hiddenId").val(ui.item.id);
+    }
   });
 })
 </script>
