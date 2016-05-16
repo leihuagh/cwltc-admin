@@ -325,10 +325,6 @@ urlpatterns = [
         testmailgun,
         name='testmailgun'
     ),
-    url(r'^fix_fees/$',
-        fix_fees,
-        name='fix-fees'
-    ),
     url(r'^reports/$',
         reports,
         name='reports'
