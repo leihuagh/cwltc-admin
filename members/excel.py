@@ -469,34 +469,41 @@ def export_payments(payments):
 
 def export_members(option):
     ''' Export a members list in the format used by the bar system '''
-    response = HttpResponse(content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename=Members.xls'
-    book = Workbook(encoding='utf-8')
-    sheet = book.add_sheet('Members')
+
     people = Person.objects.all()  
     if option == 'parents':
         people = Person.parent_objects.all() 
+        sheetName = 'Parents'
     else:
         people = Person.objects.all() 
+        sheetName = 'Members'
+    return export_people(sheetName, people, option)
 
+
+def export_people(sheetName, people, option=""):
+   
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + sheetName + '.xls'
+    book = Workbook(encoding='utf-8')
+    sheet = book.add_sheet(sheetName)                
     columns = [
-        'Id',
-        'Gender',   
-        'First name',
-        'Last name', 
-        'Address 1',
-        'Address 2',
-        'Town',
-        'Post code',
-        'Home phone',
-        'Mobile phone',
-        'Email',
-        'Year joined',
-        'Membership'
-        ]
+    'Id',
+    'Gender',   
+    'First name',
+    'Last name', 
+    'Address 1',
+    'Address 2',
+    'Town',
+    'Post code',
+    'Home phone',
+    'Mobile phone',
+    'Email',
+    'Year joined',
+    'Membership'
+    ]
     for col_num in xrange(len(columns)):
         sheet.write(0, col_num, columns[col_num].decode('utf-8','ignore'))     
-        
+                   
     row_num = 0
     for person in people:
         if person.state ==Person.ACTIVE:
@@ -538,4 +545,7 @@ def export_members(option):
     book.save(response)
     return response   
 
+
+
+    
        

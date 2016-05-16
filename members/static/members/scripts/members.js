@@ -1,10 +1,9 @@
-﻿//$('#people').dataTable({
-//    "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "All"]]
-//});
+﻿// Requires ajaxUrl to be set
 $(document).ready(function () {
+    console.log(ajaxUrl)
     $('#people').dataTable({
         "ajax": {
-            "url": "/people/",
+            "url": ajaxUrl,
             "type": "POST",
             "data": function( d ) {
                 d.csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();

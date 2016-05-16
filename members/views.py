@@ -282,8 +282,7 @@ class PersonUnlinkView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         person = Person.objects.get(pk = self.kwargs['pk'])
-        person.link(None)
-        return redirect(person)
+
 
 class JuniorCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     model = Person
@@ -329,6 +328,9 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
             group = Group.objects.filter(slug=slug)[0]
             person.groups.remove(group)
             return redirect(reverse('person-detail', kwargs={'pk':person.id}))
+        elif 'unlink' in request.POST:
+            person.link(None)
+            return redirect(person)
 
 def add_membership_context(context):
     ''' Add membership dictionary to context '''
@@ -472,17 +474,33 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
  
     def get_context_data(self, **kwargs):
         context = super(GroupDetailView, self).get_context_data(**kwargs)
-        context['group'] = self.get_object()
-        context['object_list'] = context['group'].person_set.order_by('last_name')
+       # context['group'] = self.get_object()
+       # context['object_list'] = context['group'].person_set.order_by('last_name')
+        context['url'] = reverse('group-detail', kwargs={'slug':kwargs['object'].slug})
         add_membership_context(context)
         return context
     
     def post(self, request, *args, **kwargs):
         group = self.get_object()
+        if request.is_ajax():
+            qset =  self.get_object().person_set.order_by('last_name')
+            plist = list(qset.values_list(
+                    'first_name',
+                    'last_name',
+                    'membership__description',
+                    'email',
+                    'id'
+                    ))
+            dict = {"data": plist}
+            return JsonResponse(dict)
+
         if 'delete' in request.POST:
             group.delete()
         elif 'clear' in request.POST:
             group.person_set.clear()
+        elif 'export' in request.POST:
+            return export_people(group.slug, group.person_set.all())
+
         return redirect(reverse('group-list'))
 
 class GroupAddPersonView(LoginRequiredMixin, FormView):
@@ -1581,7 +1599,6 @@ class SelectSheets(LoginRequiredMixin, FormView):
                         context['errors'].append('Sheet {0} checked OK'.format(k))             
             context['message'] = '{} items were {} from {} sheets'.format(total, 'imported' if do_import else 'checked', sheet_count)
             return render(self.request, 'members/generic_result.html', context)
-                       
 
 class InvoiceBatchView(LoginRequiredMixin, FormView):
     form_class = XlsMoreForm
@@ -1603,20 +1620,6 @@ def export(request):
 
 def import_backup(request):
     return import_all()
-
-def fix_fees(request):
-    payments = Payment.objects.filter(type=Payment.DIRECT_DEBIT)
-    for p in payments:
-        fee = p.amount / 100
-        if fee > 2:
-            fee = 2
-        p.fee = fee
-        p.membership_year = 2016
-        p.save()
-    cnote=CreditNote.objects.filter(pk=336)[0]
-    cnote.amount = 307.20
-    cnote.save()
-    return HttpResponse("Payments & credit note fixed")
 
 def reports(request):
     report=Report.objects.all()[0]

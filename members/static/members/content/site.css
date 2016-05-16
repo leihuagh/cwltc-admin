@@ -41,6 +41,8 @@ input[type="checkbox"].input-validation-error {
     display: none;
 }
 
+
 .ui-autocomplete {
-            z-index:2000;
-        }
+    z-index: 2000;
+    cursor: default;
+}

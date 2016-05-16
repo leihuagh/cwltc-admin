@@ -26,7 +26,7 @@
       <span class="icon-bar"></span>
       <span class="icon-bar"></span>
     </button>
-    <a class="navbar-brand" href="/">CWLTC Admin System</a>
+    <a class="navbar-brand" href="/">CWLTC Admin</a>
   </div>
   <div class="navbar-collapse collapse">
 
@@ -34,19 +34,11 @@
     <ul class="nav navbar-nav">
         <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                aria-expanded="false">Menu <span class="caret"></span></a>
+                aria-expanded="false">People</a>
             <ul class="dropdown-menu">
                 <li><a href="{% url 'filteredperson-list' %}">People list</a></li>
                 <li><a href="{% url 'person-create' %}">Create adult</a></li>
                 <li><a href="{% url 'junior-create' %}">Create junior</a></li>
-                <li class="divider"></li>
-
-                <li><a href="{% url 'invoice-list' %}">List invoices</a></li>
-                <li><a href="{% url 'select' %}">Select an invoice</a></li>
-                <li><a href="{% url 'invoice-batch' %}">Create a batch of invoices</a></li>
-                <li><a href="{% url 'invoice-mail-batch' %}">Mail all unpaid invoices</a></li>
-                <li class="divider"></li>
-                <li><a href="{% url 'payment-list' %}">All payments</a></li>
                 <li class="divider"></li>
                 <li><a href="{% url 'group-list' %}">Groups</a></li>
                 <li class="divider"></li>
@@ -57,28 +49,30 @@
         </li>
         <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                aria-expanded="false">Finances<span class="caret"></span></a>
+                aria-expanded="false">Finances</a>
             <ul class="dropdown-menu">
                 <li><a href="{% url 'invoice-list' %}">List invoices</a></li>
                 <li><a href="{% url 'payment-list' %}">List payments</a></li>
                 <li class="divider"></li>
+                <li><a href="{% url 'select' %}">Select an invoice</a></li>
                 <li><a href="{% url 'invoice-batch' %}">Create a batch of invoices</a></li>
                 <li><a href="{% url 'invoice-mail-batch' %}">Mail all unpaid invoices</a></li>
             </ul>
         </li>
         <li class="dropdown">
-            <a href="">Import and export</a>
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                aria-expanded="false">Import / export</a>
             <ul class="dropdown-menu">
                 <li><a href="{% url 'import' %}">Import data from Excel</a></li>
                 <li><a href="{% url 'export' %}">Export all data to Excel</a></li>
             </ul>
-        </li class="dropdown">
-        <li><a href="{% url 'select' %}">Go to</a></li>
+        </li class="label">
+        <li>Search</li>
     </ul>
     <!-- Search person -->
     <form class="navbar-form navbar-left" role="search">
         <div class="ui-widget">
-            <input id="navSearch" >
+            <input id="navSearch"  placeholder="Search for person" >
         </div>    
     </form>
     <!-- Right nav -->
@@ -104,8 +98,8 @@
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.js"></script>
 <script type='text/javascript' src='{% static 'members/scripts/jquery-ui.js' %}'></script>#}
 <!-- SmartMenus jQuery plugin -->
-<script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.js' %}'></script>
-<script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.bootstrap.js' %}'></script>
+ <script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.js' %}'></script>
+ <script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.bootstrap.js' %}'></script>-->
 
 <script type="text/javascript">
 $(function() {
