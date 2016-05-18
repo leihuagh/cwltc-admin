@@ -972,12 +972,13 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
 
     def get_queryset(self):
         form = self.form
+        # default settings for initial get which does not use the form
         year = Settings.current().membership_year    
         start_date = date(year,4,1)
         end_date = date.today()
         q_paid = Invoice.PAID_IN_FULL
         q_unpaid = Invoice.UNPAID
-        q_cancelled = Invoice.CANCELLED
+        q_cancelled = -1
         if getattr(form, 'cleaned_data', None):
             q_paid = -1
             q_unpaid = -1
