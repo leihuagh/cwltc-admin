@@ -114,6 +114,10 @@ urlpatterns = [
         SubUpdateView.as_view(),
         name='sub-update'
     ),
+    url(r'^sub/list/$',
+        SubListView.as_view(),
+        name='sub-list'
+    ),
     url(r'^sub/correct/(?P<pk>\d+)/$',
         SubCorrectView.as_view(),
         name='sub-correct'
@@ -135,7 +139,7 @@ urlpatterns = [
         name='sub-renew-all'
     ),
     url(r'^sub/history/(?P<person_id>\d+)/$',
-        SubListView.as_view(),
+        SubHistoryView.as_view(),
         name='sub-history'
     ),
 

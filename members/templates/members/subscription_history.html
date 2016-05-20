@@ -1,8 +1,10 @@
 ﻿{% extends "members/layout.html" %}
 {% load members_extras %}
 {% block content %}
-<h2>Subscription list</h2>
-
+<h2>Subscription history</h2>
+<h4>
+<a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
+</h4>
 <table id="subs" class="table table-condensed" >
 <thead>
         <tr>
@@ -10,8 +12,6 @@
         <th>Year</th>
         <th>From</th>
         <th>To</th>
-        <th>First name</th>
-        <th>Last name</th>
         <th>Membership</th>
         <th>Payment state</th>
     </tr>
@@ -28,8 +28,6 @@
     <td>{{ sub.sub_year }}</td>
     <td>{{ sub.start_date }}</td> 
     <td>{{ sub.end_date }}</td>
-    <td>{{ sub.person_member.first_name}}</td>
-    <td>{{ sub.person_member.last_name}}</td>
     <td>{{ sub.membership.description }}</td>
     <td>
     {% if sub.has_paid_invoice %}

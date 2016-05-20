@@ -457,6 +457,7 @@
     <Content Include="members\templates\members\resigned.html" />
     <Content Include="members\templates\members\subscription_detail.html" />
     <Content Include="members\templates\members\subscription_form.html" />
+    <Content Include="members\templates\members\subscription_list.html" />
     <Content Include="members\templates\members\subsmail.html" />
     <Content Include="members\templates\members\textblock_form.html" />
     <Content Include="members\templates\members\textblock_list.html" />
@@ -474,7 +475,7 @@
     <Content Include="members\templates\members\_invoice_list.html" />
     <Content Include="members\templates\members\_invoice_pdf.html" />
     <Content Include="members\templates\members\_payment_list.html" />
-    <Content Include="members\templates\members\subscription_list.html" />
+    <Content Include="members\templates\members\subscription_history.html" />
     <Content Include="requirements.txt" />
     <Content Include="static\README.txt" />
   </ItemGroup>

@@ -625,10 +625,10 @@ class SubDetailView(LoginRequiredMixin, DetailView):
                 break
         return context
 
-class SubListView(LoginRequiredMixin, ListView):
+class SubHistoryView(LoginRequiredMixin, ListView):
     ''' Subs history for 1 person '''
     model = Subscription
-    template_name = 'members/subscription_list.html'
+    template_name = 'members/subscription_history.html'
     context_object_name = 'subs'
 
     def get_queryset(self):
@@ -636,10 +636,26 @@ class SubListView(LoginRequiredMixin, ListView):
         return Subscription.objects.filter(person_member=self.person).order_by('start_date')
 
     def get_context_data(self, **kwargs):
-        context = super(SubListView, self).get_context_data(**kwargs)
+        context = super(SubHistoryView, self).get_context_data(**kwargs)
         context['person'] = self.person
         return context
-       
+
+class SubListView(LoginRequiredMixin, ListView):
+    ''' Subs list '''
+    model = Subscription
+    template_name = 'members/subscription_list.html'
+    context_object_name = 'subs'
+
+    def get_queryset(self):
+        year = 2016
+        qset = Subscription.objects.filter(sub_year=year).select_related()
+        qset = [obj for obj in qset if obj.has_paid_invoice()]
+        return qset
+
+    def get_context_data(self, **kwargs):
+        context = super(SubListView, self).get_context_data(**kwargs)
+        return context   
+          
 class SubRenewView(LoginRequiredMixin, FormView):
      
     def get(self, request, *args, **kwargs):    

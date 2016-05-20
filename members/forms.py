@@ -52,6 +52,8 @@ class FilterMemberForm(Form):
 
 class FilterMemberAjaxForm(Form):
     categories = forms.ChoiceField()
+    #membership_year = forms.IntegerField(min_value=2015, max_value=2100,
+    #                        initial=Settings.current().membership_year)
 
     def __init__(self, *args, **kwargs):
         super(FilterMemberAjaxForm, self).__init__(*args, **kwargs)
