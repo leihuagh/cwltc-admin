@@ -1,49 +1,54 @@
 ﻿{% extends "members/layout.html" %}
 {% load members_extras %}
+{% load staticfiles %}
+{% load widget_tweaks %}
 {% block content %}
 <h2>Subscription list</h2>
+<div class="container">
+<div class="row"> 
+<div class="col-sm-12">
+<form role="form" class="form-inline" action="." method="post" id="post-form">
+    {% csrf_token %}
 
-<table id="subs" class="table table-condensed" >
+    
+        <div class="form-group"> 
+          <label for="id_membership_year">Year:</label>
+          {{ form.membership_year|add_class:"trigger" }}   
+        </div>
+        <div class="form-group">
+          <label for="id_categories">Category:</label>
+          {{ form.categories|add_class:"trigger" }}
+        </div>         
+        <div class="form-group">
+          <label for="id_paid">Paid:</label>
+          {{ form.paid|add_class:"trigger" }}
+        </div>
+        <div class="form-group">
+          <label for="id_unpaid">Unpaid:</label>
+          {{ form.unpaid|add_class:"trigger" }}
+        </div>
+    <hr />   
+</form>
+</div>
+</div>
+
+<table id="people" class="table table-condensed" >
 <thead>
         <tr>
-        <th>Action</th>
-        <th>Year</th>
-        <th>From</th>
-        <th>To</th>
         <th>First name</th>
         <th>Last name</th>
         <th>Membership</th>
-        <th>Payment state</th>
+        <th>Email</th>
+        <th>View</th>
     </tr>
 </thead>
-{% for sub in subs %}
-<tr>
-    <td>
-    {% if sub.active %}
-        <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">Edit </a>
-    {% else %}
-        <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">View</a>
-    {% endif %}
-    </td>
-    <td>{{ sub.sub_year }}</td>
-    <td>{{ sub.start_date }}</td> 
-    <td>{{ sub.end_date }}</td>
-    <td>{{ sub.person_member.first_name}}</td>
-    <td>{{ sub.person_member.last_name}}</td>
-    <td>{{ sub.membership.description }}</td>
-    <td>
-    {% if sub.has_paid_invoice %}
-        Paid invoice
-    {% elif sub.has_unpaid_invoice %}
-        Unpaid invoice
-    {% elif sub.has_items %}
-        Uninvoiced item
-    {% else %}
-        Not billed
-    {% endif %} 
-    </td>
-    <td>
-</tr>
-{% endfor sub %}
 </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+var ajaxUrl = "/sub/list/"
+</script>
+<script src='{% static 'members/scripts/members.js' %}'></script>
 {% endblock %}

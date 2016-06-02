@@ -461,7 +461,7 @@ def person_delete(person):
     Also deletes the address if no one else linked to it
     '''
     if person.person_set.count() > 0:
-        return "Person has {0} children".format(self.person_set.count())             
+        return "Person has {0} children".format(person.person_set.count())             
     for inv in person.invoice_set.all():
         if not inv.delete():
             return "Invoice {0} cannot be deleted".format(inv.id)

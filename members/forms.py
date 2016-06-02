@@ -11,7 +11,7 @@ from django.conf import settings
 from django.forms.extras import SelectDateWidget
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder, BaseInput
-from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
+from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
 
 from .widgets import MonthYearWidget
 from .models import (Person, Address, Subscription, Membership, Invoice, InvoiceItem,
@@ -52,8 +52,6 @@ class FilterMemberForm(Form):
 
 class FilterMemberAjaxForm(Form):
     categories = forms.ChoiceField()
-    #membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-    #                        initial=Settings.current().membership_year)
 
     def __init__(self, *args, **kwargs):
         super(FilterMemberAjaxForm, self).__init__(*args, **kwargs)
@@ -619,6 +617,18 @@ class SubRenewForm(Form):
         cleaned_data = super(SubRenewForm, self).clean()
         year = cleaned_data.get('sub_year')
 
+class SubListForm(Form):
+    categories = forms.ChoiceField()
+    membership_year = forms.IntegerField(min_value=2015, max_value=2100,
+                        initial=Settings.current().membership_year)
+    paid = forms.BooleanField(initial=True, required=False)
+    unpaid = forms.BooleanField(initial=False, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(SubListForm, self).__init__(*args, **kwargs)
+        self.fields['categories'].choices = Membership.FILTER_CHOICES + [
+            (x.id, x.description) for x in Membership.objects.all()
+            ]
 
 class InvoiceFilterForm(Form):
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,

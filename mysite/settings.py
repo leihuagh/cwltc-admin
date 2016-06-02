@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'import_export',
     'crispy_forms',
     'django_wysiwyg',
+    'widget_tweaks',
 	'members',
     'gc_app',
     'rest_framework',

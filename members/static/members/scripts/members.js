@@ -8,6 +8,9 @@ $(document).ready(function () {
             "data": function( d ) {
                 d.csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
                 d.categories = $('#id_categories').val();
+                d.membership_year = $('#id_membership_year').val();
+                d.paid = $('#id_paid').checked;
+                d.unpaid= $('#id_unpaid').checked;
                 }
             },
         "columns": [ null,null,null,null,
@@ -29,9 +32,10 @@ $(document).ready(function () {
     });
 });
 
-$('#id_categories').change(function () {
+$('.trigger').change(function () {
     console.log("Change!")  // sanity check
-    $('#people').DataTable().ajax.reload();
+    //$('#people').DataTable().ajax.reload();
+    ajax_post();
 });
 
 // from django documentation
@@ -49,10 +53,13 @@ $.ajaxSetup({
 
 // AJAX for posting
 function ajax_post() {
-    console.log("AJAX post") // sanity check
-    $.post("/", {
+    console.log("AJAX post"); // sanity check
+    $.post(".", {
         csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
-        categories: $('#id_categories').val()
+        membership_year: $('#id_membership_year').val(),
+        categories: $('#id_categories').val(),
+        paid: $('#id_paid').checked,
+        unpaid: $('#id_unpaid').checked
     }
     ).done(function (json) {
 

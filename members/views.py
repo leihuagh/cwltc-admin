@@ -309,9 +309,11 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
     template_name = 'members/person_detail.html'
 
     def get_context_data(self, **kwargs):
+        person = self.get_object()
         context = super(PersonDetailView, self).get_context_data(**kwargs)
+
         add_membership_context(context)
-        return set_person_context(context, self.get_object())
+        return set_person_context(context, person )
 
     def post(self, request, *args, **kwargs):
         person = self.get_object()
@@ -321,16 +323,16 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
             if message == "":
                 messages.success(self.request,"{0} deleted".format(name))
                 return redirect(reverse('person-list'))
-            messages.error(self.request,"{0} not deleted because {1}".format(name, message))
-            return redirect(reverse('person-detail', kwargs={'pk':person.id}))
+            messages.error(self.request,"{0} was not deleted. Error: {1}".format(name, message))
+
         elif 'remove' in request.POST:
             slug=request.POST['remove']
             group = Group.objects.filter(slug=slug)[0]
             person.groups.remove(group)
-            return redirect(reverse('person-detail', kwargs={'pk':person.id}))
+
         elif 'unlink' in request.POST:
             person.link(None)
-            return redirect(person)
+        return redirect(person)    
 
 def add_membership_context(context):
     ''' Add membership dictionary to context '''
@@ -384,6 +386,9 @@ class PersonSearchView(LoginRequiredMixin, TemplateView):
     template_name = 'members/person_search.html'
 
 def ajax_people(request):
+    '''
+    Returns a list of people for automcomplete search field
+    '''
     if request.is_ajax():
         results = []
         q = request.GET.get('term', '')
@@ -640,17 +645,74 @@ class SubHistoryView(LoginRequiredMixin, ListView):
         context['person'] = self.person
         return context
 
-class SubListView(LoginRequiredMixin, ListView):
+class SubListView(LoginRequiredMixin, FormMixin, TemplateView):
     ''' Subs list '''
     model = Subscription
     template_name = 'members/subscription_list.html'
     context_object_name = 'subs'
+    form_class = SubListForm
 
-    def get_queryset(self):
+    def get(self, request, *args, **kwargs):
+        if kwargs:
+            self.form = SubListForm(initial = {'categories': kwargs['tags']})
+        else:
+            self.form = SubListForm()
+        self.object_list = []
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        ''' POST handles submit and ajax request '''
+        self.form = self.get_form(self.form_class)
         year = 2016
-        qset = Subscription.objects.filter(sub_year=year).select_related()
-        qset = [obj for obj in qset if obj.has_paid_invoice()]
-        return qset
+        qset = Subscription.objects.filter(sub_year=year,
+                                           active=True).select_related()       
+        if self.form.is_valid():
+            year = self.form.cleaned_data['membership_year']
+            cat = int(self.form.cleaned_data['categories'])
+            paid = self.form.cleaned_data['paid']
+            unpaid = self.form.cleaned_data['unpaid']
+            if cat == 0:
+                qset = Subscription.objects.filter(sub_year=year,
+                                                   active=True).select_related()
+            elif cat < 100:
+                qset = qset.filter(membership_id=cat)
+            elif cat == Membership.FAMILIES:
+                non_kids = Person.objects.select_related().filter(linked__isnull = True)
+                plist= []
+                for p in non_kids:
+                    if p.person_set.count() > 0:
+                        cat = p.membership.description if p.membership else ""
+                           
+                        qlist =[p.first_name, p.last_name, cat, p.email, p.id]
+                        plist.append(qlist)
+                dict = {"data": plist}
+                return JsonResponse(dict)
+            
+            else:
+                taglist = []    
+                if cat == Membership.PLAYING:
+                    taglist = Membership.PLAYING_LIST
+                elif cat == Membership.JUNIORS:
+                    taglist = Membership.JUNIORS_LIST
+                elif cat == Membership.ALL_NONPLAYING:
+                    taglist = Membership.ALL_NONPLAYING_LIST
+                
+                qset = qset.filter(Q(membership_id__in=taglist))
+                if paid and not unpaid:
+                    qset = [obj for obj in qset if obj.has_paid_invoice()]
+                elif not paid and unpaid:
+                    qset = [obj for obj in qset if not obj.has_paid_invoice()]
+
+        plist = list(qset.values_list(
+                'person_member__first_name',
+                'person_member__last_name',
+                'membership__description',
+                'person_member__email',
+                'person_member__id'
+                ))
+        dict = {"data": plist}
+        return JsonResponse(dict)
 
     def get_context_data(self, **kwargs):
         context = super(SubListView, self).get_context_data(**kwargs)

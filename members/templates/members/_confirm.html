@@ -1,0 +1,20 @@
+﻿<div class="modal fade" id="{{ confirm_id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">           
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">{{ confirm_title }}</h4>
+            </div>          
+            <div class="modal-body">
+                {% if confirm_body %}
+                {{ confirm_body }}
+                {% else %}
+                <p>Do you want to proceed?</p> 
+                {% endif %}
+            </div>              
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{% if confirm_no %}{{ confirm_no}}{% else %}Cancel {% endif %}</button>
+                <button type="submit" name="{{ confirm_submit }}" value="" class="btn btn-danger">{{ confirm_yes }}</button>
+            </div>
+        </div>
+    </div>
+</div>
