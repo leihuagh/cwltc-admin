@@ -5,12 +5,14 @@ $(document).ready(function () {
         "ajax": {
             "url": ajaxUrl,
             "type": "POST",
-            "data": function( d ) {
+            "data": function (d) {
                 d.csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
                 d.categories = $('#id_categories').val();
                 d.membership_year = $('#id_membership_year').val();
-                d.paid = $('#id_paid').checked;
-                d.unpaid= $('#id_unpaid').checked;
+                console.log("Posting");
+                console.log($('#id_paid').is(':checked'));
+                d.paid = $('#id_paid').is(':checked');
+                d.unpaid= $('#id_unpaid').is(':checked');
                 }
             },
         "columns": [ null,null,null,null,
@@ -34,8 +36,8 @@ $(document).ready(function () {
 
 $('.trigger').change(function () {
     console.log("Change!")  // sanity check
-    //$('#people').DataTable().ajax.reload();
-    ajax_post();
+    $('#people').DataTable().ajax.reload();
+    //ajax_post();
 });
 
 // from django documentation

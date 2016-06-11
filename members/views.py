@@ -672,11 +672,18 @@ class SubListView(LoginRequiredMixin, FormMixin, TemplateView):
             cat = int(self.form.cleaned_data['categories'])
             paid = self.form.cleaned_data['paid']
             unpaid = self.form.cleaned_data['unpaid']
+
+            if unpaid:
+                paid = False
+            qset = InvoiceItem.objects.filter(paid=paid,
+                                              subscription__isnull=False).filter(
+                subscription__active=True,
+                subscription__sub_year=year).select_related()
+
             if cat == 0:
-                qset = Subscription.objects.filter(sub_year=year,
-                                                   active=True).select_related()
+                pass
             elif cat < 100:
-                qset = qset.filter(membership_id=cat)
+                qset = qset.filter(subscription__membership_id=cat)
             elif cat == Membership.FAMILIES:
                 non_kids = Person.objects.select_related().filter(linked__isnull = True)
                 plist= []
@@ -696,23 +703,60 @@ class SubListView(LoginRequiredMixin, FormMixin, TemplateView):
                 elif cat == Membership.JUNIORS:
                     taglist = Membership.JUNIORS_LIST
                 elif cat == Membership.ALL_NONPLAYING:
-                    taglist = Membership.ALL_NONPLAYING_LIST
-                
-                qset = qset.filter(Q(membership_id__in=taglist))
-                if paid and not unpaid:
-                    qset = [obj for obj in qset if obj.has_paid_invoice()]
-                elif not paid and unpaid:
-                    qset = [obj for obj in qset if not obj.has_paid_invoice()]
+                    taglist = Membership.ALL_NONPLAYING_LIST          
+                qset = qset.filter(Q(subscription__membership_id__in=taglist))
 
-        plist = list(qset.values_list(
-                'person_member__first_name',
-                'person_member__last_name',
-                'membership__description',
-                'person_member__email',
-                'person_member__id'
+            plist = list(qset.values_list(
+                'person__first_name',
+                'person__last_name',
+                'subscription__membership__description',
+                'person__email',
+                'person__id'
                 ))
-        dict = {"data": plist}
-        return JsonResponse(dict)
+            dict = {"data": plist}
+            return JsonResponse(dict)
+
+        #    if cat == 0:
+        #        qset = Subscription.objects.filter(sub_year=year,
+        #                                           active=True).select_related()
+        #    elif cat < 100:
+        #        qset = qset.filter(membership_id=cat)
+        #    elif cat == Membership.FAMILIES:
+        #        non_kids = Person.objects.select_related().filter(linked__isnull = True)
+        #        plist= []
+        #        for p in non_kids:
+        #            if p.person_set.count() > 0:
+        #                cat = p.membership.description if p.membership else ""
+                           
+        #                qlist =[p.first_name, p.last_name, cat, p.email, p.id]
+        #                plist.append(qlist)
+        #        dict = {"data": plist}
+        #        return JsonResponse(dict)
+            
+        #    else:
+        #        taglist = []    
+        #        if cat == Membership.PLAYING:
+        #            taglist = Membership.PLAYING_LIST
+        #        elif cat == Membership.JUNIORS:
+        #            taglist = Membership.JUNIORS_LIST
+        #        elif cat == Membership.ALL_NONPLAYING:
+        #            taglist = Membership.ALL_NONPLAYING_LIST          
+        #        qset = qset.filter(Q(membership_id__in=taglist))
+
+        #if paid and not unpaid:
+        #    qset = [obj for obj in qset if obj.has_paid_invoice()]
+        #elif not paid and unpaid:
+        #    qset = [obj for obj in qset if not obj.has_paid_invoice()]
+
+        #plist = list(qset.values_list(
+        #        'person_member__first_name',
+        #        'person_member__last_name',
+        #        'membership__description',
+        #        'person_member__email',
+        #        'person_member__id'
+        #        ))
+        #dict = {"data": plist}
+        #return JsonResponse(dict)
 
     def get_context_data(self, **kwargs):
         context = super(SubListView, self).get_context_data(**kwargs)
