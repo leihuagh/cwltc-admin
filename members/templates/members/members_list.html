@@ -3,14 +3,12 @@
 {% load staticfiles %}
 {% load widget_tweaks %}
 {% block content %}
-<h2>Subscription list</h2>
+<h2>Members list</h2>
 <div class="container">
 <div class="row"> 
 <div class="col-sm-12">
-<form role="form" class="form-inline" action="." method="post" id="post-form">
+<form role="form" class="form-inline" action="." method="get" id="post-form">
     {% csrf_token %}
-
-    
         <div class="form-group"> 
           <label for="id_membership_year">Year:</label>
           {{ form.membership_year|add_class:"trigger" }}   
@@ -20,12 +18,8 @@
           {{ form.categories|add_class:"trigger" }}
         </div>         
         <div class="form-group">
-          <label for="id_paid">Paid:</label>
-          {{ form.paid|add_class:"trigger" }}
-        </div>
-        <div class="form-group">
-          <label for="id_unpaid">Unpaid:</label>
-          {{ form.unpaid|add_class:"trigger" }}
+          <label for="id_paystate">Payment:</label>
+          {{ form.paystate|add_class:"trigger" }}
         </div>
     <hr />   
 </form>
@@ -48,7 +42,7 @@
 
 {% block scripts %}
 <script type="text/javascript">
-var ajaxUrl = "/sub/list/"
+var ajaxUrl = "/members/"
 </script>
 <script src='{% static 'members/scripts/members.js' %}'></script>
 {% endblock %}

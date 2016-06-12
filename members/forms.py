@@ -35,6 +35,10 @@ def DefaultHelper(form):
     helper.form_method = 'post'
     return helper
 
+class HorizontalRadioRenderer(forms.RadioSelect.renderer):
+  def render(self):
+    return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
+
 class FilterMemberForm(Form):
     
     success_url = '/list/'
@@ -617,15 +621,16 @@ class SubRenewForm(Form):
         cleaned_data = super(SubRenewForm, self).clean()
         year = cleaned_data.get('sub_year')
 
-class SubListForm(Form):
+class MembersListForm(Form):
+    PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
     categories = forms.ChoiceField()
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
                         initial=Settings.current().membership_year)
-    paid = forms.BooleanField(initial=True, required=False)
-    unpaid = forms.BooleanField(initial=False, required=False)
+    paystate = forms.ChoiceField(choices=PAYCHOICES,
+                                 initial='paid')
 
     def __init__(self, *args, **kwargs):
-        super(SubListForm, self).__init__(*args, **kwargs)
+        super(MembersListForm, self).__init__(*args, **kwargs)
         self.fields['categories'].choices = Membership.FILTER_CHOICES + [
             (x.id, x.description) for x in Membership.objects.all()
             ]

@@ -114,10 +114,6 @@ urlpatterns = [
         SubUpdateView.as_view(),
         name='sub-update'
     ),
-    url(r'^sub/list/$',
-        SubListView.as_view(),
-        name='sub-list'
-    ),
     url(r'^sub/correct/(?P<pk>\d+)/$',
         SubCorrectView.as_view(),
         name='sub-correct'
@@ -223,9 +219,9 @@ urlpatterns = [
        FilteredPersonListAjax.as_view(),
        name='filteredperson-list-tags'
     ),
-    url(r'^filter$',
-       FilterMemberView.as_view(),
-       name='filter'
+    url(r'^members/$',
+       MembersListView.as_view(),
+       name='members'
     ),
     url(r'^(?P<pk>\d+)/$',
        PersonDetailView.as_view(),

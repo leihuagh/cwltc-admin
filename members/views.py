@@ -183,34 +183,6 @@ class FilteredPersonListAjax(LoginRequiredMixin, FormMixin, ListView):
         context['form'] = self.form
         return context
 
-class FilterMemberView(LoginRequiredMixin, FormView):
-    form_class = FilterMemberForm
-    template_name = 'members/filter_member.html'
-
-    def form_valid(self, form):
-        tag=''
-        for k in form.cleaned_data.keys():
-            if form.cleaned_data[k]:
-                tag += k + '+'
-        return HttpResponseRedirect('/list/' + tag[:-1])
-    
-    #def form_valid(self, form):
-    #    tag=''
-    #    for k in form.cleaned_data['categories']:
-    #        key = int(k)
-    #        taglist = []
-    #        if key >= 100:
-    #            if key == Membership.PLAYING:
-    #                taglist = Membership.PLAYING_LIST
-    #            elif key == Membership.JUNIORS:
-    #                taglist = Membership.JUNIORS_LIST
-    #            elif key == Membership.FAMILIES:
-    #                taglist = ['families']
-    #            for t in taglist:
-    #                tag += str(t) + '+'
-    #        else:
-    #            tag += k + '+'
-    #    return HttpResponseRedirect('/list/' + tag[:-1])
 
 class PersonActionMixin(object):
     """
@@ -645,24 +617,23 @@ class SubHistoryView(LoginRequiredMixin, ListView):
         context['person'] = self.person
         return context
 
-class SubListView(LoginRequiredMixin, FormMixin, TemplateView):
-    ''' Subs list '''
-    model = Subscription
-    template_name = 'members/subscription_list.html'
+class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
+    ''' Members with subscriptions '''
+    template_name = 'members/members_list.html'
     context_object_name = 'subs'
-    form_class = SubListForm
+    form_class = MembersListForm
 
     def get(self, request, *args, **kwargs):
         if kwargs:
-            self.form = SubListForm(initial = {'categories': kwargs['tags']})
+            self.form = self.form_class(initial = {'categories': kwargs['tags']})
         else:
-            self.form = SubListForm()
+            self.form = self.form_class()
         self.object_list = []
         context = self.get_context_data()
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
-        ''' POST handles submit and ajax request '''
+        ''' POST handles the ajax request from datatable '''
         self.form = self.get_form(self.form_class)
         year = 2016
         qset = Subscription.objects.filter(sub_year=year,
@@ -670,16 +641,14 @@ class SubListView(LoginRequiredMixin, FormMixin, TemplateView):
         if self.form.is_valid():
             year = self.form.cleaned_data['membership_year']
             cat = int(self.form.cleaned_data['categories'])
-            paid = self.form.cleaned_data['paid']
-            unpaid = self.form.cleaned_data['unpaid']
+            paid = self.form.cleaned_data['paystate'] == 'paid'
+            all  = self.form.cleaned_data['paystate'] == 'all'
 
-            if unpaid:
-                paid = False
-            qset = InvoiceItem.objects.filter(paid=paid,
-                                              subscription__isnull=False).filter(
-                subscription__active=True,
-                subscription__sub_year=year).select_related()
-
+            qset = InvoiceItem.objects.filter(subscription__isnull=False,
+                                              subscription__active=True,
+                                              subscription__sub_year=year).select_related()
+            if not all:
+                qset = qset.filter(paid=paid)
             if cat == 0:
                 pass
             elif cat < 100:
@@ -758,9 +727,7 @@ class SubListView(LoginRequiredMixin, FormMixin, TemplateView):
         #dict = {"data": plist}
         #return JsonResponse(dict)
 
-    def get_context_data(self, **kwargs):
-        context = super(SubListView, self).get_context_data(**kwargs)
-        return context   
+ 
           
 class SubRenewView(LoginRequiredMixin, FormView):
      

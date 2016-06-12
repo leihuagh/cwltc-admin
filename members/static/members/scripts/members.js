@@ -9,12 +9,9 @@ $(document).ready(function () {
                 d.csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
                 d.categories = $('#id_categories').val();
                 d.membership_year = $('#id_membership_year').val();
-                console.log("Posting");
-                console.log($('#id_paid').is(':checked'));
-                d.paid = $('#id_paid').is(':checked');
-                d.unpaid= $('#id_unpaid').is(':checked');
-                }
-            },
+                d.paystate = $('#id_paystate').val();
+                                }
+                },
         "columns": [ null,null,null,null,
             {
                 "render": function (data, type, row, meta) {
