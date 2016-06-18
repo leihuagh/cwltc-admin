@@ -522,7 +522,8 @@ class SubscriptionForm(ModelForm):
                     ]
             elif age < Subscription.UNDER_26_AGE:
                 choices = [
-                    (Membership.UNDER_26, "Under 26")
+                    (Membership.UNDER_26, "Under 26"),
+                    (membership.COACH, "Coach")
                     ]
         if self.updating:
             choices.append((Membership.RESIGNED, "Resigned"))                       

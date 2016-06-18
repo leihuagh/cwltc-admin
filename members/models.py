@@ -174,6 +174,7 @@ class Membership(models.Model):
         (COACH, "Coach"),
         (UNDER_26, "Under 26"),
         (HON_LIFE, "Honorary life"),
+        (COACH, "Coach")
         ]
 
 
