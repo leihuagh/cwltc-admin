@@ -546,6 +546,36 @@ def export_people(sheetName, people, option=""):
     return response   
 
 
-
+def export_members(sheetName, memlist):
+   
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + sheetName + '.xls'
+    book = Workbook(encoding='utf-8')
+    sheet = book.add_sheet(sheetName)                
+    columns = [
+    'Id',
+    'Gender',   
+    'First name',
+    'Last name', 
+    'Address 1',
+    'Address 2',
+    'Town',
+    'Post code',
+    'Home phone',
+    'Mobile phone',
+    'Email',
+    'Year joined',
+    'Membership'
+    ]
+    for col_num in xrange(len(columns)):
+        sheet.write(0, col_num, columns[col_num].decode('utf-8','ignore'))     
+                   
+    row_num = 0
+    for row in memlist:
+        row_num += 1
+        for col_num in xrange(len(row)):
+            sheet.write(row_num, col_num, row[col_num]) 
+    book.save(response)
+    return response   
     
        

@@ -635,18 +635,52 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         ''' POST handles the ajax request from datatable '''
         self.form = self.get_form(self.form_class)
-        year = 2016
-        qset = Subscription.objects.filter(sub_year=year,
-                                           active=True).select_related()       
+    
         if self.form.is_valid():
             year = self.form.cleaned_data['membership_year']
             cat = int(self.form.cleaned_data['categories'])
             paid = self.form.cleaned_data['paystate'] == 'paid'
             all  = self.form.cleaned_data['paystate'] == 'all'
 
+            if cat == Membership.RESIGNED:
+                qset = Subscription.objects.filter(
+                    sub_year=year,
+                    membership_id=Membership.RESIGNED
+                    ).select_related()
+                    
+                if request.is_ajax():
+                    plist = list(qset.values_list(
+                        'person_member__first_name',
+                        'person_member__last_name',
+                        'membership__description',
+                        'person_member__email',
+                        'person_member__id'
+                        ))
+                    dict = {"data": plist}
+                    return JsonResponse(dict)
+                if 'export' in self.form.data:
+                    memlist = list(qset.values_list(
+                        'person_member__id',
+                        'person_member__gender',
+                        'person_member__first_name',
+                        'person_member__last_name',
+                        'person_member__address__address1',
+                        'person_member__address__address2',
+                        'person_member__address__town',
+                        'person_member__address__post_code',
+                        'person_member__address__home_phone',
+                        'person_member__mobile_phone',
+                        'person_member__email',
+                        'person_member__date_joined',
+                        'membership__description'
+                        ))
+                    return export_members("Members",memlist)
+
             qset = InvoiceItem.objects.filter(subscription__isnull=False,
                                               subscription__active=True,
-                                              subscription__sub_year=year).select_related()
+                                              subscription__sub_year=year
+                                              ).select_related()
+            
             if not all:
                 qset = qset.filter(paid=paid)
             if cat == 0:
@@ -675,59 +709,34 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                     taglist = Membership.ALL_NONPLAYING_LIST          
                 qset = qset.filter(Q(subscription__membership_id__in=taglist))
 
-            plist = list(qset.values_list(
-                'person__first_name',
-                'person__last_name',
-                'subscription__membership__description',
-                'person__email',
-                'person__id'
-                ))
-            dict = {"data": plist}
-            return JsonResponse(dict)
+            if request.is_ajax():
+                plist = list(qset.values_list(
+                    'person__first_name',
+                    'person__last_name',
+                    'subscription__membership__description',
+                    'person__email',
+                    'person__id'
+                    ))
+                dict = {"data": plist}
+                return JsonResponse(dict)           
 
-        #    if cat == 0:
-        #        qset = Subscription.objects.filter(sub_year=year,
-        #                                           active=True).select_related()
-        #    elif cat < 100:
-        #        qset = qset.filter(membership_id=cat)
-        #    elif cat == Membership.FAMILIES:
-        #        non_kids = Person.objects.select_related().filter(linked__isnull = True)
-        #        plist= []
-        #        for p in non_kids:
-        #            if p.person_set.count() > 0:
-        #                cat = p.membership.description if p.membership else ""
-                           
-        #                qlist =[p.first_name, p.last_name, cat, p.email, p.id]
-        #                plist.append(qlist)
-        #        dict = {"data": plist}
-        #        return JsonResponse(dict)
-            
-        #    else:
-        #        taglist = []    
-        #        if cat == Membership.PLAYING:
-        #            taglist = Membership.PLAYING_LIST
-        #        elif cat == Membership.JUNIORS:
-        #            taglist = Membership.JUNIORS_LIST
-        #        elif cat == Membership.ALL_NONPLAYING:
-        #            taglist = Membership.ALL_NONPLAYING_LIST          
-        #        qset = qset.filter(Q(membership_id__in=taglist))
-
-        #if paid and not unpaid:
-        #    qset = [obj for obj in qset if obj.has_paid_invoice()]
-        #elif not paid and unpaid:
-        #    qset = [obj for obj in qset if not obj.has_paid_invoice()]
-
-        #plist = list(qset.values_list(
-        #        'person_member__first_name',
-        #        'person_member__last_name',
-        #        'membership__description',
-        #        'person_member__email',
-        #        'person_member__id'
-        #        ))
-        #dict = {"data": plist}
-        #return JsonResponse(dict)
-
- 
+            if 'export' in self.form.data:
+                memlist = list(qset.values_list(
+                    'person__id',
+                    'person__gender',
+                    'person__first_name',
+                    'person__last_name',
+                    'person__address__address1',
+                    'person__address__address2',
+                    'person__address__town',
+                    'person__address__post_code',
+                    'person__address__home_phone',
+                    'person__mobile_phone',
+                    'person__email',
+                    'person__date_joined',
+                    'subscription__membership__description'
+                    ))
+                return export_members("Members",memlist)
           
 class SubRenewView(LoginRequiredMixin, FormView):
      

@@ -7,7 +7,7 @@
 <div class="container">
 <div class="row"> 
 <div class="col-sm-12">
-<form role="form" class="form-inline" action="." method="get" id="post-form">
+<form role="form" class="form-inline" action="." method="POST" id="post-form">
     {% csrf_token %}
         <div class="form-group"> 
           <label for="id_membership_year">Year:</label>
@@ -21,22 +21,24 @@
           <label for="id_paystate">Payment:</label>
           {{ form.paystate|add_class:"trigger" }}
         </div>
-    <hr />   
+    <hr />  
+    <table id="people" class="table table-condensed" >
+    <thead>
+            <tr>
+            <th>First name</th>
+            <th>Last name</th>
+            <th>Membership</th>
+            <th>Email</th>
+            <th>View</th>
+        </tr>
+    </thead>
+    </table>
+    <input type="submit" name="export" value="Export to Excel">   
 </form>
 </div>
 </div>
 
-<table id="people" class="table table-condensed" >
-<thead>
-        <tr>
-        <th>First name</th>
-        <th>Last name</th>
-        <th>Membership</th>
-        <th>Email</th>
-        <th>View</th>
-    </tr>
-</thead>
-</table>
+
 </div>
 {% endblock %}
 
