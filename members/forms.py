@@ -1,14 +1,16 @@
 from os import path
 from datetime import date, datetime, timedelta
 from django import forms
-from django.forms import Form, ModelForm, ModelMultipleChoiceField
+from django.forms import Form, ModelForm, ModelMultipleChoiceField, HiddenInput
+from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
-from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
+from django.db.models import Q
 from django.core.urlresolvers import reverse_lazy
 from django.conf import settings
 from django.forms.extras import SelectDateWidget
+from django.template.defaultfilters import slugify
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder, BaseInput
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
@@ -738,7 +740,7 @@ class GroupForm(ModelForm):
 
     class Meta:
         model = Group
-        fields = ('slug', 'description')
+        fields = ['description']
 
     def __init__(self, *args, **kwargs):
         super(GroupForm, self).__init__(*args, **kwargs)
@@ -749,7 +751,12 @@ class GroupForm(ModelForm):
         self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-
+    
+    def save(self, *args, **kwargs):
+        grp = super(GroupForm, self).save(commit=False)
+        grp.slug = slugify(grp.description)
+        grp.save()
+ 
 class GroupAddPersonForm(Form):
     #class meta:
     #    model = Group
@@ -761,14 +768,10 @@ class GroupAddPersonForm(Form):
         #    label = '<a href="%s">%s</a>' % (url, group.__unicode__())
         #    return mark_safe(label)
     
-    groups = ModelMultipleChoiceField(queryset=[])
-        #Widget=CheckboxSelectMultiple()
-        #)
+    groups = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
 
     def __init__(self, *args, **kwargs):
         super(GroupAddPersonForm, self).__init__(*args, **kwargs)
-        self.fields['groups'].queryset = Group.objects.all()
-
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -776,15 +779,21 @@ class GroupAddPersonForm(Form):
         self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
         self.helper.add_input(SubmitButton('submit', 'Add', css_class='btn-primary'))
-    
+   
 
-class EmailTextForm(Form):
-    intro = forms.CharField(max_length=30, required=False)
-    notes = forms.CharField(max_length=30, required=False)
-    closing = forms.CharField(max_length=30, required=False)
+class EmailTextForm(forms.Form):
+    intro = forms.ChoiceField()
+    notes = forms.ChoiceField()
+    closing = forms.ChoiceField()
 
     def __init__(self, *args, **kwargs):
         super(EmailTextForm, self).__init__(*args, **kwargs)
+        text_choices = [(-1, u'None')] + [(x.id, x.name) for x in TextBlock.objects.filter(
+            ~Q(name__startswith='_')).order_by('name')]
+        self.fields['intro'].choices = text_choices
+        self.fields['notes'].choices = text_choices
+        self.fields['closing'].choices = text_choices
+
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -792,21 +801,59 @@ class EmailTextForm(Form):
         self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
 
+
+class EmailForm(Form):
+    from_email = forms.EmailField(required=True)
+    to = forms.EmailField(required=False)
+    group = forms.ChoiceField(required=False)
+    cc = forms.CharField(required=False)
+    bcc = forms.CharField(required=False)
+    subject =forms.CharField(required=True)
+    text = forms.CharField(required=True, widget=Textarea )
+
+    def __init__(self, *args, **kwargs):
+        to = kwargs.pop('to', '')
+        group = kwargs.pop('group','')
+        super(EmailForm, self).__init__(*args, **kwargs)
+        choices = [(-1, u'None')] + [(x.id, x.slug) for x in Group.objects.order_by('slug')]
+        self.fields['group'].choices = choices
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-1'
+        self.helper.field_class = 'col-lg-5'
+        self.helper.form_method = 'post'
+
+        if to:
+            div=Div('from_email',
+                    'to',
+                    'subject',
+                    'text' 
+                    )
+        elif group:
+            div=Div('from_email',
+                    'group',
+                    'subject',
+                    'text' 
+                    )
+        else:
+            div=Div('from_email',
+                    'to',
+                    'group'
+                    'subject',
+                    'text' 
+                    )
+        self.helper.layout = Layout(
+            div,
+            ButtonHolder(
+                Submit('submit', 'Send', css_class='btn-primary')
+            )
+        )
+
     def clean(self):
-        cleaned_data = super(EmailTextForm, self).clean()
-        intro = cleaned_data.get('intro')
-        notes = cleaned_data.get('notes')
-        closing = cleaned_data.get('closing')
-        errors = ""
-        if intro and not TextBlock.exists(intro):
-            errors += intro + " "
-        if notes and not TextBlock.exists(notes):
-            errors += notes + " "
-        if closing and not TextBlock.exists(closing):
-            errors += closing + " "
-        if errors:
-            raise forms.ValidationError( 'Text block not found: ' + errors )
-        return cleaned_data
+        cleaned_data = super(EmailForm, self).clean()
+        if cleaned_data['to'] == u'' and cleaned_data['group'] == '-1':
+            raise forms.ValidationError('No To or group selected')
+        return self.cleaned_data
 
 class PaymentForm(ModelForm):
 
@@ -985,4 +1032,7 @@ class ContactForm(Form):
         if resigned:
             postText = 'resign'
         self.helper.add_input(SubmitButton(postText, 'Send', css_class='btn-primary'))
+
+
+
 

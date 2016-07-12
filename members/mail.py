@@ -47,6 +47,44 @@ def do_mail(request, invoice, option):
         invoice.save()
     return count
 
+
+
+
+def send_template_mail(person, template, from_email, cc=None, bcc=None, subject=""):
+    
+    to = person.email
+    recipient = person
+    child =None
+    if person.linked:
+        recipient = person.linked
+        child = person
+    context = Context({
+        'first_name':recipient.first_name,
+        'last_name': person.last_name})
+    if child:
+        context['child'] = child.firstname
+    html_body = template.render(context)
+                
+    send_htmlmail(from_email='Coombe Wood LTC <subs@coombewoodltc.co.uk>',
+                    to=recipient.email,
+                    subject=subject,
+                    html_body=html_body)
+
+        
+def send_htmlmail(from_email, to, cc=None, bcc=None, subject="", html_body=""):
+    '''
+    Send HTML and plain test mail
+    '''
+    text_plain = strip_tags(html_body)
+    msg = EmailMultiAlternatives(from_email=from_email,
+                                to=[to],
+                                cc=cc,
+                                bcc=bcc,
+                                subject=subject,
+                                body=text_plain)
+    msg.attach_alternative(html_body, "text/html")
+    msg.send()
+
 def send_simple_message():
     return requests.post(
         "https://api.mailgun.net/v3/sandbox5a84048e8637412db9d84372e91751d9.mailgun.org/messages",

@@ -41,11 +41,23 @@
     {% csrf_token %}
 {% if full_payment_button %}
 Email text blocks:
-    <a href="{% url "text-update" pk=text_intro.id %}">{{ text_intro }}</a>, 
-    <a href="{% url "text-update" pk=text_notes.id %}">{{ text_notes }}</a>, 
-    <a href="{% url "text-update" pk=text_closing.id %}">{{ text_closing }}</a>
+    {% if text_intro %}
+        <a href="{% url "text-update" pk=text_intro.id %}">{{ text_intro }}</a>, 
+    {% else %}
+        None,
+    {% endif %}
+    {% if text_notes %}
+        <a href="{% url "text-update" pk=text_notes.id %}">{{ text_notes }}</a>, 
+    {% else %}
+        None,
+    {% endif %}
+    {% if text_closing %}
+        <a href="{% url "text-update" pk=text_closing.id %}">{{ text_closing }}</a>
+    {% else %}
+        None
+    {% endif %}
+    <a href="{% url "invoice-mail-config" pk=invoice.id %}" class="btn btn-primary btn-xs">Configure mail</a>
 <br /><br />
-    <a href="{% url "invoice-mail-config" pk=invoice.id %}" class="btn btn-primary">Configure mail</a>
     <input type="submit" name="view" value="Preview mail" class="btn btn-primary">
     <input type="submit" name="test" value="Send test mail" class="btn btn-primary">
     <input type="submit" name="send" value="send mail" class="btn btn-primary"> 

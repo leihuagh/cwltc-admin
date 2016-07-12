@@ -11,8 +11,9 @@
     <link rel='stylesheet' type='text/css' href='{% static 'members/content/jquery-ui/smoothness/jquery-ui.css' %}' />
     <link rel="stylesheet" type="text/css" href="{% static 'members/content/jquery.smartmenus.bootstrap.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'members/content/site.css' %}" />
-{% load wysiwyg %}
-{% wysiwyg_setup %}
+    {% block head %}
+    {% endblock %}
+
 </head>
 
 <body>
@@ -85,10 +86,11 @@
 <div class="container body-content">
 {% include "members/_messages.html" %}
 <div class="container body-content">
-{% block content %}{% endblock %}
+    {% block content %}
+    {% endblock %}
         <hr/>
         <footer>
-            <p>&copy; {{ year }} ISKT ltd</p>
+            <p>&copy; {{ year }} ISKT Ltd</p>
         </footer>
     </div>
  </div>
@@ -124,7 +126,8 @@ $(function() {
 })
 </script>
 
-{% block scripts %}{% endblock %}
+{% block scripts %}
+{% endblock %}
 
 </body>
 </html>

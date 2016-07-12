@@ -44,15 +44,20 @@ urlpatterns = [
         GroupCreateView.as_view(),
         name='group-create'
     ),
+    url(r'^group/(?P<pk>\d+)/$',
+        GroupDetailView.as_view(),
+        name='group-detail'
+    ),
     url(r'^group/(?P<slug>[\w-]+)/$',
         GroupDetailView.as_view(),
         name='group-detail'
     ),
+
     url(r'^groups/$',
         GroupListView.as_view(),
         name='group-list'
     ),
-    url(r'^groups/addperson/(?P<person_id>\d+)$',
+    url(r'^groups/addperson/(?P<person_id>\d+)/$',
         GroupAddPersonView.as_view(),
         name='group-add-person'
     ),
@@ -293,6 +298,20 @@ urlpatterns = [
     url(r'^text/list/$',
         TextBlockListView.as_view(),
         name='text-list'
+    ),
+
+    # EMAIL
+    url(r'^email/$',
+        EmailView.as_view(),
+        name='email'
+    ),
+    url(r'^email/person/(?P<person>\d+)/$',
+        EmailView.as_view(),
+        name='email-person'
+    ),
+    url(r'^email/group/(?P<group>\d+)/$',
+        EmailView.as_view(),
+        name='email-group'
     ),
 
     # EXCEL IMPORT AND EXPORT

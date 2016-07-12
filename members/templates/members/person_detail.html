@@ -43,10 +43,15 @@
                                 </td>
                             </tr>
                         </table>
-                        {% if person.email %}{{ person.email }} {% else %}No email address{% endif %}
+                        {% if person.email %}
+                            {{ person.email }}
+                         {% else %}No email address{% endif %}
                     </div>
                     <div class="panel-footer">
-                        <a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a>                                  
+                        <a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a> 
+                         {% if person.email %}
+                            <a href="{% url "email-person" person=person.id %}" class="btn btn-primary btn-sm">Send email</a>
+                         {% else %}No email address{% endif %}                                                        
                         {% if user.get_username = "ian"  %}
                           {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete person" confirm_yes="Delete" confirm_submit="delete" %}
                           <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger btn-sm">Delete person</a>

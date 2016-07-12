@@ -567,17 +567,30 @@ class TextBlock(models.Model):
 
     @classmethod
     def add_email_context(self, context):
-        params = TextBlock.objects.filter(name='_email_params')[0].text
-        blocks = params.split('|')
-        context['text_intro'] = TextBlock.objects.filter(name=blocks[0])[0]
-        context['text_notes'] = TextBlock.objects.filter(name=blocks[1])[0]
-        context['text_closing'] = TextBlock.objects.filter(name=blocks[2])[0]
+        blocks = TextBlock.email_params()
+        if blocks[0] > 0:
+            context['text_intro'] = TextBlock.objects.get(pk=blocks[0])
+        if blocks[1] > 0:
+            context['text_notes'] = TextBlock.objects.get(pk=blocks[1])
+        if blocks[2] > 0:
+            context['text_closing'] = TextBlock.objects.get(pk=blocks[2])
     
     @classmethod
     def exists(cls, name):
         if len(TextBlock.objects.filter(name=name)) == 1:
             return True
         return False
+
+    @classmethod
+    def email_params(self):
+        blocks = TextBlock.objects.filter(name='_invoice_mail')
+        if len(blocks) == 1:
+            ids = blocks[0].text.split("|")
+            for i in range(0,len(ids)-1):
+                if len(TextBlock.objects.filter(pk=ids[i])) == 0:
+                    ids[i] = -1  
+            return ids
+        return [-1,-1,-1]  
 
 class ExcelBook(models.Model):
     file = models.FileField(upload_to='excel')

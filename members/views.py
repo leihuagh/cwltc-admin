@@ -14,6 +14,7 @@ from django.contrib import messages
 from django.db.models import Q, Sum, QuerySet
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django.template import Template, Context
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.core.mail import send_mail
@@ -435,8 +436,7 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
     template_name = 'members/generic_crispy_form.html'
 
     def get_success_url(self):
-        messages.success(self.request, 'Group {} created'.format(form.cleaned_data['description']))
-        return reverse('home')
+        return reverse('group-list')
 
 class GroupListView(LoginRequiredMixin, ListView):
     ''' List all groups'''
@@ -477,6 +477,8 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
             group.person_set.clear()
         elif 'export' in request.POST:
             return export_people(group.slug, group.person_set.all())
+        elif 'email' in request.POST:
+            return redirect(reverse('email-group', kwargs={'group': group.id}))
 
         return redirect(reverse('group-list'))
 
@@ -490,16 +492,24 @@ class GroupAddPersonView(LoginRequiredMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super(GroupAddPersonView, self).get_context_data(**kwargs)
-        #context['groups'] = Group.objects.all()
         self.person = Person.objects.get(pk = self.kwargs['person_id'])
         context['message'] = self.person.fullname()
         return super(GroupAddPersonView, self).get_context_data(**kwargs)
 
     def form_valid(self, form):
-        return super(GroupAddPersonView, self).form_valid(form)
+        person = Person.objects.get(pk = self.kwargs['person_id'])
+        if 'cancel' in form.data:
+            return redirect(person)
+
+        if 'submit' in form.data:        
+            self.group_id = form.cleaned_data['groups'].id
+            group = Group.objects.get(pk=self.group_id)
+            person.groups.add(group)
+            return super(GroupAddPersonView, self).form_valid(form)
+        #return redirect(reverse('group-detail', kwargs={'pk':groupid}))
 
     def get_success_url(self):
-        return reverse('group-list')
+        return reverse('group-detail', kwargs={'pk':self.group_id})
 
 # ============== Subscriptions
 
@@ -775,7 +785,7 @@ class SubRenewBatch(LoginRequiredMixin, FormView):
         context['remaining'] = subscription_renew_batch(2015, 5, 0)
         return context
 
-    def form_valid(self,form):
+    def form_valid(self, form):
         remaining = subscription_renew_batch(2015, 5, 100)
         return HttpResponseRedirect(reverse('sub-renew-batch'))
 
@@ -1192,19 +1202,22 @@ class InvoiceMailConfigView(LoginRequiredMixin, FormView):
     form_class = EmailTextForm
     template_name = 'members/generic_crispy_form.html'
 
+    def get_initial(self):
+        initial = super(InvoiceMailConfigView, self).get_initial()
+        ids = TextBlock.email_params()
+        if ids:
+            initial['intro'] = ids[0]
+            initial['notes'] = ids[1]
+            initial['closing'] = ids[2]
+        return initial
+
     def form_valid(self, form):     
         intro = form.cleaned_data['intro']
-        if intro == "":
-            intro = "invoice_intro"
         notes = form.cleaned_data['notes']
-        if notes == "":
-            notes = "invoice_notes"
         closing = form.cleaned_data['closing']
-        if closing == "":
-            closing = "invoice_closing"
-        blocks = TextBlock.objects.filter(name='_email_params')
+        blocks = TextBlock.objects.filter(name='_invoice_mail')
         if len(blocks) == 0:
-            block = TextBlock(name='_email_params')
+            block = TextBlock(name='_invoice_mail')
         else:
             block = blocks[0]
         block.text = intro + "|" + notes + "|" + closing
@@ -1528,6 +1541,11 @@ class TextBlockCreateView(LoginRequiredMixin, CreateView):
     template_name = 'members/textblock_form.html'
     template_object_name = 'textblock'
 
+    def get_context_data(self, **kwargs):       
+        context = super(TextBlockCreateView, self).get_context_data(**kwargs)
+        context['title'] = 'Create text block'
+        return context
+
     def get_success_url(self):
         return reverse('text-list')
  
@@ -1544,6 +1562,7 @@ class TextBlockUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super(TextBlockUpdateView, self).get_context_data(**kwargs)
         context['option'] = self.kwargs['option']
+        context['title'] = 'Update text block'
         return context
 
     def form_valid(self, form):
@@ -1568,6 +1587,92 @@ class TextBlockListView(LoginRequiredMixin, ListView):
     model = TextBlock               
     template_name = 'members/textblock_list.html'
 
+
+# ==================== EMAIL
+class EmailView(LoginRequiredMixin, FormView):
+    form_class = EmailForm
+    template_name = 'members/textblock_form.html'
+   
+    def get_context_data(self, **kwargs):
+        context = super(EmailView, self).get_context_data(**kwargs) 
+        target = 'Send email'
+             
+        context['title'] = target
+        return context
+
+    def get_form_kwargs(self):
+        person_id = self.kwargs.get('person', '')
+        self.to = ''
+        self.person = None
+        if person_id:
+            self.person = Person.objects.get(pk=person_id)
+            self.to = self.person.email
+        self.group = self.kwargs.get('group', '-1')
+        kwargs = super(EmailView,self).get_form_kwargs()
+        kwargs.update({'to': self.to,
+                       'group': self.group})
+        return kwargs
+
+    def get_initial(self):
+        '''
+        This is called by get_context_data
+        '''
+        initial = super(EmailView, self).get_initial()
+        person_id = self.kwargs.get('person', '')
+        if person_id:
+            self.person = Person.objects.get(pk=person_id)
+            self.to = self.person.email
+            initial['to'] = self.to
+        initial['group'] = self.kwargs.get('group', '-1')
+        initial['from_email'] = getattr(settings, 'SUBS_EMAIL')
+        initial['subject'] = "Coombe Wood LTC membership"
+        initial['text'] = """Dear {{first_name}}<br\>
+                             <br\>
+                             Regards,<br\>
+                             Ian Stewart<br\>
+                             Membership secretary<br\>
+                             Coombe Wood LTC <br\>
+                             07985 748548"""
+        return initial
+
+    def form_valid(self, form):
+        from_email = form.cleaned_data['from_email']
+        to = form.cleaned_data['to']
+        group_id = form.cleaned_data['group']  
+        template = Template(form.cleaned_data['text'])
+        subject=form.cleaned_data['subject']
+        if self.person:
+            send_template_mail(person=self.person,
+                               template=template,
+                               from_email=from_email,
+                               subject=subject)
+            messages.info(self.request, u'Email sent')
+            return redirect(
+                reverse('person-detail', kwargs={'pk': self.person.id}) 
+                )
+        
+        elif group_id <> '-1':
+            group = Group.objects.get(pk=group_id)
+            count = 0
+            for person in group.person_set.all():
+                send_template_mail(person=person,
+                                   template=template,
+                                   from_email=from_email,
+                                   subject=subject)
+                count += 1
+            message = u'{} emails sent'.format(count)
+            messages.info(self.request, message)
+            return redirect(
+                reverse('group-detail', kwargs={'pk': group_id})
+                )
+
+        else:
+            return redirect(
+                reverse('email_form') 
+                )
+
+    def get_success_url(self):
+        return reverse('email_form') 
 
 class ImportExcelMore(LoginRequiredMixin, FormView):
     form_class = XlsMoreForm

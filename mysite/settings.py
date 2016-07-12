@@ -233,7 +233,7 @@ if DEBUG:
 
         EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
         MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
-        MAILGUN_SERVER_NAME = 'mg.coombewoodltc.co.uk'
+        MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
 
         #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     else:
@@ -241,27 +241,14 @@ if DEBUG:
         #EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
         EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
         MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
-        MAILGUN_SERVER_NAME = 'mg.coombewoodltc.co.uk'
+        MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
 
-        #EMAIL_BACKEND = "sgbackend.SendGridBackend"
-        #SENDGRID_API_KEY = "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"
 else:
 
     EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
     MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
-    MAILGUN_SERVER_NAME = 'mg.coombewoodltc.co.uk'
+    MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
     
-  
-    # Sendgrid integration
-    #EMAIL_BACKEND = "sgbackend.SendGridBackend"
-    #SENDGRID_API_KEY = "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"
-
-    #EMAIL_HOST = 'smtp.sendgrid.net'
-    #EMAIL_HOST_USER = 'sendgrid_username'
-    #EMAIL_HOST_PASSWORD = 'sendgrid_password'
-    #EMAIL_PORT = 587
-    #EMAIL_USE_TLS = True
-
 DJANGO_WYSIWYG_FLAVOR = 'yui'
 
 if PRODUCTION:
@@ -280,3 +267,8 @@ else:
         'ACCESS_TOKEN': '6T93JFXX6XTS7C38XCZRWZ7379AJTXXBXE8ZC53FJMYZ0KBPG0S5S77G73N1FCX3',
         'MERCHANT_ID': '0VTW3337YC'
         }
+
+
+SUBS_EMAIL = 'subs@coombewoodltc.co.uk'
+INFO_EMAIL = 'info@coombewoodltc.co.uk'
+TEST_EMAIL = 'is@ktconsultants.co.uk'

@@ -1,11 +1,15 @@
 ﻿{% extends "members/layout.html" %}
-{% load wysiwyg %}
+{% block head %}
+    {% load wysiwyg %}
+    {% wysiwyg_setup %}
+{% endblock %}
+
 {% block content %}
-{% load crispy_forms_tags %}
-<h2>Standard text block</h2>
-{% crispy form %}
-{% if option = None%}
-    {% wysiwyg_editor "id_text" %}
-{% endif %}
-{% endblock content %}
+    {% load crispy_forms_tags %}
+    <h2>{{ title }}</h2>
+    {% crispy form %}
+    {% if option = None %}
+        {% wysiwyg_editor "id_text" %}
+    {% endif %}
+{% endblock %}
 
