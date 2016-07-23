@@ -502,14 +502,15 @@ class GroupAddPersonView(LoginRequiredMixin, FormView):
             return redirect(person)
 
         if 'submit' in form.data:        
-            self.group_id = form.cleaned_data['groups'].id
-            group = Group.objects.get(pk=self.group_id)
-            person.groups.add(group)
+            #self.group_id = form.cleaned_data['groups'].id
+            #group = Group.objects.get(pk=self.group_id)
+            self.group=form.cleaned_data['group']
+            person.groups.add(self.group)
             return super(GroupAddPersonView, self).form_valid(form)
         #return redirect(reverse('group-detail', kwargs={'pk':groupid}))
 
     def get_success_url(self):
-        return reverse('group-detail', kwargs={'pk':self.group_id})
+        return reverse('group-detail', kwargs={'pk':self.group.id})
 
 # ============== Subscriptions
 
@@ -651,7 +652,7 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
             cat = int(self.form.cleaned_data['categories'])
             paid = self.form.cleaned_data['paystate'] == 'paid'
             all  = self.form.cleaned_data['paystate'] == 'all'
-
+            group = self.form.cleaned_data['group']
             if cat == Membership.RESIGNED:
                 qset = Subscription.objects.filter(
                     sub_year=year,
@@ -747,7 +748,19 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                     'subscription__membership__description'
                     ))
                 return export_members("Members",memlist)
-          
+            
+            if 'group' in self.form.data:
+                if group:
+                    for item in qset:
+                        item.person.groups.add(group)
+                    return redirect(reverse('group-detail', kwargs={'pk':group.id}))
+        
+                messages.error(self.request,'Cannot add to group')
+                return redirect(reverse('home'))
+
+        messages.error(self.request,'Error in members view')
+        return redirect(reverse('home'))       
+
 class SubRenewView(LoginRequiredMixin, FormView):
      
     def get(self, request, *args, **kwargs):    

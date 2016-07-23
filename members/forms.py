@@ -631,6 +631,7 @@ class MembersListForm(Form):
                         initial=Settings.current().membership_year)
     paystate = forms.ChoiceField(choices=PAYCHOICES,
                                  initial='paid')
+    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
 
     def __init__(self, *args, **kwargs):
         super(MembersListForm, self).__init__(*args, **kwargs)
@@ -758,17 +759,8 @@ class GroupForm(ModelForm):
         grp.save()
  
 class GroupAddPersonForm(Form):
-    #class meta:
-    #    model = Group
-    #    fields ['slug']
-
-    #class MultipleGroupField(forms.ModelMultipleChoiceField):
-        #def label_from_instance(self, group):
-        #    url = reverse('group-detail', kwargs={'slug': group.slug})
-        #    label = '<a href="%s">%s</a>' % (url, group.__unicode__())
-        #    return mark_safe(label)
     
-    groups = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
+    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
 
     def __init__(self, *args, **kwargs):
         super(GroupAddPersonForm, self).__init__(*args, **kwargs)

@@ -33,7 +33,12 @@
         </tr>
     </thead>
     </table>
-    <input type="submit" name="export" value="Export to Excel">   
+    <input type="submit" name="export" value="Export to Excel" class="btn btn-primary" /> 
+    <input type="submit" name ="group" value="Add to group"  class="btn btn-primary"/> 
+    <div class="form-group">
+        <label for="id_group">Group:</label>
+          {{ form.group }}
+    </div>   
 </form>
 </div>
 </div>
