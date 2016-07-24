@@ -62,7 +62,7 @@ def send_template_mail(person, template, from_email, cc=None, bcc=None, subject=
         'first_name':recipient.first_name,
         'last_name': person.last_name})
     if child:
-        context['child'] = child.firstname
+        context['child'] = child.first_name
     html_body = template.render(context)
                 
     send_htmlmail(from_email='Coombe Wood LTC <subs@coombewoodltc.co.uk>',

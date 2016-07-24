@@ -43,7 +43,8 @@ INSTALLED_APPS = (
 	'members',
     'gc_app',
     'rest_framework',
-    'report_builder'
+    'report_builder',
+    'anymail'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -228,28 +229,37 @@ LOGIN_URL ='/login/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-if DEBUG:
-    if ON_PAAS:
+#if DEBUG:
+#    if ON_PAAS:
 
-        EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
-        MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
-        MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
+#        EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+#        MAILGUN_API_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
+#        #MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
 
-        #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    else:
-        #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-        #EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
-        EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
-        MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
-        MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
+#        #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#    else:
+#        #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+#        #EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
+#        EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+#        MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
+#       # MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
 
-else:
+#else:
 
-    EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
-    MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
-    MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
+EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+    #MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
+    #MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
     
 DJANGO_WYSIWYG_FLAVOR = 'yui'
+
+ANYMAIL = {
+    "MAILGUN_API_KEY": 'key-44e941ede1264ea215021bb0b3634eb4',
+}
+DEFAULT_FROM_EMAIL = 'Coombe Wood LTC <subs@coombewoodltc.co.uk>'
+SUBS_EMAIL = 'subs@coombewoodltc.co.uk'
+INFO_EMAIL = 'info@coombewoodltc.co.uk'
+TEST_EMAIL = 'is@ktconsultants.co.uk'
+
 
 if PRODUCTION:
     GO_CARDLESS = {
@@ -269,6 +279,3 @@ else:
         }
 
 
-SUBS_EMAIL = 'subs@coombewoodltc.co.uk'
-INFO_EMAIL = 'info@coombewoodltc.co.uk'
-TEST_EMAIL = 'is@ktconsultants.co.uk'
