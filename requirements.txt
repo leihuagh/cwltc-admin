@@ -12,6 +12,7 @@ django-import-export==0.4.2
 django-report-builder==3.4.1
 django-report-utils==0.3.15
 djangorestframework==3.3.2
+django-tinymce==2.3.0
 django-widget-tweaks==1.4.1
 django-wysiwyg==0.7.1
 gocardless==0.5.3
