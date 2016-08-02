@@ -802,6 +802,9 @@ class EmailForm(Form):
     bcc = forms.CharField(required=False)
     subject =forms.CharField(required=True)
     text = forms.CharField(required=True, widget=Textarea )
+    block = forms.ModelChoiceField(queryset=TextBlock.objects.all(),
+                                        empty_label=None,
+                                        required=False) 
 
     def __init__(self, *args, **kwargs):
         to = kwargs.pop('to', '')
@@ -810,6 +813,7 @@ class EmailForm(Form):
         choices = [(-1, u'None')] + [(x.id, x.slug) for x in Group.objects.order_by('slug')]
         self.fields['group'].choices = choices
         self.helper = FormHelper()
+        self.helper.form_id = 'id-emailForm'
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-1'
         self.helper.field_class = 'col-lg-5'
@@ -817,27 +821,21 @@ class EmailForm(Form):
 
         if to:
             div=Div('from_email',
-                    'to',
-                    'subject',
-                    'text' 
-                    )
+                    'to')
         elif group:
             div=Div('from_email',
-                    'group',
-                    'subject',
-                    'text' 
-                    )
+                    'group')
         else:
             div=Div('from_email',
                     'to',
-                    'group'
-                    'subject',
-                    'text' 
-                    )
+                    'group')
+        div.fields.extend(['subject','text', 'block'])
+
         self.helper.layout = Layout(
             div,
             ButtonHolder(
-                Submit('submit', 'Send', css_class='btn-primary')
+                Submit('send', 'Send', css_class='btn-primary'),
+                Button('insert','Insert text')
             )
         )
 

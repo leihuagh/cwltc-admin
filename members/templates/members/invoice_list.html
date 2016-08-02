@@ -56,18 +56,12 @@
             dateFormat: 'dd/mm/yy'
         };
         $('.datepicker').datepicker(options);
-        //$('#invoices').DataTable();
-        //$('#invoices').show();
-
     });
+
     $("[id^='id_']").change(function () {
         console.log("checkbox click!")  // sanity check
         ajax_post()
     });
-    //$("[type=text]").change(function () {
-    //    console.log("datepicker change")  // sanity check
-    //    ajax_post()
-    //});
 
     // from django documentation
     function csrfSafeMethod(method) {

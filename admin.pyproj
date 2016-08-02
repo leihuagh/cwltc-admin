@@ -425,6 +425,7 @@
     <Content Include="members\templates\members\confirm.html" />
     <Content Include="members\templates\members\contact.html" />
     <Content Include="members\templates\members\credit_note.html" />
+    <Content Include="members\templates\members\email.html" />
     <Content Include="members\templates\members\fees_list.html" />
     <Content Include="members\templates\members\filter_member.html" />
     <Content Include="members\templates\members\generic_crispy_form.html" />

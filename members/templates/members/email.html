@@ -1,0 +1,65 @@
+﻿{% extends "members/layout.html" %}
+{% block head %}
+    {% load wysiwyg %}
+    {% wysiwyg_setup %}
+{% endblock %}
+
+{% block content %}
+    {% load crispy_forms_tags %}
+    <h2>{{ title }}</h2>
+    {% crispy form %}
+    {% if option = None %}
+        {% wysiwyg_editor "id_text" %}
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+
+<script type="text/javascript">
+
+    // from django documentation
+    function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", $("input[name='csrfmiddlewaretoken']").val());
+            }
+        }
+    })
+
+    // Submit post on submit
+    $('#button-id-insert').on('click', function() {
+        console.log("send data"); // sanity check
+        $.ajax({
+            url: "", // the endpoint
+            type: "GET", // http method
+            data: {
+                blockId: $('#id_block').val()
+            }, 
+
+            // handle a successful response
+            success: function (json) {
+                console.log(json); // log the returned json to the console
+                text = json["text"];
+                console.log(text);
+                $('#id_subject').val('Updated');
+                $('#id_text').val(text);
+                tinyMCE.execCommand('mceInsertContent', false, text);
+                console.log($('#id_text_editor').val());
+                console.log(django_wysiwyg); // another sanity check
+            },
+
+            // handle an unsuccessful response
+            error: function (xhr, errmsg, err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    }
+    )
+</script>
+{% endblock %}

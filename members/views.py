@@ -3,7 +3,7 @@ from itertools import chain
 from operator import attrgetter
 from django import forms
 from django.shortcuts import render, render_to_response
-from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonResponse, Http404
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
 from django.views.generic.edit import FormView, FormMixin
@@ -531,15 +531,19 @@ class SubCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
+        if 'cancel' in form.data:
+            return redirect(reverse('person-detail', kwargs={'pk':self.kwargs['person_id']}))
+        
         form.instance.person_member = Person.objects.get(pk = self.kwargs['person_id'])
         form.instance.invoiced_month = 0
         form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
+        
+        sub = form.save()
+        subscription_activate(sub)
+        subscription_create_invoiceitems(sub, sub.start_date.month)           
         return super(SubCreateView, self).form_valid(form)
 
     def get_success_url(self):
-        sub = self.object
-        subscription_activate(sub)
-        subscription_create_invoiceitems(sub, sub.start_date.month)
         return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
 
 class SubUpdateView(LoginRequiredMixin, UpdateView):
@@ -653,10 +657,12 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
             paid = self.form.cleaned_data['paystate'] == 'paid'
             all  = self.form.cleaned_data['paystate'] == 'all'
             group = self.form.cleaned_data['group']
-            if cat == Membership.RESIGNED:
+
+            # Exceptional cases that do not pay a sub
+            if cat == Membership.RESIGNED or cat == Membership.HON_LIFE or cat == Membership.LIFE:
                 qset = Subscription.objects.filter(
                     sub_year=year,
-                    membership_id=Membership.RESIGNED
+                    membership_id=cat
                     ).select_related()
                     
                 if request.is_ajax():
@@ -669,6 +675,48 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                         ))
                     dict = {"data": plist}
                     return JsonResponse(dict)
+
+                if 'group' in self.form.data:
+                    if group:
+                        for sub in qset:
+                            sub.person_member.groups.add(group)
+                        return redirect(reverse('group-detail', kwargs={'pk':group.id}))
+
+                if 'export' in self.form.data:
+                    memlist = list(qset.values_list(
+                        'person_member__id',
+                        'person_member__gender',
+                        'person_member__first_name',
+                        'person_member__last_name',
+                        'person_member__address__address1',
+                        'person_member__address__address2',
+                        'person_member__address__town',
+                        'person_member__address__post_code',
+                        'person_member__address__home_phone',
+                        'person_member__mobile_phone',
+                        'person_member__email',
+                        'person_member__date_joined',
+                        'membership__description'
+                        ))
+                    return export_members("Members",memlist)
+           
+            if cat == Membership.HON_LIFE or cat == Membership.LIFE:
+                qset = Subscription.objects.filter(
+                    membership_id=cat
+                    ).select_related()
+                    
+                if request.is_ajax():
+                    plist = list(qset.values_list(
+                        'person_member__first_name',
+                        'person_member__last_name',
+                        'membership__description',
+                        'person_member__email',
+                        'person_member__id'
+                        ))
+                    dict = {"data": plist}
+                    return JsonResponse(dict)
+
+
                 if 'export' in self.form.data:
                     memlist = list(qset.values_list(
                         'person_member__id',
@@ -687,6 +735,7 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                         ))
                     return export_members("Members",memlist)
 
+            # filter based on paid subs
             qset = InvoiceItem.objects.filter(subscription__isnull=False,
                                               subscription__active=True,
                                               subscription__sub_year=year
@@ -703,12 +752,22 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                 plist= []
                 for p in non_kids:
                     if p.person_set.count() > 0:
-                        cat = p.membership.description if p.membership else ""
-                           
-                        qlist =[p.first_name, p.last_name, cat, p.email, p.id]
-                        plist.append(qlist)
-                dict = {"data": plist}
-                return JsonResponse(dict)
+                        if 'group' in self.form.data:
+                            p.groups.add(group)
+                        else:
+                            cat = p.membership.description if p.membership else ""                      
+                            qlist =[p.first_name, p.last_name, cat, p.email, p.id]
+                            plist.append(qlist)
+                if request.is_ajax():
+                    dict = {"data": plist}
+                    return JsonResponse(dict)
+
+                if 'group' in self.form.data:
+                    return redirect(reverse('group-detail', kwargs={'pk':group.id}))
+
+                if 'export' in self.form.data:
+                    messages.error(self.request,'Export families is not implemented')
+                    return redirect(reverse('home'))
             
             else:
                 taglist = []    
@@ -1604,7 +1663,7 @@ class TextBlockListView(LoginRequiredMixin, ListView):
 # ==================== EMAIL
 class EmailView(LoginRequiredMixin, FormView):
     form_class = EmailForm
-    template_name = 'members/textblock_form.html'
+    template_name = 'members/email.html'
    
     def get_context_data(self, **kwargs):
         context = super(EmailView, self).get_context_data(**kwargs) 
@@ -1648,41 +1707,62 @@ class EmailView(LoginRequiredMixin, FormView):
                              07985 748548"""
         return initial
 
-    def form_valid(self, form):
-        from_email = form.cleaned_data['from_email']
-        to = form.cleaned_data['to']
-        group_id = form.cleaned_data['group']  
-        template = Template(form.cleaned_data['text'])
-        subject=form.cleaned_data['subject']
-        if self.person:
-            send_template_mail(person=self.person,
-                               template=template,
-                               from_email=from_email,
-                               subject=subject)
-            messages.info(self.request, u'Email sent')
-            return redirect(
-                reverse('person-detail', kwargs={'pk': self.person.id}) 
-                )
-        
-        elif group_id <> '-1':
-            group = Group.objects.get(pk=group_id)
-            count = 0
-            for person in group.person_set.all():
-                send_template_mail(person=person,
-                                   template=template,
-                                   from_email=from_email,
-                                   subject=subject)
-                count += 1
-            message = u'{} emails sent'.format(count)
-            messages.info(self.request, message)
-            return redirect(
-                reverse('group-detail', kwargs={'pk': group_id})
-                )
-
+    def get(self, request, *args, **kwargs):
+        if request.is_ajax():
+            try:
+                blockId = int(request.GET['blockId'])
+                block = TextBlock.objects.get(pk=blockId)
+                dict = {}
+                dict['text'] = block.text
+                return JsonResponse(dict)
+            except:
+                return JsonResponse({'error':'Bad AJAX request'})
         else:
-            return redirect(
-                reverse('email_form') 
-                )
+            return super(EmailView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form(self.form_class)
+        if form.is_valid():
+            from_email = form.cleaned_data['from_email']
+            to = form.cleaned_data['to']
+            group_id = form.cleaned_data['group']  
+            template = Template(form.cleaned_data['text'])
+            subject=form.cleaned_data['subject']
+            #preview = "preview" in request.post
+
+
+            if self.person:
+                send_template_mail(person=self.person,
+                                    template=template,
+                                    from_email=from_email,
+                                    subject=subject)
+                messages.info(self.request, u'Email sent')
+                return redirect(
+                    reverse('person-detail', kwargs={'pk': self.person.id}) 
+                    )
+        
+            elif group_id <> '-1':
+                group = Group.objects.get(pk=group_id)
+                count = 0
+                for person in group.person_set.all():
+                    send_template_mail(person=person,
+                                        template=template,
+                                        from_email=from_email,
+                                        subject=subject)
+                    count += 1
+                message = u'{} emails sent'.format(count)
+                messages.info(self.request, message)
+                return redirect(
+                    reverse('group-detail', kwargs={'pk': group_id})
+                    )
+
+            else:
+                return redirect(
+                    reverse('email_form') 
+                    )
+
+            return super(EmailView, self).post(request, *args, **kwargs)
+        raise Http404("Bad data in email form")
 
     def get_success_url(self):
         return reverse('email_form') 

@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'import_export',
     'crispy_forms',
     'django_wysiwyg',
+    'tinymce',
     'widget_tweaks',
 	'members',
     'gc_app',
@@ -250,7 +251,7 @@ EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
     #MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
     #MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
     
-DJANGO_WYSIWYG_FLAVOR = 'yui'
+DJANGO_WYSIWYG_FLAVOR = 'tinymce'
 
 ANYMAIL = {
     "MAILGUN_API_KEY": 'key-44e941ede1264ea215021bb0b3634eb4',

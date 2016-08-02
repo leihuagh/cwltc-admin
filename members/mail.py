@@ -70,6 +70,8 @@ def send_template_mail(person, template, from_email, cc=None, bcc=None, subject=
                     subject=subject,
                     html_body=html_body)
 
+
+
         
 def send_htmlmail(from_email, to, cc=None, bcc=None, subject="", html_body=""):
     '''
