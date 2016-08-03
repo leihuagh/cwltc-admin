@@ -10,9 +10,9 @@ REMOTE_ADMIN = False
 REMOTE_SANDBOX = False
 
 PRODUCTION = False
-DEBUG = False
+
 if ON_PAAS:
-    DEBUG =  True #'DEBUG' in os.environ
+    DEBUG =  'DEBUG' in os.environ
     SECRET_KEY = os.environ['OPENSHIFT_SECRET_TOKEN']
     ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
     if os.environ['OPENSHIFT_APP_NAME'] == "admin":
