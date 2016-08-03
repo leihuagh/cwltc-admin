@@ -632,6 +632,49 @@ class SubHistoryView(LoginRequiredMixin, ListView):
         context['person'] = self.person
         return context
 
+class SubRenewView(LoginRequiredMixin, FormView):
+     
+    def get(self, request, *args, **kwargs):    
+        sub.renew(sub.sub_year+1, Subscription.START_MONTH)
+        return redirect(sub.person_member)
+
+class SubRenewAllView(LoginRequiredMixin, FormView):
+    form_class = SubRenewForm
+    template_name = 'members/generic_crispy_form.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super(SubRenewAllView, self).get_context_data(**kwargs)
+        self.subs = Subscription.objects.filter(active=True, no_renewal=False)
+        context['title'] = 'Renew subscriptions'
+        context['message'] = '{} subscriptions to renew'.format(self.subs.count())   
+        return context
+        
+    def form_valid(self, form):     
+        year = form.cleaned_data['sub_year']
+        if 'renew' in self.request.POST:
+            subscription_renew_batch(year, 5)
+            messages.success(self.request,'Subscriptions for {} generated'.format(year))
+        return redirect(reverse('home'))
+        
+    def get_success_url(self):
+        return reverse('home')
+
+class SubRenewBatch(LoginRequiredMixin, FormView):
+    form_class = XlsMoreForm
+    template_name = 'members/import_more.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SubRenewBatch, self).get_context_data(**kwargs)
+        context['title'] = 'Generate subs'
+        context['remaining'] = subscription_renew_batch(2015, 5, 0)
+        return context
+
+    def form_valid(self, form):
+        remaining = subscription_renew_batch(2015, 5, 100)
+        return HttpResponseRedirect(reverse('sub-renew-batch'))
+
+# ============ Members list
+
 class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
     ''' Members with subscriptions '''
     template_name = 'members/members_list.html'
@@ -819,47 +862,6 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
 
         messages.error(self.request,'Error in members view')
         return redirect(reverse('home'))       
-
-class SubRenewView(LoginRequiredMixin, FormView):
-     
-    def get(self, request, *args, **kwargs):    
-        sub.renew(sub.sub_year+1, Subscription.START_MONTH)
-        return redirect(sub.person_member)
-
-class SubRenewAllView(LoginRequiredMixin, FormView):
-    form_class = SubRenewForm
-    template_name = 'members/generic_crispy_form.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super(SubRenewAllView, self).get_context_data(**kwargs)
-        self.subs = Subscription.objects.filter(active=True, no_renewal=False)
-        context['title'] = 'Renew subscriptions'
-        context['message'] = '{} subscriptions to renew'.format(self.subs.count())   
-        return context
-        
-    def form_valid(self, form):     
-        year = form.cleaned_data['sub_year']
-        if 'renew' in self.request.POST:
-            subscription_renew_batch(year, 5)
-            messages.success(self.request,'Subscriptions for {} generated'.format(year))
-        return redirect(reverse('home'))
-        
-    def get_success_url(self):
-        return reverse('home')
-
-class SubRenewBatch(LoginRequiredMixin, FormView):
-    form_class = XlsMoreForm
-    template_name = 'members/import_more.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(SubRenewBatch, self).get_context_data(**kwargs)
-        context['title'] = 'Generate subs'
-        context['remaining'] = subscription_renew_batch(2015, 5, 0)
-        return context
-
-    def form_valid(self, form):
-        remaining = subscription_renew_batch(2015, 5, 100)
-        return HttpResponseRedirect(reverse('sub-renew-batch'))
 
 # ============ Year end
 
@@ -1610,7 +1612,7 @@ class CreditNoteDetailView(LoginRequiredMixin, DetailView):
 class TextBlockCreateView(LoginRequiredMixin, CreateView):
     model = TextBlock
     form_class = TextBlockForm
-    template_name = 'members/textblock_form.html'
+    template_name = 'members/email.html'
     template_object_name = 'textblock'
 
     def get_context_data(self, **kwargs):       
@@ -1624,35 +1626,21 @@ class TextBlockCreateView(LoginRequiredMixin, CreateView):
 class TextBlockUpdateView(LoginRequiredMixin, UpdateView):
     model = TextBlock
     form_class = TextBlockForm
-    template_name = 'members/textblock_form.html'
-
-    def get_form_kwargs(self):
-        kwargs = super(TextBlockUpdateView, self).get_form_kwargs()
-        kwargs.update({'option':self.kwargs['option']})
-        return kwargs
+    template_name = 'members/email.html'
 
     def get_context_data(self, **kwargs):
         context = super(TextBlockUpdateView, self).get_context_data(**kwargs)
-        context['option'] = self.kwargs['option']
         context['title'] = 'Update text block'
         return context
 
     def form_valid(self, form):
-        form.save()
+        
         if 'save' in form.data:
-            return redirect(reverse('text-list') )
-        elif 'html' in form.data:
-            return redirect(
-                reverse('text-update', kwargs={'pk':self.kwargs['pk'],
-                                               'option':'html'}
-                        )
-                )  
-        elif 'editor' in form.data:
-            return redirect(
-                reverse('text-update', kwargs={'pk':self.kwargs['pk']})
-                )
-
-        return super(TextBlockUpdateView, self).form_valid(form)
+            form.save()
+        if 'delete' in form.data:
+            block = self.get_object()
+            block.delete()
+        return redirect(reverse('text-list'))
        
     
 class TextBlockListView(LoginRequiredMixin, ListView):

@@ -291,7 +291,7 @@ urlpatterns = [
         TextBlockCreateView.as_view(),
         name='text-create'
     ),
-    url(r'^text/(?P<pk>\d+)(?:/(?P<option>[a-z]+))?/$',
+    url(r'^text/(?P<pk>\d+)/$',
         TextBlockUpdateView.as_view(),
         name='text-update'
     ),

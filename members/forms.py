@@ -908,7 +908,6 @@ class CreditNoteForm(ModelForm):
 class TextBlockForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
-        option = kwargs.pop('option', None)
         super(TextBlockForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.field_class = 'input-xlarge'
@@ -916,18 +915,15 @@ class TextBlockForm(ModelForm):
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
-        if option:
-            self.helper.add_input(SubmitButton('editor', 'Editor view', css_class='btn-primary'))
-        else:
-            self.helper.add_input(SubmitButton('html', 'HTML view', css_class='btn-primary'))
         self.helper.add_input(SubmitButton('save', 'Save', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
 
-       
     class Meta:
         model = TextBlock
         fields = ['name', 'text']
         widgets = {
-            'text': Textarea(attrs={'cols': 20, 'rows': 30, 'class': 'col-md'
+            'text': Textarea(attrs={'cols': 1, 'rows': 1
             })}
 
 class XlsInputForm(Form):
