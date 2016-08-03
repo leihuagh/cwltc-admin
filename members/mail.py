@@ -64,16 +64,16 @@ def send_template_mail(person, template, from_email, cc=None, bcc=None, subject=
     if child:
         context['child'] = child.first_name
     html_body = template.render(context)
-    if '@' in to: 
+    if u'@' in to: 
         try:          
             send_htmlmail(from_email='Coombe Wood LTC <subs@coombewoodltc.co.uk>',
                             to=recipient.email,
                             subject=subject,
                             html_body=html_body)
-            return true
+            return True
         except Exception, e:       
-            return false
-    return false
+            return False
+    return False
 
 
         
