@@ -20,7 +20,6 @@ if ON_PAAS:
         DEBUG = False
 else: 
     DEBUG=True 
-    #REMOTE_SANDBOX = True
     SECRET_KEY = ')_7av^!cy(wfx=k#3*7x+(=j^fzv+ot^1@sh9s9t=8$bu@r(z$'
     ALLOWED_HOSTS = []
 
@@ -230,26 +229,18 @@ LOGIN_URL ='/login/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-#if DEBUG:
-#    if ON_PAAS:
+if DEBUG:
+    if ON_PAAS:
 
-#        EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
-#        MAILGUN_API_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
-#        #MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
+        EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+        #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    else:
+        #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+        #EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
+        EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+else:
 
-#        #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-#    else:
-#        #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-#        #EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
-#        EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
-#        MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
-#       # MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
-
-#else:
-
-EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
-    #MAILGUN_ACCESS_KEY = 'key-44e941ede1264ea215021bb0b3634eb4'
-    #MAILGUN_SERVER_NAME = 'coombewoodltc.co.uk'
+    EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
     
 DJANGO_WYSIWYG_FLAVOR = 'tinymce'
 
