@@ -1720,11 +1720,13 @@ class EmailView(LoginRequiredMixin, FormView):
 
 
             if self.person:
-                send_template_mail(person=self.person,
+                if send_template_mail(person=self.person,
                                     template=template,
                                     from_email=from_email,
-                                    subject=subject)
-                messages.info(self.request, u'Email sent')
+                                    subject=subject):
+                    messages.info(self.request, u'Email sent')
+                else:
+                    messages.error(self.request, u'No email address')
                 return redirect(
                     reverse('person-detail', kwargs={'pk': self.person.id}) 
                     )
@@ -1732,13 +1734,16 @@ class EmailView(LoginRequiredMixin, FormView):
             elif group_id <> '-1':
                 group = Group.objects.get(pk=group_id)
                 count = 0
+                count_bad = 0
                 for person in group.person_set.all():
-                    send_template_mail(person=person,
+                    if send_template_mail(person=person,
                                         template=template,
                                         from_email=from_email,
-                                        subject=subject)
-                    count += 1
-                message = u'{} emails sent'.format(count)
+                                        subject=subject):
+                        count += 1
+                    else:
+                        count_bad += 1
+                message = u'{} emails sent, {} had no email address'.format(count, count_bad)
                 messages.info(self.request, message)
                 return redirect(
                     reverse('group-detail', kwargs={'pk': group_id})

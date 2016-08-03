@@ -231,8 +231,8 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 if DEBUG:
     if ON_PAAS:
-
-        EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+        EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+        #EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
         #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     else:
         #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
