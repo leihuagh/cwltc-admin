@@ -583,13 +583,18 @@ class TextBlock(models.Model):
 
     @classmethod
     def email_params(self):
+        ''' return 3 integers representing the blocks for an invoice mail '''
         blocks = TextBlock.objects.filter(name='_invoice_mail')
         if len(blocks) == 1:
-            ids = blocks[0].text.split("|")
-            for i in range(0,len(ids)-1):
-                if len(TextBlock.objects.filter(pk=ids[i])) == 0:
-                    ids[i] = -1  
-            return ids
+            try:
+                ids = blocks[0].text.split("|")         
+                for i in range(0,len(ids)-1):
+                    ids[i]=int(ids[i])
+                    if len(TextBlock.objects.filter(pk=ids[i])) == 0:
+                        ids[i] = -1  
+                return ids
+            except ValueError:
+                pass
         return [-1,-1,-1]  
 
 class ExcelBook(models.Model):
