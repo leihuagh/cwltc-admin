@@ -420,6 +420,15 @@
     <Content Include="members\static\members\scripts\respond.js" />
     <Content Include="members\static\members\scripts\respond.min.js" />
     <Content Include="members\static\members\scripts\_references.js" />
+    <Content Include="members\templates\auth\form_field.html" />
+    <Content Include="members\templates\auth\logged_out.html" />
+    <Content Include="members\templates\auth\login.html" />
+    <Content Include="members\templates\auth\password_change_done.html" />
+    <Content Include="members\templates\auth\password_change_form.html" />
+    <Content Include="members\templates\auth\password_reset_complete.html" />
+    <Content Include="members\templates\auth\password_reset_confirm.html" />
+    <Content Include="members\templates\auth\password_reset_done.html" />
+    <Content Include="members\templates\auth\password_reset_form.html" />
     <Content Include="members\templates\members\about.html" />
     <Content Include="members\templates\members\address_form.html" />
     <Content Include="members\templates\members\confirm.html" />
@@ -586,6 +595,7 @@
     <Folder Include="members\static\members\scripts" />
     <Folder Include="members\templates\" />
     <Folder Include="members\templates\members" />
+    <Folder Include="members\templates\auth\" />
     <Folder Include="members\templatetags" />
     <Folder Include="mysite" />
     <Folder Include="static" />

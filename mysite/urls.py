@@ -12,7 +12,7 @@ from members.viewsets import *
 
 # Uncomment the next lines to enable the admin:
 from django.contrib import admin
-from django.contrib.auth.views import *
+from django.contrib.auth import views as auth_views
 admin.autodiscover()
 
 from rest_framework import routers
@@ -22,6 +22,10 @@ router.register(r'groups', GroupViewSet)
 router.register(r'invoices', InvoiceViewSet)
 
 urlpatterns = [
+    url(r'^$',
+        HomeView.as_view(),
+        name='home'
+    ),
 
     url(r'^api/', include(router.urls)),
     url(r'ajax/people',
@@ -30,10 +34,7 @@ urlpatterns = [
         ),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
-    url(r'^$',
-        HomeView.as_view(),
-        name='home'
-    ),
+
     url(r'^yearend/$',
         YearEndView.as_view(),
         name='year-end'
@@ -353,24 +354,53 @@ urlpatterns = [
     #   bar,
     #   name='bar-view'
     #),
-    url(r'^login/$',
-        login,
-        {
-            'template_name': 'members/login.html',
-            'authentication_form': BootstrapAuthenticationForm,
-            'extra_context':
-            {
-                'title':'Log in',
-                'year':datetime.now().year,
-            }
-        },
-        name='login'),
-    url(r'^logout$',
-        logout,
-        {
-            'next_page': '/',
-        },
+
+    url(r'^login/$', auth_views.login, 
+        {'template_name': 'auth/login.html'},
+         name='login'),
+    url(r'^logout$', auth_views.logout, 
+        {'next_page': '/'},
         name='logout'),
+    url(r'^password_change/$', auth_views.password_change,
+        {'template_name': 'auth/password_change_form.html',
+            'post_change_redirect': '/registartion/password_change/done/'}, 
+        name='password_change'),
+    url(r'^password_change/done/$', auth_views.password_change_done,
+        {'template_name': 'auth/password_change_done.html'}, 
+        name='password_change_done'),
+    url(r'^password_reset/$', auth_views.password_reset,
+        {'template_name': 'auth/password_reset_form.html'}, 
+        name='password_reset'),
+    url(r'^password_reset/done/$', auth_views.password_reset_done,
+        {'template_name': 'auth/password_reset_done.html'}, 
+        name='password_reset_done'),
+    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', 
+        auth_views.password_reset_confirm,
+        {'template_name': 'auth/password_reset_confirm.html'}, 
+        name='password_reset_confirm'),
+    url(r'^reset/done/$', auth_views.password_reset_complete,
+        {'template_name': 'auth/password_reset_complete.html'}, 
+        name='password_reset_complete'),
+
+
+    #url(r'^login/$',
+    #    login,
+    #    {
+    #        'template_name': 'auth/login.html',
+    #        'authentication_form': BootstrapAuthenticationForm,
+    #        'extra_context':
+    #        {
+    #            'title':'Log in',
+    #            'year':datetime.now().year,
+    #        }
+    #    },
+    #    name='login'),
+    #url(r'^logout$',
+    #    logout,
+    #    {
+    #        'next_page': '/',
+    #    },
+    #    name='logout'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

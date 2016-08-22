@@ -31,6 +31,16 @@ import xlrd
 from report_builder.models import Report
 
 
+class HomeView(LoginRequiredMixin, TemplateView):
+    template_name = 'members/index.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super(HomeView, self).get_context_data(**kwargs)
+        context['title'] = 'Home Page'
+        context['membership_year'] = Settings.current().membership_year
+        context['db_name'] = settings.DATABASES['default']['NAME']
+        return context
+
 class PersonList(LoginRequiredMixin, ListView):
     model = Person
     template_name = 'members/person_table.html'
@@ -1937,15 +1947,7 @@ def reports(request):
 #        })
 #     )   
 
-class HomeView(TemplateView):
-    template_name = 'members/index.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super(HomeView, self).get_context_data(**kwargs)
-        context['title'] = 'Home Page'
-        context['membership_year'] = Settings.current().membership_year
-        context['db_name'] = settings.DATABASES['default']['NAME']
-        return context
+
      
               
 

@@ -29,6 +29,7 @@
     </button>
     <a class="navbar-brand" href="/">CWLTC Admin</a>
   </div>
+ {% if user.is_authenticated %}
   <div class="navbar-collapse collapse">
 
     <!-- Left nav -->
@@ -38,10 +39,12 @@
                 aria-expanded="false">People</a>
             <ul class="dropdown-menu">
                 <li><a href="{% url 'filteredperson-list' %}">People list</a></li>
+                <li><a href="{% url 'members' %}">Members list</a></li>
                 <li><a href="{% url 'person-create' %}">Create adult</a></li>
                 <li><a href="{% url 'junior-create' %}">Create junior</a></li>
                 <li class="divider"></li>
-                <li><a href="{% url 'group-list' %}">Groups</a></li>
+                <li><a href="{% url 'group-list' %}">List groups</a></li>
+                <li><a href="{% url 'group-create' %}">Create new group</a></li>
                 <li class="divider"></li>
                 <li class="dropdown-header">Text blocks</li>
                 <li><a href="{% url 'text-list' %}">All text blocks</a></li>
@@ -58,6 +61,8 @@
                 <li><a href="{% url 'select' %}">Select an invoice</a></li>
                 <li><a href="{% url 'invoice-batch' %}">Create a batch of invoices</a></li>
                 <li><a href="{% url 'invoice-mail-batch' %}">Mail all unpaid invoices</a></li>
+                <li class="divider"></li>
+                <li><a href="{% url 'fees-list' %}">Fees</a></li>
             </ul>
         </li>
         <li class="dropdown">
@@ -78,8 +83,9 @@
     </form>
     <!-- Right nav -->
     {% include 'members/loginpartial.html' %}
-
+    
   </div><!--/.nav-collapse -->
+{% endif %}
 </div>
 </div>
 

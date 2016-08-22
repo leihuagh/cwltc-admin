@@ -45,3 +45,7 @@ def add_attributes(field, css):
             attrs[t] = v
  
     return field.as_widget(attrs=attrs)
+
+@register.filter()
+def add_class(field, css):
+   return field.as_widget(attrs={"class":css})
