@@ -5,7 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} CWLTC Members</title>
     {% load staticfiles %}
-    <link rel="stylesheet" type="text/css" href="{% static 'members/content/bootstrap.min.css' %}" />
+
+    <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+
+    {#<link rel="stylesheet" type="text/css" href="{% static 'members/content/bootstrap.min.css' %}" />#}
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.css" />
     <script src="{% static 'members/scripts/modernizr-2.6.2.js' %}"></script>
     <link rel='stylesheet' type='text/css' href='{% static 'members/content/jquery-ui/smoothness/jquery-ui.css' %}' />
@@ -13,81 +21,11 @@
     <link rel="stylesheet" type="text/css" href="{% static 'members/content/site.css' %}" />
     {% block head %}
     {% endblock %}
-
 </head>
 
 <body>
+{% include "members/_navbar.html" %}
 
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-<div class="container">
-  <div class="navbar-header">
-    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-      <span class="sr-only">Toggle navigation</span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-    </button>
-    <a class="navbar-brand" href="/">CWLTC Admin</a>
-  </div>
- {% if user.is_authenticated %}
-  <div class="navbar-collapse collapse">
-
-    <!-- Left nav -->
-    <ul class="nav navbar-nav">
-        <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                aria-expanded="false">People</a>
-            <ul class="dropdown-menu">
-                <li><a href="{% url 'filteredperson-list' %}">People list</a></li>
-                <li><a href="{% url 'members' %}">Members list</a></li>
-                <li><a href="{% url 'person-create' %}">Create adult</a></li>
-                <li><a href="{% url 'junior-create' %}">Create junior</a></li>
-                <li class="divider"></li>
-                <li><a href="{% url 'group-list' %}">List groups</a></li>
-                <li><a href="{% url 'group-create' %}">Create new group</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">Text blocks</li>
-                <li><a href="{% url 'text-list' %}">All text blocks</a></li>
-                <li><a href="{% url 'text-create' %}">New text block</a></li>
-            </ul>
-        </li>
-        <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                aria-expanded="false">Finances</a>
-            <ul class="dropdown-menu">
-                <li><a href="{% url 'invoice-list' %}">List invoices</a></li>
-                <li><a href="{% url 'payment-list' %}">List payments</a></li>
-                <li class="divider"></li>
-                <li><a href="{% url 'select' %}">Select an invoice</a></li>
-                <li><a href="{% url 'invoice-batch' %}">Create a batch of invoices</a></li>
-                <li><a href="{% url 'invoice-mail-batch' %}">Mail all unpaid invoices</a></li>
-                <li class="divider"></li>
-                <li><a href="{% url 'fees-list' %}">Fees</a></li>
-            </ul>
-        </li>
-        <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                aria-expanded="false">Import / export</a>
-            <ul class="dropdown-menu">
-                <li><a href="{% url 'import' %}">Import data from Excel</a></li>
-                <li><a href="{% url 'export' %}">Export all data to Excel</a></li>
-            </ul>
-        </li class="label">
-        <li>Search</li>
-    </ul>
-    <!-- Search person -->
-    <form class="navbar-form navbar-left" role="search">
-        <div class="ui-widget">
-            <input id="navSearch"  placeholder="Search for person" >
-        </div>    
-    </form>
-    <!-- Right nav -->
-    {% include 'members/loginpartial.html' %}
-    
-  </div><!--/.nav-collapse -->
-{% endif %}
-</div>
-</div>
 
 <div class="container body-content">
 {% include "members/_messages.html" %}
@@ -96,12 +34,18 @@
     {% endblock %}
         <hr/>
         <footer>
-            <p>&copy; {{ year }} ISKT Ltd</p>
+            <p>Membership Management System &copy; {{ year }} ISKT Ltd</p>
         </footer>
     </div>
  </div>
+
 <script src="{% static 'members/scripts/jquery-1.10.2.js' %}"></script>
-<script src="{% static 'members/scripts/bootstrap.js' %}"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+{#<script src="{% static 'members/scripts/bootstrap.js' %}"></script>#}
 <script src="{% static 'members/scripts/respond.js' %}"></script>
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.js"></script>
 <script type='text/javascript' src='{% static 'members/scripts/jquery-ui.js' %}'></script>

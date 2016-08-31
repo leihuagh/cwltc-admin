@@ -6,7 +6,7 @@ from django.shortcuts import render, render_to_response
 from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonResponse, Http404
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
-from django.views.generic.edit import FormView, FormMixin
+from django.views.generic.edit import FormView, FormMixin, ProcessFormView
 from django.core import serializers
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
@@ -1335,6 +1335,7 @@ class InvoiceMailBatchView(LoginRequiredMixin, View):
         year = Settings.current().membership_year
         return Invoice.objects.filter(state=Invoice.UNPAID, membership_year=year)
 
+
 class InvoiceSelectView(LoginRequiredMixin, FormView):
     form_class = InvoiceSelectForm
     template_name = 'members/invoice_select.html'
@@ -1347,7 +1348,81 @@ class InvoiceSelectView(LoginRequiredMixin, FormView):
         else:
             return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':ref}))
 
+# ================ MailType Views
+
+class MailTypeCreateView(LoginRequiredMixin, CreateView):
+    model = MailType
+    form_class = MailTypeForm
+    template_name = 'members/generic_crispy_form.html'
+
+    def get_success_url(self):
+        return reverse('mailtype-list')
+
+class MailTypeListView(LoginRequiredMixin, ListView):
+    ''' List all mail type '''
+    model = MailType
+    template_name = 'members/mailtype_list.html'
+    context_object_name = 'mailtypes'
+
+class MailTypeDetailView(LoginRequiredMixin, DetailView):
+    model = MailType
+    template_name = 'members/mailtype_detail.html'
+
+    def get_context_data(self, **kwargs):   
+        context = super(MailTypeDetailView, self).get_context_data(**kwargs)
+        mailtype = self.get_object()
+        context['people'] = mailtype.person_set.all()
+        context['mailtype'] = mailtype
+        return context
 # ================= Public Views
+
+class MailTypeSubscribeView(ProcessFormView, TemplateView):
+    template_name = 'members/mailtype_manage.html'
+
+    def get_context_data(self, **kwargs):
+      
+        context = super(MailTypeSubscribeView, self).get_context_data(**kwargs)
+        self.get_person()
+        context['person'] = self.person
+        if self.person:
+            mailtypes = MailType.objects.all()
+            #unsublist = MailType.objects.filter(person__id=self.person.person_id)
+            for m in mailtypes:
+                if m.person_set.filter(id=self.person.id).exists():
+                    m.subscribed = False
+                else:
+                    m.subscribed = True
+            context['mailtypes'] = mailtypes              
+        return context
+
+    def get_person(self):
+        self.person = None
+        person_id = None
+        self.token = self.kwargs.pop('token', None)
+        if self.token:          
+            try:
+                signer = Signer()
+                person_id = signer.unsign(self.token)
+            except:
+                pass
+        else:
+            if self.request.user.is_authenticated:
+                person_id = self.kwargs.pop('person', None)
+        if person_id:
+            self.person = Person.objects.get(pk=person_id) 
+
+    def post(self, request, *args, **kwargs):
+        self.get_person()
+        checklist = request.POST.getlist('checks')
+        mailtypes = MailType.objects.all()
+        for m in mailtypes:
+            if str(m.id) in checklist:
+                m.person_set.remove(self.person)
+            else:
+                m.person_set.add(self.person)
+        #if self.token:
+        return render_to_response('members/mailtype_done.html')
+        return redirect(self.person)
 
 class ResignedView(TemplateView):
     template_name = 'members/resigned.html'

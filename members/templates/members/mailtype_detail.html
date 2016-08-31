@@ -1,0 +1,29 @@
+﻿{% extends "members/layout.html" %}
+{% load staticfiles %}
+{% load members_extras %}
+{% block content %}
+<h2>Mail message type: {{ mailtype.name }}</h2>
+<P>{{ mailtype.description }}</P>
+
+<table id="people" class="table" cellspacing="0" >
+   <thead>
+         <tr>
+            <th>First name</th>
+            <th>Last name</th>
+            <th>Membership</th>
+            <th>Email</th>
+            <th>View</th>
+        </tr>
+    </thead>
+    {% for person in people %}
+<tr>
+    <td>{{ person.first_name }}</td>
+    <td> {{ person.last_name }}</td>
+    <td> {{ person.membership.description }}</td>
+    <td> {{ person.email }}</td> 
+    <td><a href="{% url "person-detail" pk=person.id %}"class="btn btn-primary btn-xs">View</a></td> 
+</tr>
+{% endfor sub %}
+</table>
+
+{% endblock content %}

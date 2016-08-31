@@ -457,6 +457,10 @@
     <Content Include="members\templates\members\layout.html" />
     <Content Include="members\templates\members\login.html" />
     <Content Include="members\templates\members\loginpartial.html" />
+    <Content Include="members\templates\members\mailtype_detail.html" />
+    <Content Include="members\templates\members\mailtype_done.html" />
+    <Content Include="members\templates\members\mailtype_list.html" />
+    <Content Include="members\templates\members\mailtype_manage.html" />
     <Content Include="members\templates\members\payment_detail.html" />
     <Content Include="members\templates\members\payment_form.html" />
     <Content Include="members\templates\members\payment_list.html" />
@@ -476,6 +480,7 @@
     <Content Include="members\templates\members\_confirm.html" />
     <Content Include="members\templates\members\_how_to_pay_old.html" />
     <Content Include="members\templates\members\_messages.html" />
+    <Content Include="members\templates\members\_navbar.html" />
     <Content Include="members\templates\members\_person_table.html" />
     <Content Include="members\templates\members\_invoicelist_body.html" />
     <Content Include="members\templates\members\xperson_list.html" />

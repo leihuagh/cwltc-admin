@@ -1,0 +1,78 @@
+﻿<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+<div class="container">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="/">CWLTC Admin</a>
+  </div>
+ {% if user.is_authenticated %}
+  <div class="navbar-collapse collapse">
+
+    <!-- Left nav -->
+    <ul class="nav navbar-nav">
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                aria-expanded="false">People</a>
+            <ul class="dropdown-menu">
+                <li><a href="{% url 'filteredperson-list' %}">People list</a></li>
+                <li><a href="{% url 'members' %}">Members list</a></li>
+                <li><a href="{% url 'person-create' %}">Create adult</a></li>
+                <li><a href="{% url 'junior-create' %}">Create junior</a></li>
+                <li class="divider"></li>
+                <li><a href="{% url 'group-list' %}">List groups</a></li>
+                <li><a href="{% url 'group-create' %}">Create new group</a></li>
+                <li class="divider"></li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                aria-expanded="false">Mail</a>
+            <ul class="dropdown-menu">
+                <li><a href="{% url 'text-list' %}">List text blocks</a></li>
+                <li><a href="{% url 'text-create' %}">Create text block</a></li>
+                <li class="divider">T</li>
+                <li><a href= "{% url 'mailtype-list' %}">List mail types</a></li>
+                <li><a href= "{% url 'mailtype-create' %}">Create new mail type</a></li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                aria-expanded="false">Finances</a>
+            <ul class="dropdown-menu">
+                <li><a href="{% url 'invoice-list' %}">List invoices</a></li>
+                <li><a href="{% url 'payment-list' %}">List payments</a></li>
+                <li class="divider"></li>
+                <li><a href="{% url 'select' %}">Select an invoice</a></li>
+                <li><a href="{% url 'invoice-batch' %}">Create a batch of invoices</a></li>
+                <li><a href="{% url 'invoice-mail-batch' %}">Mail all unpaid invoices</a></li>
+                <li class="divider"></li>
+                <li><a href="{% url 'fees-list' %}">Fees</a></li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                aria-expanded="false">Import / export</a>
+            <ul class="dropdown-menu">
+                <li><a href="{% url 'import' %}">Import data from Excel</a></li>
+                <li><a href="{% url 'export' %}">Export all data to Excel</a></li>
+            </ul>
+        </li class="label">
+        <li>Search</li>
+    </ul>
+    <!-- Search person -->
+    <form class="navbar-form navbar-left" role="search">
+        <div class="ui-widget">
+            <input id="navSearch"  placeholder="Search for person" >
+        </div>    
+    </form>
+    <!-- Right nav -->
+    {% include 'members/loginpartial.html' %}
+    
+  </div><!--/.nav-collapse -->
+{% endif %}
+</div>
+</div>

@@ -315,6 +315,29 @@ urlpatterns = [
         name='email-group'
     ),
 
+    # MAIL TYPES
+
+    url(r'^mailtype/create/$',
+        MailTypeCreateView.as_view(),
+        name='mailtype-create'
+    ),
+    url(r'^mailtype/(?P<pk>\d+)/$',
+        MailTypeDetailView.as_view(),
+        name='mailtype-detail'
+    ),
+    url(r'^mailtype/list/$',
+        MailTypeListView.as_view(),
+        name='mailtype-list'
+    ),
+    url(r'^mailtype/public/subscribe/(?P<token>.+)/$',
+       MailTypeSubscribeView.as_view(),
+        name='mailtype-subscribe-public'
+    ),
+    url(r'^mailtype/subscribe/(?P<person>\d+)/$',
+       MailTypeSubscribeView.as_view(),
+        name='mailtype-subscribe'
+    ),
+
     # EXCEL IMPORT AND EXPORT
     url(r'^import/$',
         ImportExcelView.as_view(),

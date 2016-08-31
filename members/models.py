@@ -47,6 +47,14 @@ class Group(models.Model):
     def __unicode__(self):
         return self.slug 
 
+class MailType(models.Model):
+    name = models.CharField(max_length=30, null=False, blank=False)
+    description = models.CharField(max_length=100, null=False, blank=False)
+    can_unsubscribe = models.BooleanField(default=True)
+
+    def __unicode__(self):
+        return self.name
+
 class Person(models.Model):
     GENDERS = (
         ('M','Male'),
@@ -80,6 +88,7 @@ class Person(models.Model):
     linked = models.ForeignKey('self', blank=True, null=True)
     address = models.ForeignKey('address', blank=True, null=True)
     groups = models.ManyToManyField(Group)
+    unsubscribed = models.ManyToManyField(MailType)
     # -- Navigation --
     # person_set
     # invoice_set

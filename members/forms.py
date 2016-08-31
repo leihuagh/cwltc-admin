@@ -17,7 +17,7 @@ from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, Inl
 
 from .widgets import MonthYearWidget
 from .models import (Person, Address, Subscription, Membership, Invoice, InvoiceItem,
-                     Payment, CreditNote, ExcelBook, TextBlock, Group, Settings)
+                     Payment, CreditNote, ExcelBook, TextBlock, MailType, Group, Settings)
 from .excel import *
 
 # 
@@ -844,6 +844,23 @@ class EmailForm(Form):
         if cleaned_data['to'] == u'' and cleaned_data['group'] == '-1':
             raise forms.ValidationError('No To or group selected')
         return self.cleaned_data
+
+class MailTypeForm(ModelForm):
+    
+    class Meta:
+        model = MailType
+        fields = ['name', 'description', 'can_unsubscribe']
+
+    def __init__(self, *args, **kwargs):
+        super(MailTypeForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.form_method = 'post'
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+
 
 class PaymentForm(ModelForm):
 
