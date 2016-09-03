@@ -53,14 +53,8 @@
 
             // handle a successful response
             success: function (json) {
-                //console.log(json); // log the returned json to the console
                 text = json["text"];
-                //console.log(text);
-                //$('#id_subject').val('Updated');
-                //$('#id_text').val(text);
                 tinyMCE.execCommand('mceInsertContent', false, text);
-                //console.log($('#id_text_editor').val());
-                //console.log(django_wysiwyg); // another sanity check
             },
 
             // handle an unsuccessful response

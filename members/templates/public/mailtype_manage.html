@@ -1,0 +1,59 @@
+﻿{% extends "public/layout.html" %}
+{% load staticfiles %}
+
+{% block content %}
+<h2>Manage subscriptions</h2>
+{% if person %}
+    <p>Hi {{ person.first_name }} {{ person.last_name }}.</p>
+    <p> We send different types of email messages to our members as shown in the table below. Tick those that you want to receive.</p>
+    <p> Note that as a club member you cannot unsubscribe from subscription-related messages.</p>
+    <form action="." method="post" class="form-inline" id="unsub-form">
+        {% csrf_token %}
+                   
+
+        <table id="mailtypes" class="table table-condensed">
+            <thead>
+                <tr>
+                    <th width="50">
+                        <label class="checkbox-inline">
+                            <input name="select" onClick="toggleMaster(this)" value="all" type="checkbox">All
+                        </label>     
+</th>
+                    <th width = "300">Message type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            {% for mailtype in mailtypes %}
+            <tr>
+                <td>
+                    <label class="checkbox-inline">
+                        <input name="checks" value="{{ mailtype.id }}" type="checkbox" onClick="toggle(this)"
+                                {% if mailtype.subscribed %} checked{% endif %}/>
+                    </label>
+                </td>
+                <td>{{ mailtype.name }}</td>
+                <td>{{ mailtype.description }}</td>
+            </tr>
+            {% endfor sub %}
+        </table>
+        <input type="submit" name="save" value="Save" class="btn btn-primary"/>
+</form>
+{% else %}
+Sorry, the link that you followed is no longer valid.
+{% endif %}
+
+{% endblock content %}
+{% block scripts %}
+<script type="text/javascript">
+    function toggleMaster(source) {
+        checkboxes = document.getElementsByName('checks');
+        for (var i = 0, n = checkboxes.length; i < n; i++) {
+            checkboxes[i].checked = source.checked;
+        }
+    }
+    function toggle(source) {
+        master = document.getElementsByName('select');
+        master[0].checked = false;
+    }
+</script>
+{% endblock scripts %}

@@ -802,6 +802,8 @@ class EmailForm(Form):
     bcc = forms.CharField(required=False)
     subject =forms.CharField(required=True)
     text = forms.CharField(required=True, widget=Textarea )
+    mailtype = forms.ModelMultipleChoiceField(queryset=MailType.objects.all(),
+                                         required=True)
     block = forms.ModelChoiceField(queryset=TextBlock.objects.all(),
                                         empty_label=None,
                                         required=False) 
@@ -815,9 +817,9 @@ class EmailForm(Form):
         self.helper = FormHelper()
         self.helper.form_id = 'id-emailForm'
         self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-1'
-        self.helper.field_class = 'col-lg-5'
-        self.helper.form_method = 'post'
+        self.helper.label_class = 'col-sm-2'
+        self.helper.field_class = 'col-sm-6'
+        #self.helper.form_method = 'post'
 
         if to:
             div=Div('from_email',
@@ -829,7 +831,7 @@ class EmailForm(Form):
             div=Div('from_email',
                     'to',
                     'group')
-        div.fields.extend(['subject','text', 'block'])
+        div.fields.extend(['subject','text', 'block', 'mailtype'])
 
         self.helper.layout = Layout(
             div,

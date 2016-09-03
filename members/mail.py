@@ -1,12 +1,12 @@
 from django.core.mail import EmailMultiAlternatives
-from django.template import Context
+from django.template import Template, Context
 from django.template.loader import render_to_string
 from django.shortcuts import render_to_response
 from django.utils.html import strip_tags
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse
 import requests 
-from .models import Invoice, TextBlock
+from .models import Invoice, TextBlock, MailType
 
 mailgun_api_key = 'key-44e941ede1264ea215021bb0b3634eb4'
 mailgun_api_url = 'https://api.mailgun.net/v3/mg.coombewoodltc.co.uk'
@@ -50,7 +50,7 @@ def do_mail(request, invoice, option):
 
 
 
-def send_template_mail(person, template, from_email, cc=None, bcc=None, subject=""):
+def send_template_mail(request, person, text, from_email, cc=None, bcc=None, subject="", mail_types=None):
     
     to = person.email
     recipient = person
@@ -58,22 +58,38 @@ def send_template_mail(person, template, from_email, cc=None, bcc=None, subject=
     if person.linked:
         recipient = person.linked
         child = person
-    context = Context({
-        'first_name':recipient.first_name,
-        'last_name': person.last_name})
-    if child:
-        context['child'] = child.first_name
-    html_body = template.render(context)
-    if u'@' in to: 
-        try:          
-            send_htmlmail(from_email='Coombe Wood LTC <subs@coombewoodltc.co.uk>',
-                            to=recipient.email,
-                            subject=subject,
-                            html_body=html_body)
-            return True
-        except Exception, e:       
-            return False
-    return False
+    positive = False
+    negative = False
+
+    for mail_type in mail_types:
+        if mail_type.person_set.filter(id=person.id):
+            negative = True
+        else:
+            positive = True
+
+    if negative and not positive:
+        return 'unsubscribed'
+    else:
+        signer = Signer()
+        token = signer.sign(recipient.id)
+        text += request.build_absolute_uri(reverse('mailtype-subscribe-public', args=(token,)))
+        context = Context({
+            'first_name':recipient.first_name,
+            'last_name': person.last_name})
+        if child:
+            context['child'] = child.first_name
+        template = Template(text)
+        html_body = template.render(context)
+        if u'@' in to: 
+            try:          
+                send_htmlmail(from_email='Coombe Wood LTC <subs@coombewoodltc.co.uk>',
+                                to=recipient.email,
+                                subject=subject,
+                                html_body=html_body)
+                return 'sent'
+            except Exception, e:       
+                return 'bad email address'
+        return False
 
 
         

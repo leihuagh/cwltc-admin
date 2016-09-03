@@ -460,7 +460,7 @@
     <Content Include="members\templates\members\mailtype_detail.html" />
     <Content Include="members\templates\members\mailtype_done.html" />
     <Content Include="members\templates\members\mailtype_list.html" />
-    <Content Include="members\templates\members\mailtype_manage.html" />
+    <Content Include="members\templates\public\mailtype_manage.html" />
     <Content Include="members\templates\members\payment_detail.html" />
     <Content Include="members\templates\members\payment_form.html" />
     <Content Include="members\templates\members\payment_list.html" />
@@ -492,6 +492,7 @@
     <Content Include="members\templates\members\_invoice_pdf.html" />
     <Content Include="members\templates\members\_payment_list.html" />
     <Content Include="members\templates\members\subscription_history.html" />
+    <Content Include="members\templates\public\layout.html" />
     <Content Include="requirements.txt" />
     <Content Include="static\README.txt" />
   </ItemGroup>
@@ -601,6 +602,7 @@
     <Folder Include="members\templates\" />
     <Folder Include="members\templates\members" />
     <Folder Include="members\templates\auth\" />
+    <Folder Include="members\templates\public\" />
     <Folder Include="members\templatetags" />
     <Folder Include="mysite" />
     <Folder Include="static" />

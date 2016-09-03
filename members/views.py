@@ -1377,7 +1377,7 @@ class MailTypeDetailView(LoginRequiredMixin, DetailView):
 # ================= Public Views
 
 class MailTypeSubscribeView(ProcessFormView, TemplateView):
-    template_name = 'members/mailtype_manage.html'
+    template_name = 'public/mailtype_manage.html'
 
     def get_context_data(self, **kwargs):
       
@@ -1793,54 +1793,119 @@ class EmailView(LoginRequiredMixin, FormView):
         else:
             return super(EmailView, self).get(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        form = self.get_form(self.form_class)
-        if form.is_valid():
-            from_email = form.cleaned_data['from_email']
-            to = form.cleaned_data['to']
-            group_id = form.cleaned_data['group']  
-            template = Template(form.cleaned_data['text'])
-            subject=form.cleaned_data['subject']
-            #preview = "preview" in request.post
+
+    def form_invalid(self, form):
+        return super(EmailView, self).form_invalid(form)
+
+    def form_valid(self, form):
+        from_email = form.cleaned_data['from_email']
+        to = form.cleaned_data['to']
+        group_id = form.cleaned_data['group']
+        text =  form.cleaned_data['text']
+
+        text = form.cleaned_data['text']
+        subject = form.cleaned_data['subject']
+        mail_type_list = []
+        for mail_type in form.cleaned_data['mailtype']:
+            mail_type_list.append(mail_type.id)
+        mail_types=MailType.objects.filter(id__in=mail_type_list)
+        #preview = "preview" in request.post
 
 
-            if self.person:
-                if send_template_mail(person=self.person,
-                                    template=template,
-                                    from_email=from_email,
-                                    subject=subject):
-                    messages.info(self.request, u'Email sent')
-                else:
-                    messages.error(self.request, u'No email address')
-                return redirect(
-                    reverse('person-detail', kwargs={'pk': self.person.id}) 
-                    )
-        
-            elif group_id <> '-1':
-                group = Group.objects.get(pk=group_id)
-                count = 0
-                count_bad = 0
-                for person in group.person_set.all():
-                    if send_template_mail(person=person,
-                                        template=template,
+        if self.person:
+            result = send_template_mail(request=self.request,
+                                        person=self.person,
+                                        text=text,
                                         from_email=from_email,
-                                        subject=subject):
-                        count += 1
-                    else:
-                        count_bad += 1
-                message = u'{} emails sent, {} had no email address'.format(count, count_bad)
-                messages.info(self.request, message)
-                return redirect(
-                    reverse('group-detail', kwargs={'pk': group_id})
-                    )
+                                        subject=subject,
+                                        mail_types=mail_types)
+            
+            messages.info(self.request, result)
+            return redirect(
+                reverse('person-detail', kwargs={'pk': self.person.id}) 
+                )
+        
+        elif group_id <> '-1':
+            group = Group.objects.get(pk=group_id)
+            count = 0
+            count_unsub = 0
+            count_bad = 0
+            for person in group.person_set.all():
+                result = send_template_mail(request=self.request,
+                                            person=person,
+                                            text=text,
+                                            from_email=from_email,
+                                            subject=subject,
+                                            mail_types=mail_types)
+                if result == 'sent':
+                    count += 1
+                elif result == 'unsubscribed':
+                    count_unsub +=1
+                else:
+                    count_bad += 1
+            message = u'{} emails sent, {} were unsubscribed, {} had no email address'.format(
+                count, count_unsub, count_bad)
+            messages.info(self.request, message)
+            return redirect(
+                reverse('group-detail', kwargs={'pk': group_id})
+                )
 
-            else:
-                return redirect(
-                    reverse('email_form') 
-                    )
+        else:
+            return redirect(
+                reverse('email_form') 
+                )
 
-            return super(EmailView, self).post(request, *args, **kwargs)
-        raise Http404("Bad data in email form")
+        return super(EmailView, self).post(request, *args, **kwargs)
+
+
+    #def post(self, request, *args, **kwargs):
+    #    form = self.get_form(self.form_class)
+    #    if form.is_valid():
+    #        from_email = form.cleaned_data['from_email']
+    #        to = form.cleaned_data['to']
+    #        group_id = form.cleaned_data['group']  
+    #        template = Template(form.cleaned_data['text'])
+    #        subject=form.cleaned_data['subject']
+    #        #preview = "preview" in request.post
+
+
+    #        if self.person:
+    #            if send_template_mail(person=self.person,
+    #                                template=template,
+    #                                from_email=from_email,
+    #                                subject=subject):
+    #                messages.info(self.request, u'Email sent')
+    #            else:
+    #                messages.error(self.request, u'No email address')
+    #            return redirect(
+    #                reverse('person-detail', kwargs={'pk': self.person.id}) 
+    #                )
+        
+    #        elif group_id <> '-1':
+    #            group = Group.objects.get(pk=group_id)
+    #            count = 0
+    #            count_bad = 0
+    #            for person in group.person_set.all():
+    #                if send_template_mail(person=person,
+    #                                    template=template,
+    #                                    from_email=from_email,
+    #                                    subject=subject):
+    #                    count += 1
+    #                else:
+    #                    count_bad += 1
+    #            message = u'{} emails sent, {} had no email address'.format(count, count_bad)
+    #            messages.info(self.request, message)
+    #            return redirect(
+    #                reverse('group-detail', kwargs={'pk': group_id})
+    #                )
+
+    #        else:
+    #            return redirect(
+    #                reverse('email_form') 
+    #                )
+
+    #        return super(EmailView, self).post(request, *args, **kwargs)
+    #    raise Http404("Bad data in email form")
 
     def get_success_url(self):
         return reverse('email_form') 
