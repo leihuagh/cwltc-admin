@@ -6,7 +6,6 @@ $(document).ready(function () {
             "url": ajaxUrl,
             "type": "POST",
             "data": function (d) {
-                d.csrfmiddlewaretoken = $("input[name='csrfmiddlewaretoken']").val();
                 d.categories = $('#id_categories').val();
                 d.membership_year = $('#id_membership_year').val();
                 d.paystate = $('#id_paystate').val();
@@ -37,6 +36,37 @@ $('.trigger').change(function () {
     //ajax_post();
 });
 
+
+//// from django documentation
+//function csrfSafeMethod(method) {
+//    // these HTTP methods do not require CSRF protection
+//    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+//}
+//$.ajaxSetup({
+//    beforeSend: function (xhr, settings) {
+//        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+//            xhr.setRequestHeader("X-CSRFToken", $("input[name='csrfmiddlewaretoken']").val());
+//        }
+//    }
+//})
+
+// using jQuery
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 // from django documentation
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection
@@ -45,7 +75,7 @@ function csrfSafeMethod(method) {
 $.ajaxSetup({
     beforeSend: function (xhr, settings) {
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader("X-CSRFToken", $("input[name='csrfmiddlewaretoken']").val());
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
         }
     }
 })
@@ -54,7 +84,6 @@ $.ajaxSetup({
 function ajax_post() {
     console.log("AJAX post"); // sanity check
     $.post(".", {
-        csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
         membership_year: $('#id_membership_year').val(),
         categories: $('#id_categories').val(),
         paid: $('#id_paid').checked,

@@ -18,7 +18,7 @@ from django.template import Template, Context
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.core.mail import send_mail
-from braces.views import LoginRequiredMixin
+from braces.views import LoginRequiredMixin, StaffuserRequiredMixin
 from gc_app.views import gc_create_bill_url
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group)
@@ -1374,6 +1374,7 @@ class MailTypeDetailView(LoginRequiredMixin, DetailView):
         context['people'] = mailtype.person_set.all()
         context['mailtype'] = mailtype
         return context
+
 # ================= Public Views
 
 class MailTypeSubscribeView(ProcessFormView, TemplateView):
@@ -1420,8 +1421,9 @@ class MailTypeSubscribeView(ProcessFormView, TemplateView):
                 m.person_set.remove(self.person)
             else:
                 m.person_set.add(self.person)
-        #if self.token:
-        return render_to_response('members/mailtype_done.html')
+        if self.token:
+            messages.info(request, "Your choices have been saved")
+            return render_to_response('public/mailtype_done.html')
         return redirect(self.person)
 
 class ResignedView(TemplateView):
@@ -1545,6 +1547,24 @@ class PaymentCreateView(LoginRequiredMixin, CreateView):
         return reverse('invoice-detail',
                        kwargs={'pk':self.kwargs['invoice_id']})
 
+class PaymentUpdateView(LoginRequiredMixin, StaffuserRequiredMixin, UpdateView):
+    '''
+    Allows payment detail to be updated bu authorised user
+    '''
+    model = Payment
+    form_class = PaymentForm
+    template_name = 'members/payment_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(PaymentUpdateView, self).get_context_data(**kwargs)    
+        self.get_object().invoice.add_context(context)
+        return context
+
+    def get_success_url(self):
+        invoice_id = self.get_object().invoice.id
+        return reverse('invoice-detail',
+                       kwargs={'pk':invoice_id})
+
 class PaymentDetailView(LoginRequiredMixin, DetailView):
     model = Payment
     template_name = 'members/payment_detail.html'
@@ -1553,6 +1573,7 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         context = super(PaymentDetailView, self).get_context_data(**kwargs)
         context['payment_types'] = Payment.TYPES
         context['payment_states'] = Payment.STATES
+        context['user'] = self.request.user
         return context
 
 class PaymentListView(LoginRequiredMixin, FormMixin, TemplateView):
@@ -1771,13 +1792,8 @@ class EmailView(LoginRequiredMixin, FormView):
         initial['group'] = self.kwargs.get('group', '-1')
         initial['from_email'] = getattr(settings, 'SUBS_EMAIL')
         initial['subject'] = "Coombe Wood LTC membership"
-        initial['text'] = """Dear {{first_name}}<br\>
-                             <br\>
-                             Regards,<br\>
-                             Ian Stewart<br\>
-                             Membership secretary<br\>
-                             Coombe Wood LTC <br\>
-                             07985 748548"""
+        initial['text'] = """Dear {{first_name}}"""
+  
         return initial
 
     def get(self, request, *args, **kwargs):
@@ -1802,8 +1818,6 @@ class EmailView(LoginRequiredMixin, FormView):
         to = form.cleaned_data['to']
         group_id = form.cleaned_data['group']
         text =  form.cleaned_data['text']
-
-        text = form.cleaned_data['text']
         subject = form.cleaned_data['subject']
         mail_type_list = []
         for mail_type in form.cleaned_data['mailtype']:
@@ -2102,3 +2116,9 @@ def testmailgun(request):
     #send_simple_message()
     mailgun_send()
     return HttpResponse("sent")
+
+def bee_test(request):
+    if request.is_ajax():
+        return HttpResponse("")
+    else:
+        return render_to_response('members/bee.html', RequestContext(request))

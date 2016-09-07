@@ -2,7 +2,7 @@
 {% load staticfiles %}
 
 {% block content %}
-<h2>Manage subscriptions</h2>
+<h2>Manage my emails</h2>
 {% if person %}
     <p>Hi {{ person.first_name }} {{ person.last_name }}.</p>
     <p> We send different types of email messages to our members as shown in the table below. Tick those that you want to receive.</p>
@@ -14,9 +14,9 @@
         <table id="mailtypes" class="table table-condensed">
             <thead>
                 <tr>
-                    <th width="50">
+                    <th width="100">
                         <label class="checkbox-inline">
-                            <input name="select" onClick="toggleMaster(this)" value="all" type="checkbox">All
+                            <input name="select" onClick="toggleMaster(this)" value="all" type="checkbox">Select all
                         </label>     
 </th>
                     <th width = "300">Message type</th>

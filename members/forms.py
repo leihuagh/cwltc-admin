@@ -14,7 +14,7 @@ from django.template.defaultfilters import slugify
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder, BaseInput
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
-
+from markdownx.fields import MarkdownxFormField
 from .widgets import MonthYearWidget
 from .models import (Person, Address, Subscription, Membership, Invoice, InvoiceItem,
                      Payment, CreditNote, ExcelBook, TextBlock, MailType, Group, Settings)
@@ -88,6 +88,7 @@ class PersonForm(ModelForm):
                 'british_tennis',
                 'pays_own_bill',
                 'notes']
+        widgets = {'dob': forms.DateInput(attrs={'placeholder':'DD/MM/YYYY'}),}
 
     def __init__(self, *args, **kwargs):
         self.link = kwargs.pop('link', None)
@@ -226,6 +227,7 @@ class JuniorForm(ModelForm):
                 'dob',
                 'notes'
                 ]
+        widgets = {'dob': forms.DateInput(attrs={'placeholder':'DD/MM/YYYY'}),}
 
     child_email = forms.EmailField(max_length=75, required=False)
     child_mobile = forms.CharField(max_length=20, required=False)
@@ -944,6 +946,11 @@ class TextBlockForm(ModelForm):
         widgets = {
             'text': Textarea(attrs={'cols': 1, 'rows': 1
             })}
+
+class EditorForm(forms.Form):
+    text = MarkdownxFormField()
+
+    myfield = MarkdownxFormField()
 
 class XlsInputForm(Form):
     IMPORT_FILE_TYPES = ['.xls', ]

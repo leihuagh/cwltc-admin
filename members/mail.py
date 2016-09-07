@@ -72,7 +72,6 @@ def send_template_mail(request, person, text, from_email, cc=None, bcc=None, sub
     else:
         signer = Signer()
         token = signer.sign(recipient.id)
-        text += request.build_absolute_uri(reverse('mailtype-subscribe-public', args=(token,)))
         context = Context({
             'first_name':recipient.first_name,
             'last_name': person.last_name})
@@ -80,9 +79,11 @@ def send_template_mail(request, person, text, from_email, cc=None, bcc=None, sub
             context['child'] = child.first_name
         template = Template(text)
         html_body = template.render(context)
+        unsub_url = request.build_absolute_uri(reverse('mailtype-subscribe-public', args=(token,)))
+        html_body += '<p><a href="' + unsub_url + '">Unsubscribe</a></p>'
         if u'@' in to: 
             try:          
-                send_htmlmail(from_email='Coombe Wood LTC <subs@coombewoodltc.co.uk>',
+                send_htmlmail(from_email='Coombe Wood LTC <' + from_email + '>',
                                 to=recipient.email,
                                 subject=subject,
                                 html_body=html_body)

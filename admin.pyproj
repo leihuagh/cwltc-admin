@@ -401,8 +401,10 @@
     <Content Include="members\static\members\content\jquery.smartmenus.bootstrap.css" />
     <Content Include="members\static\members\content\site.css" />
     <Content Include="members\static\members\fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="members\static\members\scripts\Blob.js" />
     <Content Include="members\static\members\scripts\bootstrap.js" />
     <Content Include="members\static\members\scripts\bootstrap.min.js" />
+    <Content Include="members\static\members\scripts\fileSaver.js" />
     <Content Include="members\static\members\scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="members\static\members\scripts\jquery-1.10.2.js" />
     <Content Include="members\static\members\scripts\jquery-1.10.2.min.js" />
@@ -431,9 +433,11 @@
     <Content Include="members\templates\auth\password_reset_form.html" />
     <Content Include="members\templates\members\about.html" />
     <Content Include="members\templates\members\address_form.html" />
+    <Content Include="members\templates\members\bee.html" />
     <Content Include="members\templates\members\confirm.html" />
     <Content Include="members\templates\members\contact.html" />
     <Content Include="members\templates\members\credit_note.html" />
+    <Content Include="members\templates\members\editor.html" />
     <Content Include="members\templates\members\email.html" />
     <Content Include="members\templates\members\fees_list.html" />
     <Content Include="members\templates\members\filter_member.html" />
@@ -458,7 +462,7 @@
     <Content Include="members\templates\members\login.html" />
     <Content Include="members\templates\members\loginpartial.html" />
     <Content Include="members\templates\members\mailtype_detail.html" />
-    <Content Include="members\templates\members\mailtype_done.html" />
+    <Content Include="members\templates\public\mailtype_done.html" />
     <Content Include="members\templates\members\mailtype_list.html" />
     <Content Include="members\templates\public\mailtype_manage.html" />
     <Content Include="members\templates\members\payment_detail.html" />

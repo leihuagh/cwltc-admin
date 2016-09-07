@@ -7,6 +7,8 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.dispatch import receiver 
 from sets import Set
+from markdownx.models import MarkdownxField
+
 #import pdb; pdb.set_trace()
 
 def formatted_date(d):
@@ -567,10 +569,15 @@ class BarTransaction(models.Model):
     def __unicode__(self):
         return self.id + " " + description + total
 
+
+class Editor(models.Model):
+
+    text = MarkdownxField()
+
 class TextBlock(models.Model):
     name = models.CharField(max_length=30, null=False, blank=False)
     text = models.CharField(max_length=8000, null=False, blank=False)
-    
+
     def __unicode__(self):
         return self.name
 

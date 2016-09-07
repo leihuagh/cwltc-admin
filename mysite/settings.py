@@ -44,7 +44,8 @@ INSTALLED_APPS = (
     'gc_app',
     'rest_framework',
     'report_builder',
-    'anymail'
+    'anymail',
+    'markdownx',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -159,7 +160,7 @@ NUMBER_GROUPING = 3
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi','static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -269,5 +270,6 @@ else:
         'ACCESS_TOKEN': '6T93JFXX6XTS7C38XCZRWZ7379AJTXXBXE8ZC53FJMYZ0KBPG0S5S77G73N1FCX3',
         'MERCHANT_ID': '0VTW3337YC'
         }
-
+BEE_FREE_ID = 'ab151c30-4d75-496f-b610-733eee85b12b'
+BEE_FREE_SECRET = 'v5Z89TTSVNHXI4QG8DX1qRd8uYixLygn1TO8wrQy78rSWcbvtVP'
 

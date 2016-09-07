@@ -45,4 +45,8 @@
 {% endfor %}
 </table>
 </form>
+{% if user.is_active %}
+<a href= "{% url 'payment-update' payment.id %}" class="btn btn-danger btn-sm">Update</a>
+
+{% endif %}
 {% endblock content %}

@@ -34,7 +34,8 @@ urlpatterns = [
         ),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
-
+    url(r'^markdownx/', include('markdownx.urls')),
+    
     url(r'^yearend/$',
         YearEndView.as_view(),
         name='year-end'
@@ -201,7 +202,10 @@ urlpatterns = [
         PaymentDetailView.as_view(),
         name='payment-detail'
     ),
-
+    url(r'^payment/update/(?P<pk>\d+)/$',
+        PaymentUpdateView.as_view(),
+        name='payment-update'
+    ),
     #   CREDIT NOTES
     url(r'^creditnote/create/(?P<person_id>\d+)/$',
         CreditNoteCreateView.as_view(),
@@ -371,6 +375,10 @@ urlpatterns = [
     url(r'^reports/$',
         reports,
         name='reports'
+    ),
+    url(r'^bee/$',
+        bee_test,
+        name='bee'
     ),
     #url(
     #    r'^bar$',
