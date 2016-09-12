@@ -3,6 +3,7 @@ Definition of urls for Cwltc.
 """
 
 from datetime import datetime
+from django.conf import settings
 from django.conf.urls import url, include
 from django.views.generic import TemplateView
 from members.forms import BootstrapAuthenticationForm
@@ -28,14 +29,16 @@ urlpatterns = [
     ),
 
     url(r'^api/', include(router.urls)),
-    url(r'ajax/people',
-        ajax_people,
-        name = "ajax-people"
-        ),
+
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
     url(r'^markdownx/', include('markdownx.urls')),
     
+    url(r'ajax/people',
+        ajax_people,
+        name = "ajax-people"
+        ),
+
     url(r'^yearend/$',
         YearEndView.as_view(),
         name='year-end'
@@ -446,3 +449,9 @@ urlpatterns = [
     ),
     
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]

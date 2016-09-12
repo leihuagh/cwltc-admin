@@ -49,6 +49,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -273,3 +274,5 @@ else:
 BEE_FREE_ID = 'ab151c30-4d75-496f-b610-733eee85b12b'
 BEE_FREE_SECRET = 'v5Z89TTSVNHXI4QG8DX1qRd8uYixLygn1TO8wrQy78rSWcbvtVP'
 
+DEBUG_TOOLBAR_PATCH_SETTINGS = False
+INTERNAL_IPS = ['127.0.0.1', '::1']

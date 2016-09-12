@@ -1881,21 +1881,26 @@ class EmailView(LoginRequiredMixin, FormView):
             count = 0
             count_unsub = 0
             count_bad = 0
+            count_dups = 0
+            sent_list = []
             for person in group.person_set.all():
                 result = send_template_mail(request=self.request,
                                             person=person,
                                             text=text,
                                             from_email=from_email,
                                             subject=subject,
-                                            mail_types=mail_types)
+                                            mail_types=mail_types,
+                                            sent_list=sent_list)
                 if result == 'sent':
                     count += 1
                 elif result == 'unsubscribed':
                     count_unsub +=1
+                elif result == 'duplicate':
+                    count_dups += 1
                 else:
                     count_bad += 1
-            message = u'{} emails sent, {} were unsubscribed, {} had no email address'.format(
-                count, count_unsub, count_bad)
+            message = u'Sent: {}, Unsubscribed: {}, Duplicates: {}, No email address: {}'.format(
+                count, count_unsub, count_dups, count_bad)
             messages.info(self.request, message)
             return redirect(
                 reverse('group-detail', kwargs={'pk': group_id})

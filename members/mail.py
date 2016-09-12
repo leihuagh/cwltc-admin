@@ -6,7 +6,7 @@ from django.utils.html import strip_tags
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse
 import requests 
-from .models import Invoice, TextBlock, MailType
+from .models import Invoice, TextBlock, MailType, Membership
 
 mailgun_api_key = 'key-44e941ede1264ea215021bb0b3634eb4'
 mailgun_api_url = 'https://api.mailgun.net/v3/mg.coombewoodltc.co.uk'
@@ -50,26 +50,28 @@ def do_mail(request, invoice, option):
 
 
 
-def send_template_mail(request, person, text, from_email, cc=None, bcc=None, subject="", mail_types=None):
+def send_template_mail(request, person, text, from_email, cc=None, bcc=None, subject="", mail_types=None, sent_list=[]):
     
     to = person.email
     recipient = person
     child =None
     if person.linked:
-        recipient = person.linked
-        child = person
+        if person.membership_id == Membership.JUNIOR or person.membership_id == Membership.CADET:
+            recipient = person.linked
+            child = person
     positive = False
     negative = False
 
     for mail_type in mail_types:
-        if mail_type.person_set.filter(id=person.id):
+        if mail_type.person_set.filter(id=recipient.id):
             negative = True
         else:
             positive = True
 
     if negative and not positive:
         return 'unsubscribed'
-    else:
+    if recipient.email not in sent_list:
+        sent_list.append(recipient.email)
         signer = Signer()
         token = signer.sign(recipient.id)
         context = Context({
@@ -91,7 +93,8 @@ def send_template_mail(request, person, text, from_email, cc=None, bcc=None, sub
             except Exception, e:       
                 return 'bad email address'
         return False
-
+    else:
+        return 'duplicate'
 
         
 def send_htmlmail(from_email, to, cc=None, bcc=None, subject="", html_body=""):
