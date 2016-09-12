@@ -853,9 +853,11 @@ class MailTypeForm(ModelForm):
     
     class Meta:
         model = MailType
-        fields = ['name', 'description', 'can_unsubscribe']
+        fields = ['name', 'description', 'can_unsubscribe', 'sequence']
+        widgets = {'description': forms.Textarea}
 
     def __init__(self, *args, **kwargs):
+        with_delete = kwargs.pop('with_delete', None)
         super(MailTypeForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
@@ -864,7 +866,8 @@ class MailTypeForm(ModelForm):
         self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-
+        if with_delete:
+            self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
 
 class PaymentForm(ModelForm):
 

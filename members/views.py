@@ -194,6 +194,10 @@ class FilteredPersonListAjax(LoginRequiredMixin, FormMixin, ListView):
         context['form'] = self.form
         return context
 
+class JuniorListView(LoginRequiredMixin,ListView):
+    model = Person
+    form_class = FilterMemberAjaxForm
+    template_name = 'members/person_table_ajax.html'
 
 class PersonActionMixin(object):
     """
@@ -1358,11 +1362,45 @@ class MailTypeCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('mailtype-list')
 
+class MailTypeUpdateView(LoginRequiredMixin, UpdateView):
+
+    model = MailType
+    form_class = MailTypeForm
+    template_name = 'members/generic_crispy_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super(MailTypeUpdateView, self).get_form_kwargs()
+        kwargs['with_delete'] = True
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(MailTypeUpdateView, self).get_context_data(**kwargs)
+        context['title'] = 'Edit message type'
+        return context
+
+    def form_invalid(self, form):
+        if 'cancel' in form.data:
+            return HttpResponseRedirect(self.get_success_url())
+        return super(MailTypeUpdateView, self).form_invalid(form)
+
+    def form_valid(self, form):
+        if 'cancel' in form.data:
+            return HttpResponseRedirect(self.get_success_url())
+        if 'submit' in form.data:
+            return super(MailTypeUpdateView, self).form_valid(form)
+        if 'delete' in form.data:
+            self.get_object().delete()
+            return super(MailTypeUpdateView, self).form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('mailtype-list')
+
 class MailTypeListView(LoginRequiredMixin, ListView):
     ''' List all mail type '''
     model = MailType
     template_name = 'members/mailtype_list.html'
     context_object_name = 'mailtypes'
+    ordering = 'sequence'
 
 class MailTypeDetailView(LoginRequiredMixin, DetailView):
     model = MailType
@@ -1386,8 +1424,7 @@ class MailTypeSubscribeView(ProcessFormView, TemplateView):
         self.get_person()
         context['person'] = self.person
         if self.person:
-            mailtypes = MailType.objects.all()
-            #unsublist = MailType.objects.filter(person__id=self.person.person_id)
+            mailtypes = MailType.objects.all().order_by('can_unsubscribe')
             for m in mailtypes:
                 if m.person_set.filter(id=self.person.id).exists():
                     m.subscribed = False

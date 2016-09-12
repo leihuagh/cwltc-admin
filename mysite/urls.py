@@ -233,6 +233,7 @@ urlpatterns = [
        MembersListView.as_view(),
        name='members'
     ),
+
     url(r'^(?P<pk>\d+)/$',
        PersonDetailView.as_view(),
        name='person-detail'
@@ -324,6 +325,10 @@ urlpatterns = [
     url(r'^mailtype/create/$',
         MailTypeCreateView.as_view(),
         name='mailtype-create'
+    ),
+    url(r'^mailtype/update/(?P<pk>\d+)/$',
+        MailTypeUpdateView.as_view(),
+        name='mailtype-update'
     ),
     url(r'^mailtype/(?P<pk>\d+)/$',
         MailTypeDetailView.as_view(),

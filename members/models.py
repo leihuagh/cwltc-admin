@@ -51,8 +51,9 @@ class Group(models.Model):
 
 class MailType(models.Model):
     name = models.CharField(max_length=30, null=False, blank=False)
-    description = models.CharField(max_length=100, null=False, blank=False)
+    description = models.CharField(max_length=300, null=False, blank=False)
     can_unsubscribe = models.BooleanField(default=True)
+    sequence = models.IntegerField(default=0)
 
     def __unicode__(self):
         return self.name

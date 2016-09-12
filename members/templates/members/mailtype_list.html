@@ -9,7 +9,8 @@
         <th>Description</th>
         <th>Can unsubscribe</th>
         <th>Unsubscribed</th>
-        <th>View</th>
+        <th>Sequence</th>
+        <th>Edit</th>
         </tr>
 </thead>
 {% for mailtype in mailtypes %}
@@ -18,7 +19,8 @@
     <td> {{ mailtype.description }}</td>
     <td> {{ mailtype.can_unsubscribe }}</td>
     <td> {{ mailtype.person_set.count }}</td> 
-    <td><a href="{% url "mailtype-detail" pk=mailtype.id %}">View</a></td>
+    <td> {{ mailtype.sequence }}</td> 
+    <td><a href="{% url "mailtype-update" pk=mailtype.id %}" class = "btn btn-primary btn-xs">Edit</a></td>
 </tr>
 {% endfor sub %}
 </table>

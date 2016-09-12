@@ -6,7 +6,7 @@
 {% if person %}
     <p>Hi {{ person.first_name }} {{ person.last_name }}.</p>
     <p> We send different types of email messages to our members as shown in the table below. Tick those that you want to receive.</p>
-    <p> Note that as a club member you cannot unsubscribe from subscription-related messages.</p>
+
     <form action="." method="post" class="form-inline" id="unsub-form">
         {% csrf_token %}
                    
@@ -18,7 +18,7 @@
                         <label class="checkbox-inline">
                             <input name="select" onClick="toggleMaster(this)" value="all" type="checkbox">Select all
                         </label>     
-</th>
+                    </th>
                     <th width = "300">Message type</th>
                     <th>Description</th>
                 </tr>
@@ -26,13 +26,20 @@
             {% for mailtype in mailtypes %}
             <tr>
                 <td>
-                    <label class="checkbox-inline">
-                        <input name="checks" value="{{ mailtype.id }}" type="checkbox" onClick="toggle(this)"
-                                {% if mailtype.subscribed %} checked{% endif %}/>
-                    </label>
+                    {% if mailtype.can_unsubscribe %}
+                        <label class="checkbox-inline">
+                            <input name="checks" value="{{ mailtype.id }}" type="checkbox" onClick="toggle(this)"
+                                    {% if mailtype.subscribed %} checked{% endif %}/>
+                        </label>
+                    {% endif %}
                 </td>
                 <td>{{ mailtype.name }}</td>
-                <td>{{ mailtype.description }}</td>
+                <td>{{ mailtype.description }}
+                    {% if not mailtype.can_unsubscribe %}
+                    <br /> Members cannot unsubscribe from this list.
+                    {% endif %} 
+                
+                </td>
             </tr>
             {% endfor sub %}
         </table>
