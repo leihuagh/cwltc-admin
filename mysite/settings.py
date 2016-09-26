@@ -56,7 +56,11 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
 )
+
+if ON_PAAS:
+    SECURE_SSL_REDIRECT = True
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
@@ -277,4 +281,3 @@ BEE_FREE_SECRET = 'v5Z89TTSVNHXI4QG8DX1qRd8uYixLygn1TO8wrQy78rSWcbvtVP'
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 INTERNAL_IPS = ['127.0.0.1', '::1']
 
-SECURE_SSL_REDIRECT = True
