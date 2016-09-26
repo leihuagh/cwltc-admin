@@ -138,7 +138,9 @@ class Person(models.Model):
                 if sub.active:
                     return sub
         return None
-                                    
+    
+    def invoices(self, state):
+        return self.invoice_set.filter(state=state).order_by('update_date')                           
 
 class Membership(models.Model):
     AUTO = -1
@@ -576,11 +578,22 @@ class Editor(models.Model):
     text = MarkdownxField()
 
 class TextBlock(models.Model):
+    BLOCK = 0
+    BEE_HTML = 1
+    BEE_TEMPLATE = 2
+
+    TYPES = (
+        (BLOCK, "Text block"),
+        (BEE_HTML, "HTML document"),
+        (BEE_TEMPLATE, "Bee editor template"),
+        )
+
     name = models.CharField(max_length=30, null=False, blank=False)
-    text = models.CharField(max_length=8000, null=False, blank=False)
+    type = models.SmallIntegerField(choices=TYPES, default=BLOCK)
+    text = models.TextField(null=False, blank=False)
 
     def __unicode__(self):
-        return self.name
+        return "{0}: {1}".format(self.type, self.name)
 
     @classmethod
     def add_email_context(self, context):

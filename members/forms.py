@@ -932,6 +932,7 @@ class CreditNoteForm(ModelForm):
 class TextBlockForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
+        no_delete = kwargs.pop('no_delete' ,False)
         super(TextBlockForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.field_class = 'input-xlarge'
@@ -941,11 +942,12 @@ class TextBlockForm(ModelForm):
         self.helper.error_text_inline = True
         self.helper.add_input(SubmitButton('save', 'Save', css_class='btn-primary'))
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
-        self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
+        if not no_delete:
+            self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
 
     class Meta:
         model = TextBlock
-        fields = ['name', 'text']
+        fields = ['name', 'type', 'text']
         widgets = {
             'text': Textarea(attrs={'cols': 1, 'rows': 1
             })}
@@ -1047,7 +1049,3 @@ class ContactForm(Form):
         if resigned:
             postText = 'resign'
         self.helper.add_input(SubmitButton(postText, 'Send', css_class='btn-primary'))
-
-
-
-

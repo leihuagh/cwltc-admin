@@ -28,6 +28,7 @@ from .mail import *
 from .excel import *
 import ftpService
 import xlrd
+import json
 from report_builder.models import Report
 
 
@@ -1763,6 +1764,16 @@ class TextBlockCreateView(LoginRequiredMixin, CreateView):
         context['title'] = 'Create text block'
         return context
 
+    def get_form_kwargs(self):
+        kwargs = super(TextBlockCreateView, self).get_form_kwargs()
+        kwargs.update({'no_delete': True})
+        return kwargs
+
+    def form_invalid(self, form):
+        if 'cancel' in form.data:
+            return (redirect('text-list'))
+        return super(TextBlockCreateView, self).form_invalid(form)
+
     def get_success_url(self):
         return reverse('text-list')
  
@@ -1784,13 +1795,11 @@ class TextBlockUpdateView(LoginRequiredMixin, UpdateView):
             block = self.get_object()
             block.delete()
         return redirect(reverse('text-list'))
-       
     
 class TextBlockListView(LoginRequiredMixin, ListView):
     model = TextBlock               
     template_name = 'members/textblock_list.html'
-
-
+    
 # ==================== EMAIL
 class EmailView(LoginRequiredMixin, FormView):
     form_class = EmailForm
@@ -2161,6 +2170,29 @@ def testmailgun(request):
 
 def bee_test(request):
     if request.is_ajax():
-        return HttpResponse("")
+        if request.method =='GET':
+            template = request.GET['template']
+            block = TextBlock.objects.get(type=TextBlock.BEE_TEMPLATE,
+                                    name=template)
+            #dict={'template': block.text}
+            return JsonResponse(block.text, safe=False)
+        else:
+            html = request.POST['html']
+            template = request.POST['template']
+            name = "bee_test"
+            blocks = TextBlock.objects.filter(type=TextBlock.BEE_TEMPLATE,
+                                    name=name)
+            if len(blocks) == 0:
+                block = TextBlock(name=name,
+                                  type=TextBlock.BEE_TEMPLATE,
+                                  text=template)
+                block.save()
+            elif len(blocks) == 1:
+                block=blocks[0]
+                block.text = template
+                block.save()
+            else:
+               return HttpResponse("Error in template name")      
+            return HttpResponse("")
     else:
         return render_to_response('members/bee.html', RequestContext(request))

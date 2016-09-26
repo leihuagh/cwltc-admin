@@ -43,8 +43,8 @@
 
   </body>
 </html>
-<script src="Blob.js"></script>
-<script src="fileSaver.js"></script>
+<script src="{% static 'members/scripts/Blob.js' %}"></script>
+<script src="{% static 'members/scripts/fileSaver.js' %}"></script>
 <script src="https://app-rsrc.getbee.io/plugin/BeePlugin.js"></script>
 <script src="{% static 'members/scripts/jquery-1.10.2.js' %}"></script>
 <script type="text/javascript">
@@ -151,7 +151,8 @@ var loadTemplate = function(e) {
     reader.readAsText(templateFile);
 };
 
-document.getElementById('choose-template').addEventListener('change', loadTemplate, false);
+//document.getElementById('choose-template').addEventListener('change', loadTemplate, false);
+document.getElementById('choose-template').addEventListener('change', loadTemplateAjax, false);
 
 request(
     'POST', 
@@ -161,17 +162,34 @@ request(
     function(token) {
     BeePlugin.create(token, beeConfig, function(beePluginInstance) {
         bee = beePluginInstance;
-        request(
-        'GET', 
-        'https://rsrc.getbee.io/api/templates/m-bee',
-        null,
-        null,
-        function(template) {
-            bee.start(template);
+        bee.start();
+        ajax_get(bee, "bee_test");
         });
     });
-    });
 
+//request(
+//    'POST',
+//    'https://auth.getbee.io/apiauth',
+//    'grant_type=password&client_id=ab151c30-4d75-496f-b610-733eee85b12b&client_secret=v5Z89TTSVNHXI4QG8DX1qRd8uYixLygn1TO8wrQy78rSWcbvtVP',
+//    'application/x-www-form-urlencoded',
+//    function (token) {
+//        BeePlugin.create(token, beeConfig, function (beePluginInstance) {
+//            bee = beePluginInstance;
+//            request(
+//            'GET',
+//            'https://rsrc.getbee.io/api/templates/m-bee',
+//            null,
+//            null,
+//            function (template) {
+//                bee.start();
+//            });
+//        });
+//    });
+
+function loadTemplateAjax() {
+    var template = ajax_get(bee, "bee_test");
+    //bee.load(template);
+}
 
 // using jQuery
 function getCookie(name) {
@@ -204,22 +222,41 @@ $.ajaxSetup({
     }
 })
 
-// AJAX for posting
+    // AJAX for posting
+    // This saves a template to our database
 function ajax_post(template, htmlFile) {
     console.log("AJAX post"); // sanity check
     $.post(".", {
         template: template,
         html: htmlFile
-    }
-    ).done(function (json) {
-        console.log("AJAX done"); // sanity check
-    }
-    ).fail(function (xhr, errmsg, err) {
+    })
+    .done(function (json) {
+        console.log("Template saved"); // sanity check
+    })
+    .fail(function (xhr, errmsg, err) {
+        $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+            " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+        console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+    });
+}
+
+    // AJAX get
+    // Requests a template from the database
+function ajax_get(bee, templateName) {
+    console.log("AJAX get"); // sanity check
+    $.get(".", { 'template': templateName }, function (data, status) {
+        //alert("Data: " + data + "\nStatus: " + status);
+        var template = JSON.parse(data);
+        bee.load(template);
+    },"json")
+    .done(function (json) {
+        console.log("Template loaded"); // sanity check
+    })
+   .fail(function (xhr, errmsg, err) {
         $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
             " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
         console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
     }
     );
 }
-
 </script>

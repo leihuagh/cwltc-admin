@@ -5,6 +5,7 @@ from django.shortcuts import render_to_response
 from django.utils.html import strip_tags
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse
+from django.http import HttpRequest
 import requests 
 from .models import Invoice, TextBlock, MailType, Membership
 
@@ -70,17 +71,30 @@ def send_template_mail(request, person, text, from_email, cc=None, bcc=None, sub
 
     if negative and not positive:
         return 'unsubscribed'
+
     if recipient.email not in sent_list:
         sent_list.append(recipient.email)
         signer = Signer()
-        token = signer.sign(recipient.id)
+        unpaid_invoices = recipient.invoices(state=Invoice.UNPAID)
+        total_unpaid = 0
+        invoice_urls = []
+        if unpaid_invoices:
+            for inv in unpaid_invoices:
+                total_unpaid += inv.total
+                token = signer.sign(inv.id)
+                invoice_urls.append(request.build_absolute_uri(reverse('invoice-public', args=(token,))))
         context = Context({
             'first_name':recipient.first_name,
-            'last_name': person.last_name})
+            'last_name': recipient.last_name,
+            'total_unpaid': total_unpaid,
+            'invoice_urls': invoice_urls})
         if child:
             context['child'] = child.first_name
         template = Template(text)
         html_body = template.render(context)
+
+        # Add an unsubscribe url    
+        token = signer.sign(recipient.id)
         unsub_url = request.build_absolute_uri(reverse('mailtype-subscribe-public', args=(token,)))
         html_body += '<p><a href="' + unsub_url + '">Unsubscribe</a></p>'
         if u'@' in to: 

@@ -7,6 +7,7 @@
     <tr>
         <th>Action</th>
         <th>Name</th>
+        <th>Type</th>
         <th>Text</th>
     </tr>
 </thead>
@@ -14,6 +15,7 @@
 <tr>
     <td><a href="{% url "text-update" text.id %}" class="btn btn-primary btn-xs">Edit</a></td>
     <td>{{ text.name }}</td>
+    <td>{{ text.type }}</td>
     <td>{{ text.text|striptags|truncatechars:80 }}</td>
 </tr>
 {% endfor text %}
