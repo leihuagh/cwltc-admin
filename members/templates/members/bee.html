@@ -1,10 +1,8 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-  <head>
+﻿{% extends "members/layout.html" %}
+{% block head %}
       {% load staticfiles %}
-  <title>BEE Plugin - Integration Example</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BEE Plugin - Integration Example</title>
+    {#<meta name="viewport" content="width=device-width, initial-scale=1" />#}
     <style type="text/css">
       * {
         margin:0px;
@@ -16,33 +14,65 @@
         color:#000000;
       }
       #bee-plugin-container {
-        position: absolute;
-        top:5px;
+        position: relative;
+        height:700px;
+        top:40px;
         bottom:30px;
-        left:5px;
-        right:5px;
+        left:20px;
+        right:20px;
       }
       #integrator-bottom-bar {
-        position: absolute;
+        position: relative;
         height: 25px;
         bottom:0px;
-        left:5px;
+        left:20px;
         right:0px;
       }
+      .btn-file {
+        position: relative;
+        overflow: hidden;
+        }
+        .btn-file input[type=file] {
+        position: absolute;
+        top: 0;
+        right: 0;
+        min-width: 100%;
+        min-height: 100%;
+        font-size: 100px;
+        text-align: right;
+        filter: alpha(opacity=0);
+        opacity: 0;
+        outline: none;
+        background: white;
+        cursor: inherit;
+        display: block;
+        }
     </style>
-  </head>
-  <body>
-
-    <div id="bee-plugin-container"></div>
+  {% endblock %}
+{% block content %}
+    
     <div id="integrator-bottom-bar">
-      <!-- You can change the download function to get the JSON and use this input to load it -->
-      Select template to load: <input id="choose-template" type="file" />
-      <!-- You need to provide a send function to use this input field -->
-      Send test e-mail to: <input id="integrator-test-emails" type="text"/>
+      <p id="template-name"></p>
+      <form class="form-inline">
+        <div class="form-group">
+            <label for="template">Select template</label>
+            <select  class="form-control" id="template">
+                <option value="empty">Empty</option>
+            </select>
+         </div>
+        <button type="button" class="btn btn-primary" id="load-template">Load</button>
+        <label class="btn btn-primary btn-file">
+            Upload template <input type="file" id="upload-template" >
+        </label>
+        <div class="form-group">
+            <label for="integrator-test-email">Test email address</label>
+            <input type="email" class="form-control" id="integrator-test-email" placeholder="email">
+        </div>
+       </form>
     </div>
-
-  </body>
-</html>
+    <div id="bee-plugin-container"></div>
+{% endblock %}
+{% block scripts %}
 <script src="{% static 'members/scripts/Blob.js' %}"></script>
 <script src="{% static 'members/scripts/fileSaver.js' %}"></script>
 <script src="https://app-rsrc.getbee.io/plugin/BeePlugin.js"></script>
@@ -138,7 +168,7 @@ var beeConfig = {
 
 var bee = null;
 
-var loadTemplate = function(e) {
+var uploadTemplate = function(e) {
     var templateFile = e.target.files[0];
     var reader = new FileReader();
 
@@ -151,8 +181,8 @@ var loadTemplate = function(e) {
     reader.readAsText(templateFile);
 };
 
-//document.getElementById('choose-template').addEventListener('change', loadTemplate, false);
-document.getElementById('choose-template').addEventListener('change', loadTemplateAjax, false);
+document.getElementById('upload-template').addEventListener('change', uploadTemplate, false);
+document.getElementById('load-template').addEventListener('click', loadTemplateAjax, false);
 
 request(
     'POST', 
@@ -167,31 +197,31 @@ request(
         });
     });
 
-//request(
-//    'POST',
-//    'https://auth.getbee.io/apiauth',
-//    'grant_type=password&client_id=ab151c30-4d75-496f-b610-733eee85b12b&client_secret=v5Z89TTSVNHXI4QG8DX1qRd8uYixLygn1TO8wrQy78rSWcbvtVP',
-//    'application/x-www-form-urlencoded',
-//    function (token) {
-//        BeePlugin.create(token, beeConfig, function (beePluginInstance) {
-//            bee = beePluginInstance;
-//            request(
-//            'GET',
-//            'https://rsrc.getbee.io/api/templates/m-bee',
-//            null,
-//            null,
-//            function (template) {
-//                bee.start();
-//            });
-//        });
-//    });
-
 function loadTemplateAjax() {
-    var template = ajax_get(bee, "bee_test");
-    //bee.load(template);
+    ajax_get(bee, "bee_test");
 }
 
-// using jQuery
+function setTemplateName(template) {
+    title = template.page.title;
+    description = template.page.description;
+    document.getElementById("template-name").innerHTML = "Titel: " + title + "  Description: " + description;
+}
+
+$(document).on('change', ':file', function () {
+    var input = $(this),
+        numFiles = input.get(0).files ? input.get(0).files.length : 1,
+        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+    input.trigger('fileselect', [numFiles, label]);
+});
+
+$(document).ready(function () {
+    $(':file').on('fileselect', function (event, numFiles, label) {
+        console.log(numFiles);
+        console.log(label);
+    });
+});
+
+// using jQuery to get cookie
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -247,6 +277,7 @@ function ajax_get(bee, templateName) {
     $.get(".", { 'template': templateName }, function (data, status) {
         //alert("Data: " + data + "\nStatus: " + status);
         var template = JSON.parse(data);
+        setTemplateName(template)
         bee.load(template);
     },"json")
     .done(function (json) {
@@ -260,3 +291,4 @@ function ajax_get(bee, templateName) {
     );
 }
 </script>
+{% endblock %}
