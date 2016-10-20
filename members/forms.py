@@ -17,7 +17,7 @@ from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, Inl
 from markdownx.fields import MarkdownxFormField
 from .widgets import MonthYearWidget
 from .models import (Person, Address, Subscription, Membership, Invoice, InvoiceItem,
-                     Payment, CreditNote, ExcelBook, TextBlock, MailType, Group, Settings)
+                     Payment, CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings)
 from .excel import *
 
 # 
@@ -952,7 +952,25 @@ class TextBlockForm(ModelForm):
             'text': Textarea(attrs={'cols': 1, 'rows': 1
             })}
 
-class EditorForm(forms.Form):
+class MailCampaignForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        with_delete = kwargs.pop('with_delete', None)
+        super(MailCampaignForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.field_class = 'input-xlarge'
+        self.helper.error_text_inline = True
+        self.helper.add_input(SubmitButton('next', 'Next', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        if with_delete:
+            self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
+
+    class Meta:
+        model = MailCampaign
+        fields = ['name', 'mail_template', 'json'] 
+        widgets = {'json': forms.HiddenInput()}
+
+class EditorForm(Form):
     text = MarkdownxFormField()
 
     myfield = MarkdownxFormField()

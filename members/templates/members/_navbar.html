@@ -32,6 +32,9 @@
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                 aria-expanded="false">Mail</a>
             <ul class="dropdown-menu">
+                <li><a href="{% url 'mail-campaign-list' %}">List mail campaigns</a></li>
+                <li><a href="{% url 'mail-campaign-create' %}">Create mail campaign</a></li>
+                <li class="divider">T</li>
                 <li><a href="{% url 'text-list' %}">List text blocks</a></li>
                 <li><a href="{% url 'text-create' %}">Create text block</a></li>
                 <li class="divider">T</li>

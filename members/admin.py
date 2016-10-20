@@ -97,6 +97,12 @@ class GroupAdmin(admin.ModelAdmin):
 class MailTypeAdmin(admin.ModelAdmin):
     pass
 
+class MailTemplateAdmin(admin.ModelAdmin):
+    pass
+
+class MailCampaignAdmin(admin.ModelAdmin):
+    pass
+
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Membership, MembershipAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
@@ -108,4 +114,6 @@ admin.site.register(InvoiceItem, InvoiceItemAdmin)
 admin.site.register(BarTransaction, BarTransactionAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(MailType, MailTypeAdmin)
+admin.site.register(MailTemplate, MailTemplateAdmin)
+admin.site.register(MailCampaign, MailCampaignAdmin)
 admin.site.register(Editor, MarkdownxModelAdmin)

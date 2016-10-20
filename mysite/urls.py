@@ -350,6 +350,29 @@ urlpatterns = [
         name='mailtype-subscribe'
     ),
 
+    # CAMPAIGNS
+
+    url(r'^mailcampaign/create/$',
+        MailCampaignCreateView.as_view(),
+        name='mail-campaign-create'
+    ),
+    url(r'^mailcampaign/bee/(?P<pk>\d+)/$',
+        MailCampaignBeeView.as_view(),
+        name='mail-campaign-bee'
+    ),        
+    url(r'^MailCampaign/update/(?P<pk>\d+)/$',
+        MailCampaignUpdateView.as_view(),
+        name='mail-campaign-update'
+    ),
+    #url(r'^mailcampaign/(?P<pk>\d+)/$',
+    #    MailCampaignDetailView.as_view(),
+    #    name='mail-campaign-detail'
+    #),
+    url(r'^mailcampaign/list/$',
+        MailCampaignListView.as_view(),
+        name='mail-campaign-list'
+    ),
+
     # EXCEL IMPORT AND EXPORT
     url(r'^import/$',
         ImportExcelView.as_view(),
@@ -388,6 +411,7 @@ urlpatterns = [
         bee_test,
         name='bee'
     ),
+   
     #url(
     #    r'^bar$',
     #   bar,

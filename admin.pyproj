@@ -462,6 +462,7 @@
     <Content Include="members\templates\members\login.html" />
     <Content Include="members\templates\members\loginpartial.html" />
     <Content Include="members\templates\members\mailtype_detail.html" />
+    <Content Include="members\templates\members\mail_campaign_list.html" />
     <Content Include="members\templates\public\mailtype_done.html" />
     <Content Include="members\templates\members\mailtype_list.html" />
     <Content Include="members\templates\public\mailtype_manage.html" />

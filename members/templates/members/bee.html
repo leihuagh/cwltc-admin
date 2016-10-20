@@ -52,6 +52,7 @@
 {% block content %}
     
     <div id="integrator-bottom-bar">
+      <div id="campaign-id">{{ campaign_id }}</div> 
       <p id="template-name"></p>
       <form class="form-inline">
         <div class="form-group">
@@ -149,7 +150,7 @@ var beeConfig = {
     mergeContents: mergeContents,
     onSave: function(jsonFile, htmlFile) { 
         //save('newsletter.html', htmlFile);
-        ajax_post(jsonFile, htmlFile)
+        ajax_post(document.getElementById("campaign-id").innerHTML,jsonFile, htmlFile)
     },
     onSaveAsTemplate: function(jsonFile) { // + thumbnail? 
     save('newsletter-template.json', jsonFile);
@@ -193,12 +194,12 @@ request(
     BeePlugin.create(token, beeConfig, function(beePluginInstance) {
         bee = beePluginInstance;
         bee.start();
-        ajax_get(bee, "bee_test");
+        ajax_get(bee, document.getElementById("campaign-id").innerHTML);
         });
     });
 
 function loadTemplateAjax() {
-    ajax_get(bee, "bee_test");
+    ajax_get(bee, document.getElementById("campaign-id").innerHTML );
 }
 
 function setTemplateName(template) {
@@ -254,14 +255,16 @@ $.ajaxSetup({
 
     // AJAX for posting
     // This saves a template to our database
-function ajax_post(template, htmlFile) {
+function ajax_post(campaignId, template, htmlFile) {
     console.log("AJAX post"); // sanity check
     $.post(".", {
+        campaignId: campaignId,
         template: template,
         html: htmlFile
     })
     .done(function (json) {
         console.log("Template saved"); // sanity check
+        window.location.href='/mailcampaign/list/'
     })
     .fail(function (xhr, errmsg, err) {
         $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
@@ -269,12 +272,24 @@ function ajax_post(template, htmlFile) {
         console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
     });
 }
+    // HTTP get for next page
+function httpGetAsync(theUrl, callback) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
 
     // AJAX get
     // Requests a template from the database
-function ajax_get(bee, templateName) {
+function ajax_get(bee, campaign) {
     console.log("AJAX get"); // sanity check
-    $.get(".", { 'template': templateName }, function (data, status) {
+    $.get(".", {
+        'campaign_id': campaign
+    }, function (data, status) {
         //alert("Data: " + data + "\nStatus: " + status);
         var template = JSON.parse(data);
         setTemplateName(template)

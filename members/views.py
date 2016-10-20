@@ -1751,6 +1751,102 @@ class CreditNoteDetailView(LoginRequiredMixin, DetailView):
         context['cnote'] = self.get_object()
         return context
 
+
+
+# ================ MailCampaign Views
+
+class MailCampaignCreateView(LoginRequiredMixin, CreateView):
+    model = MailCampaign
+    form_class = MailCampaignForm
+    template_name = 'members/generic_crispy_form.html'
+
+    def form_invalid(self, form):
+        if 'cancel' in form.data:
+            return HttpResponseRedirect(reverse('home'))
+        return super(MailCampaignCreateView, self).form_invalid(form)
+
+    def form_valid(self, form):
+        if 'cancel' in form.data:
+            return HttpResponseRedirect(reverse('home'))
+        
+        # Copy template json to campaign
+        mail_template = form.cleaned_data['mail_template']
+        form.instance.json = mail_template.json         
+        return super(MailCampaignCreateView, self).form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('mail-campaign-bee', kwargs={'pk': self.object.id})
+
+class MailCampaignUpdateView(LoginRequiredMixin, UpdateView):
+
+    model = MailCampaign
+    form_class = MailCampaignForm
+    template_name = 'members/generic_crispy_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super(MailCampaignUpdateView, self).get_form_kwargs()
+        kwargs['with_delete'] = True
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(MailCampaignUpdateView, self).get_context_data(**kwargs)
+        context['title'] = 'Edit campaign'
+        return context
+
+    def form_invalid(self, form):
+        if 'cancel' in form.data:
+            return HttpResponseRedirect(self.get_success_url())
+        return super(MailCampaignUpdateView, self).form_invalid(form)
+
+    def form_valid(self, form):
+        if 'next' in form.data:
+            mail_template = form.cleaned_data['mail_template']
+            form.instance.json = mail_template.json           
+            return super(MailCampaignUpdateView, self).form_valid(form)
+
+        if 'delete' in form.data:
+            self.get_object().delete()
+            return super(MailCampaignUpdateView, self).form_valid(form)
+        return Http404
+
+    def get_success_url(self):
+        return reverse('mail-campaign-bee', kwargs={'pk': self.object.id})
+
+class MailCampaignListView(LoginRequiredMixin, ListView):
+    ''' List all mail type '''
+    model = MailCampaign
+    template_name = 'members/mail_campaign_list.html'
+    context_object_name = 'mail_campaigns'
+
+class MailCampaignBeeView(LoginRequiredMixin, TemplateView):
+    '''
+    Edit campaign using bee editor
+    '''
+    template_name = 'members/bee.html'
+
+    def get(self, request, *args, **kwargs):
+        ''' Bee editor is asking for json template '''
+        if request.is_ajax():
+            campaign = MailCampaign.objects.get(pk = request.GET['campaign_id'])
+            return JsonResponse(campaign.json, safe=False)
+        else:
+            return super(MailCampaignBeeView, self).get(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        ''' Save pressed in BEE editor so update the campaign '''
+        campaign = MailCampaign.objects.get(pk=request.POST['campaignId'])
+        campaign.text = request.POST['html']
+        campaign.json = request.POST['template']
+        campaign.save()
+        return redirect(reverse('mail-campaign-list'))
+
+    def get_context_data(self, **kwargs):
+        context = super(MailCampaignBeeView, self).get_context_data(**kwargs)
+        context['campaign_id'] = self.kwargs.get('pk', None)
+        return context
+    
+    
+
 # ================== TEXT BLOCKS
 
 class TextBlockCreateView(LoginRequiredMixin, CreateView):
@@ -1801,6 +1897,7 @@ class TextBlockListView(LoginRequiredMixin, ListView):
     template_name = 'members/textblock_list.html'
     
 # ==================== EMAIL
+
 class EmailView(LoginRequiredMixin, FormView):
     form_class = EmailForm
     template_name = 'members/email.html'

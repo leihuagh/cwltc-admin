@@ -1,0 +1,23 @@
+﻿{% extends "members/layout.html" %}
+{% load members_extras %}
+{% block content %}
+<h2>Mail campaigns</h2>
+<table id="mailCampaigns" class="table table-condensed" >
+<thead>
+        <tr>
+        <th>Campaign name</th>
+        <th>Created</th>
+        <th>Sent</th>
+        <th>Edit</th>
+        </tr>
+</thead>
+{% for campaign in mail_campaigns %}
+<tr>
+    <td>{{ campaign.name }}</td>
+    <td> {{ campaign.created }}</td>
+    <td> {{ campaign.sent }}</td>
+    <td><a href="{% url "mail-campaign-bee" pk=campaign.id %}" class = "btn btn-primary btn-xs">Edit</a></td>
+</tr>
+{% endfor sub %}
+</table>
+{% endblock %}

@@ -49,14 +49,7 @@ class Group(models.Model):
     def __unicode__(self):
         return self.slug 
 
-class MailType(models.Model):
-    name = models.CharField(max_length=30, null=False, blank=False)
-    description = models.CharField(max_length=300, null=False, blank=False)
-    can_unsubscribe = models.BooleanField(default=True)
-    sequence = models.IntegerField(default=0)
 
-    def __unicode__(self):
-        return self.name
 
 class Person(models.Model):
     GENDERS = (
@@ -91,7 +84,7 @@ class Person(models.Model):
     linked = models.ForeignKey('self', blank=True, null=True)
     address = models.ForeignKey('address', blank=True, null=True)
     groups = models.ManyToManyField(Group)
-    unsubscribed = models.ManyToManyField(MailType)
+    unsubscribed = models.ManyToManyField('MailType')
     # -- Navigation --
     # person_set
     # invoice_set
@@ -626,6 +619,41 @@ class TextBlock(models.Model):
             except ValueError:
                 pass
         return [-1,-1,-1]  
+
+
+class MailTemplate(models.Model):
+    name = models.CharField(max_length=50, null=False, blank=False)
+    json = models.TextField(null=False, blank=False)
+    
+    def __unicode__(self):
+        return self.name
+
+
+class MailCampaign(models.Model):
+
+    class Meta:
+        ordering = ['-update_date']
+    
+    creation_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+    sent_date = models.DateTimeField(null=True)
+    name = models.CharField(max_length=50, null=False, blank=False)
+    text = models.TextField(null=True, blank=False)
+    json = models.TextField(null=True, blank=True)
+    mail_template = models.ForeignKey(MailTemplate, null=True)
+
+    def __unicode__(self):
+        return self.name
+
+class MailType(models.Model):
+    name = models.CharField(max_length=30, null=False, blank=False)
+    description = models.CharField(max_length=300, null=False, blank=False)
+    can_unsubscribe = models.BooleanField(default=True)
+    sequence = models.IntegerField(default=0)
+    mail_campaign = models.ForeignKey(MailCampaign, null=True, blank=True)
+
+    def __unicode__(self):
+        return self.name
 
 class ExcelBook(models.Model):
     file = models.FileField(upload_to='excel')
