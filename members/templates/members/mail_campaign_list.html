@@ -9,6 +9,7 @@
         <th>Created</th>
         <th>Sent</th>
         <th>Edit</th>
+        <th>Send</th>
         </tr>
 </thead>
 {% for campaign in mail_campaigns %}
@@ -17,6 +18,7 @@
     <td> {{ campaign.created }}</td>
     <td> {{ campaign.sent }}</td>
     <td><a href="{% url "mail-campaign-bee" pk=campaign.id %}" class = "btn btn-primary btn-xs">Edit</a></td>
+    <td><a href="{% url "email-campaign" campaign=campaign.id %}" class = "btn btn-primary btn-xs">Send</a></td>
 </tr>
 {% endfor sub %}
 </table>

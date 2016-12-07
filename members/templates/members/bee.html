@@ -31,8 +31,8 @@
       .btn-file {
         position: relative;
         overflow: hidden;
-        }
-        .btn-file input[type=file] {
+      }
+      .btn-file input[type=file] {
         position: absolute;
         top: 0;
         right: 0;
@@ -46,32 +46,69 @@
         background: white;
         cursor: inherit;
         display: block;
-        }
+      }
+      /*.modal {
+        display: none;  Hidden by default 
+        position: fixed;  Stay in place 
+        z-index: 1;  Sit on top 
+        padding-top: 100px;  Location of the box 
+        left: 0;
+        top: 0;
+        width: 100%;  Full width 
+        height: 100%;  Full height 
+        overflow: auto;  Enable scroll if needed 
+        background-color: rgb(0,0,0);  Fallback color 
+        background-color: rgba(0,0,0,0.4);  Black w/ opacity 
+      }*/
+
+/* Modal Content */
+/*.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}*/
     </style>
   {% endblock %}
 {% block content %}
     
-    <div id="integrator-bottom-bar">
-      <div id="campaign-id">{{ campaign_id }}</div> 
-      <p id="template-name"></p>
-      <form class="form-inline">
-        <div class="form-group">
-            <label for="template">Select template</label>
-            <select  class="form-control" id="template">
-                <option value="empty">Empty</option>
-            </select>
-         </div>
-        <button type="button" class="btn btn-primary" id="load-template">Load</button>
-        <label class="btn btn-primary btn-file">
-            Upload template <input type="file" id="upload-template" >
-        </label>
-        <div class="form-group">
-            <label for="integrator-test-email">Test email address</label>
-            <input type="email" class="form-control" id="integrator-test-email" placeholder="email">
+<div id="integrator-bottom-bar">
+    <div id="campaign-id" style="display: none;">{{ campaign_id }}</div> 
+    <p id="template-name"></p>
+    <form class="form-inline">
+    <div class="form-group">
+        <label for="template">Select template</label>
+        <select  class="form-control" id="template">
+            <option value="empty">Empty</option>
+        </select>
         </div>
-       </form>
+    <button type="button" class="btn btn-primary" id="load-template">Load</button>
+    <label class="btn btn-primary btn-file">
+        Upload template <input type="file" id="upload-template" >
+    </label>
+    <div class="form-group">
+        <label for="integrator-test-email">Test email address</label>
+        <input type="email" class="form-control" id="integrator-test-email" placeholder="email">
     </div>
-    <div id="bee-plugin-container"></div>
+    </form>
+</div>
+<div id="bee-plugin-container"></div>
+
+<!-- Modal save options -->
+<div id="modal-save" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+  <!-- Modal content -->
+  <div class="modal-content">
+    <span class="close">×</span>
+    <p>Save options</p>
+    <button type="button" class="btn btn-primary" id="save-exit">Save and exit</button>
+    <button type="button" class="btn btn-primary" id="save-continue">Save and continue</button>
+    <button type="button" class="btn btn-primary" id="save-template">Save as template</button>
+  </div>
+</div>
+
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'members/scripts/Blob.js' %}"></script>
@@ -107,12 +144,21 @@ var request = function(method, url, data, type, callback) {
     req.send(data);
 };
 
-var save = function(filename, content) {
-    saveAs(
-    new Blob([content], {type: 'text/plain;charset=utf-8'}), 
-    filename
-    ); 
+var save = function (jsonFile, htmlFile) {
+    modal.style.display = "block";
+    //ajax_post(document.getElementById("campaign-id").innerHTML,jsonFile, htmlFile)
+    //saveAs(
+    //new Blob([content], {type: 'text/plain;charset=utf-8'}), 
+    //filename
+    //); 
 };
+
+//var save = function(filename, content) {
+//    saveAs(
+//    new Blob([content], {type: 'text/plain;charset=utf-8'}), 
+//    filename
+//    ); 
+//};
 
 var specialLinks = [{
     type: 'unsubscribe',
@@ -148,9 +194,11 @@ var beeConfig = {
     specialLinks: specialLinks,
     mergeTags: mergeTags,
     mergeContents: mergeContents,
+    //onSave: function(jsonFile, htmlFile) {
+    //    $("#modal-save").modal();
+    //},
     onSave: function(jsonFile, htmlFile) { 
-        //save('newsletter.html', htmlFile);
-        ajax_post(document.getElementById("campaign-id").innerHTML,jsonFile, htmlFile)
+        ajax_post("save", document.getElementById("campaign-id").innerHTML, jsonFile, htmlFile);
     },
     onSaveAsTemplate: function(jsonFile) { // + thumbnail? 
     save('newsletter-template.json', jsonFile);
@@ -160,7 +208,7 @@ var beeConfig = {
     window.localStorage.setItem('newsletter.autosave', jsonFile);
     },
     onSend: function(htmlFile) {
-    //write your send test function here
+        ajax_post("send", document.getElementById("campaign-id").innerHTML, undefined, htmlFile);
     },
     onError: function(errorMessage) { 
     console.log('onError ', errorMessage);
@@ -182,6 +230,7 @@ var uploadTemplate = function(e) {
     reader.readAsText(templateFile);
 };
 
+var modal = document.getElementById('modal-save');
 document.getElementById('upload-template').addEventListener('change', uploadTemplate, false);
 document.getElementById('load-template').addEventListener('click', loadTemplateAjax, false);
 
@@ -222,6 +271,8 @@ $(document).ready(function () {
     });
 });
 
+
+
 // using jQuery to get cookie
 function getCookie(name) {
     var cookieValue = null;
@@ -255,16 +306,19 @@ $.ajaxSetup({
 
     // AJAX for posting
     // This saves a template to our database
-function ajax_post(campaignId, template, htmlFile) {
+function ajax_post(action, campaignId, template, htmlFile) {
     console.log("AJAX post"); // sanity check
     $.post(".", {
+        action: action,
         campaignId: campaignId,
         template: template,
         html: htmlFile
     })
     .done(function (json) {
         console.log("Template saved"); // sanity check
-        window.location.href='/mailcampaign/list/'
+        if (action === "save") {
+            window.location.href = '/mailcampaign/list/'
+        }
     })
     .fail(function (xhr, errmsg, err) {
         $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +

@@ -813,6 +813,7 @@ class EmailForm(Form):
     def __init__(self, *args, **kwargs):
         to = kwargs.pop('to', '')
         group = kwargs.pop('group','')
+        text = kwargs.pop('text','')
         super(EmailForm, self).__init__(*args, **kwargs)
         choices = [(-1, u'None')] + [(x.id, x.slug) for x in Group.objects.order_by('slug')]
         self.fields['group'].choices = choices
@@ -821,7 +822,6 @@ class EmailForm(Form):
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-sm-2'
         self.helper.field_class = 'col-sm-6'
-        #self.helper.form_method = 'post'
 
         if to:
             div=Div('from_email',

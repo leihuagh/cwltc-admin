@@ -236,7 +236,10 @@ urlpatterns = [
        MembersListView.as_view(),
        name='members'
     ),
-
+    url(r'^juniors/$',
+        JuniorListView.as_view(),
+        name='junior-list'
+    ),
     url(r'^(?P<pk>\d+)/$',
        PersonDetailView.as_view(),
        name='person-detail'
@@ -321,6 +324,10 @@ urlpatterns = [
     url(r'^email/group/(?P<group>\d+)/$',
         EmailView.as_view(),
         name='email-group'
+    ),
+    url(r'^email/campaign/(?P<campaign>\d+)/$',
+        EmailView.as_view(),
+        name='email-campaign'
     ),
 
     # MAIL TYPES

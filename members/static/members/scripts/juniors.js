@@ -9,9 +9,9 @@ $(document).ready(function () {
                 d.categories = $('#id_categories').val();
                 d.membership_year = $('#id_membership_year').val();
                 d.paystate = $('#id_paystate').val();
-                                }
-                },
-        "columns": [ null,null,null,null,
+            }
+        },
+        "columns": [null, null, null, null,
             {
                 "render": function (data, type, row, meta) {
                     if (type === 'display') {
@@ -33,7 +33,6 @@ $(document).ready(function () {
 $('.trigger').change(function () {
     console.log("Change!")  // sanity check
     $('#people').DataTable().ajax.reload();
-    //ajax_post();
 });
 
 
@@ -78,7 +77,7 @@ function ajax_post() {
     }
     ).done(function (json) {
 
-        var data= json["data"];
+        var data = json["data"];
         //var search = json["search"];
         $("#people").dataTable(json);
         //$("#people").DataTable().search(search).draw();

@@ -21,7 +21,7 @@ from django.core.mail import send_mail
 from braces.views import LoginRequiredMixin, StaffuserRequiredMixin
 from gc_app.views import gc_create_bill_url
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
-                     Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group)
+                     Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group, MailCampaign)
 from .services import *
 from .forms import *
 from .mail import *
@@ -194,11 +194,6 @@ class FilteredPersonListAjax(LoginRequiredMixin, FormMixin, ListView):
         add_membership_context(context)
         context['form'] = self.form
         return context
-
-class JuniorListView(LoginRequiredMixin,ListView):
-    model = Person
-    form_class = FilterMemberAjaxForm
-    template_name = 'members/person_table_ajax.html'
 
 class PersonActionMixin(object):
     """
@@ -494,7 +489,6 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
             return export_people(group.slug, group.person_set.all())
         elif 'email' in request.POST:
             return redirect(reverse('email-group', kwargs={'group': group.id}))
-
         return redirect(reverse('group-list'))
 
 class GroupAddPersonView(LoginRequiredMixin, FormView):
@@ -877,6 +871,91 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
 
         messages.error(self.request,'Error in members view')
         return redirect(reverse('home'))       
+
+class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
+    model = Person
+    template_name = 'members/junior_list.html'
+    context_object_name = 'subs'
+    form_class = MembersListForm
+
+    def get(self, request, *args, **kwargs):
+        if kwargs:
+            self.form = self.form_class(initial = {'categories': kwargs['tags']})
+        else:
+            self.form = self.form_class()
+        self.object_list = []
+        context = self.get_context_data()
+        return self.render_to_response(context)
+    
+    def post(self, request, *args, **kwargs):
+        ''' POST handles the ajax request from datatable '''
+        self.form = self.get_form(self.form_class)
+    
+        if self.form.is_valid():
+            year = self.form.cleaned_data['membership_year']
+            cat = int(self.form.cleaned_data['categories'])
+            paid = self.form.cleaned_data['paystate'] == 'paid'
+            all  = self.form.cleaned_data['paystate'] == 'all'
+            group = self.form.cleaned_data['group']
+    
+            qset = InvoiceItem.objects.filter(subscription__isnull=False,
+                                    subscription__active=True,
+                                    subscription__sub_year=year
+                                    ).select_related()
+            qset = qset.filter(Q(subscription__membership_id__in=Membership.JUNIORS_LIST))
+
+            if request.is_ajax():
+                plist = list(qset.values_list(
+                    'person__first_name',
+                    'person__last_name',
+                    'subscription__membership__description',
+                    'person__email',
+                    'person__id'
+                    ))
+                dict = {"data": plist}
+                return JsonResponse(dict)           
+
+            if 'export' in self.form.data:
+                memlist = list(qset.values_list(
+                    'person__id',
+                    'person__gender',
+                    'person__first_name',
+                    'person__last_name',
+                    'subscription__membership__description',
+                    'person__dob',
+                    'person__date_joined',
+                    'person__linked__first_name',
+                    'person__linked__last_name',
+                    'person__linked__email',
+                    'person__linked__mobile_phone',
+                    'person__address__home_phone',
+                    'person__address__address1',
+                    'person__address__address2',
+                    'person__address__town',
+                    'person__address__post_code'
+                    ))
+                return export_members("Juniors",memlist)
+            
+            if 'group' in self.form.data:
+                if group:
+                    for item in qset:
+                        item.person.groups.add(group)
+                    return redirect(reverse('group-detail', kwargs={'pk':group.id}))
+        
+                messages.error(self.request,'Cannot add to group')
+                return redirect(reverse('home'))
+            messages.error(self.request,'Error in members view')
+            return redirect(reverse('home')) 
+
+    
+    def get_queryset(self):
+        year = 2016
+        qset = InvoiceItem.objects.filter(subscription__isnull=False,
+                                    subscription__active=True,
+                                    subscription__sub_year=year
+                                    ).select_related()
+        return qset
+        return qset.filter(Q(subscription__membership_id__in=Membership.JUNIORS_LIST))
 
 # ============ Year end
 
@@ -1833,12 +1912,22 @@ class MailCampaignBeeView(LoginRequiredMixin, TemplateView):
             return super(MailCampaignBeeView, self).get(request, *args, **kwargs)
     
     def post(self, request, *args, **kwargs):
-        ''' Save pressed in BEE editor so update the campaign '''
-        campaign = MailCampaign.objects.get(pk=request.POST['campaignId'])
-        campaign.text = request.POST['html']
-        campaign.json = request.POST['template']
-        campaign.save()
-        return redirect(reverse('mail-campaign-list'))
+        action = request.POST['action']
+        html = request.POST['html']
+        if action =='save':
+            ''' Save pressed in BEE editor so update the campaign '''
+            campaign = MailCampaign.objects.get(pk=request.POST['campaignId'])
+            campaign.text = html
+            campaign.json = request.POST['template']
+            campaign.save()
+            return redirect(reverse('mail-campaign-list'))
+
+        elif action == "send":
+            ''' send a test mail '''
+            from_email = getattr(settings, "INFO_EMAIL", "is@ktconsultants.co.uk")
+            to_email = getattr(settings, "TEST_EMAIL", "is@ktconsultants.co.uk")
+            send_htmlmail(from_email=from_email, to=to_email, subject="Test", html_body=html)
+            return JsonResponse({'status':'ok'})
 
     def get_context_data(self, **kwargs):
         context = super(MailCampaignBeeView, self).get_context_data(**kwargs)
@@ -1917,9 +2006,11 @@ class EmailView(LoginRequiredMixin, FormView):
             self.person = Person.objects.get(pk=person_id)
             self.to = self.person.email
         self.group = self.kwargs.get('group', '-1')
+        self.campaign_id = self.kwargs.get('campaign', 0)
         kwargs = super(EmailView,self).get_form_kwargs()
         kwargs.update({'to': self.to,
                        'group': self.group})
+  
         return kwargs
 
     def get_initial(self):
@@ -1935,8 +2026,12 @@ class EmailView(LoginRequiredMixin, FormView):
         initial['group'] = self.kwargs.get('group', '-1')
         initial['from_email'] = getattr(settings, 'SUBS_EMAIL')
         initial['subject'] = "Coombe Wood LTC membership"
+
         initial['text'] = """Dear {{first_name}}"""
-  
+        campaign_id = self.kwargs.get('campaign', 0)
+        if campaign_id: 
+            campaign = MailCampaign.objects.get(pk=campaign_id)
+            initial['text'] = campaign.text  
         return initial
 
     def get(self, request, *args, **kwargs):
