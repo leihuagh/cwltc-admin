@@ -706,8 +706,8 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
         if self.form.is_valid():
             year = self.form.cleaned_data['membership_year']
             cat = int(self.form.cleaned_data['categories'])
-            paid = self.form.cleaned_data['paystate'] == 'paid'
-            all  = self.form.cleaned_data['paystate'] == 'all'
+            paid = int(self.form.cleaned_data['paystate']) == Payment.PAID
+            all  = int(self.form.cleaned_data['paystate']) == Payment.ALL
             group = self.form.cleaned_data['group']
 
             # Exceptional cases that do not pay a sub
@@ -858,7 +858,7 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                     'person__date_joined',
                     'subscription__membership__description'
                     ))
-                return export_members("Members",memlist)
+                return export_members(memlist, juniors=False)
             
             if 'group' in self.form.data:
                 if group:
@@ -876,7 +876,7 @@ class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
     model = Person
     template_name = 'members/junior_list.html'
     context_object_name = 'subs'
-    form_class = MembersListForm
+    form_class = JuniorsListForm
 
     def get(self, request, *args, **kwargs):
         if kwargs:
@@ -894,15 +894,23 @@ class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
         if self.form.is_valid():
             year = self.form.cleaned_data['membership_year']
             cat = int(self.form.cleaned_data['categories'])
-            paid = self.form.cleaned_data['paystate'] == 'paid'
-            all  = self.form.cleaned_data['paystate'] == 'all'
+            paid = int(self.form.cleaned_data['paystate']) == Payment.PAID
+            all  = int(self.form.cleaned_data['paystate']) == Payment.ALL
             group = self.form.cleaned_data['group']
     
             qset = InvoiceItem.objects.filter(subscription__isnull=False,
                                     subscription__active=True,
                                     subscription__sub_year=year
                                     ).select_related()
-            qset = qset.filter(Q(subscription__membership_id__in=Membership.JUNIORS_LIST))
+            if not all:
+                qset = qset.filter(paid=paid)
+            taglist = []    
+            if cat == Membership.JUNIORS:
+                taglist = Membership.JUNIORS_LIST
+            else:
+                taglist =[cat]
+
+            qset = qset.filter(Q(subscription__membership_id__in=taglist))
 
             if request.is_ajax():
                 plist = list(qset.values_list(
@@ -934,7 +942,7 @@ class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
                     'person__address__town',
                     'person__address__post_code'
                     ))
-                return export_members("Juniors",memlist)
+                return export_members(memlist, juniors=True)
             
             if 'group' in self.form.data:
                 if group:

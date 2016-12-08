@@ -169,6 +169,11 @@ class Membership(models.Model):
         (ALL_NONPLAYING, 'All non-playing')
         ]
 
+    JUNIOR_CHOICES = [
+        (JUNIORS, 'Juniors & cadets'),
+        (JUNIOR, 'Juniors'),
+        (CADET, 'Cadets')
+        ]
     
     NO_BAR_ACCOUNT  = [JUNIOR, CADET, RESIGNED, NON_MEMBER, PARENT]
     ADULT_CHOICES = [
@@ -378,6 +383,14 @@ class Payment(models.Model):
         (FULLY_MATCHED, "Fully matched"),
         (ERROR, "Error - overpaid"),
         )
+
+    PAID = 0
+    UNPAID = 1
+    ALL = 2
+    PAYCHOICES = [
+        (PAID,'Paid'),
+        (UNPAID,'Unpaid'),
+        (ALL,'All')]
 
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
