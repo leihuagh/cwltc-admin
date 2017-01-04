@@ -30,11 +30,16 @@ import ftpService
 import xlrd
 import json
 from report_builder.models import Report
+from .filters import PersonFilter
 
+def search(request):
+    person_list = Person.objects.all()
+    person_filter = PersonFilter(request.GET, queryset=person_list)
+    return render(request, 'members/person_list.html', {'filter': person_filter})
 
 class HomeView(LoginRequiredMixin, TemplateView):
     template_name = 'members/index.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
         context['title'] = 'Home Page'
@@ -47,7 +52,7 @@ class PersonList(LoginRequiredMixin, ListView):
     template_name = 'members/person_table.html'
 
     def get_queryset(self):
-        qset =  Person.objects.select_related().all()
+        qset = Person.objects.select_related().all()
         return qset
 
     def get_context_data(self, **kwargs):
@@ -61,26 +66,26 @@ class FilteredPersonList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         if self.kwargs['tags'] == 'families':
-            people = Person.objects.filter(linked__isnull = True)
-            qset=[]
+            people = Person.objects.filter(linked__isnull=True)
+            qset = []
             for p in people:
-                if p.person_set.count()>0:
+                if p.person_set.count() > 0:
                     qset.append(p)
         else:
             tag_ids = self.kwargs['tags'].split('+')
             tag_list = []
             for id in tag_ids:
                 tag_list.append(int(id))
-            qset =  Person.objects.filter(
-                Q(membership_id__in = tag_list)
+            qset = Person.objects.filter(
+                Q(membership_id__in=tag_list)
             )
-        return qset 
+        return qset
 
     def get_context_data(self, **kwargs):
         context = super(FilteredPersonList, self).get_context_data(**kwargs)
-        fields = self.request.path_info.split('/') 
+        fields = self.request.path_info.split('/')
         tags = self.kwargs['tags']
-             
+
         taglist = fields[2].split('+')
         if len(taglist) > 0:
             context['tags'] = 'Filtered by: '
@@ -91,7 +96,7 @@ class FilteredPersonList(LoginRequiredMixin, ListView):
                     context['tags'] += Membership.objects.get(pk=tagid).description + ', '
             context['tags'] = context['tags'][:-2]
         else:
-            context['tags']=''
+            context['tags'] = ''
         add_membership_context(context)
         return context
 
@@ -103,10 +108,9 @@ class FilteredPersonListAjax(LoginRequiredMixin, FormMixin, ListView):
 
     def get(self, request, *args, **kwargs):
         if kwargs:
-            self.form = FilterMemberAjaxForm(initial = {'categories': kwargs['tags']})
+            self.form = FilterMemberAjaxForm(initial={'categories': kwargs['tags']})
         else:
             self.form = FilterMemberAjaxForm()
-        #self.form = self.get_form(self.form_class)
         self.object_list = []
         context = self.get_context_data()
         return self.render_to_response(context)
@@ -121,76 +125,44 @@ class FilteredPersonListAjax(LoginRequiredMixin, FormMixin, ListView):
             elif cat < 100:
                 qset = Person.objects.select_related().filter(membership_id=cat)
             elif cat == Membership.FAMILIES:
-                non_kids = Person.objects.select_related().filter(linked__isnull = True)
-                plist= []
+                non_kids = Person.objects.select_related().filter(linked__isnull=True)
+                plist = []
                 for p in non_kids:
                     if p.person_set.count() > 0:
                         cat = p.membership.description if p.membership else ""
-                           
-                        qlist =[p.first_name, p.last_name, cat, p.email, p.id]
+                        qlist = [p.first_name, p.last_name, cat, p.email, p.id]
                         plist.append(qlist)
                 dict = {"data": plist}
                 return JsonResponse(dict)
-            
+
             else:
-                taglist = []    
+                taglist = []
                 if cat == Membership.PLAYING:
                     taglist = Membership.PLAYING_LIST
                 elif cat == Membership.JUNIORS:
                     taglist = Membership.JUNIORS_LIST
                 elif cat == Membership.ALL_NONPLAYING:
                     taglist = Membership.ALL_NONPLAYING_LIST
-                qset =  Person.objects.filter(
-                    Q(membership_id__in = taglist)
+                qset = Person.objects.filter(
+                    Q(membership_id__in=taglist)
                     )
         else:
             qset = Person.objects.select_related().all()
 
         plist = list(qset.values_list(
-                'first_name',
-                'last_name',
-                'membership__description',
-                'email',
-                'id'
-                ))
+            'first_name',
+            'last_name',
+            'membership__description',
+            'email',
+            'id'
+            ))
         dict = {"data": plist}
         return JsonResponse(dict)
 
-    #def get_queryset(self):
-    #    if self.kwargs:
-    #        if self.kwargs['tags'] == 'families':
-    #            people = Person.objects.select_related().filter(linked__isnull = True)
-    #            qset=[]
-    #            for p in people:
-    #                if p.person_set.count()>0:
-    #                    qset.append(p)
-    #        else:
-    #            tag_ids = self.kwargs['tags'].split('+')
-    #            tag_list = []
-    #            for id in tag_ids:
-    #                tag_list.append(int(id))
-    #            qset =  Person.objects.select_related().filter(
-    #                Q(membership_id__in = tag_list)
-    #            )
-    #    else:
-    #        qset =  Person.objects.select_related().all()
-    #    return qset 
-
     def get_context_data(self, **kwargs):
         context = super(FilteredPersonListAjax, self).get_context_data(**kwargs)
-        fields = self.request.path_info.split('/') 
-        context['tags']=''
-        #if self.kwargs:            
-        #    taglist = fields[2].split('+')
-        #    if len(taglist) > 0:
-        #        context['tags'] = 'Filtered by: '
-        #        for tagid in taglist:
-        #            if tagid == 'families':
-        #                context['tags'] += 'Families, '
-        #            else:
-        #                context['tags'] += Membership.objects.get(pk=tagid).description + ', '
-        #        context['tags'] = context['tags'][:-2]
-               
+        fields = self.request.path_info.split('/')
+        context['tags'] = ''
         add_membership_context(context)
         context['form'] = self.form
         return context
@@ -214,25 +186,25 @@ class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     form_class = PersonForm
 
     def get_form_kwargs(self):
-        kwargs = super(PersonCreateView,self).get_form_kwargs()
+        kwargs = super(PersonCreateView, self).get_form_kwargs()
         kwargs.update({'link': self.kwargs['link']})
         return kwargs
 
     def form_invalid(self, form):
         if 'cancel' in form.data:
-            return(redirect('home'))
+            return redirect('home')
         return super(PersonCreateView, self).form_invalid(form)
 
-    def form_valid(self, form): 
+    def form_valid(self, form):
         if 'cancel' in form.data:
-            return(redirect('home'))
+            return redirect('home')
         self.form = form
         return super(PersonCreateView, self).form_valid(form)
-            
+
     def get_success_url(self):
         if 'submit_sub' in self.form.data:
             return reverse('sub-create', kwargs={'person_id': self.form.person.id})
-        return reverse('person-detail', kwargs={'pk': self.form.person.id})  
+        return reverse('person-detail', kwargs={'pk': self.form.person.id})
 
 class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
     model = Person
@@ -242,7 +214,6 @@ class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['pk']})
-    
 
 class PersonLinkView(LoginRequiredMixin, FormView):
     form_class = PersonLinkForm
@@ -250,22 +221,21 @@ class PersonLinkView(LoginRequiredMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super(PersonLinkView, self).get_context_data(**kwargs)
-        context['title'] = 'Link ' + Person.objects.get(pk = self.kwargs['pk']).fullname()
+        context['title'] = 'Link ' + Person.objects.get(pk=self.kwargs['pk']).fullname()
         return context
 
     def form_valid(self, form):
-        child = Person.objects.get(pk = self.kwargs['pk'])
+        child = Person.objects.get(pk=self.kwargs['pk'])
         if 'link' in form.data:
-            person_link_to_parent(child, form.person)          
+            person_link_to_parent(child, form.person)
             return redirect(form.person)
         else:
             return redirect(child)
-            
+
 class PersonUnlinkView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
-        person = Person.objects.get(pk = self.kwargs['pk'])
-
+        person = Person.objects.get(pk=self.kwargs['pk'])
 
 class JuniorCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     model = Person
@@ -281,11 +251,11 @@ class JuniorCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     def form_valid(self, form):
         self.form = form
         if 'cancel' in form.data:
-            return HttpResponseRedirect(reverse('home'))   
-        return super(JuniorCreateView, self).form_valid(form) 
-            
+            return HttpResponseRedirect(reverse('home'))
+        return super(JuniorCreateView, self).form_valid(form)
+
     def get_success_url(self):
-        return reverse('sub-create', kwargs={'person_id': self.form.junior.id}) 
+        return reverse('sub-create', kwargs={'person_id': self.form.junior.id})
 
 class PersonDetailView(LoginRequiredMixin, DetailView):
     model = Person
@@ -294,9 +264,8 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         person = self.get_object()
         context = super(PersonDetailView, self).get_context_data(**kwargs)
-
         add_membership_context(context)
-        return set_person_context(context, person )
+        return set_person_context(context, person)
 
     def post(self, request, *args, **kwargs):
         person = self.get_object()
@@ -304,35 +273,35 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
         if 'delete' in request.POST:
             message = person_delete(person)
             if message == "":
-                messages.success(self.request,"{0} deleted".format(name))
+                messages.success(self.request, "{0} deleted".format(name))
                 return redirect(reverse('person-list'))
-            messages.error(self.request,"{0} was not deleted. Error: {1}".format(name, message))
+            messages.error(self.request, "{0} was not deleted. Error: {1}".format(name, message))
 
         elif 'remove' in request.POST:
-            slug=request.POST['remove']
+            slug = request.POST['remove']
             group = Group.objects.filter(slug=slug)[0]
             person.groups.remove(group)
 
         elif 'unlink' in request.POST:
             person.link(None)
-        return redirect(person)    
+        return redirect(person)
 
 def add_membership_context(context):
     ''' Add membership dictionary to context '''
     mem_dict = {}
     for mem in Membership.objects.all():
-        mem_dict[mem.id] = mem.description 
+        mem_dict[mem.id] = mem.description
     context['mem_dict'] = mem_dict
 
 def set_person_context(context, pers):
     year = Settings.current().membership_year
     entries = person_get_book_entries(pers, year)
-    statement= []
+    statement = []
     balance = 0
     for entry in entries:
         classname = entry.__class__.__name__
         if classname == "Invoice":
-            balance += entry.total          
+            balance += entry.total
         elif classname == "Payment":
             balance -= entry.amount
         elif classname == "CreditNote":
@@ -357,7 +326,7 @@ def set_person_context(context, pers):
         if pers.person_set.count() > 0:
             parent = pers
     if parent:
-        context['parent'] = parent   
+        context['parent'] = parent
         context['children'] = parent.person_set.all()
     context['state_list'] = Invoice.STATES
     context['types'] = Payment.TYPES
@@ -378,14 +347,14 @@ def ajax_people(request):
         keys = q.split(" ", 1)
 
         if len(keys) == 1:
-            people = Person.objects.filter(Q(first_name__istartswith=q ) | 
-                                            Q(last_name__istartswith=q))[:20]
+            people = Person.objects.filter(Q(first_name__istartswith=q) |
+                                           Q(last_name__istartswith=q))[:20]
         else:
             people = Person.objects.filter(first_name__istartswith=keys[0],
-                                            last_name__istartswith=keys[1]
-                                            )      
-        for person in people: 
-            person_json = {}     
+                                           last_name__istartswith=keys[1]
+                                          )
+        for person in people:
+            person_json = {}
             person_json['id'] = person.id
             person_json['label'] = person.fullname()
             person_json['value'] = person.fullname()
@@ -399,7 +368,7 @@ def ajax_people(request):
 
 class PersonExportView(LoginRequiredMixin, View):
 
-    def get(self, request, option = "all"):
+    def get(self, request, option="all"):
         return export_members(option)
 
 # ============== Address
@@ -434,7 +403,7 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
         self.person.address = address
         self.person.save()
         return super(AddressUpdateView, self).form_valid(form)
-   
+
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
 
@@ -458,26 +427,22 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
     model = Group
     template_name = 'members/group_detail.html'
 
- 
     def get_context_data(self, **kwargs):
         context = super(GroupDetailView, self).get_context_data(**kwargs)
-       # context['group'] = self.get_object()
-       # context['object_list'] = context['group'].person_set.order_by('last_name')
         context['url'] = reverse('group-detail', kwargs={'slug':kwargs['object'].slug})
         add_membership_context(context)
-        return context
-    
+
     def post(self, request, *args, **kwargs):
         group = self.get_object()
         if request.is_ajax():
-            qset =  self.get_object().person_set.order_by('last_name')
+            qset = self.get_object().person_set.order_by('last_name')
             plist = list(qset.values_list(
-                    'first_name',
-                    'last_name',
-                    'membership__description',
-                    'email',
-                    'id'
-                    ))
+                'first_name',
+                'last_name',
+                'membership__description',
+                'email',
+                'id'
+                ))
             dict = {"data": plist}
             return JsonResponse(dict)
 
@@ -494,29 +459,23 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
 class GroupAddPersonView(LoginRequiredMixin, FormView):
     form_class = GroupAddPersonForm
     template_name = 'members/generic_crispy_form.html'
-    
-    #def __init__(self, *args, **kwargs):
-    #    self.person = Person.objects.get(pk = self.kwargs['person_id']).fullname()
-    #    return super(GroupDetailView, self).__init__(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(GroupAddPersonView, self).get_context_data(**kwargs)
-        self.person = Person.objects.get(pk = self.kwargs['person_id'])
+        self.person = Person.objects.get(pk=self.kwargs['person_id'])
         context['message'] = self.person.fullname()
         return super(GroupAddPersonView, self).get_context_data(**kwargs)
 
     def form_valid(self, form):
-        person = Person.objects.get(pk = self.kwargs['person_id'])
+        person = Person.objects.get(pk=self.kwargs['person_id'])
         if 'cancel' in form.data:
             return redirect(person)
 
         if 'submit' in form.data:        
-            #self.group_id = form.cleaned_data['groups'].id
-            #group = Group.objects.get(pk=self.group_id)
-            self.group=form.cleaned_data['group']
+            self.group = form.cleaned_data['group']
             person.groups.add(self.group)
             return super(GroupAddPersonView, self).form_valid(form)
-        #return redirect(reverse('group-detail', kwargs={'pk':groupid}))
+
 
     def get_success_url(self):
         return reverse('group-detail', kwargs={'pk':self.group.id})
@@ -530,26 +489,26 @@ class SubCreateView(LoginRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         ''' pass the person_id to the form '''
-        kwargs = super(SubCreateView,self).get_form_kwargs()
+        kwargs = super(SubCreateView, self).get_form_kwargs()
         kwargs.update({'person_id': self.kwargs['person_id']})
         return kwargs
-    
+
     def get_context_data(self, **kwargs):
         context = super(SubCreateView, self).get_context_data(**kwargs)
-        context['person'] = Person.objects.get(pk = self.kwargs['person_id'])
+        context['person'] = Person.objects.get(pk=self.kwargs['person_id'])
         return context
 
     def form_valid(self, form):
         if 'cancel' in form.data:
             return redirect(reverse('person-detail', kwargs={'pk':self.kwargs['person_id']}))
-        
-        form.instance.person_member = Person.objects.get(pk = self.kwargs['person_id'])
+
+        form.instance.person_member = Person.objects.get(pk=self.kwargs['person_id'])
         form.instance.invoiced_month = 0
-        form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
-        
+        form.instance.membership = Membership.objects.get(pk=form.cleaned_data['membership_id'])
+
         sub = form.save()
         subscription_activate(sub)
-        subscription_create_invoiceitems(sub, sub.start_date.month)           
+        subscription_create_invoiceitems(sub, sub.start_date.month)
         return super(SubCreateView, self).form_valid(form)
 
     def get_success_url(self):
@@ -558,15 +517,14 @@ class SubCreateView(LoginRequiredMixin, CreateView):
 class SubUpdateView(LoginRequiredMixin, UpdateView):
     model = Subscription
     form_class = SubscriptionForm
-    template_name = 'members/subscription_form.html'                 
-    
+    template_name = 'members/subscription_form.html'
+
     def get_form_kwargs(self):
         ''' pass the person_id to the form '''
         sub = self.get_object()
-        kwargs = super(SubUpdateView,self).get_form_kwargs()
+        kwargs = super(SubUpdateView, self).get_form_kwargs()
         kwargs.update({'person_id': sub.person_member_id})
-        return kwargs 
-   
+        return kwargs
     
     def get_context_data(self, **kwargs):
         context = super(SubUpdateView, self).get_context_data(**kwargs)
@@ -581,18 +539,18 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         if 'cancel' in form.data:
             return redirect(sub.person_member)
         return super(SubUpdateView, self).form_invalid(form)
-    
+
     def form_valid(self, form):
-        sub = self.get_object() 
+        sub = self.get_object()
         if 'cancel' in form.data:
             return redirect(sub.person_member)
 
         if 'submit' in form.data:
-            form.instance.membership = Membership.objects.get(pk = form.cleaned_data['membership_id'])
+            form.instance.membership = Membership.objects.get(pk=form.cleaned_data['membership_id'])
             return super(SubUpdateView, self).form_valid(form)
 
-        if 'delete' in form.data:  
-            sub = self.get_object()  
+        if 'delete' in form.data:
+            sub = self.get_object()
             subscription_delete_invoiceitems(sub)
             return redirect(sub)
 
@@ -600,7 +558,7 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         sub = self.get_object()
         subscription_activate(sub)
         subscription_create_invoiceitems(sub, sub.start_date.month)
-        return reverse('person-detail', kwargs={'pk':sub.person_member_id}) 
+        return reverse('person-detail', kwargs={'pk':sub.person_member_id})
 
 class SubCorrectView(LoginRequiredMixin, UpdateView):
     ''' standard model view that skips validation '''
@@ -609,7 +567,7 @@ class SubCorrectView(LoginRequiredMixin, UpdateView):
 
     def get_success_url(self):
         subscription_activate(self.get_object())
-        return reverse('person-detail', kwargs={'pk':sub.person_member_id}) 
+        return reverse('person-detail', kwargs={'pk':sub.person_member_id})
 
 class SubDetailView(LoginRequiredMixin, DetailView):
     model = Subscription
@@ -633,7 +591,7 @@ class SubHistoryView(LoginRequiredMixin, ListView):
     context_object_name = 'subs'
 
     def get_queryset(self):
-        self.person = get_object_or_404(Person, pk = self.kwargs['person_id'])
+        self.person = get_object_or_404(Person, pk=self.kwargs['person_id'])
         return Subscription.objects.filter(person_member=self.person).order_by('start_date')
 
     def get_context_data(self, **kwargs):
@@ -642,29 +600,29 @@ class SubHistoryView(LoginRequiredMixin, ListView):
         return context
 
 class SubRenewView(LoginRequiredMixin, FormView):
-     
-    def get(self, request, *args, **kwargs):    
+
+    def get(self, request, *args, **kwargs):
         sub.renew(sub.sub_year+1, Subscription.START_MONTH)
         return redirect(sub.person_member)
 
 class SubRenewAllView(LoginRequiredMixin, FormView):
     form_class = SubRenewForm
     template_name = 'members/generic_crispy_form.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super(SubRenewAllView, self).get_context_data(**kwargs)
         self.subs = Subscription.objects.filter(active=True, no_renewal=False)
         context['title'] = 'Renew subscriptions'
-        context['message'] = '{} subscriptions to renew'.format(self.subs.count())   
+        context['message'] = '{} subscriptions to renew'.format(self.subs.count())
         return context
-        
-    def form_valid(self, form):     
+
+    def form_valid(self, form):
         year = form.cleaned_data['sub_year']
         if 'renew' in self.request.POST:
             subscription_renew_batch(year, 5)
-            messages.success(self.request,'Subscriptions for {} generated'.format(year))
+            messages.success(self.request, 'Subscriptions for {} generated'.format(year))
         return redirect(reverse('home'))
-        
+
     def get_success_url(self):
         return reverse('home')
 
@@ -692,7 +650,7 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         if kwargs:
-            self.form = self.form_class(initial = {'categories': kwargs['tags']})
+            self.form = self.form_class(initial={'categories': kwargs['tags']})
         else:
             self.form = self.form_class()
         self.object_list = []
@@ -702,12 +660,12 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         ''' POST handles the ajax request from datatable '''
         self.form = self.get_form(self.form_class)
-    
+
         if self.form.is_valid():
             year = self.form.cleaned_data['membership_year']
             cat = int(self.form.cleaned_data['categories'])
             paid = int(self.form.cleaned_data['paystate']) == Payment.PAID
-            all  = int(self.form.cleaned_data['paystate']) == Payment.ALL
+            all = int(self.form.cleaned_data['paystate']) == Payment.ALL
             group = self.form.cleaned_data['group']
 
             # Exceptional cases that do not pay a sub
@@ -716,7 +674,7 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                     sub_year=year,
                     membership_id=cat
                     ).select_related()
-                    
+
                 if request.is_ajax():
                     plist = list(qset.values_list(
                         'person_member__first_name',
@@ -750,13 +708,13 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                         'person_member__date_joined',
                         'membership__description'
                         ))
-                    return export_members("Members",memlist)
-           
+                    return export_members("Members", memlist)
+
             if cat == Membership.HON_LIFE or cat == Membership.LIFE:
                 qset = Subscription.objects.filter(
                     membership_id=cat
                     ).select_related()
-                    
+
                 if request.is_ajax():
                     plist = list(qset.values_list(
                         'person_member__first_name',
@@ -785,14 +743,14 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                         'person_member__date_joined',
                         'membership__description'
                         ))
-                    return export_members("Members",memlist)
+                    return export_members("Members", memlist)
 
             # filter based on paid subs
             qset = InvoiceItem.objects.filter(subscription__isnull=False,
                                               subscription__active=True,
                                               subscription__sub_year=year
-                                              ).select_related()
-            
+                                             ).select_related()
+
             if not all:
                 qset = qset.filter(paid=paid)
             if cat == 0:
@@ -800,15 +758,15 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
             elif cat < 100:
                 qset = qset.filter(subscription__membership_id=cat)
             elif cat == Membership.FAMILIES:
-                non_kids = Person.objects.select_related().filter(linked__isnull = True)
+                non_kids = Person.objects.select_related().filter(linked__isnull=True)
                 plist= []
                 for p in non_kids:
                     if p.person_set.count() > 0:
                         if 'group' in self.form.data:
                             p.groups.add(group)
                         else:
-                            cat = p.membership.description if p.membership else ""                      
-                            qlist =[p.first_name, p.last_name, cat, p.email, p.id]
+                            cat = p.membership.description if p.membership else ""
+                            qlist = [p.first_name, p.last_name, cat, p.email, p.id]
                             plist.append(qlist)
                 if request.is_ajax():
                     dict = {"data": plist}
@@ -818,17 +776,17 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                     return redirect(reverse('group-detail', kwargs={'pk':group.id}))
 
                 if 'export' in self.form.data:
-                    messages.error(self.request,'Export families is not implemented')
+                    messages.error(self.request, 'Export families is not implemented')
                     return redirect(reverse('home'))
-            
+
             else:
-                taglist = []    
+                taglist = []
                 if cat == Membership.PLAYING:
                     taglist = Membership.PLAYING_LIST
                 elif cat == Membership.JUNIORS:
                     taglist = Membership.JUNIORS_LIST
                 elif cat == Membership.ALL_NONPLAYING:
-                    taglist = Membership.ALL_NONPLAYING_LIST          
+                    taglist = Membership.ALL_NONPLAYING_LIST
                 qset = qset.filter(Q(subscription__membership_id__in=taglist))
 
             if request.is_ajax():
@@ -840,7 +798,7 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                     'person__id'
                     ))
                 dict = {"data": plist}
-                return JsonResponse(dict)           
+                return JsonResponse(dict)
 
             if 'export' in self.form.data:
                 memlist = list(qset.values_list(
@@ -859,18 +817,18 @@ class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
                     'subscription__membership__description'
                     ))
                 return export_members(memlist, juniors=False)
-            
+
             if 'group' in self.form.data:
                 if group:
                     for item in qset:
                         item.person.groups.add(group)
                     return redirect(reverse('group-detail', kwargs={'pk':group.id}))
-        
-                messages.error(self.request,'Cannot add to group')
+
+                messages.error(self.request, 'Cannot add to group')
                 return redirect(reverse('home'))
 
-        messages.error(self.request,'Error in members view')
-        return redirect(reverse('home'))       
+        messages.error(self.request, 'Error in members view')
+        return redirect(reverse('home'))
 
 class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
     model = Person
@@ -880,35 +838,34 @@ class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         if kwargs:
-            self.form = self.form_class(initial = {'categories': kwargs['tags']})
+            self.form = self.form_class(initial={'categories': kwargs['tags']})
         else:
             self.form = self.form_class()
         self.object_list = []
         context = self.get_context_data()
         return self.render_to_response(context)
-    
+
     def post(self, request, *args, **kwargs):
         ''' POST handles the ajax request from datatable '''
         self.form = self.get_form(self.form_class)
-    
+
         if self.form.is_valid():
             year = self.form.cleaned_data['membership_year']
             cat = int(self.form.cleaned_data['categories'])
             paid = int(self.form.cleaned_data['paystate']) == Payment.PAID
-            all  = int(self.form.cleaned_data['paystate']) == Payment.ALL
+            all = int(self.form.cleaned_data['paystate']) == Payment.ALL
             group = self.form.cleaned_data['group']
-    
             qset = InvoiceItem.objects.filter(subscription__isnull=False,
-                                    subscription__active=True,
-                                    subscription__sub_year=year
-                                    ).select_related()
+                                              subscription__active=True,
+                                              subscription__sub_year=year
+                                             ).select_related()
             if not all:
                 qset = qset.filter(paid=paid)
-            taglist = []    
+            taglist = []
             if cat == Membership.JUNIORS:
                 taglist = Membership.JUNIORS_LIST
             else:
-                taglist =[cat]
+                taglist = [cat]
 
             qset = qset.filter(Q(subscription__membership_id__in=taglist))
 
@@ -921,7 +878,7 @@ class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
                     'person__id'
                     ))
                 dict = {"data": plist}
-                return JsonResponse(dict)           
+                return JsonResponse(dict)
 
             if 'export' in self.form.data:
                 memlist = list(qset.values_list(
@@ -943,25 +900,25 @@ class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
                     'person__address__post_code'
                     ))
                 return export_members(memlist, juniors=True)
-            
+
             if 'group' in self.form.data:
                 if group:
                     for item in qset:
                         item.person.groups.add(group)
                     return redirect(reverse('group-detail', kwargs={'pk':group.id}))
-        
-                messages.error(self.request,'Cannot add to group')
-                return redirect(reverse('home'))
-            messages.error(self.request,'Error in members view')
-            return redirect(reverse('home')) 
 
-    
+                messages.error(self.request, 'Cannot add to group')
+                return redirect(reverse('home'))
+            messages.error(self.request, 'Error in members view')
+            return redirect(reverse('home'))
+
+
     def get_queryset(self):
         year = 2016
         qset = InvoiceItem.objects.filter(subscription__isnull=False,
-                                    subscription__active=True,
-                                    subscription__sub_year=year
-                                    ).select_related()
+                                          subscription__active=True,
+                                          subscription__sub_year=year
+                                         ).select_related()
         return qset
         return qset.filter(Q(subscription__membership_id__in=Membership.JUNIORS_LIST))
 
@@ -986,7 +943,7 @@ class YearEndView(LoginRequiredMixin, FormView):
             year = 2015
         initial['membership_year'] = year
         return initial
-   
+
     def form_valid(self, form):
         year = form.cleaned_data['membership_year']
         if 'cancel' in form.data:
@@ -1003,7 +960,7 @@ class YearEndView(LoginRequiredMixin, FormView):
             return redirect('home')
 
         elif 'consolidate' in form.data:
-            counts  = consolidate(year)
+            counts = consolidate(year)
             message = '{} people processed, {} unpaid  and {} credit notes carried forward'.format(
                 counts[0], counts[1], counts[2])
             messages.success(self.request, message)
@@ -1019,8 +976,8 @@ class YearEndView(LoginRequiredMixin, FormView):
             counts = invoice_create_batch(exclude_slug='2015UnpaidImvoices')
             message = '{} invoices created from {} people'.format(counts[1], counts[0])
             messages.success(self.request, message)
-            return redirect('year-end')     
-        
+            return redirect('year-end')
+
         elif 'mail' in form.data:
             group = group_get_or_create('2015UnpaidInvoices')
             invs = self.get_unpaid_invoices()
@@ -1051,7 +1008,7 @@ class YearEndView(LoginRequiredMixin, FormView):
     def get_unpaid_invoices(self):
         year = Settings.current().membership_year
         invs = Invoice.objects.filter(
-            state=Invoice.UNPAID, membership_year=year, gocardless_bill_id ='', total__gt = 0)
+            state=Invoice.UNPAID, membership_year=year, gocardless_bill_id='', total__gt=0)
         return invs
 
 class SubInvoiceCancel(LoginRequiredMixin, View):
@@ -1210,7 +1167,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
     form_class = InvoiceFilterForm
     model = Invoice
     template_name = 'members/invoice_list.html'
-    
+
     def get(self, request, *args, **kwargs):
         ''' GET return HTML '''
         # From ProcessFormMixin
@@ -1219,13 +1176,13 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
         self.object_list = self.get_queryset()
         context = self.get_context_data()
         return self.render_to_response(context)
-      
+
     def post(self, request, *args, **kwargs):
         ''' POST handles submit and ajax request '''
         self.form = self.get_form(self.form_class)
         if self.form.is_valid():
             self.object_list = self.get_queryset()
-            
+
             if request.is_ajax():
                 context = self.get_context_data()
                 context['checkboxes'] = False
@@ -1243,22 +1200,23 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
                 count = 0
                 for inv in self.object_list:
                     if inv.state == Invoice.UNPAID and (
-                        InvoiceGenerateView.gocardless_bill_id == "") and (
-                        inv.total > 0):
+                            InvoiceGenerateView.gocardless_bill_id == "") and (
+                            inv.total > 0):
                         count += do_mail(request, inv, 'send')
-                return HttpResponse("Sent {} mails for {} invoices".format(count, self.object_list.count()))
+                return HttpResponse("Sent {} mails for {} invoices".format(
+                    count, self.object_list.count()))
 
             if 'export' in self.form.data:
                 return export_invoices(self.object_list)
-                  
+
         context = self.get_context_data()
-        return self.render_to_response(context)     
+        return self.render_to_response(context)
 
     def get_queryset(self):
         form = self.form
         # default settings for initial get which does not use the form
-        year = Settings.current().membership_year    
-        start_date = date(year,4,1)
+        year = Settings.current().membership_year
+        start_date = date(year, 4, 1)
         end_date = date.today()
         q_paid = Invoice.PAID_IN_FULL
         q_unpaid = Invoice.UNPAID
@@ -1268,13 +1226,13 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             q_unpaid = -1
             q_cancelled = -1
             if form.cleaned_data['membership_year']:
-                year = form.cleaned_data['membership_year']          
+                year = form.cleaned_data['membership_year']
             if form.cleaned_data['start_date']:
-                start_date = form.cleaned_data['start_date'] 
+                start_date = form.cleaned_data['start_date']
             if form.cleaned_data['end_date']:
-                end_date = form.cleaned_data['end_date'] 
+                end_date = form.cleaned_data['end_date']
             if form.cleaned_data['membership_year']:
-                year = form.cleaned_data['membership_year'] 
+                year = form.cleaned_data['membership_year']
             if form.cleaned_data['paid']:
                 q_paid = Invoice.PAID_IN_FULL
             if form.cleaned_data['unpaid']:
@@ -1285,16 +1243,16 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
             membership_year=year,
             creation_date__gte=start_date,
             creation_date__lte=end_date).filter(
-            Q(state=q_paid) |
-            Q(state=q_unpaid) |
-            Q(state=q_cancelled)
+                Q(state=q_paid) |
+                Q(state=q_unpaid) |
+                Q(state=q_cancelled)
             ).select_related(
                 'person'
             ).order_by(
                 'person__last_name'
-            ) 
+            )
         return queryset
-    
+
     def get_context_data(self, **kwargs):
         context = super(InvoiceListView, self).get_context_data(**kwargs)
         context['state_list'] = Invoice.STATES
@@ -1336,7 +1294,7 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
         elif 'delete' in request.POST:
             invoice_cancel(invoice, with_credit_note=False)
             return redirect(invoice.person)
-        
+
         elif 'superdelete' in request.POST:
             invoice_cancel(invoice, with_credit_note=False, superuser=True)
             return redirect(invoice.person)
@@ -1355,7 +1313,7 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
 class InvoiceGenerateView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
-        person = Person.objects.get(pk = self.kwargs['pk'])
+        person = Person.objects.get(pk=self.kwargs['pk'])
         invoice = invoice_create_from_items(person)
         if invoice:
             # calls get_absolute_url to display the invoice
@@ -1367,7 +1325,7 @@ class InvoiceGenerateView(LoginRequiredMixin, View):
 class InvoiceMailView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
-        invoice= Invoice.objects.get(pk = self.kwargs['pk'])
+        invoice= Invoice.objects.get(pk=self.kwargs['pk'])
         option = self.kwargs['option']
         result = do_mail(request, invoice, option)
         if option == 'view':
@@ -1387,7 +1345,7 @@ class InvoiceMailConfigView(LoginRequiredMixin, FormView):
             initial['closing'] = ids[2]
         return initial
 
-    def form_valid(self, form):     
+    def form_valid(self, form):
         intro = form.cleaned_data['intro']
         notes = form.cleaned_data['notes']
         closing = form.cleaned_data['closing']
@@ -1494,7 +1452,7 @@ class MailTypeDetailView(LoginRequiredMixin, DetailView):
     model = MailType
     template_name = 'members/mailtype_detail.html'
 
-    def get_context_data(self, **kwargs):   
+    def get_context_data(self, **kwargs):
         context = super(MailTypeDetailView, self).get_context_data(**kwargs)
         mailtype = self.get_object()
         context['people'] = mailtype.person_set.all()
@@ -1507,7 +1465,6 @@ class MailTypeSubscribeView(ProcessFormView, TemplateView):
     template_name = 'public/mailtype_manage.html'
 
     def get_context_data(self, **kwargs):
-      
         context = super(MailTypeSubscribeView, self).get_context_data(**kwargs)
         self.get_person()
         context['person'] = self.person
@@ -1518,14 +1475,14 @@ class MailTypeSubscribeView(ProcessFormView, TemplateView):
                     m.subscribed = False
                 else:
                     m.subscribed = True
-            context['mailtypes'] = mailtypes              
+            context['mailtypes'] = mailtypes
         return context
 
     def get_person(self):
         self.person = None
         person_id = None
         self.token = self.kwargs.pop('token', None)
-        if self.token:          
+        if self.token:
             try:
                 signer = Signer()
                 person_id = signer.unsign(self.token)
@@ -1535,7 +1492,7 @@ class MailTypeSubscribeView(ProcessFormView, TemplateView):
             if self.request.user.is_authenticated:
                 person_id = self.kwargs.pop('person', None)
         if person_id:
-            self.person = Person.objects.get(pk=person_id) 
+            self.person = Person.objects.get(pk=person_id)
 
     def post(self, request, *args, **kwargs):
         self.get_person()
@@ -1562,15 +1519,14 @@ class InvoicePublicView(DetailView):
         signer = Signer()
         try:
             invoice_id = signer.unsign(self.kwargs['token'])
-            self.invoice = Invoice.objects.get(pk = invoice_id)          
+            self.invoice = Invoice.objects.get(pk = invoice_id)
         except:
             self.invoice = None
         return self.invoice
 
     def get_context_data(self, **kwargs):
-       
-        context = super(InvoicePublicView, self).get_context_data(**kwargs) 
-        if self.invoice:  
+        context = super(InvoicePublicView, self).get_context_data(**kwargs)
+        if self.invoice:
             self.invoice.add_context(context)
             context['token'] = self.kwargs['token']
         return context
@@ -1593,15 +1549,6 @@ class ContactView(FormView):
     template_name = 'members/contact.html'
     resigned = False
 
-    #def get_form(self, form_class):
-    #    id = ''
-    #    if len(self.kwargs) == 1:
-    #        id = self.kwargs['person_id']
-    #    return form_class(
-    #        resigned=self.resigned,
-    #        id=id
-    #        )
-
     def get_context_data(self, **kwargs):
         context = super(ContactView, self).get_context_data(**kwargs)
         if self.resigned:
@@ -1612,7 +1559,7 @@ class ContactView(FormView):
 
     def form_valid(self, form):
         if self.kwargs['person_id']:
-            person = Person.objects.get(pk = self.kwargs['person_id'])
+            person = Person.objects.get(pk=self.kwargs['person_id'])
             message = "From {} id {} >".format(person.email, person.id)
         else:
             message = ""
@@ -1624,16 +1571,15 @@ class ContactView(FormView):
             message += 'Query:  '
         message += form.cleaned_data['message']
         send_mail(subject='CWLTC contact',
-                  from_email = 'contact@coombewoodltc.co.uk',
-                  message = message,
-                  recipient_list = ["subs.cwltc@gmail.com","is@ktconsultants.co.uk"]
+                  from_email='contact@coombewoodltc.co.uk',
+                  message=message,
+                  recipient_list=["subs.cwltc@gmail.com","is@ktconsultants.co.uk"]
                   )
         if self.resigned:
             return HttpResponseRedirect(reverse('resigned'))
         else:
             return HttpResponseRedirect(reverse('thankyou'))
         
-    
     def form_invalid(self, form):
         return super(ContactView, self).form_invalid(form)
     
@@ -1649,8 +1595,8 @@ class PaymentCreateView(LoginRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         ''' if view passed an invoice pass the total to the form '''
-        kwargs = super(PaymentCreateView,self).get_form_kwargs()
-        self.inv = Invoice.objects.get(pk = self.kwargs['invoice_id'])
+        kwargs = super(PaymentCreateView, self).get_form_kwargs()
+        self.inv = Invoice.objects.get(pk=self.kwargs['invoice_id'])
         if self.inv:
             kwargs.update({'amount': self.inv.total})
         return kwargs

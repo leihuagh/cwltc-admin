@@ -10,6 +10,7 @@ from members.forms import BootstrapAuthenticationForm
 from members.views import *
 from gc_app.views import *
 from members.viewsets import *
+from django_filters.views import FilterView
 
 # Uncomment the next lines to enable the admin:
 from django.contrib import admin
@@ -44,6 +45,10 @@ urlpatterns = [
         name='year-end'
     ),
     
+    #url(r'^search/$', search, name='search'),
+    url(r'^search/$', FilterView.as_view(filterset_class=PersonFilter,
+        template_name='members/person_list.html'), name='search'),
+
     # GROUPS
     url(r'^group/create/$',
         GroupCreateView.as_view(),
