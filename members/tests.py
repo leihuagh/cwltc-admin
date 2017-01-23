@@ -7,6 +7,8 @@ from members.models import (Person, Address, Membership, Subscription, Fees, Inv
                             InvoiceItem, ItemType, CreditNote, Group)
 from members.models import bill_month, sub_start_date, sub_end_date
 from members.services import *
+# pdb.set_trace()
+
 class MembersTestCase(TestCase):
     
     @classmethod
@@ -14,131 +16,165 @@ class MembersTestCase(TestCase):
         settings = Settings.objects.create(id=1, membership_year=2015)
         # Define membership records
         full = Membership.objects.create(id=Membership.FULL, description="Full")
-        junior = Membership.objects.create(id=Membership.JUNIOR, description="Junior")
-        cadet = Membership.objects.create(id=Membership.CADET, description="Cadet")
-        UNDER_26 = Membership.objects.create(id=Membership.UNDER_26, description="UNDER_26")
-        
+        junior = Membership.objects.create(id=Membership.JUNIOR, description="Junior", cutoff_age=18, is_adult=False)
+        cadet = Membership.objects.create(id=Membership.CADET, description="Cadet", cutoff_age=8, is_adult=False)
+        under_26 = Membership.objects.create(id=Membership.UNDER_26, description="UNDER_26", cutoff_age=26)
+        non_play = Membership.objects.create(id=Membership.NON_PLAYING, description="Non playing", is_playing=False)
+        life = Membership.objects.create(id=Membership.LIFE, description="Life")
+
         fee1 = Fees.objects.create(
-            membership = full,
-            sub_year = 2015,
-            annual_sub = 240.00,
-            monthly_sub = 21.00,
-            joining_fee = 100.00
+            membership=full,
+            sub_year=2015,
+            annual_sub=240.00,
+            monthly_sub=21.00,
+            joining_fee=100.00
         )
         fee2 = Fees.objects.create(
-            membership = junior,
-            sub_year = 2015,
-            annual_sub = 75.00,
-            monthly_sub = 7.00,
-            joining_fee = 0
+            membership=junior,
+            sub_year=2015,
+            annual_sub=75.00,
+            monthly_sub=7.00,
+            joining_fee=0
         )
         fee3 = Fees.objects.create(
-            membership = cadet,
-            sub_year = 2015,
-            annual_sub = 35.00,
-            monthly_sub = 3.00,
-            joining_fee = 0
+            membership=cadet,
+            sub_year=2015,
+            annual_sub=35.00,
+            monthly_sub=3.00,
+            joining_fee=0
         )
         fee4 = Fees.objects.create(
-            membership = UNDER_26,
-            sub_year = 2015,
-            annual_sub = 95.00,
-            monthly_sub = 7.00,
-            joining_fee = 0
+            membership=under_26,
+            sub_year=2015,
+            annual_sub=95.00,
+            monthly_sub=7.00,
+            joining_fee=0
+        )
+        fee5 = Fees.objects.create(
+            membership=non_play,
+            sub_year=2015,
+            annual_sub=10,
+            monthly_sub=0,
+            joining_fee=0
+        )
+        fee6 = Fees.objects.create(
+            membership=life,
+            sub_year=2015,
+            annual_sub=0,
+            monthly_sub=0,
+            joining_fee=0
         )
 
         # Define invoice item type
         item_sub = ItemType.objects.create(
-            id = ItemType.SUBSCRIPTION,
-            description = 'subscription',
-            credit = False
+            id=ItemType.SUBSCRIPTION,
+            description='subscription',
+            credit=False
         )
         item_joining = ItemType.objects.create(
-            id = ItemType.JOINING,
-            description = 'Joining fee',
-            credit = False
+            id=ItemType.JOINING,
+            description='Joining fee',
+            credit=False
         )
         item_bar = ItemType.objects.create(
-            id = ItemType.BAR,
-            description = 'Bar',
-            credit = False
+            id=ItemType.BAR,
+            description='Bar',
+            credit=False
         )
         item_disc = ItemType.objects.create(
-            id = ItemType.FAMILY_DISCOUNT,
-            description = 'Discount',
-            credit = True
+            id=ItemType.FAMILY_DISCOUNT,
+            description='Discount',
+            credit=True
         )
 
         address = Address.objects.create(
-            address1 = 'Address1',
-            address2 = 'Address2',
-            town = 'Kingston',
-            post_code = 'KT2 7QX',
-            home_phone = '02085498658'
+            address1='Address1',
+            address2='Address2',
+            town='Kingston',
+            post_code='KT2 7QX',
+            home_phone='02085498658'
         )
         # Create an adult
         adult = Person.objects.create(
-            gender = 'M',
-            first_name = 'First',
-            last_name = 'Adult',
-            mobile_phone = '07985748548',
-            email = 'is@ktconsultants.co.uk',
-            dob = '1954-07-07',
-            british_tennis = '123456',
-            notes = 'Notes',
-            membership_id = Membership.FULL,
-            linked = None,
+            gender='M',
+            first_name='First',
+            last_name='Adult',
+            mobile_phone='07985748548',
+            email='is@ktconsultants.co.uk',
+            dob='1954-07-07',
+            british_tennis='123456',
+            notes='Notes',
+            membership=full,
+            linked=None,
             address=address,
-            state = Person.ACTIVE
+            state=Person.ACTIVE
         )
 
         # Create a linked adult
         wife = Person.objects.create(
-            gender = 'F',
-            first_name = 'Wife of',
-            last_name = 'Adult',
-            mobile_phone = '07985748548',
-            email = 'is@ktconsultants.co.uk',
-            dob = '1954-07-07',
-            british_tennis = '123456',
-            notes = 'Notes',
-            membership_id = Membership.FULL,
-            linked = adult,
-            state = Person.ACTIVE,
+            gender='F',
+            first_name='Wife of',
+            last_name='Adult',
+            mobile_phone='07985748548',
+            email='is@ktconsultants.co.uk',
+            dob='1954-07-07',
+            membership=full,
+            linked=adult,
+            state=Person.ACTIVE,
             address=address,
-            pays_own_bill = False
+            pays_own_bill=False
         )
 
         # Create a child - junior
         child = Person.objects.create(
-            gender = 'F',
-            first_name = 'First',
-            last_name = 'Child',
-            mobile_phone = '07985748548',
-            email = 'is@ktconsultants.co.uk',
-            dob = '2000-01-01',
-            british_tennis = '987654',
-            notes = 'Notes',
-            membership = junior,
-            linked = adult,
+            gender='F',
+            first_name='Junior',
+            last_name='Child',
+            mobile_phone='07985748548',
+            email='is@ktconsultants.co.uk',
+            dob='2000-01-01',
+            membership=junior,
+            linked=adult,
             address=address,
-            state = Person.ACTIVE
+            state=Person.ACTIVE
         )
 
         # Create a second child - cadet
         child2 = Person.objects.create(
-            gender = 'F',
-            first_name = 'Second',
-            last_name = 'Child',
-            mobile_phone = '07985748548',
-            email = 'is@ktconsultants.co.uk',
-            dob = '2010-01-01',
-            british_tennis = '987654',
-            notes = 'Notes',
+            gender='F',
+            first_name='Cadet',
+            last_name='Child',
+            mobile_phone='07985748548',
+            email='is@ktconsultants.co.uk',
+            dob='2010-01-01',
             membership=cadet,
-            linked = adult,
+            linked=adult,
             address=address,
-            state = Person.ACTIVE
+            state=Person.ACTIVE
+        )
+        # Create a life member
+        life_member = Person.objects.create(
+            gender='M',
+            first_name='Life',
+            last_name='Member',
+            mobile_phone='07985748548',
+            email='is@ktconsultants.co.uk',
+            dob='1954-07-07',
+            membership=life,
+            address=address,
+            state=Person.ACTIVE
+        )
+        # Create a non playing member
+        non_playing = Person.objects.create(
+            gender='F',
+            first_name='Nonplaying',
+            last_name='Member',
+            mobile_phone='07985748548',
+            email='is@ktconsultants.co.uk',
+            dob='1954-07-07',
+            membership=non_play,
+            address=address,
+            state=Person.ACTIVE
         )
 
     def test_sub_start_and_end(self):
@@ -156,10 +192,10 @@ class MembersTestCase(TestCase):
         self.assertEqual(end, datetime(2016,3,31))
 
     def test_mem_count(self):
-        self.assertEqual(Membership.objects.all().count(), 4, "Actual %d" % Membership.objects.all().count())
+        self.assertEqual(Membership.objects.all().count(), 6, "Actual %d" % Membership.objects.all().count())
 
     def test_Fee_count(self):
-        self.assertEqual(Fees.objects.all().count(), 4, "Actual %d" % Fees.objects.all().count())
+        self.assertEqual(Fees.objects.all().count(), 6, "Actual %d" % Fees.objects.all().count())
     
     def test_annual_sub_12(self):
         mem = Membership.objects.get(description="Full")
@@ -177,7 +213,7 @@ class MembersTestCase(TestCase):
         self.assertEqual(fee.calculate(1, 3, Subscription.QUARTERLY), 3 * 21)
  
     def test_adult_subscription_renewal(self):
-        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+        adult = get_adult()
         sub = subscription_create(
             person=adult,
             sub_year=2014,
@@ -207,41 +243,46 @@ class MembersTestCase(TestCase):
         self.assertEqual(age, 7, 'Age wrong: %d' % age)
 
     def test_child_subscription_renewal(self):
-        child = Person.objects.all().filter(last_name = "Child")[0]
+        child = get_junior()
         child.dob = date(2007,5,2)
-        #import pdb; pdb.set_trace()
+        
         sub_15 = subscription_create(
             person=child,
             sub_year=2015,
             membership_id=Membership.AUTO
             )
+
         self.assertEqual(child.subscription_set.count(), 1, 'actual is: %d' % child.subscription_set.count())
         category = child.subscription_set.all()[0].membership.description
         self.assertEqual(category, "Cadet", 'Actual is: %s' % category)
         subscription_activate(sub_15)
-       
-        subscription_renew(child.active_sub(), 2016, 5)
+
+        child = get_junior()
+        subscription_renew(child.sub, 2016, 5)
         sub_16 = child.subscription_set.all().filter(sub_year=2016)[0]
         self.assertEqual(sub_16.membership.description, 'Junior', 'Sub wrong: %s' % sub_16.membership.description)
         subscription_activate(sub_16)
         
-        subscription_renew(child.active_sub(), 2025, 5)
+        child = get_junior()
+        subscription_renew(child.sub, 2025, 5)
         sub_25= child.subscription_set.all().filter(sub_year=2025)[0]
         self.assertEqual(sub_25.membership.description, 'Junior', 'Sub wrong: %s' % sub_25.membership.description)
         subscription_activate(sub_25)
 
-        subscription_renew(child.active_sub(), 2026, 5)
+        child = get_junior()
+        subscription_renew(child.sub, 2026, 5)
         sub_26 = child.subscription_set.all().filter(sub_year=2026)[0]
         self.assertEqual(sub_26.membership.description, 'UNDER_26', 'Sub wrong: %s' % sub_26.membership.description)
         subscription_activate(sub_26)
 
-
-        subscription_renew(child.active_sub(), 2033, 5)
+        child = get_junior()
+        subscription_renew(child.sub, 2033, 5)
         sub_33 = child.subscription_set.all().filter(sub_year=2033)[0]
         self.assertEqual(sub_33.membership.description, 'UNDER_26', 'Sub wrong: %s' % sub_33.membership.description)
         subscription_activate(sub_33)
 
-        subscription_renew(child.active_sub(), 2034, 5)
+        child = get_junior()
+        subscription_renew(child.sub, 2034, 5)
         sub_34 = child.subscription_set.all().filter(sub_year=2034)[0]
         self.assertEqual(sub_34.membership.description, 'Full', 'Sub wrong: %s' % sub_34.membership.description)
         subscription_activate(sub_34)
@@ -270,32 +311,48 @@ class MembersTestCase(TestCase):
         category = child.subscription_set.all()[0].membership.description
         self.assertEqual(category, "Full", 'Actual is: %s' % category)
 
-    def test_activate_sub_and_current_sub(self):
-        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+    def test_activate_sub_and_current_sub(self):  
+        adult = get_adult()
         sub1 = subscription_create(
             person=adult,
             sub_year=2014,
             membership_id=Membership.FULL
         )
-        self.assertIsNone(adult.active_sub())
-        subscription_activate(sub1)
-        self.assertEqual(adult.active_sub(), sub1, "Sub 1 not activated")
-        
         sub2 = subscription_create(
+            person=adult,
+            sub_year=2014,
+            membership_id=Membership.JUNIOR
+        )
+        self.assertEqual(adult.active_sub(2014), None)
+        self.assertEqual(adult.sub, None)
+        subscription_activate(sub1)
+        adult = get_adult()
+        self.assertEqual(adult.active_sub(2014), sub1)
+        self.assertEqual(adult.sub, sub1)
+        subscription_activate(sub2)
+        adult = get_adult()
+        self.assertEqual(adult.active_sub(2014), sub2)
+        self.assertEqual(adult.sub, sub2)
+        sub3 = subscription_create(
             person=adult,
             sub_year=2015,
             membership_id=Membership.FULL
         )
-        subs = adult.subscription_set.order_by('sub_year')
-        self.assertEqual(subs.count(), 2, 'actual is: %d' % subs.count())
-        self.assertEqual(adult.active_sub().sub_year, 2014, "Sub 1 not activated")
-        subscription_activate(sub2)
-        self.assertEqual(adult.active_sub().sub_year, 2015, "Sub 2 not activated")
-        self.assertFalse(subs[0].active, "Sub 1 not deactivated")      
-       
+        subscription_activate(sub3, make_live = False)
+        adult = get_adult()
+        self.assertEqual(adult.active_sub(2014), sub2)
+        self.assertEqual(adult.active_sub(2015), sub3)
+        self.assertEqual(adult.sub, sub2)
+        
+        subscription_activate(sub3, make_live = True)
+        adult = get_adult()
+        self.assertEqual(adult.active_sub(2014), sub2)
+        self.assertEqual(adult.active_sub(2015), sub3)
+        self.assertEqual(adult.sub, sub3)
+     
     def test_generate_adult_annual_invoice_items(self):
         self.assertEqual(InvoiceItem.objects.all().count(), 0, 'actual is: %d' % InvoiceItem.objects.all().count())
-        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+        adult = get_adult()
         sub = subscription_create(
             person=adult,
             sub_year=2015,
@@ -308,11 +365,13 @@ class MembersTestCase(TestCase):
         self.assertTrue(item.description.find('Full membership') > -1, 'Wrong membership')
         self.assertTrue(item.description.find('1/5/2015 to 30/4/2016') > -1, 'Wrong sub')
         self.assertEqual(item.amount, 240, 'Wrong amount: {}'.format(item.amount))
+        
         inv = invoice_create_from_items(adult)
         self.assertEqual(Invoice.objects.all().count(), 1, 'actual is: %d' % Invoice.objects.all().count())
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.total, 240, 'Wrong total: {}'.format(inv.total))
         self.assertEqual(inv.invoiceitem_set.count(), 1)
+        
         # test cancellation whole invoice
         invoice_cancel(inv)
         inv = Invoice.objects.all()[0]
@@ -324,7 +383,7 @@ class MembersTestCase(TestCase):
 
     def test_generate_adult_annual_invoice_items_6months(self):
         ''' new member for 6 months only, processed late '''
-        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+        adult = get_adult()
         sub = subscription_create(
             person=adult,
             sub_year=2015,
@@ -350,7 +409,7 @@ class MembersTestCase(TestCase):
 
     def test_generate_adult_monthly_invoices_item(self):
         self.assertEqual(InvoiceItem.objects.all().count(), 0, 'actual is: %d' % InvoiceItem.objects.all().count())
-        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+        adult = get_adult()
         sub = subscription_create(
             person=adult,
             sub_year=2015,
@@ -384,7 +443,7 @@ class MembersTestCase(TestCase):
 
     def test_generate_adult_quarterly_invoices_item(self):
         self.assertEqual(InvoiceItem.objects.all().count(), 0, 'actual is: %d' % InvoiceItem.objects.all().count())
-        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+        adult = get_adult()
         sub = subscription_create(
             person=adult,
             sub_year=2015,
@@ -417,46 +476,25 @@ class MembersTestCase(TestCase):
         self.assertEqual(item.amount, 3 * 21, 'Wrong amount: {}'.format(item.amount))
 
     def test_invoice_paid_full(self):
-        ''' Create family invoice. pay it and check invoice and payment are correct '''
-        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
-        wife = Person.objects.all().filter(first_name = "Wife of", last_name = "Adult")[0]
-        junior = Person.objects.all().filter(first_name = "First", last_name = "Child")[0]
-        cadet = Person.objects.all().filter(first_name = "Second", last_name = "Child")[0]      
-        sub = subscription_create(
-            person=adult,
-            sub_year=2014,
-            active=True,
-            membership_id=Membership.FULL
-            )
-        sub = subscription_create(
-            person=wife,
-            sub_year=2014,
-            active=True,
-            membership_id=Membership.FULL
-            )
-        sub = subscription_create(
-            person=junior,
-            sub_year=2014,
-            active=True,
-            membership_id=Membership.JUNIOR
-            )
-        sub = subscription_create(
-            person=cadet,
-            sub_year=2014,
-            active=True,
-            membership_id=Membership.CADET
-            )
-        subscription_renew_batch(2015,5)
-        self.assertEqual(Subscription.objects.all().count() ,8)
+        adult = add_subs_to_family()
+
+        # renew the sub and test we have 4 more subs
+        subscription_renew_batch(2015, 5)
+        self.assertEqual(Subscription.objects.all().count(), 8)
+
+        # add a bar item type to the adult's account
         bar = ItemType.objects.all().filter(id=ItemType.BAR)[0]
         item1 = InvoiceItem.objects.create(
             person=adult,
             item_type=bar,
             description='Test BAR',
             amount=100)
+
+        #create the invoice for the junior - generates invoice for adult
+        junior = get_junior()
         invoice_create_from_items(junior)
         
-        # check the invoice
+        # check the invoice is correct
         self.assertEqual(Invoice.objects.all().count(), 1)
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.person,adult)
@@ -468,6 +506,12 @@ class MembersTestCase(TestCase):
         self.assertEqual(inv.total, total)
         items = inv.invoiceitem_set.filter(paid=True).count()
         self.assertEqual(items, 0)
+
+        # check the active subs are unpaid
+        people = Person.objects.all()
+        for person in people:
+            if person.sub:
+                self.assertFalse(person.sub.paid, "Sub wrongly marked as paid")
         
         # create a payment by gocardless
         fee = total/100
@@ -483,37 +527,20 @@ class MembersTestCase(TestCase):
         self.assertEqual(inv.state, Invoice.PAID_IN_FULL)  
         items = inv.invoiceitem_set.filter(paid=True).count()
         self.assertEqual(items, 6)
-     
+
+        # check the active subs are not paid because they are for 2014    
+
+        for person in Person.objects.all():
+            if person.sub:
+                self.assertFalse(person.sub.paid, "2014 Sub wrongly marked as paid")
+            
+        subscriptions_change_year(2015)
+        for person in Person.objects.all():
+            if person.sub:
+                self.assertTrue(person.sub.paid, "2015 Sub wrongly marked as unpaid")
+            
     def test_invoice_cancel(self):
-        ''' Create family invoice. pay it and check invoice and payment are correct '''
-        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
-        wife = Person.objects.all().filter(first_name = "Wife of", last_name = "Adult")[0]
-        junior = Person.objects.all().filter(first_name = "First", last_name = "Child")[0]
-        cadet = Person.objects.all().filter(first_name = "Second", last_name = "Child")[0]      
-        sub = subscription_create(
-            person=adult,
-            sub_year=2014,
-            active=True,
-            membership_id=Membership.FULL
-            )
-        sub = subscription_create(
-            person=wife,
-            sub_year=2014,
-            active=True,
-            membership_id=Membership.FULL
-            )
-        sub = subscription_create(
-            person=junior,
-            sub_year=2014,
-            active=True,
-            membership_id=Membership.JUNIOR
-            )
-        sub = subscription_create(
-            person=cadet,
-            sub_year=2014,
-            active=True,
-            membership_id=Membership.CADET
-            )
+        adult = add_subs_to_family()
         subscription_renew_batch(2015,5)
         self.assertEqual(Subscription.objects.all().count() ,8)
         bar = ItemType.objects.all().filter(id=ItemType.BAR)[0]
@@ -522,7 +549,8 @@ class MembersTestCase(TestCase):
             item_type=bar,
             description='Test BAR',
             amount=100)
-        invoice_create_from_items(junior)
+
+        invoice_create_from_items(adult)
         self.assertEqual(Invoice.objects.all().count(), 1)
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.person, adult)
@@ -569,7 +597,7 @@ class MembersTestCase(TestCase):
         count = Group.objects.all().count()
         self.assertEqual(count , 1)
         # Add 1 person
-        adult = Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+        adult = get_adult()
         adult.groups.add(group)
         self.assertEqual(group.person_set.all().count(), 1)
         # adding a second time does not increase group size
@@ -700,3 +728,46 @@ class MembersTestCase(TestCase):
 #        """Tests the about page."""
 #        response = self.client.get('/about')
 #        self.assertContains(response, 'About', 3, 200)
+def add_subs_to_family():
+    ''' Create family with subscriptions '''
+    adult = get_adult()
+    wife = get_wife()
+    junior = get_junior()
+    cadet = get_cadet()     
+    sub = subscription_create(
+        person=adult,
+        sub_year=2014,
+        membership_id=Membership.FULL
+        )
+    subscription_activate(sub)
+    sub = subscription_create(
+        person=wife,
+        sub_year=2014,
+        membership_id=Membership.FULL
+        )
+    subscription_activate(sub)
+    sub = subscription_create(
+        person=junior,
+        sub_year=2014,
+        membership_id=Membership.JUNIOR
+        )
+    subscription_activate(sub)
+    sub = subscription_create(
+        person=cadet,
+        sub_year=2014,
+        membership_id=Membership.CADET
+        )
+    subscription_activate(sub)
+    return adult
+
+def get_adult():
+    return Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
+
+def get_wife():
+    return Person.objects.all().filter(first_name = "Wife of", last_name = "Adult")[0]
+
+def get_junior():
+    return Person.objects.all().filter(first_name = "Junior", last_name = "Child")[0]
+
+def get_cadet():
+    return Person.objects.all().filter(first_name = "Cadet", last_name = "Child")[0]     

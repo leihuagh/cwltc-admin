@@ -46,6 +46,8 @@ INSTALLED_APPS = (
     'report_builder',
     'anymail',
     'markdownx',
+    'django_tables2',
+    'coverage'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -191,6 +193,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
             ],
         },

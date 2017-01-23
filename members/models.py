@@ -73,7 +73,7 @@ class Person(models.Model):
     last_name = models.CharField(max_length=30)
     mobile_phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(max_length=75)
-    dob = models.DateField(null=True, blank=True)
+    dob = models.DateField(null=True, blank=True, verbose_name='Date of birth')
     british_tennis = models.IntegerField(null=True, blank=True)
     notes = models.TextField(blank=True)  
     pays_own_bill = models.BooleanField(default = False)
@@ -85,6 +85,7 @@ class Person(models.Model):
     address = models.ForeignKey('address', blank=True, null=True)
     groups = models.ManyToManyField(Group)
     unsubscribed = models.ManyToManyField('MailType')
+    sub = models.ForeignKey('Subscription', blank=True, null=True)
     # -- Navigation --
     # person_set
     # invoice_set
@@ -100,18 +101,7 @@ class Person(models.Model):
 
     def get_absolute_url(self):
         return reverse("person-detail", kwargs={"pk": self.pk})   
-    
-    def as_array(self):
-        return [
-            self.first_name,
-            self.last_name,
-            self.membership.description,
-            self.age_today,
-            self.email,
-            self.id,
-            ] 
- 
-   
+      
     def age(self, date):
         ''' return the age in years on given date
         '''
@@ -124,12 +114,11 @@ class Person(models.Model):
     def fullname(self):
         return self.first_name + " " + self.last_name    
     
-    def active_sub(self):
-        ''' Return the active subscription if one exists. ''' 
-        if self.subscription_set.count():
-            for sub in self.subscription_set.all():
-                if sub.active:
-                    return sub
+    def active_sub(self, year):
+        ''' Return the active subscription for a year if one exists. '''       
+        subs = self.subscription_set.filter(sub_year=year, active=True)
+        if subs.count() == 1:
+            return subs[0]
         return None
     
     def invoices(self, state):
@@ -190,7 +179,10 @@ class Membership(models.Model):
         ]
 
 
-    description = models.CharField(max_length=20)
+    description = models.CharField(max_length=20, verbose_name='Membership')
+    is_adult = models.BooleanField(default=True)
+    is_playing = models.BooleanField(default=True)
+    cutoff_age = models.IntegerField(default=0)
     
     def __unicode__(self):
         return self.description
@@ -510,24 +502,13 @@ class Subscription(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     period = models.SmallIntegerField(choices=PERIODS, default=ANNUAL)
-    membership = models.ForeignKey(Membership)
+    membership = models.ForeignKey(Membership, blank=True, null=True)
     new_member = models.BooleanField(default=False)
     paid = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
+    resigned = models.BooleanField(default=False)
     invoiced_month = models.SmallIntegerField()
-    no_renewal = models.BooleanField(default=False)
-
-    def activate(self):
-        ''' Activate this subscription and clear all others for the person.'''
-        for sub in self.person_member.subscription_set.all():
-            if sub.active:
-                sub.active = False
-                sub.save()
-        self.active = True
-        self.save()   
-        self.person_member.membership_id = self.membership_id
-        self.person_member.save()
-             
+    no_renewal = models.BooleanField(default=False)       
 
     def __unicode__(self):  
         return u'Sub {} {} {} {}'.format (

@@ -440,6 +440,7 @@
     <Content Include="members\templates\members\credit_note.html" />
     <Content Include="members\templates\members\editor.html" />
     <Content Include="members\templates\members\email.html" />
+    <Content Include="members\templates\members\categories_list.html" />
     <Content Include="members\templates\members\fees_list.html" />
     <Content Include="members\templates\members\filter_member.html" />
     <Content Include="members\templates\members\generic_crispy_form.html" />
@@ -514,10 +515,22 @@
     <Compile Include="members\filters.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="members\management\commands\fixsubs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="members\management\commands\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="members\management\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="members\serializers.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="members\services.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="members\tables.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="members\templatetags\wysiwyg.py">
@@ -555,7 +568,9 @@
     <Folder Include="gc_app\templates\" />
     <Folder Include="gc_app\templates\gc_app\" />
     <Folder Include="members" />
+    <Folder Include="members\management\commands\" />
     <Folder Include="members\migrations" />
+    <Folder Include="members\management\" />
     <Folder Include="members\static\" />
     <Folder Include="members\static\members\" />
     <Folder Include="members\static\members\content" />

@@ -30,12 +30,66 @@ import ftpService
 import xlrd
 import json
 from report_builder.models import Report
-from .filters import PersonFilter
+from .filters import PersonFilter, JuniorFilter
+from django_tables2 import SingleTableView, RequestConfig
+import pickle
 
 def search(request):
     person_list = Person.objects.all()
     person_filter = PersonFilter(request.GET, queryset=person_list)
     return render(request, 'members/person_list.html', {'filter': person_filter})
+
+class FilteredMembersTableView(LoginRequiredMixin, SingleTableView):
+    #http://stackoverflow.com/questions/13611741/django-tables-column-filtering/15129259#15129259
+  
+    filter_class = None
+    juniors = False
+
+    def post(self, request, *args, **kwargs):
+        people = Person.objects.all().order_by('first_name')
+        people.query = pickle.loads(request.session['my_qs'])
+        if 'export' in request.POST:
+            return export_people('People', people.query)
+
+    def get_queryset(self, **kwargs):
+        return None
+    
+    def get_table_data(self):
+        qs = Person.objects.all()
+        if self.juniors:
+            qs = Person.objects.filter(sub__membership__is_adult=False)
+        else:
+            qs = Person.objects.all()
+        self.filter = self.filter_class(self.request.GET,
+                                        qs
+                                        .order_by('first_name')
+                                        .select_related('sub')
+                                        .select_related('sub__membership'),
+                                        request=self.request)
+                              
+        self.request.session['my_qs'] = pickle.dumps(self.filter.qs)
+        return self.filter.qs
+
+    def get_context_data(self, **kwargs):
+        context = super(FilteredMembersTableView, self).get_context_data(**kwargs)
+        context['filter'] = self.filter
+        context['juniors'] = self.juniors
+        return context
+
+class JuniorTableView(FilteredMembersTableView):
+    
+    def get_table_data(self):
+        qs = Person.objects.filter(sub__membership__is_adult=False)
+        self.filter = self.filter_class(self.request.GET,
+                                        qs
+                                        .order_by('first_name')
+                                        .select_related('sub')
+                                        .select_related('sub__membership'),
+                                        request=self.request)
+                              
+        self.request.session['my_qs'] = pickle.dumps(self.filter.qs)
+        return self.filter.qs
+
 
 class HomeView(LoginRequiredMixin, TemplateView):
     template_name = 'members/index.html'
@@ -311,7 +365,7 @@ def set_person_context(context, pers):
     context['person'] = pers
     context['address'] = pers.address
     context['subs'] = pers.subscription_set.all().order_by('sub_year')
-    context['sub'] = pers.active_sub()
+    context['sub'] = pers.sub
     context['statement'] = statement
     context['invoices'] = pers.invoice_set.all().order_by('update_date')
     own_items = pers.invoiceitem_set.filter(invoice=None).order_by('update_date')
@@ -501,8 +555,8 @@ class SubCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         if 'cancel' in form.data:
             return redirect(reverse('person-detail', kwargs={'pk':self.kwargs['person_id']}))
-
-        form.instance.person_member = Person.objects.get(pk=self.kwargs['person_id'])
+        
+        form.instance.person_member = Person.objects.get(pk=self.kwargs['person_id'])       
         form.instance.invoiced_month = 0
         form.instance.membership = Membership.objects.get(pk=form.cleaned_data['membership_id'])
 
@@ -553,6 +607,10 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
             sub = self.get_object()
             subscription_delete_invoiceitems(sub)
             return redirect(sub)
+        
+        if 'resign' in form.data:
+            person_resign(form.instance.person_member)
+            return redirect(reverse('person-detail', kwargs={'pk':sub.person_member_id}))
 
     def get_success_url(self):
         sub = self.get_object()
@@ -1100,6 +1158,12 @@ class FeesListView(LoginRequiredMixin, ListView):
             messages.success(self.request,"All records for {} deleted".format(year))
             return redirect('fees-list', year - 1)
 
+# ================ Membership categories
+
+class CategoriesListView(LoginRequiredMixin, ListView):
+    model = Membership
+    template_name= 'members/categories_list.html'
+
 # ================ Invoice items
 
 class InvoiceItemListView(LoginRequiredMixin, ListView):
@@ -1302,7 +1366,6 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(InvoiceDetailView, self).get_context_data(**kwargs)
         user = self.request.user
-        context['superuser'] = self.request.user.get_username() == "ian"
         invoice = self.get_object()
         invoice.add_context(context)
         TextBlock.add_email_context(context)

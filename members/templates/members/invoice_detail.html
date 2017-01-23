@@ -68,8 +68,9 @@ Email text blocks:
 {% if can_delete %}
     <input type="submit" name="delete" value="Delete invoice" class="btn btn-danger">
 {% else %}
-    {% if superuser %}
-        <input type="submit" name="superdelete" value="Superuser Delete" class="btn btn-danger">
+    {% if user.is_staff %}
+       {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete invoice" confirm_yes="Delete" confirm_submit="superdelete" %}
+       <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger">Delete invoice</a>
     {% endif %}
 {% endif %}
 </form>

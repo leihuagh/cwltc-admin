@@ -22,37 +22,36 @@
         <div class="row">
             <div class="col-md-4">
                 <div class="panel panel-default">
-                    <div class="panel-heading">Details</div>
-                    <div class="panel-body">
-                        <table>
-                            <tr><td width="50%">Id:</td><td>{{ person.id }} </td></tr>
-                            <tr><td>State</td><td>{{ person.state }} </td></tr>
-                            <tr>
-                                <td>Date of birth:</td>
-                                <td>
-                                    {% if person.dob %}{{ person.dob|date }}
-                                    {% else %}Unknown{% endif %}
-                                </td>
-                            </tr>
-                            <tr><td>British tennis:</td><td>{{ person.british_tennis}}</td></tr>
-                            <tr><td>Joined date:</td><td>{{ person.date_joined|date}}</td></tr>
-                            <tr>
-                                <td>Mobile:</td>
-                                <td>
-                                    {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}
-                                </td>
-                            </tr>
-                        </table>
-                        {% if person.email %}
-                            {{ person.email }}
-                         {% else %}No email address{% endif %}
-                    </div>
+                    <div class="panel-heading">
+                    {% if person.email %}{{ person.email }}{% else %}No email address{% endif %}
+                    </div>                                                
+                    <table class="table table-condensed">
+                        <tr><td>Id:</td><td>{{ person.id }} </td></tr>
+                        <tr><td>State</td><td>{{ person.state }} </td></tr>
+                        <tr>
+                            <td>Date of birth:</td>
+                            <td>
+                                {% if person.dob %}{{ person.dob|date }}
+                                {% else %}Unknown{% endif %}
+                            </td>
+                        </tr>
+                        <tr><td>British tennis:</td><td>{{ person.british_tennis}}</td></tr>
+                        <tr><td>Joined date:</td><td>{{ person.date_joined|date}}</td></tr>
+                        <tr>
+                            <td>Mobile:</td>
+                            <td>
+                                {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}
+                            </td>
+                        </tr>
+                    </table>
+
+
                     <div class="panel-footer">
                         <a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a> 
                          {% if person.email %}
                             <a href="{% url "email-person" person=person.id %}" class="btn btn-primary btn-sm">Send email</a>
                          {% else %}No email address{% endif %}                                                        
-                        {% if user.get_username = "ian"  %}
+                        {% if user.is_staff %}
                           {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete person" confirm_yes="Delete" confirm_submit="delete" %}
                           <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger btn-sm">Delete person</a>
                         {% endif %}
@@ -81,25 +80,33 @@
             <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">Family</div>
-                    <div class="panel-body">
-                        <table width="350">
-                            {% if parent %}
-                            <tr>
-                                <td><strong><a href="{% url "person-detail" pk=parent.id %}">{{ parent.fullname }}</a></strong></td>
-                                <td> {{ parent.membership.description }}</td>
-                            </tr>
-                            {% for child in children %}
-                            <tr>
+
+                    <table class="table table-condensed">
+                    {% if parent %}
+                      {% ifequal parent.id person.id %}<tr class="info">{% else %}<tr>{% endifequal %}
+                        <td><strong><a href="{% url "person-detail" pk=parent.id %}">{{ parent.fullname }}</a></strong></td>
+                        <td> 
+                            {% if parent.sub %}
+                                {% if parent.sub.resigned %}
+                                    Resigned
+                                {% else %}
+                                    {{ parent.sub.membership.description }}
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        {% for child in children %}
+                        </tr>
+                        {% ifequal child.id person.id %}<tr class="info">{% else %}<tr>{% endifequal %}
                                 <td><a href="{% url "person-detail" pk=child.id %}">{{ child.fullname }}</a></td>
                                 <td>{{ child.membership.description }}</td>
                             </tr>
-                            {% endfor child %}
-                            {% else %}
-                            <tr></tr>
-                            <tr><td>Not part of a family</td></tr>
-                            {% endif %}
-                        </table>
-                    </div>
+                        {% endfor child %}
+                    {% else %}
+                        <tr></tr>
+                        <tr><td>Not part of a family</td></tr>
+                    {% endif %}
+                    </table>
+
                     <div class="panel-footer">
                         {% if parent %}
                         <a href="{% url "person-create" link=parent.id %}" class="btn btn-primary btn-sm">New family member</a>
@@ -120,32 +127,39 @@
                     <div class="panel-heading">Current subscription</div>
                     <div class="panel-body">
                         {% if sub %}
-                        {{ sub.membership.description }} <br />
-                        From {{ sub.start_date }} to {{ sub.end_date }} <br />
-                        State:
-                        {% if sub.has_paid_invoice %}
-                        Paid invoice
-                        {% elif sub.has_unpaid_invoice %}
-                        Unpaid invoice
-                        {% elif sub.has_items %}
-                        Uninvoiced item
+                            {% if sub.resigned %}
+                                Resigned {{ sub.membership.description }} membership <br />
+                                On {{ sub.end_date }} <br />
+                            {% else %}
+                                {{ sub.membership.description }} <br />
+                                From {{ sub.start_date }} to {{ sub.end_date }} <br />
+                                State:
+                                {% if sub.paid %}
+                                    Paid
+                                {% elif sub.has_unpaid_invoice %}
+                                    Unpaid invoice
+                                {% elif sub.has_items %}
+                                    Uninvoiced item
+                                {% else %}
+                                    Not billed
+                                {% endif %}
+                            {% endif %}
                         {% else %}
-                        Not billed
-                        {% endif %}
-                        {% else %}
-                        No subscription
+                            No subscription
                         {% endif %}
                     </div>
                     <div class="panel-footer">
                         {% if sub %}
-                        {% if sub.has_paid_invoice %}
-                        <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change subscription</a>
+                            {% if sub.has_paid_invoice %}
+                                <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change subscription</a>
+                            {% else %}
+                                <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-sm">Edit current sub</a>
+                            {% endif %}
                         {% else %}
-                        <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-sm">Edit current sub</a>
+                            <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New subscription</a>
                         {% endif %}
-                        <a href="{% url "sub-history" person_id=person.id %}" class="btn btn-primary btn-sm">History</a>
-                        {% else %}
-                        <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New subscription</a>
+                        {% if subs %}
+                            <a href="{% url "sub-history" person_id=person.id %}" class="btn btn-primary btn-sm">History</a>                      
                         {% endif %}
                     </div>
                 </div>

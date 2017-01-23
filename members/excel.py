@@ -500,6 +500,7 @@ def export_people(sheetName, people, option=""):
     'Email',
     'Year joined',
     'Membership'
+    'Paid'
     ]
     for col_num in xrange(len(columns)):
         sheet.write(0, col_num, columns[col_num].decode('utf-8','ignore'))     
@@ -538,7 +539,8 @@ def export_people(sheetName, people, option=""):
                     person.mobile_phone, 
                     person.email,      
                     joined.year,
-                    category
+                    person.sub.membership.description,
+                    person.sub.paid
                 ]
                 for col_num in xrange(len(row)):
                     sheet.write(row_num, col_num, row[col_num]) 

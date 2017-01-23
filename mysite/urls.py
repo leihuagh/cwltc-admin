@@ -16,7 +16,7 @@ from django_filters.views import FilterView
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 admin.autodiscover()
-
+from members.tables import PersonTable
 from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -45,10 +45,6 @@ urlpatterns = [
         name='year-end'
     ),
     
-    #url(r'^search/$', search, name='search'),
-    url(r'^search/$', FilterView.as_view(filterset_class=PersonFilter,
-        template_name='members/person_list.html'), name='search'),
-
     # GROUPS
     url(r'^group/create/$',
         GroupCreateView.as_view(),
@@ -110,6 +106,11 @@ urlpatterns = [
         name='thankyou'
     ),
     
+    #   MEMBERSHIP CATEGORIES
+    url(r'^categories/list/$',
+        CategoriesListView.as_view(),
+        name='categories-list'
+    ),
     #   FEES
     url(r'^fees/update/(?P<pk>\d+)/$',
         FeesUpdateView.as_view(),
@@ -225,6 +226,24 @@ urlpatterns = [
     ),
 
     #   PEOPLE
+
+    url(r'^members/$', FilteredMembersTableView.as_view(
+        table_class=PersonTable,
+        model=Person,
+        template_name='members/person_list.html',
+        filter_class=PersonFilter,
+        table_pagination={ "per_page":10000 } ),
+        name='members-list'),
+
+    url(r'^members/juniors/$', FilteredMembersTableView.as_view(
+        table_class=PersonTable,
+        model=Person,
+        juniors=True,
+        template_name='members/person_list.html',
+        filter_class=JuniorFilter,
+        table_pagination={ "per_page":10000 } ),
+        name='juniors-list'),
+
     url(r'^list$',
        PersonList.as_view(),
        name='person-list'
@@ -237,11 +256,11 @@ urlpatterns = [
        FilteredPersonListAjax.as_view(),
        name='filteredperson-list-tags'
     ),
-    url(r'^members/$',
+    url(r'^membersold/$',
        MembersListView.as_view(),
        name='members'
     ),
-    url(r'^juniors/$',
+    url(r'^juniorsOld/$',
         JuniorListView.as_view(),
         name='junior-list'
     ),

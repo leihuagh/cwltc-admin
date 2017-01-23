@@ -445,7 +445,6 @@ class SubscriptionForm(ModelForm):
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
         message = 'New subscription'
         if person.subscription_set.count() > 0:
             message += ' (add to history)'
@@ -456,9 +455,11 @@ class SubscriptionForm(ModelForm):
             elif instance.has_unpaid_invoice():
                 message = 'This sub cannot be changed until the linked unpaid invoice is deleted'
             elif instance.has_items():
-                message = 'This sub cannot be changed until the linked unbilled item is deleted'
+                message = 'This sub cannot be changed until the linked unbilled item is deleted'               
             else:
                 message = 'Change subscription'
+            if instance.resigned:
+                message += " (Resigned)"
         self.helper.layout = Layout(
             Fieldset(
                 message,
@@ -551,10 +552,13 @@ class SubscriptionForm(ModelForm):
                     self.helper.add_input(SubmitButton('delete', 'Delete unbilled item', css_class='btn-danger'))
             else:
                 self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+            if not instance.resigned:
+                self.helper.add_input(SubmitButton('resign', 'Resign', css_class='btn-warning'))                           
         else:
             self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
-                
+
+     
     def clean(self):
         cleaned_data = super(SubscriptionForm, self).clean()
         if self.updating:

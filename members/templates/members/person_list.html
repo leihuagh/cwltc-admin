@@ -1,10 +1,34 @@
 ﻿{% extends "members/layout.html" %}
 {% load widget_tweaks %}
+{% load render_table from django_tables2 %}
 {% block content %}
   <form method="get">
     <div class="well">
-
       <div class="row">
+          {% if juniors is False %}
+             <div class="form-group col-sm-3 col-md-2">
+              {{ filter.form.year.label_tag }}
+              {% render_field filter.form.year class="form-control" %}
+            </div>
+            <div class="form-group col-sm-3 col-md-2">
+              {{ filter.form.state.label_tag }}
+              {% render_field filter.form.state class="form-control" %}
+            </div>
+          {% endif %}
+        <div class="form-group col-sm-3 col-md-2">
+          {{ filter.form.membership.label_tag }}
+          {% render_field filter.form.membership class="form-control" %}
+        </div>
+        {% if juniors is False %}
+        <div class="form-group col-sm-3 col-md-2">
+          {{ filter.form.adult.label_tag }}
+          {% render_field filter.form.adult class="form-control" %}
+        </div>
+        <div class="form-group col-sm-3 col-md-2">
+          {{ filter.form.playing.label_tag }}
+          {% render_field filter.form.playing class="form-control" %}
+        </div>
+        {% endif %}
         <div class="form-group col-sm-3 col-md-2">
           {{ filter.form.first_name.label_tag }}
           {% render_field filter.form.first_name class="form-control" %}
@@ -17,9 +41,13 @@
           {{ filter.form.dob1.label_tag }}
           {% render_field filter.form.dob1 class="form-control" placeholder="DD/MM/YYYY"%}
         </div>
-        <div class="form-group col-sm-3 col-md-2">
+        <div class="form-group col-sm-2 col-md-2">
           {{ filter.form.dob2.label_tag }}
           {% render_field filter.form.dob2 class="form-control" placeholder="DD/MM/YYYY" %}
+        </div>
+        <div class="form-group col-sm-3 col-md-2">
+          {{ filter.form.paid.label_tag }}
+          {% render_field filter.form.paid class="form-control" %}
         </div>
         <div class="form-group col-sm-3 col-md-2">
           <label for="id_search"> &nbsp;</label>
@@ -31,27 +59,19 @@
 
     </div>
   </form>
-    <table id="people" class="table table-condensed" >
-    <thead>
-            <tr>
-            <th>First name</th>
-            <th>Last name</th>
-            <th>Membership</th>
-            <th>DOB</th>
-            <th>View</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for person in filter.qs %}
-        <tr>
-            <td> {{ person.first_name }}</td>
-            <td> {{ person.last_name }}</td>
-            <td> {{ person.membership_id }}</td>
-            <td> {{ person.dob }}</td> 
-            <td><a href="{% url "person-detail" pk=person.id %}">View</a></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-    </table>
+    <div class="panel panel-primary">
+        <div class="panel-body" style="max-height: 60%;overflow-y: scroll;">
+        {% render_table table 'django_tables2/table.html'%}
+        </div>
+        <div class="panel-footer">
+        <form action="." method="post" class="form-horizontal">    
+            {{ table.rows|length }} rows displayed
+        
+    {% csrf_token %}
+<button class="button btn-primary "name="export" type="submit">Export</button>
+</form>
+        
+         </div>
+    </div>
 
-{% endblock %}
+{% endblock %}#}
