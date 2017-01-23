@@ -19,4 +19,4 @@ echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py migrate --noinput'"
 python "$OPENSHIFT_REPO_DIR"/manage.py migrate --noinput
 
 echo "Executing 'fixsubs"
-python manage.py "$OPENSHIFT_REPO_DIR"/manage.py fixsubs--noinput
+python "$OPENSHIFT_REPO_DIR"/manage.py fixsubs
