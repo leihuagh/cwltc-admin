@@ -1,7 +1,8 @@
 {% extends "members/layout.html" %}
 
 {% block content %}
-<h2><span class="col-sm-offset-1">Log in</span></h2>
+<h2><span class="col-sm-offset-2">Log in</span></h2>
+<br/>
     <div class="content">
         {% if form.errors %}
             <div class="alert alert-danger">
@@ -21,7 +22,10 @@
                 </div>
             </div>
         </form>
-        <p><a href="{% url 'django.contrib.auth.views.password_reset' %}">Reset my password</a></p>
+        <div class="col-sm-offset-2 col-sm-10 text-info">
+            <p></p>
+        <p><a href="{% url 'password_reset' %}">I forgot my password</a></p>
+            </div>
         <script type="text/javascript">
             $(function(){
                 $(".alert-message").alert();

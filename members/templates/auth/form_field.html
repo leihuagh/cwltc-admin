@@ -1,7 +1,7 @@
 {% load members_extras %}
 <div class="form-group {% if field.errors %}has-error{% endif %}">
-    <label for="{{ field.id_for_label }}" class="col-sm-2 control-label">{{ field.label }}</label>
-    <div class="col-sm-10 ">
+    <label for="{{ field.id_for_label }}" class="col-md-2 control-label">{{ field.label }}</label>
+    <div class="col-md-6 ">
         {{ field|add_class:'form-control input-md' }}
         {% if field.errors %}
             <span class='text-danger'>{{ field.errors|join:'<br />' }}</span>

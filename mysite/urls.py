@@ -258,11 +258,11 @@ urlpatterns = [
     ),
     url(r'^membersold/$',
        MembersListView.as_view(),
-       name='members'
+       name='members-old'
     ),
     url(r'^juniorsOld/$',
         JuniorListView.as_view(),
-        name='junior-list'
+        name='juniors-old'
     ),
     url(r'^(?P<pk>\d+)/$',
        PersonDetailView.as_view(),

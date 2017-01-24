@@ -18,8 +18,12 @@
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                 aria-expanded="false">People</a>
             <ul class="dropdown-menu">
+                <li><a href="{% url 'members-list' %}">Members</a></li>
+                <li><a href="{% url 'juniors-list' %}">Juniors</a></li>
                 <li><a href="{% url 'filteredperson-list' %}">People list</a></li>
-                <li><a href="{% url 'members' %}">Members list</a></li>
+                <li><a href="{% url 'members-old' %}">Members list (OLD)</a></li>
+                <li><a href="{% url 'juniors-old' %}">Juniors list (OLD)</a></li>
+                <li class="divider"></li>
                 <li><a href="{% url 'person-create' %}">Create adult</a></li>
                 <li><a href="{% url 'junior-create' %}">Create junior</a></li>
                 <li class="divider"></li>
