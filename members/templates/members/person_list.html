@@ -3,7 +3,7 @@
 {% load render_table from django_tables2 %}
 {% block content %}
   <form method="get">
-    <div class="well">
+    <div class="well" style="padding:10px">
       <div class="row">
           {% if juniors is False %}
              <div class="form-group col-sm-3 col-md-2">
@@ -59,19 +59,46 @@
 
     </div>
   </form>
-    <div class="panel panel-primary">
-        <div class="panel-body" style="max-height: 60%;overflow-y: scroll;">
-        {% render_table table 'django_tables2/table.html'%}
-        </div>
-        <div class="panel-footer">
-        <form action="." method="post" class="form-horizontal">    
-            {{ table.rows|length }} rows displayed
-        
-    {% csrf_token %}
-<button class="button btn-primary "name="export" type="submit">Export</button>
-</form>
-        
-         </div>
+<form action="." method="post" class="form-inline"> 
+     {% csrf_token %}
+    <div class="panel">
+        <select class="form-control col-sm-3 col-md-2" id="id_action", name="action">
+            <option value="none" selected="selected">No action</option>
+            <option value="export">Export</option>
+            <option value="mail">Mail</option>
+            <option value="group">Add to group</option>
+        </select>
+        <button class="form-control button btn-primary"  name="go" type="submit">Go</button>
+        &nbsp &nbsp
+        <span id="id-count">0</span> of {{ table.rows|length }} rows selected
     </div>
+    <div class="panel panel-primary">
+         <div class="panel-body" style="max-height: 60%;overflow-y: scroll;">
+            {% render_table table 'django_tables2/table.html'%}
+        </div>
+        
+    </div>
+</form>
+{% endblock %}
+{% block scripts %}   
+<script language="JavaScript">
+    $(document).ready(function () {
+        countChecked();
+        console.log("ready");
+    });
 
-{% endblock %}#}
+function toggle(source) {
+    checkboxes = document.getElementsByName('selection');
+    var count=0
+    for (var i in checkboxes)
+        checkboxes[i].checked = source.checked;
+    countChecked();
+}
+
+function countChecked() {
+    var count = document.querySelectorAll('.rowcheckbox:checked').length;
+    document.getElementById("id-count").innerText = count
+    }
+</script>
+   
+{% endblock %}

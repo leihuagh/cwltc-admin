@@ -553,6 +553,21 @@ def group_get_or_create(slug):
     else:
         raise ServicesError("{} groups matches slug {}".format(qset.count(), slug))
     return group
+ 
+def group_add_list(group, id_list):
+    '''
+    Adds a list of ids to a group
+    '''
+    group_ids = Group.objects.all
+    #for person_id in id_list:
+    #    person = Person.objects.get(id=person_id)
+    #    person.groups.add(group)
+    #    person.save() 
+    plist = Person.objects.filter(pk__in=id_list)
+    for person in plist:
+        person.groups.add(group)
+        person.save() 
+
      
 
 def consolidate(year):

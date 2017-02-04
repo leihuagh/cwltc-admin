@@ -10,5 +10,11 @@ class PersonTable(tables.Table):
         fields = ('first_name', 'last_name', 'sub.membership.description', 'dob', 'sub.paid', )
         attrs = {'class': 'table table-condensed'} 
 
-    edit = tables.LinkColumn('person-detail', text='Edit', args=[A('pk')])
+    edit = tables.LinkColumn('person-detail', text='Edit', args=[A('pk')], orderable=False)
     dob = tables.columns.DateColumn(settings.DATE_FORMAT)
+    selection = tables.CheckBoxColumn(accessor='pk',
+                                      attrs={ "th__input": {"onclick": "toggle(this)"},
+                                              "td__input": {"onclick": "countChecked()",
+                                                            "class": "rowcheckbox"}
+                                            },
+                                      orderable=False)

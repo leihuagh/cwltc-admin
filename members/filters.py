@@ -56,8 +56,7 @@ class PersonFilter(django_filters.FilterSet):
                                           )
     state = django_filters.ChoiceFilter(choices=Person.STATES,
                                         empty_label=None)
-
-
+    
 class JuniorFilter(django_filters.FilterSet):
 
     class Meta:

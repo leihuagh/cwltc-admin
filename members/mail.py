@@ -48,14 +48,43 @@ def do_mail(request, invoice, option):
         invoice.save()
     return count
 
+def send_multiple_mails(request, person_queryset, text, from_email,
+                        cc=None, bcc=None, subject="", mail_types=None):
+    count = 0
+    count_unsub = 0
+    count_bad = 0
+    count_dups = 0
+    sent_list = []
 
+    for person in person_queryset:
+        result = send_template_mail(request=request,
+                                    person=person,
+                                    text=text,
+                                    from_email=from_email,
+                                    cc=cc,
+                                    bcc=bcc,
+                                    subject=subject,
+                                    mail_types=mail_types,
+                                    sent_list=sent_list)
+        if result == 'sent':
+            count += 1
+        elif result == 'unsubscribed':
+            count_unsub +=1
+        elif result == 'duplicate':
+            count_dups += 1
+        else:
+            count_bad += 1
+    return u'Sent: {}, Unsubscribed: {}, Duplicates: {}, No email address: {}'.format(
+            count, count_unsub, count_dups, count_bad)
 
-
-def send_template_mail(request, person, text, from_email, cc=None, bcc=None, subject="", mail_types=None, sent_list=[]):
-    
+def send_template_mail(request, person, text,
+                       from_email, cc=None, bcc=None, subject="",
+                       mail_types=None, sent_list=None):
+    if sent_list is None:
+        sent_list = []
     to = person.email
     recipient = person
-    child =None
+    child = None
     if person.linked:
         if person.membership_id == Membership.JUNIOR or person.membership_id == Membership.CADET:
             recipient = person.linked
@@ -82,7 +111,9 @@ def send_template_mail(request, person, text, from_email, cc=None, bcc=None, sub
             for inv in unpaid_invoices:
                 total_unpaid += inv.total
                 token = signer.sign(inv.id)
-                invoice_urls.append(request.build_absolute_uri(reverse('invoice-public', args=(token,))))
+                url= request.build_absolute_uri(reverse('invoice-public', args=(token,)))
+                anchor ='<a href="' + url + '">Invoice ' + str(inv.id) + '</a>'
+                invoice_urls.append(anchor)
         context = Context({
             'first_name':recipient.first_name,
             'last_name': recipient.last_name,

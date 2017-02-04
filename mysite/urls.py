@@ -67,7 +67,10 @@ urlpatterns = [
         GroupAddPersonView.as_view(),
         name='group-add-person'
     ),
-    
+    url(r'^groups/addlist/$',
+        GroupAddListView.as_view(),
+        name='group-add-list'
+    ),
     #   GO CARDLESS
     url(r'^gocardless/confirm/$',
         GCConfirm.as_view(template_name = "gc_app/success.html"),
@@ -340,6 +343,10 @@ urlpatterns = [
     url(r'^email/$',
         EmailView.as_view(),
         name='email'
+    ),
+    url(r'^email/selection/$',
+        EmailView.as_view(selection=True),
+        name='email-selection'
     ),
     url(r'^email/person/(?P<person>\d+)/$',
         EmailView.as_view(),

@@ -48,19 +48,37 @@ class FilteredMembersTableView(LoginRequiredMixin, SingleTableView):
     def post(self, request, *args, **kwargs):
         people = Person.objects.all().order_by('first_name')
         people.query = pickle.loads(request.session['my_qs'])
-        if 'export' in request.POST:
-            return export_people('People', people.query)
-
-    def get_queryset(self, **kwargs):
-        return None
-    
+        selected_objects = people.query.filter(pk__in=request.POST.getlist('selection'))
+        request.session['selected_people_ids'] = request.POST.getlist('selection')
+        request.session['source'] = 'juniors-list' if self.juniors else 'members-list'
+        action = request.POST['action']
+        if action == 'none':
+            return redirect(request.session['source'])
+        if action == 'group':
+            return redirect('group-add-list')
+        if action == 'export':
+            response = export_people('People', selected_objects)
+            self.request.session['selected_people_ids'] = []
+            return response
+        if action == 'mail':
+            return redirect('email-selection')
+        return redirect('home')
+ 
     def get_table_data(self):
         qs = Person.objects.all()
         if self.juniors:
             qs = Person.objects.filter(sub__membership__is_adult=False)
         else:
             qs = Person.objects.all()
-        self.filter = self.filter_class(self.request.GET,
+        
+        # Set default filter state for first request
+        # Note request.GET QueryDictionary is immuatble so we need to copy it
+        data = self.request.GET.copy()
+        if len(data) == 0:
+            data['paid'] = True
+            data['year'] = Settings.current().membership_year
+            data['state'] = Person.ACTIVE
+        self.filter = self.filter_class(data,
                                         qs
                                         .order_by('first_name')
                                         .select_related('sub')
@@ -518,7 +536,8 @@ class GroupAddPersonView(LoginRequiredMixin, FormView):
         context = super(GroupAddPersonView, self).get_context_data(**kwargs)
         self.person = Person.objects.get(pk=self.kwargs['person_id'])
         context['message'] = self.person.fullname()
-        return super(GroupAddPersonView, self).get_context_data(**kwargs)
+        context['title'] = "Add " + self.person.fullname() + " to group"
+        return context
 
     def form_valid(self, form):
         person = Person.objects.get(pk=self.kwargs['person_id'])
@@ -530,9 +549,34 @@ class GroupAddPersonView(LoginRequiredMixin, FormView):
             person.groups.add(self.group)
             return super(GroupAddPersonView, self).form_valid(form)
 
-
     def get_success_url(self):
         return reverse('group-detail', kwargs={'pk':self.group.id})
+
+class GroupAddListView(LoginRequiredMixin, FormView):
+    form_class = GroupAddPersonForm
+    template_name = 'members/generic_crispy_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(GroupAddListView, self).get_context_data(**kwargs)
+        selection = self.request.session['selected_people_ids']
+        if selection:
+            context['message'] = '{} people are selected'.format(len(selection))
+        else:
+            context['message'] = "No selected people"
+        context['title'] = "Add selected people to group"
+        return context
+
+    def form_valid(self, form):
+        group = form.cleaned_data['group']
+        if 'cancel' in form.data:
+            return redirect('members-list')
+
+        if 'submit' in form.data:                 
+            selection = self.request.session['selected_people_ids']
+            if selection:
+                group_add_list(group, selection)
+                self.request.session['selected_people_ids'] = []
+        return redirect('group-detail', pk=group.id)
 
 # ============== Subscriptions
 
@@ -1997,6 +2041,13 @@ class TextBlockUpdateView(LoginRequiredMixin, UpdateView):
             block = self.get_object()
             block.delete()
         return redirect(reverse('text-list'))
+
+    def form_invalid(self, form):
+        if 'delete' in form.data:
+            block = self.get_object()
+            block.delete()
+            return redirect(reverse('text-list'))
+        return super(TextBlockUpdateView, self).form_invalid(form)
     
 class TextBlockListView(LoginRequiredMixin, ListView):
     model = TextBlock               
@@ -2007,12 +2058,22 @@ class TextBlockListView(LoginRequiredMixin, ListView):
 class EmailView(LoginRequiredMixin, FormView):
     form_class = EmailForm
     template_name = 'members/email.html'
+    selection = False
    
     def get_context_data(self, **kwargs):
         context = super(EmailView, self).get_context_data(**kwargs) 
-        target = 'Send email'
-             
+        target = 'Send email'          
         context['title'] = target
+        blocks = TextBlock.objects.all()
+        try:
+            value_list=[]
+            for block in blocks:
+                dict_entry = { "text": "'" + block.name + "'", "value": "'" + str(block.id) + "'" }
+                json_entry = json.dumps(dict_entry).replace('"','')
+                value_list.append(json_entry)
+            context['blocks'] = value_list
+        except:
+            pass
         return context
 
     def get_form_kwargs(self):
@@ -2026,7 +2087,8 @@ class EmailView(LoginRequiredMixin, FormView):
         self.campaign_id = self.kwargs.get('campaign', 0)
         kwargs = super(EmailView,self).get_form_kwargs()
         kwargs.update({'to': self.to,
-                       'group': self.group})
+                       'group': self.group,
+                       'selection': self.selection})
   
         return kwargs
 
@@ -2043,7 +2105,7 @@ class EmailView(LoginRequiredMixin, FormView):
         initial['group'] = self.kwargs.get('group', '-1')
         initial['from_email'] = getattr(settings, 'SUBS_EMAIL')
         initial['subject'] = "Coombe Wood LTC membership"
-
+        initial['selected'] = self.selection
         initial['text'] = """Dear {{first_name}}"""
         campaign_id = self.kwargs.get('campaign', 0)
         if campaign_id: 
@@ -2072,6 +2134,7 @@ class EmailView(LoginRequiredMixin, FormView):
         from_email = form.cleaned_data['from_email']
         to = form.cleaned_data['to']
         group_id = form.cleaned_data['group']
+        selection = form.cleaned_data['selected']
         text =  form.cleaned_data['text']
         subject = form.cleaned_data['subject']
         mail_type_list = []
@@ -2090,99 +2153,25 @@ class EmailView(LoginRequiredMixin, FormView):
                                         mail_types=mail_types)
             
             messages.info(self.request, result)
-            return redirect(
-                reverse('person-detail', kwargs={'pk': self.person.id}) 
-                )
-        
-        elif group_id <> '-1':
+            return redirect('person-detail', pk=self.person.id)
+
+        elif group_id <> '':
             group = Group.objects.get(pk=group_id)
-            count = 0
-            count_unsub = 0
-            count_bad = 0
-            count_dups = 0
-            sent_list = []
-            for person in group.person_set.all():
-                result = send_template_mail(request=self.request,
-                                            person=person,
-                                            text=text,
-                                            from_email=from_email,
-                                            subject=subject,
-                                            mail_types=mail_types,
-                                            sent_list=sent_list)
-                if result == 'sent':
-                    count += 1
-                elif result == 'unsubscribed':
-                    count_unsub +=1
-                elif result == 'duplicate':
-                    count_dups += 1
-                else:
-                    count_bad += 1
-            message = u'Sent: {}, Unsubscribed: {}, Duplicates: {}, No email address: {}'.format(
-                count, count_unsub, count_dups, count_bad)
-            messages.info(self.request, message)
-            return redirect(
-                reverse('group-detail', kwargs={'pk': group_id})
-                )
-
+            result = send_multiple_mails(self.request, group.person_set.all(),
+                                         text, from_email, None, None, subject, mail_types)
+            messages.info(self.request, result)
+            return redirect('group-detail', pk=group_id)
+                                    
+        elif selection:
+            id_list = self.request.session['selected_people_ids']
+            result = send_multiple_mails(self.request, Person.objects.filter(pk__in=id_list),
+                                         text, from_email, None, None, subject, mail_types)
+            self.request.session['selected_people_ids'] = []
+            messages.info(self.request, result)
+            return redirect(self.request.session['source'])
+       
         else:
-            return redirect(
-                reverse('email_form') 
-                )
-
-        return super(EmailView, self).post(request, *args, **kwargs)
-
-
-    #def post(self, request, *args, **kwargs):
-    #    form = self.get_form(self.form_class)
-    #    if form.is_valid():
-    #        from_email = form.cleaned_data['from_email']
-    #        to = form.cleaned_data['to']
-    #        group_id = form.cleaned_data['group']  
-    #        template = Template(form.cleaned_data['text'])
-    #        subject=form.cleaned_data['subject']
-    #        #preview = "preview" in request.post
-
-
-    #        if self.person:
-    #            if send_template_mail(person=self.person,
-    #                                template=template,
-    #                                from_email=from_email,
-    #                                subject=subject):
-    #                messages.info(self.request, u'Email sent')
-    #            else:
-    #                messages.error(self.request, u'No email address')
-    #            return redirect(
-    #                reverse('person-detail', kwargs={'pk': self.person.id}) 
-    #                )
-        
-    #        elif group_id <> '-1':
-    #            group = Group.objects.get(pk=group_id)
-    #            count = 0
-    #            count_bad = 0
-    #            for person in group.person_set.all():
-    #                if send_template_mail(person=person,
-    #                                    template=template,
-    #                                    from_email=from_email,
-    #                                    subject=subject):
-    #                    count += 1
-    #                else:
-    #                    count_bad += 1
-    #            message = u'{} emails sent, {} had no email address'.format(count, count_bad)
-    #            messages.info(self.request, message)
-    #            return redirect(
-    #                reverse('group-detail', kwargs={'pk': group_id})
-    #                )
-
-    #        else:
-    #            return redirect(
-    #                reverse('email_form') 
-    #                )
-
-    #        return super(EmailView, self).post(request, *args, **kwargs)
-    #    raise Http404("Bad data in email form")
-
-    def get_success_url(self):
-        return reverse('email_form') 
+            return redirect('home')
 
 class ImportExcelMore(LoginRequiredMixin, FormView):
     form_class = XlsMoreForm

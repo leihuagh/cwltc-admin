@@ -815,20 +815,18 @@ class EmailForm(Form):
     from_email = forms.EmailField(required=True)
     to = forms.EmailField(required=False)
     group = forms.ChoiceField(required=False)
+    selected = forms.BooleanField(required=False)
     cc = forms.CharField(required=False)
     bcc = forms.CharField(required=False)
     subject =forms.CharField(required=True)
     text = forms.CharField(required=True, widget=Textarea )
     mailtype = forms.ModelMultipleChoiceField(queryset=MailType.objects.all(),
                                          required=True)
-    block = forms.ModelChoiceField(queryset=TextBlock.objects.all(),
-                                        empty_label=None,
-                                        required=False) 
-
     def __init__(self, *args, **kwargs):
         to = kwargs.pop('to', '')
-        group = kwargs.pop('group','')
-        text = kwargs.pop('text','')
+        group = kwargs.pop('group', '')
+        text = kwargs.pop('text', '')
+        selection = kwargs.pop('selection' ,False)
         super(EmailForm, self).__init__(*args, **kwargs)
         choices = [(-1, u'None')] + [(x.id, x.slug) for x in Group.objects.order_by('slug')]
         self.fields['group'].choices = choices
@@ -837,24 +835,21 @@ class EmailForm(Form):
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-sm-2'
         self.helper.field_class = 'col-sm-6'
-
+        self.fields['selected'].widget = HiddenInput()
         if to:
-            div=Div('from_email',
-                    'to')
-        elif group:
-            div=Div('from_email',
-                    'group')
+            my_fields = Div('from_email', 'to')
+        elif group <> '-1':
+            my_fields = Div('from_email', 'group')
+        elif selection:
+            my_fields = Div('from_email')
         else:
-            div=Div('from_email',
-                    'to',
-                    'group')
-        div.fields.extend(['subject','text', 'block', 'mailtype'])
+            my_fields = Div('from_email', 'to', 'group')
+        my_fields.fields.extend(['selected','subject','text', 'mailtype' ])
 
         self.helper.layout = Layout(
-            div,
-            ButtonHolder(
-                Submit('send', 'Send', css_class='btn-primary'),
-                Button('insert','Insert text')
+            my_fields,
+            FormActions(
+                Submit('send', 'Send', css_class='btn-primary')
             )
         )
 
