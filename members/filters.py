@@ -1,85 +1,77 @@
 from datetime import *
-from .models import Person, Membership, Settings
+from .models import Person, Membership, Settings, Subscription
 import django_filters
 from django.forms.widgets import *
 
 def year_choices():
     choices = []
     year = Settings.current().membership_year
-    for y in range(year, year-5, -1):
+    for y in range(year+1, year-5, -1):
         choices.append([y, str(y)])
     return choices
 
-def members_queryset(juniors):
-    if juniors:
-        return Membership.objects.filter(is_adult=False)      
-    else:
-        return Membership.objects.all()
+PAID_CHOICES = (
+    (False, "Not paid"),
+    (True, "Paid")
+    )
 
-class PersonFilter(django_filters.FilterSet):
+class SubsBaseFilter(django_filters.FilterSet):
 
     class Meta:
-        model = Person
-        fields = {'first_name': ['istartswith',],
-                  'last_name' : ['istartswith'],
-                  } 
+        model = Subscription
+        fields = {
+                  'person_member__email':['icontains']}
   
-    first_name = django_filters.CharFilter(lookup_expr='istartswith')
-    last_name = django_filters.CharFilter(lookup_expr='istartswith')
-    dob1 = django_filters.DateFilter(name='dob',
+    first_name = django_filters.CharFilter(name='person_member__first_name',
+                                           lookup_expr='istartswith',
+                                           label = 'First name starts'
+                                           )
+    last_name = django_filters.CharFilter(name='person_member__last_name',
+                                          lookup_expr='istartswith',
+                                          label='Last name starts'
+                                          )
+
+    membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.filter(),
+                                                required=None,
+                                                label="Membership",
+                                                to_field_name="description",
+                                                empty_label="No filter"
+                                                )
+    paid = django_filters.ChoiceFilter(name='paid',
+                                       label = 'Subscription',
+                                       choices=PAID_CHOICES,
+                                       empty_label='Paid & unpaid'
+                                       )
+                                     
+class JuniorFilter(SubsBaseFilter):
+
+
+    dob1 = django_filters.DateFilter(name='person_member__dob',
                                      label='Born after',
                                      lookup_expr='gt')
-    dob2 = django_filters.DateFilter(name='dob',
+    dob2 = django_filters.DateFilter(name='person_member__dob',
                                      label='Born before',
                                      lookup_expr='lt')
-    paid = django_filters.BooleanFilter(name='sub__paid',
-                                        label = 'Paid',
-                                        lookup_expr='exact'
-                                        )
-    year = django_filters.ChoiceFilter(name='sub__sub_year',
+    membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.filter(is_adult=False),
+                                                  required=None,
+                                                  label="Junior membership",
+                                                  to_field_name="description",
+                                                  empty_label="Juniors & cadets"
+                                                 )
+class SubsFilter(SubsBaseFilter):
+
+    year = django_filters.ChoiceFilter(name='sub_year',
                                        label='Year',
                                        empty_label=None,
                                        choices=year_choices()
-                                      )
-    membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.all(),
-                                                  required=None,
-                                                  label="Membership",
-                                                  to_field_name="description",
-                                                  empty_label="No filter"
-                                                 )
+                                    )
 
-    adult = django_filters.BooleanFilter(name='sub__membership__is_adult',
+    adult = django_filters.BooleanFilter(name='membership__is_adult',
                                          label='Adult',
                                         )
-    playing = django_filters.BooleanFilter(name='sub__membership__is_playing',
+    playing = django_filters.BooleanFilter(name='membership__is_playing',
                                            label='Playing',
                                           )
-    state = django_filters.ChoiceFilter(choices=Person.STATES,
+    state = django_filters.ChoiceFilter(name='person_member__state',
+                                        choices=Person.STATES,
                                         empty_label=None)
-    
-class JuniorFilter(django_filters.FilterSet):
-
-    class Meta:
-        model = Person
-        fields = {'first_name': ['istartswith',],
-                  'last_name' : ['istartswith'],
-                  } 
-  
-    first_name = django_filters.CharFilter(lookup_expr='istartswith')
-    last_name = django_filters.CharFilter(lookup_expr='istartswith')
-    dob1 = django_filters.DateFilter(name='dob',
-                                     label='Born after',
-                                     lookup_expr='gt')
-    dob2 = django_filters.DateFilter(name='dob',
-                                     label='Born before',
-                                     lookup_expr='lt')
-    paid = django_filters.BooleanFilter(name='sub__paid',
-                                        label = 'Paid',
-                                        lookup_expr='exact'
-                                        )
-    membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.filter(is_adult=False) ,
-                                                  required=None,
-                                                  label="Membership",
-                                                  to_field_name="description",
-                                                  empty_label="No filter"
-                                                 )

@@ -20,7 +20,7 @@ class Command(BaseCommand):
                 count2 += 1
             sub.person_member.save()
             count += 1
-            if sub.membership.id == Membership.LIFE or sub.membership.id == Membership.HON_LIFE:
+            if sub.membership.id == Membership.LIFE or sub.membership.id == Membership.HON_LIFE or sub.membership.id == Membership.COACH:
                 sub.paid = True
                 sub.save()
                 count1 += 1

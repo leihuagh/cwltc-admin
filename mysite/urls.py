@@ -12,11 +12,10 @@ from gc_app.views import *
 from members.viewsets import *
 from django_filters.views import FilterView
 
-# Uncomment the next lines to enable the admin:
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 admin.autodiscover()
-from members.tables import PersonTable
+from members.tables import *
 from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -230,42 +229,45 @@ urlpatterns = [
 
     #   PEOPLE
 
-    url(r'^members/$', FilteredMembersTableView.as_view(
-        table_class=PersonTable,
-        model=Person,
+    url(r'^people/members/$', SubsTableView.as_view(
+        table_class=SubsTable,
+        model=Subscription,
+        members=True,
         template_name='members/person_list.html',
-        filter_class=PersonFilter,
+        filter_class=SubsFilter,
         table_pagination={ "per_page":10000 } ),
         name='members-list'),
 
-    url(r'^members/juniors/$', FilteredMembersTableView.as_view(
-        table_class=PersonTable,
-        model=Person,
+    url(r'^people/juniors/$', SubsTableView.as_view(
+        table_class=SubsTable,
+        model=Subscription,
         juniors=True,
         template_name='members/person_list.html',
         filter_class=JuniorFilter,
         table_pagination={ "per_page":10000 } ),
         name='juniors-list'),
 
-    url(r'^list$',
+    url(r'^people/parents/$', SubsTableView.as_view(
+        table_class=PersonTable,
+        model=Person,
+        parents=True,
+        template_name='members/person_list.html',
+        filter_class=JuniorFilter,
+        table_pagination={ "per_page":10000 } ),
+        name='parents-list'
+    ),
+    url(r'^people/all/$', SubsTableView.as_view(
+        table_class=PersonTable,
+        model=Person,
+        parents=True,
+        template_name='members/person_list.html',
+        filter_class=JuniorFilter,
+        table_pagination={ "per_page":10000 } ),
+        name='all-people-list'
+    ),
+    url(r'^list/$',
        PersonList.as_view(),
        name='person-list'
-    ),
-    url(r'^people/$',
-       FilteredPersonListAjax.as_view(),
-       name='filteredperson-list'
-    ),
-    url(r'^people/(?P<tags>[\w\+]+)/$',
-       FilteredPersonListAjax.as_view(),
-       name='filteredperson-list-tags'
-    ),
-    url(r'^membersold/$',
-       MembersListView.as_view(),
-       name='members-old'
-    ),
-    url(r'^juniorsOld/$',
-        JuniorListView.as_view(),
-        name='juniors-old'
     ),
     url(r'^(?P<pk>\d+)/$',
        PersonDetailView.as_view(),

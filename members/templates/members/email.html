@@ -1,49 +1,4 @@
 ﻿{% extends "members/layout.html" %}
-{% block head %}
-<script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
-  <script>
-      tinymce.init({
-          selector: '#id_text',
-          height : 300,
-          width: 800,
-
-          browser_spellcheck: true,
-          plugins: 'code advlist autolink link image lists charmap print preview',
-
-          toolbar1: 'undo redo | styleselect, formatselect, fontselect, fontsizeselect, mybutton',
-          toolbar2: 'bold, italic, underline | alignleft, aligncenter, alignright, alignjustify | cut, copy, paste | bullist, numlist | outdent, indent',
-
-          setup: function(editor) {
-              editor.addButton('mybutton', {
-                  text: "Insert text",
-                  onclick: function () {
-                      editor.windowManager.open({
-                          title: 'Text block',
-                          width: 270,
-                          height: 200,
-                          body: [
-                                 {
-                                  type: 'listbox',
-                                  name: 'textblockid',  
-                                  label: 'Select :',
-                                  'values': [
-                                    {% for block in blocks %}
-                                    {{ block|safe }},
-                                    {% endfor %}
-                                  ]
-                              }
-                          ],
-                          onsubmit: function(e) {
-                              getBlock(e.data.textblockid);
-                            }
-                        }
-                      )
-                   }
-                }
-            )
-      }});
-  </script>
-{% endblock %}
 
 {% block content %}
     {% load crispy_forms_tags %}
@@ -52,8 +7,50 @@
 {% endblock %}
 
 {% block scripts %}
-
+<script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
 <script type="text/javascript">
+
+    tinymce.init({
+        selector: '#id_text',
+        height : 300,
+        width: 800,
+
+        browser_spellcheck: true,
+        plugins: 'code advlist autolink link image lists charmap print preview',
+
+        toolbar1: 'undo redo | styleselect, formatselect, fontselect, fontsizeselect, mybutton',
+        toolbar2: 'bold, italic, underline | alignleft, aligncenter, alignright, alignjustify | cut, copy, paste | bullist, numlist | outdent, indent',
+
+        setup: function(editor) {
+            editor.addButton('mybutton', {
+                text: "Insert text",
+                onclick: function () {
+                    editor.windowManager.open({
+                        title: 'Text block',
+                        width: 300,
+                        height: 150,
+                        body: [
+                               {
+                                   type: 'listbox',
+                                   name: 'textblockid',  
+                                   label: 'Select :',
+                                   'values': [
+                                     {% for block in blocks %}
+                                     {{ block|safe }},
+                                     {% endfor %}
+                                     ]
+                               }
+                        ],
+                        onsubmit: function(e) {
+                            getBlock(e.data.textblockid);
+                        }
+                    }
+                    )
+                }
+            }
+          )
+        }});
+
 
     // AJAX to get a block of text for insertion
     function getBlock(id) {

@@ -15,6 +15,7 @@ if ON_PAAS:
     DEBUG =  'DEBUG' in os.environ
     SECRET_KEY = os.environ['OPENSHIFT_SECRET_TOKEN']
     ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
+    SECURE_SSL_REDIRECT = True
     if os.environ['OPENSHIFT_APP_NAME'] == "admin":
         PRODUCTION = True
         #DEBUG = False
@@ -37,8 +38,6 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'import_export',
     'crispy_forms',
-    'django_wysiwyg',
-    'tinymce',
     'widget_tweaks',
 	'members',
     'gc_app',
@@ -60,9 +59,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
-
-if ON_PAAS:
-    SECURE_SSL_REDIRECT = True
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),

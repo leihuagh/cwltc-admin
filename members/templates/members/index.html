@@ -16,7 +16,7 @@
     <p>
     Membership year: {{ membership_year }}
     </p>
-    <p><a href="/members" class="btn btn-primary btn-large">Members list &raquo;</a></p>
+    <p><a href={% url 'members-list' %} class="btn btn-primary btn-large">Members list &raquo;</a></p>
     <p><a href="/select" class="btn btn-primary btn-large">Go to person or invoice &raquo;</a></p>
 </div>
 

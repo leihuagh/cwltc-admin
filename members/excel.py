@@ -499,51 +499,54 @@ def export_people(sheetName, people, option=""):
     'Mobile phone',
     'Email',
     'Year joined',
-    'Membership'
-    'Paid'
+    'Membership',
+    'Paid',
+    'Resigned'
     ]
     for col_num in xrange(len(columns)):
         sheet.write(0, col_num, columns[col_num].decode('utf-8','ignore'))     
                    
     row_num = 0
     for person in people:
-        if person.state ==Person.ACTIVE:
-            mem_id = person.membership_id
-            if not mem_id:
-                mem_id = Membership.NON_MEMBER
-                category = Membership.objects.get(pk=mem_id).description
+        valid = False
+        if option == 'bar':
+            if not mem_id in Membership.NO_BAR_ACCOUNT:
+                valid = True
+        else:
+            valid=True
+        if valid:
+            row_num += 1
+            address = person.address              
+            joined = date.today()
+            if person.date_joined:
+                joined = person.date_joined
+            if person.sub:
+                desc = person.sub.membership.description
+                paid = person.sub.paid
+                resigned = sub.resigned
             else:
-                category = person.membership.description
-            valid = False
-            if option == 'bar':
-                if not mem_id in Membership.NO_BAR_ACCOUNT:
-                    valid = True
-            else:
-                valid=True
-            if valid:
-                row_num += 1
-                address = person.address              
-                joined = date.today()
-                if person.date_joined:
-                    joined = person.date_joined
-                row = [
-                    person.id,
-                    person.gender,   
-                    person.first_name,
-                    person.last_name,
-                    address.address1,
-                    address.address2,
-                    address.town,
-                    address.post_code,
-                    address.home_phone,
-                    person.mobile_phone, 
-                    person.email,      
-                    joined.year,
-                    person.sub.membership.description,
-                    person.sub.paid
-                ]
-                for col_num in xrange(len(row)):
-                    sheet.write(row_num, col_num, row[col_num]) 
+                desc = "No sub"
+                paid = False
+            row = [
+                person.id,
+                person.state,
+                person.gender,   
+                person.first_name,
+                person.last_name,
+                address.address1,
+                address.address2,
+                address.town,
+                address.post_code,
+                address.home_phone,
+                person.mobile_phone, 
+                person.email,      
+                joined.year,
+                desc,
+                paid,
+                resigned
+            ]
+            for col_num in xrange(len(row)):
+                sheet.write(row_num, col_num, row[col_num])
     book.save(response)
     return response   
 

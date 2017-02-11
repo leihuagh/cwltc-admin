@@ -57,8 +57,8 @@
                         {% endif %}
                     </div>
                 </div>
-            </div><!--/col-->
-
+            </div>
+            <!-- Address panel -->
             <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">Address</div>
@@ -75,8 +75,8 @@
                         </a>
                     </div>
                 </div>
-            </div><!--/col-->
-            <!-- Family -->
+            </div>
+            <!-- Family panel -->
             <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">Family</div>
@@ -120,8 +120,9 @@
                 </div>
             </div><!--/col-->
         </div><!--/row-->
-
+        
         <div class="row">
+            <!-- Subscription panel -->
             <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">Current subscription</div>
@@ -153,7 +154,7 @@
                             {% if sub.has_paid_invoice %}
                                 <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change subscription</a>
                             {% else %}
-                                <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-sm">Edit current sub</a>
+                                <a href="{% url "sub-update" pk=sub.id %}" class="btn btn-primary btn-sm">Edit current sub</a>
                             {% endif %}
                         {% else %}
                             <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New subscription</a>
@@ -164,6 +165,7 @@
                     </div>
                 </div>
             </div><!--/col-->
+            <!-- Groups panel -->
             <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">Groups</div>
@@ -182,6 +184,7 @@
                     </div>
                 </div>
             </div><!--/col-->
+            <!-- Unsubscribed panel -->
             <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">Unsubscribed list</div>

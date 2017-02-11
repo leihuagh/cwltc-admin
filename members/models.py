@@ -27,7 +27,7 @@ class Address(models.Model):
     def get_absolute_url(self):
         return reverse("person-detail", kwargs={"pk": self.pk})
 
-class ParentsManager(models.Manager):
+class ParentsManagerOld(models.Manager):
     def get_queryset(self):
         kids = Person.objects.filter(
             Q(membership_id = Membership.CADET) |
@@ -39,6 +39,12 @@ class ParentsManager(models.Manager):
                 if not kid.linked_id in parent_set:
                     parent_set.add(kid.linked_id)
         parents = Person.objects.filter(id__in=parent_set)
+        return parents
+
+class ParentsManager(models.Manager):
+    def get_queryset(self):
+        kids =  Person.objects.filter(sub__membership__is_adult=False).values_list('linked_id')
+        parents = Person.objects.filter(id__in=kids)
         return parents
 
 class Group(models.Model):
@@ -120,6 +126,10 @@ class Person(models.Model):
         if subs.count() == 1:
             return subs[0]
         return None
+
+    def current_sub(self):
+        year = Settings.current().membership_year
+        return active_sub(year)
     
     def invoices(self, state):
         return self.invoice_set.filter(state=state).order_by('update_date')                           

@@ -546,8 +546,6 @@
     <Compile Include="members\forms.py" />
     <Compile Include="members\ftpService.py" />
     <Compile Include="members\mail.py" />
-    <Compile Include="members\migrations\0001_initial.py" />
-    <Compile Include="members\migrations\__init__.py" />
     <Compile Include="members\models.py" />
     <Compile Include="members\subs.py" />
     <Compile Include="members\templatetags\members_extras.py" />
@@ -569,7 +567,6 @@
     <Folder Include="gc_app\templates\gc_app\" />
     <Folder Include="members" />
     <Folder Include="members\management\commands\" />
-    <Folder Include="members\migrations" />
     <Folder Include="members\management\" />
     <Folder Include="members\static\" />
     <Folder Include="members\static\members\" />

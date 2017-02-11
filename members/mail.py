@@ -7,7 +7,7 @@ from django.core.signing import Signer
 from django.core.urlresolvers import reverse
 from django.http import HttpRequest
 import requests 
-from .models import Invoice, TextBlock, MailType, Membership
+from .models import Invoice, TextBlock, MailType, Membership, Settings
 
 mailgun_api_key = 'key-44e941ede1264ea215021bb0b3634eb4'
 mailgun_api_url = 'https://api.mailgun.net/v3/mg.coombewoodltc.co.uk'
@@ -55,7 +55,7 @@ def send_multiple_mails(request, person_queryset, text, from_email,
     count_bad = 0
     count_dups = 0
     sent_list = []
-
+    year = Settings.current().membership_year
     for person in person_queryset:
         result = send_template_mail(request=request,
                                     person=person,
@@ -65,7 +65,8 @@ def send_multiple_mails(request, person_queryset, text, from_email,
                                     bcc=bcc,
                                     subject=subject,
                                     mail_types=mail_types,
-                                    sent_list=sent_list)
+                                    sent_list=sent_list,
+                                    year=year)
         if result == 'sent':
             count += 1
         elif result == 'unsubscribed':
@@ -79,16 +80,18 @@ def send_multiple_mails(request, person_queryset, text, from_email,
 
 def send_template_mail(request, person, text,
                        from_email, cc=None, bcc=None, subject="",
-                       mail_types=None, sent_list=None):
+                       mail_types=None, sent_list=None, year=0):
     if sent_list is None:
         sent_list = []
-    to = person.email
+    if year == 0:
+        year = Settings.current().membership_year
     recipient = person
     child = None
     if person.linked:
-        if person.membership_id == Membership.JUNIOR or person.membership_id == Membership.CADET:
+        if not person.active_sub(year).membership.is_adult:
             recipient = person.linked
             child = person
+    to = recipient.email
     positive = False
     negative = False
 
@@ -132,6 +135,8 @@ def send_template_mail(request, person, text,
             try:          
                 send_htmlmail(from_email='Coombe Wood LTC <' + from_email + '>',
                                 to=recipient.email,
+                                cc=cc,
+                                bcc=bcc,
                                 subject=subject,
                                 html_body=html_body)
                 return 'sent'

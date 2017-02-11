@@ -30,25 +30,34 @@ import ftpService
 import xlrd
 import json
 from report_builder.models import Report
-from .filters import PersonFilter, JuniorFilter
+from .filters import *
 from django_tables2 import SingleTableView, RequestConfig
 import pickle
+#from crispy_forms.helper import FormHelper, Layout, Row
 
 def search(request):
     person_list = Person.objects.all()
     person_filter = PersonFilter(request.GET, queryset=person_list)
     return render(request, 'members/person_list.html', {'filter': person_filter})
 
-class FilteredMembersTableView(LoginRequiredMixin, SingleTableView):
+
+class SubsTableView(LoginRequiredMixin, SingleTableView):
     #http://stackoverflow.com/questions/13611741/django-tables-column-filtering/15129259#15129259
   
     filter_class = None
     juniors = False
+    parents = False
+    members = False
 
     def post(self, request, *args, **kwargs):
-        people = Person.objects.all().order_by('first_name')
-        people.query = pickle.loads(request.session['my_qs'])
-        selected_objects = people.query.filter(pk__in=request.POST.getlist('selection'))
+        '''
+        POST builds a list of selected people ids in a session variable
+        and calls the action routine
+        '''
+        #people = Person.objects.all().order_by('first_name')
+        #people.query = pickle.loads(request.session['my_qs'])
+        #selected_objects = people.query.filter(pk__in=request.POST.getlist('selection'))
+
         request.session['selected_people_ids'] = request.POST.getlist('selection')
         request.session['source'] = 'juniors-list' if self.juniors else 'members-list'
         action = request.POST['action']
@@ -57,56 +66,53 @@ class FilteredMembersTableView(LoginRequiredMixin, SingleTableView):
         if action == 'group':
             return redirect('group-add-list')
         if action == 'export':
-            response = export_people('People', selected_objects)
+            selected_people = Person.objects.filter(
+                pk__in=request.POST.getlist('selection')
+                    ).select_related(
+                    'sub'
+                    ).select_related(
+                    'sub__membership'
+                    )
+
+                                                    
             self.request.session['selected_people_ids'] = []
-            return response
+            return export_people('People', selected_people)
+
         if action == 'mail':
             return redirect('email-selection')
         return redirect('home')
  
     def get_table_data(self):
-        qs = Person.objects.all()
-        if self.juniors:
-            qs = Person.objects.filter(sub__membership__is_adult=False)
-        else:
-            qs = Person.objects.all()
+        year = Settings.current().membership_year
+        qs = Subscription.objects.filter(active=True
+            ).select_related('membership').select_related('person_member')
         
-        # Set default filter state for first request
-        # Note request.GET QueryDictionary is immuatble so we need to copy it
+        if self.juniors or self.parents:
+            qs = qs.exclude(membership__is_adult=True).filter(
+                sub_year=year).filter(person_member__state=Person.ACTIVE)
+        
+        # set defaults for first time
         data = self.request.GET.copy()
         if len(data) == 0:
             data['paid'] = True
-            data['year'] = Settings.current().membership_year
+            data['year'] = year
             data['state'] = Person.ACTIVE
-        self.filter = self.filter_class(data,
-                                        qs
-                                        .order_by('first_name')
-                                        .select_related('sub')
-                                        .select_related('sub__membership'),
-                                        request=self.request)
-                              
-        self.request.session['my_qs'] = pickle.dumps(self.filter.qs)
+        self.filter = self.filter_class(data, qs, request=self.request)
+
+        if self.parents:
+            kids = self.filter.qs.values_list('person_member__linked_id')
+            return Person.objects.filter(id__in=kids)
+        
+            #self.request.session['my_qs'] = pickle.dumps(self.filter.qs)
         return self.filter.qs
 
     def get_context_data(self, **kwargs):
-        context = super(FilteredMembersTableView, self).get_context_data(**kwargs)
+        context = super(SubsTableView, self).get_context_data(**kwargs)
         context['filter'] = self.filter
+        context['members'] = self.members
         context['juniors'] = self.juniors
+        context['parents'] = self.parents
         return context
-
-class JuniorTableView(FilteredMembersTableView):
-    
-    def get_table_data(self):
-        qs = Person.objects.filter(sub__membership__is_adult=False)
-        self.filter = self.filter_class(self.request.GET,
-                                        qs
-                                        .order_by('first_name')
-                                        .select_related('sub')
-                                        .select_related('sub__membership'),
-                                        request=self.request)
-                              
-        self.request.session['my_qs'] = pickle.dumps(self.filter.qs)
-        return self.filter.qs
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -132,112 +138,112 @@ class PersonList(LoginRequiredMixin, ListView):
         add_membership_context(context)
         return context
 
-class FilteredPersonList(LoginRequiredMixin, ListView):
-    model = Person
-    template_name = 'members/person_table.html'
+#class FilteredPersonList(LoginRequiredMixin, ListView):
+#    model = Person
+#    template_name = 'members/person_table.html'
 
-    def get_queryset(self):
-        if self.kwargs['tags'] == 'families':
-            people = Person.objects.filter(linked__isnull=True)
-            qset = []
-            for p in people:
-                if p.person_set.count() > 0:
-                    qset.append(p)
-        else:
-            tag_ids = self.kwargs['tags'].split('+')
-            tag_list = []
-            for id in tag_ids:
-                tag_list.append(int(id))
-            qset = Person.objects.filter(
-                Q(membership_id__in=tag_list)
-            )
-        return qset
+#    def get_queryset(self):
+#        if self.kwargs['tags'] == 'families':
+#            people = Person.objects.filter(linked__isnull=True)
+#            qset = []
+#            for p in people:
+#                if p.person_set.count() > 0:
+#                    qset.append(p)
+#        else:
+#            tag_ids = self.kwargs['tags'].split('+')
+#            tag_list = []
+#            for id in tag_ids:
+#                tag_list.append(int(id))
+#            qset = Person.objects.filter(
+#                Q(membership_id__in=tag_list)
+#            )
+#        return qset
 
-    def get_context_data(self, **kwargs):
-        context = super(FilteredPersonList, self).get_context_data(**kwargs)
-        fields = self.request.path_info.split('/')
-        tags = self.kwargs['tags']
+#    def get_context_data(self, **kwargs):
+#        context = super(FilteredPersonList, self).get_context_data(**kwargs)
+#        fields = self.request.path_info.split('/')
+#        tags = self.kwargs['tags']
 
-        taglist = fields[2].split('+')
-        if len(taglist) > 0:
-            context['tags'] = 'Filtered by: '
-            for tagid in taglist:
-                if tagid == 'families':
-                    context['tags'] += 'Families, '
-                else:
-                    context['tags'] += Membership.objects.get(pk=tagid).description + ', '
-            context['tags'] = context['tags'][:-2]
-        else:
-            context['tags'] = ''
-        add_membership_context(context)
-        return context
+#        taglist = fields[2].split('+')
+#        if len(taglist) > 0:
+#            context['tags'] = 'Filtered by: '
+#            for tagid in taglist:
+#                if tagid == 'families':
+#                    context['tags'] += 'Families, '
+#                else:
+#                    context['tags'] += Membership.objects.get(pk=tagid).description + ', '
+#            context['tags'] = context['tags'][:-2]
+#        else:
+#            context['tags'] = ''
+#        add_membership_context(context)
+#        return context
 
 
-class FilteredPersonListAjax(LoginRequiredMixin, FormMixin, ListView):
-    model = Person
-    form_class = FilterMemberAjaxForm
-    template_name = 'members/person_table_ajax.html'
+#class FilteredPersonListAjax(LoginRequiredMixin, FormMixin, ListView):
+#    model = Person
+#    form_class = FilterMemberAjaxForm
+#    template_name = 'members/person_table_ajax.html'
 
-    def get(self, request, *args, **kwargs):
-        if kwargs:
-            self.form = FilterMemberAjaxForm(initial={'categories': kwargs['tags']})
-        else:
-            self.form = FilterMemberAjaxForm()
-        self.object_list = []
-        context = self.get_context_data()
-        return self.render_to_response(context)
+#    def get(self, request, *args, **kwargs):
+#        if kwargs:
+#            self.form = FilterMemberAjaxForm(initial={'categories': kwargs['tags']})
+#        else:
+#            self.form = FilterMemberAjaxForm()
+#        self.object_list = []
+#        context = self.get_context_data()
+#        return self.render_to_response(context)
 
-    def post(self, request, *args, **kwargs):
-        ''' POST handles submit and ajax request '''
-        self.form = self.get_form(self.form_class)
-        if self.form.is_valid():
-            cat = int(self.form.cleaned_data['categories'])
-            if cat == 0:
-                qset = Person.objects.select_related().all()
-            elif cat < 100:
-                qset = Person.objects.select_related().filter(membership_id=cat)
-            elif cat == Membership.FAMILIES:
-                non_kids = Person.objects.select_related().filter(linked__isnull=True)
-                plist = []
-                for p in non_kids:
-                    if p.person_set.count() > 0:
-                        cat = p.membership.description if p.membership else ""
-                        qlist = [p.first_name, p.last_name, cat, p.email, p.id]
-                        plist.append(qlist)
-                dict = {"data": plist}
-                return JsonResponse(dict)
+#    def post(self, request, *args, **kwargs):
+#        ''' POST handles submit and ajax request '''
+#        self.form = self.get_form(self.form_class)
+#        if self.form.is_valid():
+#            cat = int(self.form.cleaned_data['categories'])
+#            if cat == 0:
+#                qset = Person.objects.select_related().all()
+#            elif cat < 100:
+#                qset = Person.objects.select_related().filter(membership_id=cat)
+#            elif cat == Membership.FAMILIES:
+#                non_kids = Person.objects.select_related().filter(linked__isnull=True)
+#                plist = []
+#                for p in non_kids:
+#                    if p.person_set.count() > 0:
+#                        cat = p.membership.description if p.membership else ""
+#                        qlist = [p.first_name, p.last_name, cat, p.email, p.id]
+#                        plist.append(qlist)
+#                dict = {"data": plist}
+#                return JsonResponse(dict)
 
-            else:
-                taglist = []
-                if cat == Membership.PLAYING:
-                    taglist = Membership.PLAYING_LIST
-                elif cat == Membership.JUNIORS:
-                    taglist = Membership.JUNIORS_LIST
-                elif cat == Membership.ALL_NONPLAYING:
-                    taglist = Membership.ALL_NONPLAYING_LIST
-                qset = Person.objects.filter(
-                    Q(membership_id__in=taglist)
-                    )
-        else:
-            qset = Person.objects.select_related().all()
+#            else:
+#                taglist = []
+#                if cat == Membership.PLAYING:
+#                    taglist = Membership.PLAYING_LIST
+#                elif cat == Membership.JUNIORS:
+#                    taglist = Membership.JUNIORS_LIST
+#                elif cat == Membership.ALL_NONPLAYING:
+#                    taglist = Membership.ALL_NONPLAYING_LIST
+#                qset = Person.objects.filter(
+#                    Q(membership_id__in=taglist)
+#                    )
+#        else:
+#            qset = Person.objects.select_related().all()
 
-        plist = list(qset.values_list(
-            'first_name',
-            'last_name',
-            'membership__description',
-            'email',
-            'id'
-            ))
-        dict = {"data": plist}
-        return JsonResponse(dict)
+#        plist = list(qset.values_list(
+#            'first_name',
+#            'last_name',
+#            'membership__description',
+#            'email',
+#            'id'
+#            ))
+#        dict = {"data": plist}
+#        return JsonResponse(dict)
 
-    def get_context_data(self, **kwargs):
-        context = super(FilteredPersonListAjax, self).get_context_data(**kwargs)
-        fields = self.request.path_info.split('/')
-        context['tags'] = ''
-        add_membership_context(context)
-        context['form'] = self.form
-        return context
+#    def get_context_data(self, **kwargs):
+#        context = super(FilteredPersonListAjax, self).get_context_data(**kwargs)
+#        fields = self.request.path_info.split('/')
+#        context['tags'] = ''
+#        add_membership_context(context)
+#        context['form'] = self.form
+#        return context
 
 class PersonActionMixin(object):
     """
@@ -365,9 +371,9 @@ def add_membership_context(context):
         mem_dict[mem.id] = mem.description
     context['mem_dict'] = mem_dict
 
-def set_person_context(context, pers):
+def set_person_context(context, person):
     year = Settings.current().membership_year
-    entries = person_get_book_entries(pers, year)
+    entries = person_get_book_entries(person, year)
     statement = []
     balance = 0
     for entry in entries:
@@ -380,30 +386,30 @@ def set_person_context(context, pers):
             balance -= entry.amount
         statement.append((entry, balance))
 
-    context['person'] = pers
-    context['address'] = pers.address
-    context['subs'] = pers.subscription_set.all().order_by('sub_year')
-    context['sub'] = pers.sub
+    context['person'] = person
+    context['address'] = person.address
+    context['subs'] = person.subscription_set.all().order_by('sub_year')
+    context['sub'] = person.sub
     context['statement'] = statement
-    context['invoices'] = pers.invoice_set.all().order_by('update_date')
-    own_items = pers.invoiceitem_set.filter(invoice=None).order_by('update_date')
+    context['invoices'] = person.invoice_set.all().order_by('update_date')
+    own_items = person.invoiceitem_set.filter(invoice=None).order_by('update_date')
     family_items = InvoiceItem.objects.filter(
         invoice=None,
-        person__linked=pers).order_by('update_date')
+        person__linked=person).order_by('update_date')
     context['items'] = own_items | family_items
     parent = None
-    if pers.linked:
-        parent = pers.linked
+    if person.linked:
+        parent = person.linked
     else:
-        if pers.person_set.count() > 0:
-            parent = pers
+        if person.person_set.count() > 0:
+            parent = person
     if parent:
         context['parent'] = parent
         context['children'] = parent.person_set.all()
     context['state_list'] = Invoice.STATES
     context['types'] = Payment.TYPES
     context['payment_states'] = Payment.TYPES
-    context['payments'] = pers.payment_set.all().order_by('update_date')
+    context['payments'] = person.payment_set.all().order_by('update_date')
     return context
 
 class PersonSearchView(LoginRequiredMixin, TemplateView):
@@ -744,285 +750,285 @@ class SubRenewBatch(LoginRequiredMixin, FormView):
 
 # ============ Members list
 
-class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
-    ''' Members with subscriptions '''
-    template_name = 'members/members_list.html'
-    context_object_name = 'subs'
-    form_class = MembersListForm
+#class MembersListView(LoginRequiredMixin, FormMixin, TemplateView):
+#    ''' Members with subscriptions '''
+#    template_name = 'members/members_list.html'
+#    context_object_name = 'subs'
+#    form_class = MembersListForm
 
-    def get(self, request, *args, **kwargs):
-        if kwargs:
-            self.form = self.form_class(initial={'categories': kwargs['tags']})
-        else:
-            self.form = self.form_class()
-        self.object_list = []
-        context = self.get_context_data()
-        return self.render_to_response(context)
+#    def get(self, request, *args, **kwargs):
+#        if kwargs:
+#            self.form = self.form_class(initial={'categories': kwargs['tags']})
+#        else:
+#            self.form = self.form_class()
+#        self.object_list = []
+#        context = self.get_context_data()
+#        return self.render_to_response(context)
 
-    def post(self, request, *args, **kwargs):
-        ''' POST handles the ajax request from datatable '''
-        self.form = self.get_form(self.form_class)
+#    def post(self, request, *args, **kwargs):
+#        ''' POST handles the ajax request from datatable '''
+#        self.form = self.get_form(self.form_class)
 
-        if self.form.is_valid():
-            year = self.form.cleaned_data['membership_year']
-            cat = int(self.form.cleaned_data['categories'])
-            paid = int(self.form.cleaned_data['paystate']) == Payment.PAID
-            all = int(self.form.cleaned_data['paystate']) == Payment.ALL
-            group = self.form.cleaned_data['group']
+#        if self.form.is_valid():
+#            year = self.form.cleaned_data['membership_year']
+#            cat = int(self.form.cleaned_data['categories'])
+#            paid = int(self.form.cleaned_data['paystate']) == Payment.PAID
+#            all = int(self.form.cleaned_data['paystate']) == Payment.ALL
+#            group = self.form.cleaned_data['group']
 
-            # Exceptional cases that do not pay a sub
-            if cat == Membership.RESIGNED or cat == Membership.HON_LIFE or cat == Membership.LIFE:
-                qset = Subscription.objects.filter(
-                    sub_year=year,
-                    membership_id=cat
-                    ).select_related()
+#            # Exceptional cases that do not pay a sub
+#            if cat == Membership.RESIGNED or cat == Membership.HON_LIFE or cat == Membership.LIFE:
+#                qset = Subscription.objects.filter(
+#                    sub_year=year,
+#                    membership_id=cat
+#                    ).select_related()
 
-                if request.is_ajax():
-                    plist = list(qset.values_list(
-                        'person_member__first_name',
-                        'person_member__last_name',
-                        'membership__description',
-                        'person_member__email',
-                        'person_member__id'
-                        ))
-                    dict = {"data": plist}
-                    return JsonResponse(dict)
+#                if request.is_ajax():
+#                    plist = list(qset.values_list(
+#                        'person_member__first_name',
+#                        'person_member__last_name',
+#                        'membership__description',
+#                        'person_member__email',
+#                        'person_member__id'
+#                        ))
+#                    dict = {"data": plist}
+#                    return JsonResponse(dict)
 
-                if 'group' in self.form.data:
-                    if group:
-                        for sub in qset:
-                            sub.person_member.groups.add(group)
-                        return redirect(reverse('group-detail', kwargs={'pk':group.id}))
+#                if 'group' in self.form.data:
+#                    if group:
+#                        for sub in qset:
+#                            sub.person_member.groups.add(group)
+#                        return redirect(reverse('group-detail', kwargs={'pk':group.id}))
 
-                if 'export' in self.form.data:
-                    memlist = list(qset.values_list(
-                        'person_member__id',
-                        'person_member__gender',
-                        'person_member__first_name',
-                        'person_member__last_name',
-                        'person_member__address__address1',
-                        'person_member__address__address2',
-                        'person_member__address__town',
-                        'person_member__address__post_code',
-                        'person_member__address__home_phone',
-                        'person_member__mobile_phone',
-                        'person_member__email',
-                        'person_member__date_joined',
-                        'membership__description'
-                        ))
-                    return export_members("Members", memlist)
+#                if 'export' in self.form.data:
+#                    memlist = list(qset.values_list(
+#                        'person_member__id',
+#                        'person_member__gender',
+#                        'person_member__first_name',
+#                        'person_member__last_name',
+#                        'person_member__address__address1',
+#                        'person_member__address__address2',
+#                        'person_member__address__town',
+#                        'person_member__address__post_code',
+#                        'person_member__address__home_phone',
+#                        'person_member__mobile_phone',
+#                        'person_member__email',
+#                        'person_member__date_joined',
+#                        'membership__description'
+#                        ))
+#                    return export_members("Members", memlist)
 
-            if cat == Membership.HON_LIFE or cat == Membership.LIFE:
-                qset = Subscription.objects.filter(
-                    membership_id=cat
-                    ).select_related()
+#            if cat == Membership.HON_LIFE or cat == Membership.LIFE:
+#                qset = Subscription.objects.filter(
+#                    membership_id=cat
+#                    ).select_related()
 
-                if request.is_ajax():
-                    plist = list(qset.values_list(
-                        'person_member__first_name',
-                        'person_member__last_name',
-                        'membership__description',
-                        'person_member__email',
-                        'person_member__id'
-                        ))
-                    dict = {"data": plist}
-                    return JsonResponse(dict)
-
-
-                if 'export' in self.form.data:
-                    memlist = list(qset.values_list(
-                        'person_member__id',
-                        'person_member__gender',
-                        'person_member__first_name',
-                        'person_member__last_name',
-                        'person_member__address__address1',
-                        'person_member__address__address2',
-                        'person_member__address__town',
-                        'person_member__address__post_code',
-                        'person_member__address__home_phone',
-                        'person_member__mobile_phone',
-                        'person_member__email',
-                        'person_member__date_joined',
-                        'membership__description'
-                        ))
-                    return export_members("Members", memlist)
-
-            # filter based on paid subs
-            qset = InvoiceItem.objects.filter(subscription__isnull=False,
-                                              subscription__active=True,
-                                              subscription__sub_year=year
-                                             ).select_related()
-
-            if not all:
-                qset = qset.filter(paid=paid)
-            if cat == 0:
-                pass
-            elif cat < 100:
-                qset = qset.filter(subscription__membership_id=cat)
-            elif cat == Membership.FAMILIES:
-                non_kids = Person.objects.select_related().filter(linked__isnull=True)
-                plist= []
-                for p in non_kids:
-                    if p.person_set.count() > 0:
-                        if 'group' in self.form.data:
-                            p.groups.add(group)
-                        else:
-                            cat = p.membership.description if p.membership else ""
-                            qlist = [p.first_name, p.last_name, cat, p.email, p.id]
-                            plist.append(qlist)
-                if request.is_ajax():
-                    dict = {"data": plist}
-                    return JsonResponse(dict)
-
-                if 'group' in self.form.data:
-                    return redirect(reverse('group-detail', kwargs={'pk':group.id}))
-
-                if 'export' in self.form.data:
-                    messages.error(self.request, 'Export families is not implemented')
-                    return redirect(reverse('home'))
-
-            else:
-                taglist = []
-                if cat == Membership.PLAYING:
-                    taglist = Membership.PLAYING_LIST
-                elif cat == Membership.JUNIORS:
-                    taglist = Membership.JUNIORS_LIST
-                elif cat == Membership.ALL_NONPLAYING:
-                    taglist = Membership.ALL_NONPLAYING_LIST
-                qset = qset.filter(Q(subscription__membership_id__in=taglist))
-
-            if request.is_ajax():
-                plist = list(qset.values_list(
-                    'person__first_name',
-                    'person__last_name',
-                    'subscription__membership__description',
-                    'person__email',
-                    'person__id'
-                    ))
-                dict = {"data": plist}
-                return JsonResponse(dict)
-
-            if 'export' in self.form.data:
-                memlist = list(qset.values_list(
-                    'person__id',
-                    'person__gender',
-                    'person__first_name',
-                    'person__last_name',
-                    'person__address__address1',
-                    'person__address__address2',
-                    'person__address__town',
-                    'person__address__post_code',
-                    'person__address__home_phone',
-                    'person__mobile_phone',
-                    'person__email',
-                    'person__date_joined',
-                    'subscription__membership__description'
-                    ))
-                return export_members(memlist, juniors=False)
-
-            if 'group' in self.form.data:
-                if group:
-                    for item in qset:
-                        item.person.groups.add(group)
-                    return redirect(reverse('group-detail', kwargs={'pk':group.id}))
-
-                messages.error(self.request, 'Cannot add to group')
-                return redirect(reverse('home'))
-
-        messages.error(self.request, 'Error in members view')
-        return redirect(reverse('home'))
-
-class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
-    model = Person
-    template_name = 'members/junior_list.html'
-    context_object_name = 'subs'
-    form_class = JuniorsListForm
-
-    def get(self, request, *args, **kwargs):
-        if kwargs:
-            self.form = self.form_class(initial={'categories': kwargs['tags']})
-        else:
-            self.form = self.form_class()
-        self.object_list = []
-        context = self.get_context_data()
-        return self.render_to_response(context)
-
-    def post(self, request, *args, **kwargs):
-        ''' POST handles the ajax request from datatable '''
-        self.form = self.get_form(self.form_class)
-
-        if self.form.is_valid():
-            year = self.form.cleaned_data['membership_year']
-            cat = int(self.form.cleaned_data['categories'])
-            paid = int(self.form.cleaned_data['paystate']) == Payment.PAID
-            all = int(self.form.cleaned_data['paystate']) == Payment.ALL
-            group = self.form.cleaned_data['group']
-            qset = InvoiceItem.objects.filter(subscription__isnull=False,
-                                              subscription__active=True,
-                                              subscription__sub_year=year
-                                             ).select_related()
-            if not all:
-                qset = qset.filter(paid=paid)
-            taglist = []
-            if cat == Membership.JUNIORS:
-                taglist = Membership.JUNIORS_LIST
-            else:
-                taglist = [cat]
-
-            qset = qset.filter(Q(subscription__membership_id__in=taglist))
-
-            if request.is_ajax():
-                plist = list(qset.values_list(
-                    'person__first_name',
-                    'person__last_name',
-                    'subscription__membership__description',
-                    'person__email',
-                    'person__id'
-                    ))
-                dict = {"data": plist}
-                return JsonResponse(dict)
-
-            if 'export' in self.form.data:
-                memlist = list(qset.values_list(
-                    'person__id',
-                    'person__gender',
-                    'person__first_name',
-                    'person__last_name',
-                    'subscription__membership__description',
-                    'person__dob',
-                    'person__date_joined',
-                    'person__linked__first_name',
-                    'person__linked__last_name',
-                    'person__linked__email',
-                    'person__linked__mobile_phone',
-                    'person__address__home_phone',
-                    'person__address__address1',
-                    'person__address__address2',
-                    'person__address__town',
-                    'person__address__post_code'
-                    ))
-                return export_members(memlist, juniors=True)
-
-            if 'group' in self.form.data:
-                if group:
-                    for item in qset:
-                        item.person.groups.add(group)
-                    return redirect(reverse('group-detail', kwargs={'pk':group.id}))
-
-                messages.error(self.request, 'Cannot add to group')
-                return redirect(reverse('home'))
-            messages.error(self.request, 'Error in members view')
-            return redirect(reverse('home'))
+#                if request.is_ajax():
+#                    plist = list(qset.values_list(
+#                        'person_member__first_name',
+#                        'person_member__last_name',
+#                        'membership__description',
+#                        'person_member__email',
+#                        'person_member__id'
+#                        ))
+#                    dict = {"data": plist}
+#                    return JsonResponse(dict)
 
 
-    def get_queryset(self):
-        year = 2016
-        qset = InvoiceItem.objects.filter(subscription__isnull=False,
-                                          subscription__active=True,
-                                          subscription__sub_year=year
-                                         ).select_related()
-        return qset
-        return qset.filter(Q(subscription__membership_id__in=Membership.JUNIORS_LIST))
+#                if 'export' in self.form.data:
+#                    memlist = list(qset.values_list(
+#                        'person_member__id',
+#                        'person_member__gender',
+#                        'person_member__first_name',
+#                        'person_member__last_name',
+#                        'person_member__address__address1',
+#                        'person_member__address__address2',
+#                        'person_member__address__town',
+#                        'person_member__address__post_code',
+#                        'person_member__address__home_phone',
+#                        'person_member__mobile_phone',
+#                        'person_member__email',
+#                        'person_member__date_joined',
+#                        'membership__description'
+#                        ))
+#                    return export_members("Members", memlist)
+
+#            # filter based on paid subs
+#            qset = InvoiceItem.objects.filter(subscription__isnull=False,
+#                                              subscription__active=True,
+#                                              subscription__sub_year=year
+#                                             ).select_related()
+
+#            if not all:
+#                qset = qset.filter(paid=paid)
+#            if cat == 0:
+#                pass
+#            elif cat < 100:
+#                qset = qset.filter(subscription__membership_id=cat)
+#            elif cat == Membership.FAMILIES:
+#                non_kids = Person.objects.select_related().filter(linked__isnull=True)
+#                plist= []
+#                for p in non_kids:
+#                    if p.person_set.count() > 0:
+#                        if 'group' in self.form.data:
+#                            p.groups.add(group)
+#                        else:
+#                            cat = p.membership.description if p.membership else ""
+#                            qlist = [p.first_name, p.last_name, cat, p.email, p.id]
+#                            plist.append(qlist)
+#                if request.is_ajax():
+#                    dict = {"data": plist}
+#                    return JsonResponse(dict)
+
+#                if 'group' in self.form.data:
+#                    return redirect(reverse('group-detail', kwargs={'pk':group.id}))
+
+#                if 'export' in self.form.data:
+#                    messages.error(self.request, 'Export families is not implemented')
+#                    return redirect(reverse('home'))
+
+#            else:
+#                taglist = []
+#                if cat == Membership.PLAYING:
+#                    taglist = Membership.PLAYING_LIST
+#                elif cat == Membership.JUNIORS:
+#                    taglist = Membership.JUNIORS_LIST
+#                elif cat == Membership.ALL_NONPLAYING:
+#                    taglist = Membership.ALL_NONPLAYING_LIST
+#                qset = qset.filter(Q(subscription__membership_id__in=taglist))
+
+#            if request.is_ajax():
+#                plist = list(qset.values_list(
+#                    'person__first_name',
+#                    'person__last_name',
+#                    'subscription__membership__description',
+#                    'person__email',
+#                    'person__id'
+#                    ))
+#                dict = {"data": plist}
+#                return JsonResponse(dict)
+
+#            if 'export' in self.form.data:
+#                memlist = list(qset.values_list(
+#                    'person__id',
+#                    'person__gender',
+#                    'person__first_name',
+#                    'person__last_name',
+#                    'person__address__address1',
+#                    'person__address__address2',
+#                    'person__address__town',
+#                    'person__address__post_code',
+#                    'person__address__home_phone',
+#                    'person__mobile_phone',
+#                    'person__email',
+#                    'person__date_joined',
+#                    'subscription__membership__description'
+#                    ))
+#                return export_members(memlist, juniors=False)
+
+#            if 'group' in self.form.data:
+#                if group:
+#                    for item in qset:
+#                        item.person.groups.add(group)
+#                    return redirect(reverse('group-detail', kwargs={'pk':group.id}))
+
+#                messages.error(self.request, 'Cannot add to group')
+#                return redirect(reverse('home'))
+
+#        messages.error(self.request, 'Error in members view')
+#        return redirect(reverse('home'))
+
+#class JuniorListView(LoginRequiredMixin, FormMixin, TemplateView):
+#    model = Person
+#    template_name = 'members/junior_list.html'
+#    context_object_name = 'subs'
+#    form_class = JuniorsListForm
+
+#    def get(self, request, *args, **kwargs):
+#        if kwargs:
+#            self.form = self.form_class(initial={'categories': kwargs['tags']})
+#        else:
+#            self.form = self.form_class()
+#        self.object_list = []
+#        context = self.get_context_data()
+#        return self.render_to_response(context)
+
+#    def post(self, request, *args, **kwargs):
+#        ''' POST handles the ajax request from datatable '''
+#        self.form = self.get_form(self.form_class)
+
+#        if self.form.is_valid():
+#            year = self.form.cleaned_data['membership_year']
+#            cat = int(self.form.cleaned_data['categories'])
+#            paid = int(self.form.cleaned_data['paystate']) == Payment.PAID
+#            all = int(self.form.cleaned_data['paystate']) == Payment.ALL
+#            group = self.form.cleaned_data['group']
+#            qset = InvoiceItem.objects.filter(subscription__isnull=False,
+#                                              subscription__active=True,
+#                                              subscription__sub_year=year
+#                                             ).select_related()
+#            if not all:
+#                qset = qset.filter(paid=paid)
+#            taglist = []
+#            if cat == Membership.JUNIORS:
+#                taglist = Membership.JUNIORS_LIST
+#            else:
+#                taglist = [cat]
+
+#            qset = qset.filter(Q(subscription__membership_id__in=taglist))
+
+#            if request.is_ajax():
+#                plist = list(qset.values_list(
+#                    'person__first_name',
+#                    'person__last_name',
+#                    'subscription__membership__description',
+#                    'person__email',
+#                    'person__id'
+#                    ))
+#                dict = {"data": plist}
+#                return JsonResponse(dict)
+
+#            if 'export' in self.form.data:
+#                memlist = list(qset.values_list(
+#                    'person__id',
+#                    'person__gender',
+#                    'person__first_name',
+#                    'person__last_name',
+#                    'subscription__membership__description',
+#                    'person__dob',
+#                    'person__date_joined',
+#                    'person__linked__first_name',
+#                    'person__linked__last_name',
+#                    'person__linked__email',
+#                    'person__linked__mobile_phone',
+#                    'person__address__home_phone',
+#                    'person__address__address1',
+#                    'person__address__address2',
+#                    'person__address__town',
+#                    'person__address__post_code'
+#                    ))
+#                return export_members(memlist, juniors=True)
+
+#            if 'group' in self.form.data:
+#                if group:
+#                    for item in qset:
+#                        item.person.groups.add(group)
+#                    return redirect(reverse('group-detail', kwargs={'pk':group.id}))
+
+#                messages.error(self.request, 'Cannot add to group')
+#                return redirect(reverse('home'))
+#            messages.error(self.request, 'Error in members view')
+#            return redirect(reverse('home'))
+
+
+#    def get_queryset(self):
+#        year = 2016
+#        qset = InvoiceItem.objects.filter(subscription__isnull=False,
+#                                          subscription__active=True,
+#                                          subscription__sub_year=year
+#                                         ).select_related()
+#        return qset
+#        return qset.filter(Q(subscription__membership_id__in=Membership.JUNIORS_LIST))
 
 # ============ Year end
 
