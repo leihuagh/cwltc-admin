@@ -19,8 +19,8 @@ class SubsBaseFilter(django_filters.FilterSet):
 
     class Meta:
         model = Subscription
-        fields = {
-                  'person_member__email':['icontains']}
+        fields = {'person_member__email':['icontains']}
+                  
   
     first_name = django_filters.CharFilter(name='person_member__first_name',
                                            lookup_expr='istartswith',
@@ -45,13 +45,14 @@ class SubsBaseFilter(django_filters.FilterSet):
                                      
 class JuniorFilter(SubsBaseFilter):
 
-
     dob1 = django_filters.DateFilter(name='person_member__dob',
                                      label='Born after',
-                                     lookup_expr='gt')
+                                     lookup_expr='gt'
+                                     )
     dob2 = django_filters.DateFilter(name='person_member__dob',
                                      label='Born before',
-                                     lookup_expr='lt')
+                                     lookup_expr='lt'
+                                     )
     membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.filter(is_adult=False),
                                                   required=None,
                                                   label="Junior membership",
@@ -73,5 +74,6 @@ class SubsFilter(SubsBaseFilter):
                                            label='Playing',
                                           )
     state = django_filters.ChoiceFilter(name='person_member__state',
+                                        label='State',
                                         choices=Person.STATES,
                                         empty_label=None)

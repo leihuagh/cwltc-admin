@@ -49,40 +49,10 @@ class SubsTableView(LoginRequiredMixin, SingleTableView):
     parents = False
     members = False
 
-    def post(self, request, *args, **kwargs):
-        '''
-        POST builds a list of selected people ids in a session variable
-        and calls the action routine
-        '''
-        #people = Person.objects.all().order_by('first_name')
-        #people.query = pickle.loads(request.session['my_qs'])
-        #selected_objects = people.query.filter(pk__in=request.POST.getlist('selection'))
-
-        request.session['selected_people_ids'] = request.POST.getlist('selection')
-        request.session['source'] = 'juniors-list' if self.juniors else 'members-list'
-        action = request.POST['action']
-        if action == 'none':
-            return redirect(request.session['source'])
-        if action == 'group':
-            return redirect('group-add-list')
-        if action == 'export':
-            selected_people = Person.objects.filter(
-                pk__in=request.POST.getlist('selection')
-                    ).select_related(
-                    'sub'
-                    ).select_related(
-                    'sub__membership'
-                    )
-
-                                                    
-            self.request.session['selected_people_ids'] = []
-            return export_people('People', selected_people)
-
-        if action == 'mail':
-            return redirect('email-selection')
-        return redirect('home')
- 
     def get_table_data(self):
+        '''
+        Perform the query and do the filtering
+        '''
         year = Settings.current().membership_year
         qs = Subscription.objects.filter(active=True
             ).select_related('membership').select_related('person_member')
@@ -102,8 +72,6 @@ class SubsTableView(LoginRequiredMixin, SingleTableView):
         if self.parents:
             kids = self.filter.qs.values_list('person_member__linked_id')
             return Person.objects.filter(id__in=kids)
-        
-            #self.request.session['my_qs'] = pickle.dumps(self.filter.qs)
         return self.filter.qs
 
     def get_context_data(self, **kwargs):
@@ -113,6 +81,35 @@ class SubsTableView(LoginRequiredMixin, SingleTableView):
         context['juniors'] = self.juniors
         context['parents'] = self.parents
         return context
+
+    def post(self, request, *args, **kwargs):
+        '''
+        POST builds a list of selected people ids in a session variable
+        and calls the action routine
+        '''
+        request.session['selected_people_ids'] = request.POST.getlist('selection')
+        request.session['source'] = 'juniors-list' if self.juniors else 'members-list'
+        action = request.POST['action']
+        if action == 'none':
+            return redirect(request.session['source'])
+
+        if action == 'group':
+            return redirect('group-add-list')
+
+        if action == 'export':
+            selected_people = Person.objects.filter(
+                pk__in=request.POST.getlist('selection')
+                    ).select_related(
+                    'sub'
+                    ).select_related(
+                    'sub__membership'
+                    )                                                 
+            self.request.session['selected_people_ids'] = []
+            return export_people('People', selected_people)
+
+        if action == 'mail':
+            return redirect('email-selection')
+        return redirect('home')
 
 
 class HomeView(LoginRequiredMixin, TemplateView):

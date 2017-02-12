@@ -488,6 +488,7 @@ def export_people(sheetName, people, option=""):
     sheet = book.add_sheet(sheetName)                
     columns = [
     'Id',
+    'State',
     'Gender',   
     'First name',
     'Last name', 
@@ -523,10 +524,11 @@ def export_people(sheetName, people, option=""):
             if person.sub:
                 desc = person.sub.membership.description
                 paid = person.sub.paid
-                resigned = sub.resigned
+                resigned = person.sub.resigned
             else:
                 desc = "No sub"
                 paid = False
+                resigned  =False
             row = [
                 person.id,
                 person.state,
