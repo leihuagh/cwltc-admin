@@ -29,12 +29,13 @@ urlpatterns = [
     ),
 
     url(r'^api/', include(router.urls)),
-
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
     url(r'^markdownx/', include('markdownx.urls')),
     
-    url(r'ajax/people',
+    url(r'^pos/', include('pos.urls')),
+
+    url(r'ajax/people/',
         ajax_people,
         name = "ajax-people"
         ),

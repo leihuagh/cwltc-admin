@@ -1,0 +1,15 @@
+﻿{% extends 'pos/base.html' %}
+{% block content %}
+
+<div class="container">
+<div class="jumbotron">
+<h1>Start POS</h1>
+    <p>Welcome to the Coombe Wood Point of Sale application.</p>
+    <p>Please choose the layout to start</p>
+    {% for layout in layouts %}
+     <p><a class="btn btn-primary btn-lg" role="button" href="{% url 'pos-view' layout_id=layout.id %}">{{ layout.name }}</a></p>
+    
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

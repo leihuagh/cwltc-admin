@@ -1,0 +1,163 @@
+[33mcommit e57765b36ce5072d42e4eb65486397a69f314aee[m
+Author: ian <is@ktconsultants.co.uk>
+Date:   Sun Feb 12 10:24:57 2017 +0000
+
+    Commit before starting POS app
+
+[1mdiff --git a/members/excel.py b/members/excel.py[m
+[1mindex 0cdd59d..9de21b4 100644[m
+[1m--- a/members/excel.py[m
+[1m+++ b/members/excel.py[m
+[36m@@ -488,6 +488,7 @@[m [mdef export_people(sheetName, people, option=""):[m
+     sheet = book.add_sheet(sheetName)                [m
+     columns = [[m
+     'Id',[m
+[32m+[m[32m    'State',[m
+     'Gender',   [m
+     'First name',[m
+     'Last name', [m
+[36m@@ -523,10 +524,11 @@[m [mdef export_people(sheetName, people, option=""):[m
+             if person.sub:[m
+                 desc = person.sub.membership.description[m
+                 paid = person.sub.paid[m
+[31m-                resigned = sub.resigned[m
+[32m+[m[32m                resigned = person.sub.resigned[m
+             else:[m
+                 desc = "No sub"[m
+                 paid = False[m
+[32m+[m[32m                resigned  =False[m
+             row = [[m
+                 person.id,[m
+                 person.state,[m
+[1mdiff --git a/members/filters.py b/members/filters.py[m
+[1mindex 576d79c..49b3768 100644[m
+[1m--- a/members/filters.py[m
+[1m+++ b/members/filters.py[m
+[36m@@ -19,8 +19,8 @@[m [mclass SubsBaseFilter(django_filters.FilterSet):[m
+ [m
+     class Meta:[m
+         model = Subscription[m
+[31m-        fields = {[m
+[31m-                  'person_member__email':['icontains']}[m
+[32m+[m[32m        fields = {'person_member__email':['icontains']}[m
+[32m+[m[41m                  [m
+   [m
+     first_name = django_filters.CharFilter(name='person_member__first_name',[m
+                                            lookup_expr='istartswith',[m
+[36m@@ -45,13 +45,14 @@[m [mclass SubsBaseFilter(django_filters.FilterSet):[m
+                                      [m
+ class JuniorFilter(SubsBaseFilter):[m
+ [m
+[31m-[m
+     dob1 = django_filters.DateFilter(name='person_member__dob',[m
+                                      label='Born after',[m
+[31m-                                     lookup_expr='gt')[m
+[32m+[m[32m                                     lookup_expr='gt'[m
+[32m+[m[32m                                     )[m
+     dob2 = django_filters.DateFilter(name='person_member__dob',[m
+                                      label='Born before',[m
+[31m-                                     lookup_expr='lt')[m
+[32m+[m[32m                                     lookup_expr='lt'[m
+[32m+[m[32m                                     )[m
+     membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.filter(is_adult=False),[m
+                                                   required=None,[m
+                                                   label="Junior membership",[m
+[36m@@ -73,5 +74,6 @@[m [mclass SubsFilter(SubsBaseFilter):[m
+                                            label='Playing',[m
+                                           )[m
+     state = django_filters.ChoiceFilter(name='person_member__state',[m
+[32m+[m[32m                                        label='State',[m
+                                         choices=Person.STATES,[m
+                                         empty_label=None)[m
+[1mdiff --git a/members/views.py b/members/views.py[m
+[1mindex f3d50e6..d28246a 100644[m
+[1m--- a/members/views.py[m
+[1m+++ b/members/views.py[m
+[36m@@ -49,40 +49,10 @@[m [mclass SubsTableView(LoginRequiredMixin, SingleTableView):[m
+     parents = False[m
+     members = False[m
+ [m
+[31m-    def post(self, request, *args, **kwargs):[m
+[32m+[m[32m    def get_table_data(self):[m
+         '''[m
+[31m-        POST builds a list of selected people ids in a session variable[m
+[31m-        and calls the action routine[m
+[32m+[m[32m        Perform the query and do the filtering[m
+         '''[m
+[31m-        #people = Person.objects.all().order_by('first_name')[m
+[31m-        #people.query = pickle.loads(request.session['my_qs'])[m
+[31m-        #selected_objects = people.query.filter(pk__in=request.POST.getlist('selection'))[m
+[31m-[m
+[31m-        request.session['selected_people_ids'] = request.POST.getlist('selection')[m
+[31m-        request.session['source'] = 'juniors-list' if self.juniors else 'members-list'[m
+[31m-        action = request.POST['action'][m
+[31m-        if action == 'none':[m
+[31m-            return redirect(request.session['source'])[m
+[31m-        if action == 'group':[m
+[31m-            return redirect('group-add-list')[m
+[31m-        if action == 'export':[m
+[31m-            selected_people = Person.objects.filter([m
+[31m-                pk__in=request.POST.getlist('selection')[m
+[31m-                    ).select_related([m
+[31m-                    'sub'[m
+[31m-                    ).select_related([m
+[31m-                    'sub__membership'[m
+[31m-                    )[m
+[31m-[m
+[31m-                                                    [m
+[31m-            self.request.session['selected_people_ids'] = [][m
+[31m-            return export_people('People', selected_people)[m
+[31m-[m
+[31m-        if action == 'mail':[m
+[31m-            return redirect('email-selection')[m
+[31m-        return redirect('home')[m
+[31m- [m
+[31m-    def get_table_data(self):[m
+         year = Settings.current().membership_year[m
+         qs = Subscription.objects.filter(active=True[m
+             ).select_related('membership').select_related('person_member')[m
+[36m@@ -102,8 +72,6 @@[m [mclass SubsTableView(LoginRequiredMixin, SingleTableView):[m
+         if self.parents:[m
+             kids = self.filter.qs.values_list('person_member__linked_id')[m
+             return Person.objects.filter(id__in=kids)[m
+[31m-        [m
+[31m-            #self.request.session['my_qs'] = pickle.dumps(self.filter.qs)[m
+         return self.filter.qs[m
+ [m
+     def get_context_data(self, **kwargs):[m
+[36m@@ -114,6 +82,35 @@[m [mclass SubsTableView(LoginRequiredMixin, SingleTableView):[m
+         context['parents'] = self.parents[m
+         return context[m
+ [m
+[32m+[m[32m    def post(self, request, *args, **kwargs):[m
+[32m+[m[32m        '''[m
+[32m+[m[32m        POST builds a list of selected people ids in a session variable[m
+[32m+[m[32m        and calls the action routine[m
+[32m+[m[32m        '''[m
+[32m+[m[32m        request.session['selected_people_ids'] = request.POST.getlist('selection')[m
+[32m+[m[32m        request.session['source'] = 'juniors-list' if self.juniors else 'members-list'[m
+[32m+[m[32m        action = request.POST['action'][m
+[32m+[m[32m        if action == 'none':[m
+[32m+[m[32m            return redirect(request.session['source'])[m
+[32m+[m
+[32m+[m[32m        if action == 'group':[m
+[32m+[m[32m            return redirect('group-add-list')[m
+[32m+[m
+[32m+[m[32m        if action == 'export':[m
+[32m+[m[32m            selected_people = Person.objects.filter([m
+[32m+[m[32m                pk__in=request.POST.getlist('selection')[m
+[32m+[m[32m                    ).select_related([m
+[32m+[m[32m                    'sub'[m
+[32m+[m[32m                    ).select_related([m
+[32m+[m[32m                    'sub__membership'[m
+[32m+[m[32m                    )[m[41m                                                 [m
+[32m+[m[32m            self.request.session['selected_people_ids'] = [][m
+[32m+[m[32m            return export_people('People', selected_people)[m
+[32m+[m
+[32m+[m[32m        if action == 'mail':[m
+[32m+[m[32m            return redirect('email-selection')[m
+[32m+[m[32m        return redirect('home')[m
+[32m+[m
+ [m
+ class HomeView(LoginRequiredMixin, TemplateView):[m
+     template_name = 'members/index.html'[m

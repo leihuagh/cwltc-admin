@@ -1,0 +1,14 @@
+﻿<table class ="table table-condensed">
+    {% for item in receipt %}
+    <tr>
+        <td>{{ item.quantity }} x {{ item.description }} @ {{ item.sale_price }}</td>     
+        <td>{{ item.total }}</td>
+        <td> <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_area"
+                      class="btn btn-xs btn-danger" id="del_{{ item.id }}">
+                <span class="glyphicon glyphicon-trash"></span>&nbsp;
+            </button>
+        </td>
+    </tr>
+    {% endfor %}
+    <tr><td><strong>Total</strong></td><td><strong>{{ total }}</strong></td></tr>
+</table>

@@ -32,8 +32,7 @@ import json
 from report_builder.models import Report
 from .filters import *
 from django_tables2 import SingleTableView, RequestConfig
-import pickle
-#from crispy_forms.helper import FormHelper, Layout, Row
+
 
 def search(request):
     person_list = Person.objects.all()
@@ -419,6 +418,8 @@ def ajax_people(request):
     if request.is_ajax():
         results = []
         q = request.GET.get('term', '')
+        if q == "":
+            q= request.GET.get('search','')
         keys = q.split(" ", 1)
 
         if len(keys) == 1:
@@ -433,6 +434,7 @@ def ajax_people(request):
             person_json['id'] = person.id
             person_json['label'] = person.fullname()
             person_json['value'] = person.fullname()
+            person_json['name'] = person.fullname()
             results.append(person_json)
         return JsonResponse(results, safe=False)
     else:

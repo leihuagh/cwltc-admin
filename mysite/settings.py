@@ -46,7 +46,9 @@ INSTALLED_APPS = (
     'anymail',
     'markdownx',
     'django_tables2',
-    'coverage'
+    'coverage',
+    'pos',
+    'django_nose'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -229,7 +231,7 @@ TEMPLATES = [
 #    }
 #}
 
-
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 LOGIN_URL ='/login/'
 

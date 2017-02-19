@@ -502,6 +502,11 @@
     <Content Include="members\templates\members\_payment_list.html" />
     <Content Include="members\templates\members\subscription_history.html" />
     <Content Include="members\templates\public\layout.html" />
+    <Content Include="pos\static\pos\css\pos.css" />
+    <Content Include="pos\templates\pos\base.html" />
+    <Content Include="pos\templates\pos\pos.html" />
+    <Content Include="pos\templates\pos\receipt.html" />
+    <Content Include="pos\templates\pos\start.html" />
     <Content Include="requirements.txt" />
     <Content Include="static\README.txt" />
   </ItemGroup>
@@ -557,6 +562,19 @@
     <Compile Include="mysite\urls.py" />
     <Compile Include="mysite\views.py" />
     <Compile Include="mysite\__init__.py" />
+    <Compile Include="pos\admin.py" />
+    <Compile Include="pos\apps.py" />
+    <Compile Include="pos\migrations\__init__.py" />
+    <Compile Include="pos\models.py" />
+    <Compile Include="pos\services.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pos\tests.py" />
+    <Compile Include="pos\urls.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pos\views.py" />
+    <Compile Include="pos\__init__.py" />
     <Compile Include="setup.py" />
     <Compile Include="wsgi.py" />
     <Compile Include="wsgi\wsgi.py" />
@@ -628,6 +646,13 @@
     <Folder Include="members\templates\public\" />
     <Folder Include="members\templatetags" />
     <Folder Include="mysite" />
+    <Folder Include="pos\" />
+    <Folder Include="pos\migrations\" />
+    <Folder Include="pos\static\" />
+    <Folder Include="pos\static\pos\css\" />
+    <Folder Include="pos\static\pos\" />
+    <Folder Include="pos\templates\" />
+    <Folder Include="pos\templates\pos\" />
     <Folder Include="static" />
     <Folder Include="wsgi" />
   </ItemGroup>
