@@ -503,12 +503,17 @@
     <Content Include="members\templates\members\subscription_history.html" />
     <Content Include="members\templates\public\layout.html" />
     <Content Include="pos\static\pos\css\pos.css" />
+    <Content Include="pos\static\pos\js\bootstrap3-typeahead.min.js" />
+    <Content Include="static\js\typeahead.bundle.js" />
     <Content Include="pos\templates\pos\base.html" />
+    <Content Include="pos\templates\pos\getuser.html" />
     <Content Include="pos\templates\pos\pos.html" />
     <Content Include="pos\templates\pos\receipt.html" />
     <Content Include="pos\templates\pos\start.html" />
+    <Content Include="pos\templates\pos\transactions.html" />
+    <Content Include="pos\templates\pos\lineitems.html" />
     <Content Include="requirements.txt" />
-    <Content Include="static\README.txt" />
+    <Content Include="static\css\site.css" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="gc_app\models.py" />
@@ -567,6 +572,9 @@
     <Compile Include="pos\migrations\__init__.py" />
     <Compile Include="pos\models.py" />
     <Compile Include="pos\services.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pos\tables.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="pos\tests.py" />
@@ -651,9 +659,12 @@
     <Folder Include="pos\static\" />
     <Folder Include="pos\static\pos\css\" />
     <Folder Include="pos\static\pos\" />
+    <Folder Include="pos\static\pos\js\" />
     <Folder Include="pos\templates\" />
     <Folder Include="pos\templates\pos\" />
     <Folder Include="static" />
+    <Folder Include="static\css\" />
+    <Folder Include="static\js\" />
     <Folder Include="wsgi" />
   </ItemGroup>
   <ItemGroup>

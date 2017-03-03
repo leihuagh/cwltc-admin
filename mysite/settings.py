@@ -163,13 +163,18 @@ THOUSAND_SEPARATOR = u','
 NUMBER_GROUPING = 3
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.6/howto/static-files/
 STATIC_URL = '/static/'
+
+# This is where the static files get served from
 STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi','static')
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static")
+]
 
 MEDIA_ROOT = os.environ.get('OPENSHIFT_DATA_DIR', '')
 

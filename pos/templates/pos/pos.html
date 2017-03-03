@@ -2,134 +2,99 @@
 {% load staticfiles %}
 {% block content %}
 <style>
-.flex-container {
-    display: flex;
-    width: 100%;
-    height: 80%;
-    background-color: white;
-}
-.button-row {
-    display: flex;
-    width: 100%;
-    height: 60px;
-    background-color: forestgreen;
-    padding: 25px 5px 5px 25px
 
-}
-.button-area {
-	width: 70%;
-	padding: 10px;
-    background-color:darkgreen;
-}
-.receipt-area {
-	width: 30%;
-    height: 80%;
-	padding: 10px;
-    background-color: cornsilk;
-    border-style: solid;
-}
-.flex-container > div:first-child {
-	margin-right: 20px;
-}
-.posbutton {
-    background-color: #4CAF50; /* Green */
-    cursor: pointer;
-    border: none;
-    color: white;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    width: 12%;
-    height: 40px;
-    margin: 10px 0 10px 10px;
-    padding: 6px 13px 0px;
-     border-radius: 15px;
-     box-shadow: 0 3px #999;
-}
-.posbutton:active {
-    background-color: #3e8e41;
-    box-shadow: 0 2px #666;
-    transform: translateY(1px);
-}
 </style>
 <div class="container">
 
-<h1>CWLTC POS</h1>
-     Enter email:
-
-    <input id="email" class="form-control" type="text" name="search" placeholder="Begin Typing To Search Users..."
-            ic-src="/ajax/people/" ic-trigger-delay="500ms" ic-indicator="#indicator">
-
-    <span id="indicator" style="display:none">
-      <i class="fa fa-spinner fa-spin"></i> Searching...
-    </span>
+  <h1>CWLTC POS</h1>
+  <h2>{{ person.first_name }} {{ person.last_name}}</h2>
 
             
-    <form id="defaults" >
-        <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}">
-    </form>
+  <form id="defaults" >
+      <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
+      <input name="person_id" id="person_id" type="hidden" value="" />
+  </form>
 
-    {% for row in rows %}
-    {% for loc in row %}
-{{ loc.row }} {{ loc.col }} {{ loc.item.description }}
-{% endfor %}
-{% endfor %}
+  {% for row in rows %}
+      {% for loc in row %}
+          {{ loc.row }} {{ loc.col }} {{ loc.item.description }}
+      {% endfor %}
+  {% endfor %}
 
-<div class="flex-container">
-<div class="button-area">
-    {% for row in rows %}
+  <div class="flex-container">
+    <div class="button-area">
+      {% for row in rows %}
 
-    <div class="button-row">
-	{% for loc in row %}
-        <button ic-include="#defaults" ic-post-to={{ request.path }} ic-target="#receipt_area"
+        <div class="button-row">
+	        {% for loc in row %}
+            <button ic-include="#defaults" ic-post-to={{ request.path }} ic-target="#receipt_table"
                 class="posbutton" id="itm_{{ loc.item.id }}">{{ loc.item.button_text }}
-        </button>
-    {% endfor %}
+            </button>
+          {% endfor %}
+        </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-
-</div>
-<div class="receipt-area" >
-    <div class="panel panel-primary">
+    <div class="receipt-area">
+      <div class="panel panel-primary">
         <div class="panel-body">
-            <div id="receipt_area">
-            </div>
+          <div id="receipt_table">
+          <!-- Receipt table inserted here-->
         </div>
-        <div class="panel-footer">
-            <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_area"
-                      class="btn  btn-primary" id="pay_">Payment
-                <span class="glyphicon glyphicon-tick"></span>&nbsp;
-            </button>
-            <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_area"
-                      class="btn btn-danger" id="can_">Cancel all
-                <span class="glyphicon glyphicon-trash"></span>&nbsp;
-            </button>
-        </div>
-
+      </div>
+      <div class="panel-footer">
+        <button data-target="#pay_modal"
+            class="btn btn-primary" id="id_pay">Payment
+          <span class="glyphicon glyphicon-ok"></span>&nbsp;
+        </button>
+        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
+                class="btn btn-danger" id="can_">Cancel all
+          <span class="glyphicon glyphicon-trash"></span>&nbsp;
+        </button>
+      </div>
     </div>
-        
+  </div>      
 </div>
-</div></div>
+
+
+<!-- Modal -->
+<div id="pay_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Charge to account</h4>
+      </div>
+      <div class="modal-body">
+        <p>Confirm charge of <span id="id_confirm"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button"
+                class="btn  btn-primary" id="id_confirm">Charge to account
+                <span class="glyphicon glyphicon-ok"></span>&nbsp;
+        </button>
+        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_area"
+                class="btn btn-danger" data-dismiss="modal" id="can_">Cancel all</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}  
 {% block scripts %}
+
  <script src="https://intercoolerreleases-leaddynocom.netdna-ssl.com/intercooler-1.0.3.min.js"></script>
- <script src= {% static 'pos/js/bootstrap3-typeahead.min.js' %}></script>
-<script>
-    //========================================================================
-    // Hook the typeahead api into the widget, using intercooler for the source callback
-    //========================================================================
-    $(function () {
-        $('#email').typeahead({
-            source: function (query, render) {
-                // This is the crux of the example: we use intercooler to issue the request and then handle the
-                // JSON response (rather than the typical content swap)
-                Intercooler.triggerRequest($('#email'), function (data) {
-                    render($.parseJSON(data));
-                });
-            }
-        });
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        // click payment button shows the modal
+        $('#id_pay').click(function () {
+            console.log($('#id_total').text());
+            $('#id_confirm').text($('#id_total').text());
+            $('#pay_modal').modal('show');
+          }
+         );
     });
 </script>
+
 {% endblock %}  

@@ -5,9 +5,12 @@ from django.views.generic import View, ListView, DetailView, CreateView, UpdateV
 from django.views.generic.edit import FormView, FormMixin, ProcessFormView
 from django.core.urlresolvers import reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import *
+from django.shortcuts import redirect
+from django_tables2 import SingleTableView
 from decimal import *
-from services import *
+from .models import *
+from .tables import *
+from .services import *
 
 class StartView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/start.html'
@@ -40,21 +43,24 @@ class PosView(LoginRequiredMixin, TemplateView):
         rows.append(cols)
         context['rows'] = rows
         self.request.session['pos_items'] = []
+        context['person']= Person.objects.get(pk=self.request.session['person_id'])
         return context
 
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             element_id = request.POST['ic-element-id']
             receipt = request.session['pos_items']
+            person_id = request.POST['person_id']
             if element_id[3] == '_':
                 key = element_id[0:3]
-                
+               
                 if key == 'can':
                     receipt = []
 
                 elif key == 'pay':
-                    create_transaction_from_receipt(request.user.id, person_id=181, receipt=receipt)
+                    create_transaction_from_receipt(request.user.id, person_id=person_id, receipt=receipt)
                     receipt = []
+                    request.session['pos_items'] = []
                     return HttpResponse("Paid",content_type='application/xhtml+xml') 
                 
                 else:
@@ -108,3 +114,22 @@ class PosView(LoginRequiredMixin, TemplateView):
             line_item.save()
         trans.total = total
         trans.save()
+
+class TransactionListView(SingleTableView):
+    model = Transaction
+    table_class = TransactionTable
+    template_name = 'pos/transactions.html'   
+
+class LineItemListView(SingleTableView):
+    model = LineItem
+    table_class = LineItemTable
+    template_name = 'pos/lineitems.html' 
+
+class GetUserView(TemplateView):
+    template_name = 'pos/getuser.html'
+
+    def post(self, request, *args, **kwargs):
+        if request.POST['login']:
+            request.session['person_id'] = request.POST['person_id']
+            return redirect('pos-view', layout_id=2)
+        return redirect('home')

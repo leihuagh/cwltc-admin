@@ -1,0 +1,6 @@
+﻿{% extends 'pos/base.html' %}
+{% block content %}
+<h4>Transactions</h4>
+{% load render_table from django_tables2 %}
+{% render_table table %}
+{% endblock %}

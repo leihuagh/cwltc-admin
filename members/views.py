@@ -2,7 +2,6 @@ from datetime import *
 from itertools import chain
 from operator import attrgetter
 from django import forms
-from django.shortcuts import render, render_to_response
 from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonResponse, Http404
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
@@ -12,7 +11,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Sum, QuerySet
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, render_to_response, redirect, get_object_or_404
 from django.utils import timezone
 from django.template import Template, Context
 from django.template.loader import render_to_string
@@ -432,9 +431,9 @@ def ajax_people(request):
         for person in people:
             person_json = {}
             person_json['id'] = person.id
-            person_json['label'] = person.fullname()
+            #person_json['label'] = person.fullname()
             person_json['value'] = person.fullname()
-            person_json['name'] = person.fullname()
+            #person_json['name'] = person.fullname()
             results.append(person_json)
         return JsonResponse(results, safe=False)
     else:

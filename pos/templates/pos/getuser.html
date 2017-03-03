@@ -1,0 +1,74 @@
+﻿{% extends 'pos/base.html' %}
+{% load staticfiles %}
+{% block content %}
+
+
+<div class="container">
+  <div class="bs-example">
+    <form method="POST">
+      <h1>TEA and VISITORS </h1>
+      <p></p>
+	    <h2>Select member</h2>
+      <p></p>
+      <input type="text" class="typeahead tt-query" autocomplete="off" spellcheck="false">  
+      <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
+      <input name="person_id" id="person_id" type="hidden" value="" />
+      <p></p>
+      <input type="submit" class="button btn-primary" name="login" value="Login member">
+      <input type="submit" class="button btn-default" name="cancel" value="Exit POS system">
+    </form>
+
+  </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script type="text/javascript">
+  $(document).ready(function () {
+      $('#id_login').hide();
+
+      // constructs the suggestion engine
+      var people = new Bloodhound({
+          datumTokenizer: Bloodhound.tokenizers.whitespace,
+          queryTokenizer: Bloodhound.tokenizers.whitespace,
+          remote: {
+              url: '/ajax/people/?term=%QUERY',
+              wildcard: '%QUERY'
+          }
+      });
+      var selectedid = 0
+      // Initializing the typeahead with remote dataset
+      $('.typeahead').typeahead({
+          minLength: 3,
+          hint: true,
+          highlight: true},
+          {
+          name: 'people',
+          displayKey: "value",
+          source: people.ttAdapter(),
+          limit: 10
+      });
+      $('.typeahead').bind('typeahead:select', function (event, item) {
+          console.log("select");
+          $('#person_id').val(item.id);
+          $('#id_login').show();
+          return item
+      });
+      $('.typeahead').bind('typeahead:change', function (event, item) {
+          //$('#person_id').val(item.id);
+          //$('#person_name').text(item.value);
+          //selectedid = item.id;
+          console.log("change", selectedid);
+          if (selectedid != 0){
+          }
+      });
+      $('.typeahead').bind('typeahead:autocomplete', function (event, item) {
+          $('#person_id').val(item.id);
+          $('#id_login').show();
+          console.log("autocomplete");
+      });
+
+    });
+</script>
+{% endblock %}
+
+
