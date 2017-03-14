@@ -8,23 +8,24 @@
 
   <h1>CWLTC POS</h1>
   <h2>{{ person.first_name }} {{ person.last_name}}</h2>
-
-            
+         
   <form id="defaults" >
       <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
       <input name="person_id" id="person_id" type="hidden" value="" />
   </form>
 
+  <!--
   {% for row in rows %}
       {% for loc in row %}
           {{ loc.row }} {{ loc.col }} {{ loc.item.description }}
       {% endfor %}
   {% endfor %}
+  -->
 
   <div class="flex-container">
     <div class="button-area">
+    
       {% for row in rows %}
-
         <div class="button-row">
 	        {% for loc in row %}
             <button ic-include="#defaults" ic-post-to={{ request.path }} ic-target="#receipt_table"
@@ -34,25 +35,11 @@
         </div>
       {% endfor %}
     </div>
-    <div class="receipt-area">
-      <div class="panel panel-primary">
-        <div class="panel-body">
-          <div id="receipt_table">
-          <!-- Receipt table inserted here-->
-        </div>
-      </div>
-      <div class="panel-footer">
-        <button data-target="#pay_modal"
-            class="btn btn-primary" id="id_pay">Payment
-          <span class="glyphicon glyphicon-ok"></span>&nbsp;
-        </button>
-        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
-                class="btn btn-danger" id="can_">Cancel all
-          <span class="glyphicon glyphicon-trash"></span>&nbsp;
-        </button>
-      </div>
-    </div>
-  </div>      
+    <div class="receipt-area" id="receipt_table">
+            <!-- Receipt table & buttons inserted here-->
+
+    </div>      
+  </div>
 </div>
 
 
@@ -66,15 +53,20 @@
         <h4 class="modal-title">Charge to account</h4>
       </div>
       <div class="modal-body">
-        <p>Confirm charge of <span id="id_confirm"></span></p>
+        <h4>Confirm charge of <span id="id_confirm"></span> to {{ person.first_name }} {{ person.last_name}}</h4>
       </div>
       <div class="modal-footer">
-        <button type="button"
-                class="btn  btn-primary" id="id_confirm">Charge to account
-                <span class="glyphicon glyphicon-ok"></span>&nbsp;
+
+          <button class="btn btn-primary" id="yes_" data-dismiss="modal"
+            ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"     >
+            Charge to account
+            <span class="glyphicon glyphicon-ok"></span>&nbsp;
+          </button>
+
+        <button class="btn btn-danger" data-dismiss="modal" id="bak_"
+          ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table">
+          Back       
         </button>
-        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_area"
-                class="btn btn-danger" data-dismiss="modal" id="can_">Cancel all</button>
       </div>
     </div>
   </div>
@@ -83,18 +75,31 @@
 {% endblock %}  
 {% block scripts %}
 
- <script src="https://intercoolerreleases-leaddynocom.netdna-ssl.com/intercooler-1.0.3.min.js"></script>
-
 <script type="text/javascript">
-    $(document).ready(function(){
-        // click payment button shows the modal
-        $('#id_pay').click(function () {
-            console.log($('#id_total').text());
-            $('#id_confirm').text($('#id_total').text());
-            $('#pay_modal').modal('show');
-          }
-         );
-    });
+  $(document).ready(function () {
+    // click payment button shows the modal
+    $('#id_pay').click(function () {
+      console.log($('#id_total').text());
+      $('#id_confirm').text($('#id_total').text());
+      $('#pay_modal').modal('show');
+      }
+      );
+    $("#payment_form").on("submit", function (e) {
+      $.ajax({
+        url: $(this).attr("action"),
+        type: "POST",
+        data: $(this).serializeArray(),
+        success: function (data, textStatus, jqXHR) {
+        },
+        error: function (jqXHR, status, error) {
+          console.log(status + ": " + error);
+        }
+      });
+      e.preventDefault();
+    })
+  });
+
+
 </script>
 
 {% endblock %}  

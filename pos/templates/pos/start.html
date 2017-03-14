@@ -2,14 +2,16 @@
 {% block content %}
 
 <div class="container">
-<div class="jumbotron">
-<h1>Start POS</h1>
+  <div class="jumbotron">
+  <h1>Start POS</h1>
     <p>Welcome to the Coombe Wood Point of Sale application.</p>
     <p>Please choose the layout to start</p>
-    {% for layout in layouts %}
-     <p><a class="btn btn-primary btn-lg" role="button" href="{% url 'pos-view' layout_id=layout.id %}">{{ layout.name }}</a></p>
-    
-    {% endfor %}
-</div>
+    <form method="post">
+      <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
+      {% for layout in layouts %}
+        <input class="btn btn-primary btn-lg" type="submit" name="layout" value="{{ layout.name }}"\>
+      {% endfor %}
+    </form>  
+  </div>
 </div>
 {% endblock %}

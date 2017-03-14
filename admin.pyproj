@@ -504,6 +504,7 @@
     <Content Include="members\templates\public\layout.html" />
     <Content Include="pos\static\pos\css\pos.css" />
     <Content Include="pos\static\pos\js\bootstrap3-typeahead.min.js" />
+    <Content Include="pos\templates\pos\transaction_detail.html" />
     <Content Include="static\js\typeahead.bundle.js" />
     <Content Include="pos\templates\pos\base.html" />
     <Content Include="pos\templates\pos\getuser.html" />

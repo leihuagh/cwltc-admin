@@ -7,6 +7,7 @@
     height: 80%;
     background-color: white;
 }
+
 .button-row {
     display: flex;
     width: 100%;
@@ -22,10 +23,20 @@
 }
 .receipt-area {
 	width: 30%;
-    height: 80%;
+    height: 100%;
 	padding: 10px;
+    display: flex;
+    flex-direction: column;
     background-color: cornsilk;
     border-style: solid;
+    overflow-y: auto;
+}
+.receipt {
+    height: 100%;
+    overflow-y: auto;
+}
+.pay-area {
+    align-self: flex-end;
 }
 .flex-container > div:first-child {
 	margin-right: 20px;
@@ -56,11 +67,11 @@
 .typeahead, .tt-query, .tt-hint {
 	border: 2px solid #CCCCCC;
 	border-radius: 4px;
-	font-size: 20px; /* Set input font size */
+	font-size: 16px; /* Set input font size */
 	height: 40px;
-	line-height: 40px;
+	line-height: 36px;
 	outline: medium none;
-	padding: 4px 6px;
+	padding: 4px 8px;
 	width: 200px;
 }
 .typeahead {
@@ -80,13 +91,14 @@
 	border: 1px solid rgba(0, 0, 0, 0.2);
 	border-radius: 4px;
 	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-	margin-top: 12px;
-	padding: 4px 0;
+	margin-top: 8px;
+	padding: 1px 1px;
 	width: 200px;
+    font-size: 16px; /* Set input font size */
 }
 .tt-suggestion {
-	font-size: 16px;  /* Set suggestion dropdown font size */
-	padding: 3px 20px;
+    line-height: 24px;
+	padding: 4px 6px;
 }
 .tt-suggestion:hover {
 	cursor: pointer;

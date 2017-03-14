@@ -1,0 +1,18 @@
+﻿{% extends 'pos/base.html' %}
+{% block content %}
+<div class="container">
+        <div class="row">
+            <div class="col-md-4">
+  <h2>POS Transaction</h2>
+  <h3>{{ transaction.person.first_name }} {{ transaction.person.last_name }} </h3>
+  <h4>{{ transaction.creation_date }}</h4>
+  <table class="table table-condensed">
+  {% for lineitem in items %}
+    <tr><td>{{ lineitem.item.description }}</td><td>{{ lineitem.quantity }}</td><td>{{ lineitem.sale_price }}</td></tr>
+  {% endfor %}
+    <tr><td></td><td>Total:</td><td>{{ transaction.total }}</td></tr>
+  </table>
+</div>
+</div>
+</div>
+{% endblock %}

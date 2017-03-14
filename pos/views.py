@@ -20,13 +20,19 @@ class StartView(LoginRequiredMixin, TemplateView):
         context['layouts'] = Layout.objects.all()
         return context
 
+    def post(self, request, *args, **kwargs):
+        layout = Layout.objects.filter(name=request.POST['layout'])[0]
+        request.session['layout_id'] = layout.id
+        return HttpResponseRedirect(reverse('get-user'))
+
 class PosView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/pos.html'
 
     def get_context_data(self, **kwargs):
         context = super(PosView, self).get_context_data(**kwargs)
-        layout = Layout.objects.get(pk=kwargs['layout_id'])
-        locations = Location.objects.filter(layout_id=kwargs['layout_id']).order_by('row', 'col')
+        layout_id = self.request.session['layout_id']
+        layout = Layout.objects.get(pk=layout_id)
+        locations = Location.objects.filter(layout_id=layout_id).order_by('row', 'col')
         rows = []
         current_row = 1
         cols = []
@@ -44,86 +50,108 @@ class PosView(LoginRequiredMixin, TemplateView):
         context['rows'] = rows
         self.request.session['pos_items'] = []
         context['person']= Person.objects.get(pk=self.request.session['person_id'])
+        context['enable_payment'] = False
         return context
 
     def post(self, request, *args, **kwargs):
-        if request.is_ajax():
-            element_id = request.POST['ic-element-id']
-            receipt = request.session['pos_items']
-            person_id = request.POST['person_id']
+        element_id = request.POST['ic-element-id']
+        receipt = request.session['pos_items']
+        if request.is_ajax():  
             if element_id[3] == '_':
                 key = element_id[0:3]
-               
-                if key == 'can':
-                    receipt = []
 
-                elif key == 'pay':
-                    create_transaction_from_receipt(request.user.id, person_id=person_id, receipt=receipt)
+                if key == 'pay':
+                    response = HttpResponse()
+                    response['X-IC-Script'] = "$('#id_confirm').text($('#id_total').text());$('#pay_modal').modal('show')"
+                    return response
+                
+                elif key == 'bak':
+                    response = HttpResponse()
+                    response['X-IC-Script'] = "$('#pay_modal').modal('hide')"
+                    return response              
+                
+                if key == 'yes':
+                    create_transaction_from_receipt(request.user.id, request.session['person_id'], receipt)
+                
+                if key == 'end' or key =='yes':
                     receipt = []
                     request.session['pos_items'] = []
-                    return HttpResponse("Paid",content_type='application/xhtml+xml') 
-                
-                else:
-                    item_id = int(element_id[4:])               
-                    found = False
-                    for item_dict in receipt:
-                        if item_dict['id'] == item_id:
-                            found = True
-                            break
-                    if not found:
-                        item_dict = {}
-                
-                if key == "itm":
+                    response = HttpResponse()
+                    response['X-IC-Redirect'] = reverse('get-user')
+                    return response
+
+                elif key == 'can':
+                    receipt = [] 
+                                             
+                elif key == "itm":
+                    item_id = int(element_id[4:]) 
                     item = Item.objects.get(id=item_id)
-                    if item_dict == {}:
-                        item_dict = item.to_dict()
-                        receipt.append(item_dict)  
-                    else:
-                        item_dict['quantity'] += 1
-                        item_dict['total'] = unichr(163) + " " + str(item.sale_price * item_dict['quantity'])          
+                    item_dict = item.to_dict()
+                    receipt.append(item_dict)  
                 
                 elif key == 'del':
-                    receipt.remove(item_dict)        
+                    counter = int(element_id[4:]) 
+                    receipt.remove(receipt[counter])        
                             
                 request.session['pos_items'] = receipt
                 tot = 0    
                 for item_dict in receipt:
                     tot += item_dict['sale_price'] * item_dict['quantity']
-                context ={}
+                context = {}
                 context['receipt'] = receipt
                 context['total'] = unichr(163) + ' {0:.2f}'.format(Decimal(tot)/100)
                 context['request'] = request
+                context['enable_payment'] = tot > 0
                 return render_to_response("pos/receipt.html", context)
-
-        return HttpResponse("Error - wrong id",content_type='application/xhtml+xml')
-
-    def create_transaction(self, creator_id, person_id, receipt):
-        trans = Transaction()
-        total = Decimal(0)
-        trans.creator_id = creator_id
-        trans.person_id = person_id
-        trans.save()
-        for item_dict in receipt:
-            line_item = LineItem()
-            line_item.item_id = item_dict['id']
-            line_item.sale_price = Decimal(item_dict['sale_price'])/100
-            line_item.cost_price = Decimal(item_dict['cost_price'])/100
-            line_item.quantity = item_dict['quantity']
-            total += line_item.quantity * line_item.sale_price
-            line_item.transaction = trans
-            line_item.save()
-        trans.total = total
-        trans.save()
+            return HttpResponse("Error - wrong id",content_type='application/xhtml+xml')
 
 class TransactionListView(SingleTableView):
     model = Transaction
     table_class = TransactionTable
-    template_name = 'pos/transactions.html'   
+    template_name = 'pos/transactions.html'
+
+    def get_table_data(self):
+        person_id = self.kwargs.pop('person_id', None)
+        if person_id:
+            return Transaction.objects.filter(person_id=person_id)
+        else:
+            return Transaction.objects.all()
 
 class LineItemListView(SingleTableView):
+    '''
+    If trans_id kwarg passed show items for that transaction
+    else show all items
+    '''
     model = LineItem
     table_class = LineItemTable
     template_name = 'pos/lineitems.html' 
+
+    def get_table_data(self):
+        trans_id = self.kwargs.get('trans_id', None)
+        if trans_id:
+            return LineItem.objects.filter(transaction_id=self.kwargs['trans_id'])
+        else:
+            return LineItem.objects.all()
+    
+    def get_context_data(self, **kwargs):
+        context = super(LineItemListView, self).get_context_data(**kwargs)
+        trans_id = self.kwargs.get('trans_id', None)
+        if trans_id:
+            transaction = Transaction.objects.get(pk=trans_id)
+            context['transaction'] = transaction
+        else:
+            context['transaction'] = None
+        return context
+
+class TransactionDetailView(DetailView):
+    model = Transaction
+    template_name = 'pos/transaction_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TransactionDetailView, self).get_context_data(**kwargs)
+        trans = self.get_object()
+        context['items'] =trans.lineitem_set.all().order_by('id')
+        return context
 
 class GetUserView(TemplateView):
     template_name = 'pos/getuser.html'
@@ -131,5 +159,5 @@ class GetUserView(TemplateView):
     def post(self, request, *args, **kwargs):
         if request.POST['login']:
             request.session['person_id'] = request.POST['person_id']
-            return redirect('pos-view', layout_id=2)
+            return redirect('pos-view')
         return redirect('home')

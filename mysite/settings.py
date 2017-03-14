@@ -44,7 +44,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'report_builder',
     'anymail',
-    'markdownx',
+   # 'markdownx',
     'django_tables2',
     'coverage',
     'pos',

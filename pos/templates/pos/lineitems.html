@@ -1,6 +1,14 @@
 ﻿{% extends 'pos/base.html' %}
 {% block content %}
-<h4>Line items</h4>
-{% load render_table from django_tables2 %}
-{% render_table table %}
+<div class="container">
+  <h2>Line items</h2>
+  {% if transaction %}
+  <h1>Transaction Id: {{ transaction.id }}</h1>
+  {% endif %}
+  {% load render_table from django_tables2 %}
+  {% render_table table %}
+  {% if transaction %}
+  <h1>Total: {{ transaction.total }}</h1>
+  {% endif %}
+</div>
 {% endblock %}
