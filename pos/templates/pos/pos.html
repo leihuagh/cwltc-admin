@@ -1,9 +1,14 @@
 ﻿{% extends 'pos/base.html' %}
 {% load staticfiles %}
 {% block content %}
-<style>
 
-</style>
+<!-- Include meta tag to ensure proper rendering and touch zooming -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Include jQuery Mobile stylesheets 
+<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+-->
+
 <div class="container">
 
   <h2>{{ person.first_name }} {{ person.last_name}}</h2>
@@ -28,12 +33,16 @@
         <div class="button-row">
 	        {% for loc in row %}
             <button ic-include="#defaults" ic-post-to={{ request.path }} ic-target="#receipt_table"
-                class="posbutton" id="itm_{{ loc.item.id }}">{{ loc.item.button_text }}
+                    ic-trigger-on="tap"
+                class="posbutton ui-btn" id="itm_{{ loc.item.id }}">{{ loc.item.button_text }}
             </button>
           {% endfor %}
         </div>
       {% endfor %}
     </div>
+            <button 
+                class="posbutton ui-btn" id="id_ipad">IPAD button
+            </button>
     <div class="receipt-area" id="receipt_table">
             <!-- Receipt table & buttons inserted here-->
 
@@ -96,9 +105,15 @@
       });
       e.preventDefault();
     })
+    $("#id_ipad").on("tap", function () {
+      console.log("tap")
+      $("#itm_1").trigger("click");
+    });
   });
 
 
 </script>
 
+<!-- Include the jQuery Mobile library -->
+<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
 {% endblock %}  
