@@ -42,6 +42,7 @@
 	margin-right: 20px;
 }
 .posbutton {
+    -webkit-user-select: none;
     background-color: #4CAF50; /* Green */
     cursor: pointer;
     border: none;
@@ -54,8 +55,8 @@
     height: 40px;
     margin: 10px 0 10px 10px;
     padding: 6px 13px 0px;
-     border-radius: 15px;
-     box-shadow: 0 3px #999;
+    border-radius: 15px;
+    box-shadow: 0 3px #999;
 }
 .posbutton:active {
     background-color: #3e8e41;
