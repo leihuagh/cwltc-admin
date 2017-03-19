@@ -1,9 +1,4 @@
-﻿p {
-    font-family: 'Source Sans Pro', sans-serif;
-}
-
-
-span.twitter-typeahead .tt-menu,
+﻿span.twitter-typeahead .tt-menu,
 span.twitter-typeahead .tt-dropdown-menu {
   position: absolute;
   top: 100%;

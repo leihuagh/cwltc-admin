@@ -25,6 +25,14 @@ class StartView(LoginRequiredMixin, TemplateView):
         request.session['layout_id'] = layout.id
         return HttpResponseRedirect(reverse('get-user'))
 
+class MemberMenuView(LoginRequiredMixin, TemplateView):
+    template_name = 'pos/member_menu.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(MemberMenuView, self).get_context_data(**kwargs)
+        context['person']= Person.objects.get(pk=self.request.session['person_id'])
+        return context
+
 class PosView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/pos.html'
 
@@ -159,5 +167,5 @@ class GetUserView(TemplateView):
     def post(self, request, *args, **kwargs):
         if request.POST['login']:
             request.session['person_id'] = request.POST['person_id']
-            return redirect('pos-view')
+            return redirect('member-menu')
         return redirect('home')

@@ -6,8 +6,8 @@
       <td>{{ item.quantity }} x {{ item.description }} @ {{ item.sale_price }}</td>     
       <td>{{ item.total }}</td>
       <td> <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
-                      class="btn btn-xs btn-danger" id="del_{{ forloop.counter0 }}">
-              <span class="glyphicon glyphicon-trash"></span>&nbsp;
+                      class="btn btn-md btn-danger timed" id="del_{{ forloop.counter0 }}">
+              <span class="glyphicon glyphicon-remove"></span>
           </button>
       </td>
       </tr>
@@ -18,11 +18,11 @@
 <div class="pay-area">
   {% if enable_payment %} 
     <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
-      class="btn btn-primary" id="pay_">Payment
+      class="btn btn-primary timed" id="pay_">Payment
       <span class="glyphicon glyphicon-ok"></span>&nbsp;
     </button>
     <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
-      class="btn btn-danger" id="can_">
+      class="btn btn-danger timed" id="can_">
         Cancel all
       <span class="glyphicon glyphicon-trash"></span>&nbsp;
     </button>

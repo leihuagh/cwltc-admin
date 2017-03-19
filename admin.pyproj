@@ -10,12 +10,13 @@
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{5F0BE9CA-D677-4A4D-8806-6076C0FAAD37};{349c5851-65df-11da-9384-00065b846f21};{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
-    <LaunchProvider>Django launcher</LaunchProvider>
+    <LaunchProvider>Web launcher</LaunchProvider>
     <InterpreterId>{541dfb26-2fe8-4486-8330-c5d1b46ab0b1}</InterpreterId>
     <InterpreterVersion>2.7</InterpreterVersion>
     <UseIISExpress>true</UseIISExpress>
     <DjangoSettingsModule>mysite.settings</DjangoSettingsModule>
     <Name>admin</Name>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -503,7 +504,9 @@
     <Content Include="members\templates\members\subscription_history.html" />
     <Content Include="members\templates\public\layout.html" />
     <Content Include="pos\static\pos\css\pos.css" />
+    <Content Include="pos\static\pos\css\pos1.css" />
     <Content Include="pos\static\pos\js\bootstrap3-typeahead.min.js" />
+    <Content Include="pos\templates\pos\member_menu.html" />
     <Content Include="pos\templates\pos\transaction_detail.html" />
     <Content Include="static\js\typeahead.bundle.js" />
     <Content Include="pos\templates\pos\base.html" />

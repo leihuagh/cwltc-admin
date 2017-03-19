@@ -1,0 +1,20 @@
+﻿{% extends 'pos/base.html' %}
+{% load staticfiles %}
+{% block content %}
+<div class="container">
+    <div class="jumbotron">
+<img src="{% static "members/content/CWLTC logo small.png" %}"/>
+  <div class="row">
+    <div class="col-md-4">
+    </div>
+    <div class="col-md-4">
+      <h2 class="text-center">{{ person.first_name }} {{ person.last_name}}</h2>
+      <br/>
+      <p><a href="{% url 'pos-view' %}" class="btn btn-primary btn-md btn-block">Teas and visitors</a></p> 
+      <p><a href="{% url 'transactions-person' person_id=person.id %}" class="btn btn-primary btn-md btn-block">View transactions</a></p>
+      <p><a href="{% url 'get-user' %}" class="btn btn-primary btn-md btn-block">Back</a></p>
+    </div>
+  </div>
+</div>
+  </div>
+{% endblock %}

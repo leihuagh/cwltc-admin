@@ -3,100 +3,108 @@
 {% block content %}
 
 
-<div class="container">
 
-  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="/">CWLTC POS</a>
+<div class="container">
+  
+  <div class="jumbotron">
+<img src="{% static "members/content/CWLTC logo small.png" %}"/>
+    <div class="row">
+    <div class="col-md-2"></div>
+      <div class="col-md-5">
+        <form id="form_member" role="form" method="POST" >
+          <div class="input-group input-group-lg">
+            <span class="input-group-addon" id="sizing-addon1">Member login</span>
+            <input type="text" class="form-control typeahead tt-query"aria-describedby="sizing-addon1"
+                    autocomplete="on" spellcheck="false"> 
+          </div>
+          <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
+          <input name="person_id" id="person_id" type="hidden" value="" />      
+          <input type="submit" class="button" id ="submit" style="display: none" name="login" value="Login">
+        </form>
+        <br/>
+
+              <p><a href="{% url 'home' %}" class="btn btn-default btn-md btn-block">Exit to main menu</a></p>
+
       </div>
-      {% if user.is_authenticated %}
-        <div class="navbar-collapse collapse">
-        <!-- Left nav -->
-          <ul class="nav navbar-nav">
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                  aria-expanded="false">Select</a>
-              <ul class="dropdown-menu">
-                  <li><a href="{% url 'transactions' %}">All transactions</a></li>
-                  <li><a href="{% url 'home' %}">Exit POS</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      {% endif %}
-    </div>
+<div class="col-md-5">
+  Enter a few characters of your first name, space, then a few characters of your last name.<br/>
+  E.g. <strong>j smi</strong> would select <strong>John Smith</strong>.
+  If there is more than one match, click your name in the list that appears.
+  </div>
   </div>
 </div>
-<div class="container">
- <h1>&nbsp</h1>
-    <form method="POST">
-      <h1>TEA and VISITORS </h1>
-      <p></p>
-	    <h2>Select member</h2>
-      <p></p>
-      <input type="text" class="typeahead tt-query" autocomplete="off" spellcheck="false">  
-      <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
-      <input name="person_id" id="person_id" type="hidden" value="" />
-      <p>&nbsp</p><p>&nbsp</p><p>&nbsp</p>
-      <input type="submit" class="button btn-primary btn-lg" name="login" value="Login member">
-    </form>
-
 </div>
 {% endblock content %}
 {% block scripts %}
 <script type="text/javascript">
   $(document).ready(function () {
-      $('#id_login').hide();
+    $('#person_id').val("")
+   
+    // constructs the suggestion engine
+    var people = new Bloodhound({
+      datumTokenizer: Bloodhound.tokenizers.whitespace,
+      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      remote: {
+        url: '/ajax/people/?term=%QUERY',
+        wildcard: '%QUERY'
+      }
+    });
 
-      // constructs the suggestion engine
-      var people = new Bloodhound({
-          datumTokenizer: Bloodhound.tokenizers.whitespace,
-          queryTokenizer: Bloodhound.tokenizers.whitespace,
-          remote: {
-              url: '/ajax/people/?term=%QUERY',
-              wildcard: '%QUERY'
-          }
-      });
-      var selectedid = 0
-      // Initializing the typeahead with remote dataset
-      $('.typeahead').typeahead({
-          minLength: 3,
-          hint: true,
-          highlight: true},
-          {
+    // Initializing the typeahead with remote dataset
+    $('.typeahead').typeahead({
+      minLength: 3,
+      hint: true,
+      highlight: true},
+        {
           name: 'people',
           displayKey: "value",
           source: people.ttAdapter(),
           limit: 10
-      });
-      $('.typeahead').bind('typeahead:select', function (event, item) {
-          console.log("select");
-          $('#person_id').val(item.id);
-          $('#id_login').show();
-          return item
-      });
-      $('.typeahead').bind('typeahead:change', function (event, item) {
-          //$('#person_id').val(item.id);
-          //$('#person_name').text(item.value);
-          //selectedid = item.id;
-          console.log("change", selectedid);
-          if (selectedid != 0){
-          }
-      });
-      $('.typeahead').bind('typeahead:autocomplete', function (event, item) {
-          $('#person_id').val(item.id);
-          $('#id_login').show();
-          console.log("autocomplete");
-      });
-
+        }).focus();
+ 
+    // Selecting an item sets #person_id
+    $('.typeahead').bind('typeahead:select', function (event, item) {
+      $('#person_id').val(item.id);
+      $('#submit').trigger('click');
+      return item
     });
+
+    // Record selected item when cursor changes it
+    $('.typeahead').bind('typeahead:cursorchange', function (event, item) {
+      if (typeof item == 'undefined') {
+        $('#person_id').val("");
+      } else {
+        $('#person_id').val(item.id)
+      }
+    });
+
+    // Autocomplete sets the item
+    $('.typeahead').bind('typeahead:autocomplete', function (event, item) {
+      $('#person_id').val(item.id);
+      console.log("autocomplete");
+    });
+
+    // http://bwbecker.github.io/blog/2015/08/29/pain-with-twitter-typeahead-widget/
+
+    // Enter key behaviour
+    $('.typeahead').on('keydown', function (e) {
+      if (e.keyCode == 13) {
+        // if no suggestions ignore the keypress 
+        if ($('.tt-suggestion').length == 0) {
+          e.preventDefault();
+        } else {
+          if ($('#person_id').val() === '') {
+            // Trigger the default (first) suggestion
+            $('.tt-suggestion:first-child').trigger('click');
+          } else {
+            // The suggestion they chose with arrow keys
+            $('#submit').trigger('click');
+          }
+        }
+      }
+    });
+  });
+
 </script>
 {% endblock %}
 

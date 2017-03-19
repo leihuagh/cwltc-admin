@@ -1,22 +1,23 @@
 ﻿{% extends 'pos/base.html' %}
 {% load staticfiles %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
+{% endblock %}
 {% block content %}
 
 <!-- Include meta tag to ensure proper rendering and touch zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<!-- Include jQuery Mobile stylesheets 
-<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
--->
-
+<form id="defaults">
+  <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
+</form>
 <div class="container">
-
-  <h2>{{ person.first_name }} {{ person.last_name}}</h2>
-         
-  <form id="defaults" >
-      <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
-      <input name="person_id" id="person_id" type="hidden" value="" />
-  </form>
+  <div class="row">
+    <div class="col-md-4">
+    </div>
+    <div class="col-md-4"><h2>{{ person.first_name }} {{ person.last_name}}</h2>
+    </div>
+  </div>
 
   <!--
   {% for row in rows %}
@@ -34,7 +35,7 @@
 	        {% for loc in row %}
             <button ic-include="#defaults" ic-post-to={{ request.path }} ic-target="#receipt_table"
                     ic-trigger-on="tap"
-                class="posbutton ui-btn" id="itm_{{ loc.item.id }}">{{ loc.item.button_text }}
+                class="posbutton ui-btn timed" id="itm_{{ loc.item.id }}">{{ loc.item.button_text }}
             </button>
           {% endfor %}
         </div>
@@ -42,7 +43,7 @@
     </div>
     <div class="receipt-area" id="receipt_table">
             <!-- Receipt table & buttons inserted here-->
-
+       {% include "pos/receipt.html" with receipt="" total="£0.00" enable_payment=0 %}
     </div>      
   </div>
 </div>
@@ -79,38 +80,26 @@
 
 {% endblock %}  
 {% block scripts %}
-
 <script type="text/javascript">
   $(document).ready(function () {
-    // click payment button shows the modal
-    $('#id_pay').click(function () {
-      console.log($('#id_total').text());
-      $('#id_confirm').text($('#id_total').text());
-      $('#pay_modal').modal('show');
+    function abort(){
+      alert("Too slow!");
+    }
+    var timerId = 0
+    $(".timed").tap(function () {
+      if (timerId != 0){
+        clearTimeout(timerId);
       }
-      );
-    $("#payment_form").on("submit", function (e) {
-      $.ajax({
-        url: $(this).attr("action"),
-        type: "POST",
-        data: $(this).serializeArray(),
-        success: function (data, textStatus, jqXHR) {
-        },
-        error: function (jqXHR, status, error) {
-          console.log(status + ": " + error);
-        }
-      });
-      e.preventDefault();
-    })
-    $("#id_ipad").on("tap", function () {
-      console.log("tap")
-      $("#itm_1").trigger("click");
+      timerId = setTimeout(abort, 5000);
     });
   });
 
-
+  $(document).bind("mobileinit", function () {
+    // Stop jQuery Mobile messing with our links
+    $.mobile.linkBindingEnabled = false;
+  });
 </script>
 
-<!-- Include the jQuery Mobile library -->
+<!-- Include the jQuery Mobile  library-->
 <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
 {% endblock %}  
