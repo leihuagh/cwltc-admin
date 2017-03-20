@@ -51,11 +51,10 @@ class Transaction(models.Model):
     creator = models.ForeignKey(User)
     person = models.ForeignKey(Person)
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
+    billed = models.BooleanField()
     
     def __unicode__(self):
         return str(self.id)
-
-
 
 class LineItem(models.Model):
     item = models.ForeignKey(Item)

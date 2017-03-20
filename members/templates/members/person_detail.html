@@ -2,17 +2,6 @@
 
 {% block content %}
 {% load members_extras %}
-<style>
-
-.equal, .equal > div[class*='col-'] {  
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    flex:1 1 auto;
-}
-</style>
 
 <h3>{{ person.fullname }}</h3>
  <form action="." method="post" class="form-inline" id={{confirm_form_id}}>

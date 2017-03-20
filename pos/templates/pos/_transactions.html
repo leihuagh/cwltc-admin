@@ -1,0 +1,12 @@
+﻿  {% if person %}
+    <h2>Transactions for {{ first_name }} {{ last_name }}</h2>
+  {% else %}
+
+    <h2>All POS transactions</h2>
+  {% endif %}
+  {% load render_table from django_tables2 %}
+  <div class="panel panel-primary">
+    <div class="panel-body" style="max-height: 80%; overflow-y: scroll;">
+      {% render_table table 'django_tables2/table.html'%}
+    </div>     
+  </div>

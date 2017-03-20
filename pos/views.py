@@ -117,13 +117,23 @@ class TransactionListView(SingleTableView):
     model = Transaction
     table_class = TransactionTable
     template_name = 'pos/transactions.html'
+    table_pagination={'per_page': 15}
+    main_menu = False
 
     def get_table_data(self):
-        person_id = self.kwargs.pop('person_id', None)
+        person_id = self.kwargs.get('person_id', None)
         if person_id:
             return Transaction.objects.filter(person_id=person_id)
         else:
             return Transaction.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super(TransactionListView, self).get_context_data(**kwargs)
+        context['main_menu'] = self.main_menu
+        person_id = self.kwargs.get('person_id', None)
+        if person_id:
+            context['person'] = Person.objects.get(pk=person_id)
+        return context
 
 class LineItemListView(SingleTableView):
     '''

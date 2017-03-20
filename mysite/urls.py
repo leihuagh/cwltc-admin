@@ -228,6 +228,7 @@ urlpatterns = [
         name='creditnote-detail'
     ),
 
+
     #   PEOPLE
 
     url(r'^people/members/$', SubsTableView.as_view(

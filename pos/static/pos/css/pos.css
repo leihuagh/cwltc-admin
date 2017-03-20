@@ -1,9 +1,7 @@
 ﻿p {
     font-family: 'Source Sans Pro', sans-serif;
 }
-body {
-    background-color:honeydew;
-}
+
 .flex-container {
     display: flex;
     width: 100%;

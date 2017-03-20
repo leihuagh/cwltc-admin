@@ -2,14 +2,15 @@
 {% load staticfiles %}
 {% block content %}
 
-
-
 <div class="container">
-  
   <div class="jumbotron">
-<img src="{% static "members/content/CWLTC logo small.png" %}"/>
     <div class="row">
-    <div class="col-md-2"></div>
+      <div class="col-md-2" text-align="center">
+        <img src="{% static "members/content/CWLTC logo small.png" %}"/>
+        <br/>
+        <br/>
+        <p><a href="{% url 'home' %}" class="btn btn-primary btn-md btn-block">Exit</a></p>
+      </div>
       <div class="col-md-5">
         <form id="form_member" role="form" method="POST" >
           <div class="input-group input-group-lg">
@@ -21,18 +22,14 @@
           <input name="person_id" id="person_id" type="hidden" value="" />      
           <input type="submit" class="button" id ="submit" style="display: none" name="login" value="Login">
         </form>
-        <br/>
-
-              <p><a href="{% url 'home' %}" class="btn btn-default btn-md btn-block">Exit to main menu</a></p>
-
       </div>
-<div class="col-md-5">
-  Enter a few characters of your first name, space, then a few characters of your last name.<br/>
+      <div class="col-md-5">
+  Enter a few characters of your first name,  a space, then a few characters of your last name.<br/>
   E.g. <strong>j smi</strong> would select <strong>John Smith</strong>.
   If there is more than one match, click your name in the list that appears.
+      </div>
+    </div>
   </div>
-  </div>
-</div>
 </div>
 {% endblock content %}
 {% block scripts %}

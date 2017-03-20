@@ -5,6 +5,7 @@ urlpatterns = [
     url(r'^$', StartView.as_view(), name='pos-start'),
     url(r'layout/$', PosView.as_view(), name='pos-view'),
     url(r'transactions/$', TransactionListView.as_view(), name='transactions'),
+    url(r'transactions/main/$', TransactionListView.as_view(main_menu=True), name='transactions-main'),
     url(r'transactions/person/(?P<person_id>\d+)/$', TransactionListView.as_view(),
         name='transactions-person'),
     url(r'transaction/(?P<pk>\d+)/$', TransactionDetailView.as_view(), name='transaction-detail'),

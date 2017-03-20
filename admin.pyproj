@@ -468,6 +468,7 @@
     <Content Include="members\templates\members\mailtype_detail.html" />
     <Content Include="members\templates\members\mail_campaign_list.html" />
     <Content Include="members\templates\members\person_list.html" />
+    <Content Include="pos\templates\pos\all_transactions.html" />
     <Content Include="members\templates\public\mailtype_done.html" />
     <Content Include="members\templates\members\mailtype_list.html" />
     <Content Include="members\templates\public\mailtype_manage.html" />
@@ -504,10 +505,10 @@
     <Content Include="members\templates\members\subscription_history.html" />
     <Content Include="members\templates\public\layout.html" />
     <Content Include="pos\static\pos\css\pos.css" />
-    <Content Include="pos\static\pos\css\pos1.css" />
     <Content Include="pos\static\pos\js\bootstrap3-typeahead.min.js" />
     <Content Include="pos\templates\pos\member_menu.html" />
     <Content Include="pos\templates\pos\transaction_detail.html" />
+    <Content Include="pos\templates\pos\_transactions.html" />
     <Content Include="static\js\typeahead.bundle.js" />
     <Content Include="pos\templates\pos\base.html" />
     <Content Include="pos\templates\pos\getuser.html" />
