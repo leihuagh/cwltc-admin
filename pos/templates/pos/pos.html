@@ -29,9 +29,8 @@
 
   <div class="flex-container">
     <div class="button-area">
-    
       {% for row in rows %}
-        <div class="button-row">
+        <div class="well">
 	        {% for loc in row %}
             <button ic-include="#defaults" ic-post-to={{ request.path }} ic-target="#receipt_table"
                     ic-trigger-on="tap"
@@ -39,6 +38,7 @@
             </button>
           {% endfor %}
         </div>
+
       {% endfor %}
     </div>
     <div class="receipt-area" id="receipt_table">
@@ -83,7 +83,7 @@
 <script type="text/javascript">
   $(document).ready(function () {
     function abort(){
-      alert("Too slow!");
+      //alert("Too slow!");
     }
     var timerId = 0
     $(".timed").tap(function () {
