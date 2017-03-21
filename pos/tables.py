@@ -11,6 +11,7 @@ class TransactionTable(tables.Table):
 
     detail = tables.LinkColumn('transaction-detail', text='Detail', args=[A('pk')], orderable=False)
 
+
 class LineItemTable(tables.Table):
     
     class Meta:

@@ -127,17 +127,17 @@ else:
 LANGUAGE_CODE = 'en-uk'
 TIME_ZONE = 'Europe/London'
 USE_I18N = False
-USE_L10N = True
+USE_L10N = False
 USE_TZ = True
 
 # LIST: https://docs.djangoproject.com/en/dev/ref/templates/builtins/#date
 DATE_FORMAT = 'd/m/Y'
 TIME_FORMAT = 'H:i'
-DATETIME_FORMAT = 'd-m-Y H:i'
+DATETIME_FORMAT = 'd/m/Y H:i'
 YEAR_MONTH_FORMAT = 'F Y'
 MONTH_DAY_FORMAT = 'F j'
 SHORT_DATE_FORMAT = 'd/m/Y'
-SHORT_DATETIME_FORMAT = 'd/m/Y P'
+SHORT_DATETIME_FORMAT = 'd/m/Y H:i'
 FIRST_DAY_OF_WEEK = 1
 
 # BUT here use the Python strftime format syntax,
