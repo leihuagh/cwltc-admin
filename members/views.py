@@ -31,7 +31,7 @@ import json
 from report_builder.models import Report
 from .filters import *
 from django_tables2 import SingleTableView, RequestConfig
-
+from pos.services import create_invoiceitems_from_transactions
 
 def search(request):
     person_list = Person.objects.all()
@@ -1075,6 +1075,12 @@ class YearEndView(LoginRequiredMixin, FormView):
         elif 'renew' in form.data:
             count = subscription_renew_batch(year, Subscription.START_MONTH)
             message = '{} subscriptions generated'.format(count)
+            messages.success(self.request, message)
+            return redirect('year-end')
+
+        elif 'bar' in form.data:
+            count = create_invoiceitems_from_transactions()
+            message = '{} invoice items generated'.format(count)
             messages.success(self.request, message)
             return redirect('year-end')
 

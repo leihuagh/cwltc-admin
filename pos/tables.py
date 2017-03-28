@@ -6,7 +6,7 @@ class TransactionTable(tables.Table):
     
     class Meta:
         model = Transaction
-        fields = ('creation_date', 'id', 'person.first_name','person.last_name', 'total')
+        fields = ('creation_date', 'id', 'person.first_name','person.last_name', 'total', 'billed')
         attrs = {'class': 'table table-condensed'} 
 
     detail = tables.LinkColumn('transaction-detail', text='Detail', args=[A('pk')], orderable=False)
