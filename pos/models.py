@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
-from members.models import Person
+from members.models import Person, ItemType
 
 class Item(models.Model):
     description = models.CharField(max_length=50)
@@ -29,7 +29,7 @@ class Item(models.Model):
 
 class Layout(models.Model):
     name = models.CharField(max_length=25)
-
+    invoice_itemtype = models.ForeignKey(ItemType, null=True)
     def __unicode__(self):
         return self.name
 
@@ -41,7 +41,8 @@ class Location(models.Model):
     layout = models.ForeignKey(Layout, blank=True, null=True)
 
     def __unicode__(self):
-        name = "Row {} Col {} ".format(str(self.row), str(self.col))
+        name = "Layout: {}, Row: {}, Col: {}, ".format(str(self.layout.name),
+                                                    str(self.row), str(self.col))
         if self.item:
             name += self.item.description
         return name
@@ -52,9 +53,13 @@ class Transaction(models.Model):
     person = models.ForeignKey(Person)
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     billed = models.BooleanField()
+    layout = models.ForeignKey(Layout, blank=True, null=True)
     
     def __unicode__(self):
-        return str(self.id)
+        return "{} {} {} {}".format(str(self.id),
+                                    str(self.person.first_name),
+                                    str(self.person.last_name),
+                                    str(self.total)) 
 
 class LineItem(models.Model):
     item = models.ForeignKey(Item)
@@ -64,4 +69,4 @@ class LineItem(models.Model):
     transaction = models.ForeignKey(Transaction, blank=True, null=True)
     
     def __unicode__(self):
-        return self.item.description
+        return "{} {}".format(self.item.description, self.transaction_id)

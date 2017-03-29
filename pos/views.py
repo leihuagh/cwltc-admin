@@ -79,7 +79,10 @@ class PosView(LoginRequiredMixin, TemplateView):
                     return response              
                 
                 if key == 'yes':
-                    create_transaction_from_receipt(request.user.id, request.session['person_id'], receipt)
+                    create_transaction_from_receipt(request.user.id,
+                                                    request.session['person_id'],
+                                                    request.session['layout_id'],
+                                                    receipt)
                 
                 if key == 'end' or key =='yes':
                     receipt = []

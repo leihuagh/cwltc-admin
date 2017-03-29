@@ -6,8 +6,17 @@ class TransactionTable(tables.Table):
     
     class Meta:
         model = Transaction
-        fields = ('creation_date', 'id', 'person.first_name','person.last_name', 'total', 'billed')
-        attrs = {'class': 'table table-condensed'} 
+        fields = ('creation_date', 'id', 'person.first_name','person.last_name', 'total',
+                  'layout.invoice_itemtype.description', 'billed')
+
+                  
+        attrs = {'class': 'table table-condensed'}
+         
+    total = tables.Column(
+        attrs={
+            'td':{'style':'text-align: right;'}
+            }
+        )
 
     detail = tables.LinkColumn('transaction-detail', text='Detail', args=[A('pk')], orderable=False)
 

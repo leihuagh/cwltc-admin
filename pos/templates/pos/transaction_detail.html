@@ -6,6 +6,7 @@
       <h2>POS Transaction</h2>
       <h3>{{ transaction.person.first_name }} {{ transaction.person.last_name }} </h3>
       <h4>{{ transaction.creation_date }}</h4>
+      <h4>{{ transaction.layout.invoice_itemtype.description }}</h4>
       <table class="table table-condensed">
         {% for lineitem in items %}
           <tr><td>{{ lineitem.item.description }}</td><td>{{ lineitem.quantity }}</td><td>{{ lineitem.sale_price }}</td></tr>
