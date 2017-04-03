@@ -17,3 +17,6 @@ python "$OPENSHIFT_REPO_DIR"/manage.py makemigrations --noinput
 
 echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py migrate --noinput'"
 python "$OPENSHIFT_REPO_DIR"/manage.py migrate --noinput
+
+echo "Executing '$OPENSHIFT_REPO_DIR"/manage.py migrate fixsubs'"
+python "$OPENSHIFT_REPO_DIR"/manage.py migrate fixsubs
