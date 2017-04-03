@@ -13,5 +13,5 @@ class Command(BaseCommand):
         subs = Subscription.objects.filter(membership_id = Membership.RESIGNED, resigned=False).update(resigned=True)
         self.stdout.write(self.style.SUCCESS('Processed %d resigned subs' % subs))
 
-        people = Person.objects.filter(sub__membership_id = Membership.RESIGNED)
-        self.stdout.write(self.style.SUCCESS('Processed %d resigned subs' % len(people)))
+        count = Person.objects.filter(sub__membership_id = Membership.RESIGNED).update(state=Person.RESIGNED)
+        self.stdout.write(self.style.SUCCESS('Processed %d resigned people' % count))
