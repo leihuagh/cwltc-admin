@@ -147,9 +147,9 @@
                       <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change subscription</a>
                     {% else %}
                       <a href="{% url "sub-update" pk=sub.id %}" class="btn btn-primary btn-sm">Edit current sub</a>
-                       {% include "members/_confirm.html" with confirm_id="confResign" confirm_title="Resign person" confirm_yes="Resign" confirm_submit="resign" %}
-                       <a href="#" data-toggle="modal" data-target="#confResign" class="btn btn-danger btn-sm">Resign person</a>
-                    {% endif %}
+                    {% endif %}                                             
+                    {% include "members/_confirm.html" with confirm_id="confResign" confirm_title="Resign person" confirm_yes="Resign" confirm_submit="resign" %}
+                    <a href="#" data-toggle="modal" data-target="#confResign" class="btn btn-danger btn-sm">Resign person</a>
                   {% endif %}
                 {% else %}
                   <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New subscription</a>
