@@ -16,6 +16,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 admin.autodiscover()
 from members.tables import *
+from django_mail_viewer import urls as django_mail_viewer_urls
 from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -27,11 +28,12 @@ urlpatterns = [
         HomeView.as_view(),
         name='home'
     ),
-
+    url(r'^mv/', include(django_mail_viewer_urls)),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
-    url(r'^markdownx/', include('markdownx.urls')),
+    
+    #url(r'^markdownx/', include('markdownx.urls')),
     
     url(r'^pos/', include('pos.urls')),
 
@@ -40,6 +42,7 @@ urlpatterns = [
         name = "ajax-people"
         ),
 
+    # YEAR END
     url(r'^yearend/$',
         YearEndView.as_view(),
         name='year-end'
@@ -58,7 +61,6 @@ urlpatterns = [
         GroupDetailView.as_view(),
         name='group-detail'
     ),
-
     url(r'^groups/$',
         GroupListView.as_view(),
         name='group-list'
@@ -71,6 +73,7 @@ urlpatterns = [
         GroupAddListView.as_view(),
         name='group-add-list'
     ),
+
     #   GO CARDLESS
     url(r'^gocardless/confirm/$',
         GCConfirm.as_view(template_name = "gc_app/success.html"),
@@ -153,6 +156,10 @@ urlpatterns = [
         SubRenewAllView.as_view(),
         name='sub-renew-all'
     ),
+    url(r'^sub/renew/list$',
+        SubRenewSelectionView.as_view(),
+        name='sub-renew-list'
+    ),
     url(r'^sub/history/(?P<person_id>\d+)/$',
         SubHistoryView.as_view(),
         name='sub-history'
@@ -178,6 +185,10 @@ urlpatterns = [
     url(r'^invoice/generate/(?P<pk>\d+)/$',
         InvoiceGenerateView.as_view(),
         name='invoice-generate'
+    ),
+    url(r'^invoices/generate/$',
+        InvoicesGenerateSelectionView.as_view(),
+        name='invoices-generate'
     ),
     url(r'^invoice/mail/(?P<pk>\d+)/(?P<option>[a-zA-Z]+)$',
         InvoiceMailView.as_view(),
@@ -218,6 +229,7 @@ urlpatterns = [
         PaymentUpdateView.as_view(),
         name='payment-update'
     ),
+    
     #   CREDIT NOTES
     url(r'^creditnote/create/(?P<person_id>\d+)/$',
         CreditNoteCreateView.as_view(),
@@ -225,7 +237,7 @@ urlpatterns = [
     ),
     url(r'^creditnote/(?P<pk>\d+)/$',
         CreditNoteDetailView.as_view(),
-        name='creditnote-detail'
+        name='creditnote-update'
     ),
 
 
@@ -235,36 +247,30 @@ urlpatterns = [
         table_class=SubsTable,
         model=Subscription,
         members=True,
-        template_name='members/person_list.html',
         filter_class=SubsFilter,
-        table_pagination={ "per_page":10000 } ),
+        ),
         name='members-list'),
 
     url(r'^people/juniors/$', SubsTableView.as_view(
         table_class=SubsTable,
         model=Subscription,
         juniors=True,
-        template_name='members/person_list.html',
         filter_class=JuniorFilter,
-        table_pagination={ "per_page":10000 } ),
+        ),
         name='juniors-list'),
 
     url(r'^people/parents/$', SubsTableView.as_view(
         table_class=PersonTable,
         model=Person,
         parents=True,
-        template_name='members/person_list.html',
         filter_class=JuniorFilter,
-        table_pagination={ "per_page":10000 } ),
+        ),
         name='parents-list'
     ),
     url(r'^people/all/$', SubsTableView.as_view(
         table_class=PersonTable,
         model=Person,
-        parents=True,
-        template_name='members/person_list.html',
-        filter_class=JuniorFilter,
-        table_pagination={ "per_page":10000 } ),
+        ),
         name='all-people-list'
     ),
     url(r'^list/$',
@@ -454,12 +460,6 @@ urlpatterns = [
         name='bee'
     ),
    
-    #url(
-    #    r'^bar$',
-    #   bar,
-    #   name='bar-view'
-    #),
-
     url(r'^login/$', auth_views.login, 
         {'template_name': 'auth/login.html'},
          name='login'),
@@ -487,28 +487,6 @@ urlpatterns = [
         {'template_name': 'auth/password_reset_complete.html'}, 
         name='password_reset_complete'),
 
-
-    #url(r'^login/$',
-    #    login,
-    #    {
-    #        'template_name': 'auth/login.html',
-    #        'authentication_form': BootstrapAuthenticationForm,
-    #        'extra_context':
-    #        {
-    #            'title':'Log in',
-    #            'year':datetime.now().year,
-    #        }
-    #    },
-    #    name='login'),
-    #url(r'^logout$',
-    #    logout,
-    #    {
-    #        'next_page': '/',
-    #    },
-    #    name='logout'),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     url(r'^admin/',
         include(admin.site.urls)

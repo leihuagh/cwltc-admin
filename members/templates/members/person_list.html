@@ -6,62 +6,68 @@
   <form method="get">
     <div class="well" style="padding:10px">
       <div class="row">
+        {% if filter %}
           {% if parents %}
             <div class="col-sm-3 col-md-2">
               <h3>Parents</h3>
             </div>
           {% endif %}
         <!--  Year and state must be present but are hidden except in members view -->
-        {% if members %}
-            <div class="form-group col-sm-3 col-md-2 ">
-                {{ filter.form.year.label_tag }}
-                {% render_field filter.form.year class="form-control form-control-sm" %}
-            </div>
+          {% if members %}
+              <div class="form-group col-sm-3 col-md-2 ">
+                  {{ filter.form.year.label_tag }}
+                  {% render_field filter.form.year class="form-control form-control-sm" %}
+              </div>
          
-            <div class="form-group col-sm-3 col-md-2">
-                {{ filter.form.state.label_tag }}
-                {% render_field filter.form.state class="form-control" %}
-            </div>
-        {% endif %}
-        <!-- -->
-        <div class="form-group col-sm-3 col-md-2">
-          {{ filter.form.membership.label_tag }}
-          {% render_field filter.form.membership class="form-control" %}
+              <div class="form-group col-sm-3 col-md-2">
+                  {{ filter.form.state.label_tag }}
+                  {% render_field filter.form.state class="form-control" %}
+              </div>
+          {% endif %}
+          <!-- -->
+          <div class="form-group col-sm-3 col-md-2">
+            {{ filter.form.membership.label_tag }}
+            {% render_field filter.form.membership class="form-control" %}
+          </div>
+          {% if members %}
+              <div class="form-group col-sm-3 col-md-2">
+                {{ filter.form.adult.label_tag }}
+                {% render_field filter.form.adult class="form-control" %}
+              </div>
+              <div class="form-group col-sm-3 col-md-2">
+                {{ filter.form.playing.label_tag }}
+                {% render_field filter.form.playing class="form-control" %}
+              </div>
+          {% endif %}
+          <div class="form-group col-sm-3 col-md-2">
+            {{ filter.form.paid.label_tag }}
+            {% render_field filter.form.paid class="form-control" %}
+          </div>
+          {% if parents is False %}
+              <!--Cannot filter on parent names-->
+              <div class="form-group col-sm-3 col-md-2">
+                {{ filter.form.first_name.label_tag }}
+                {% render_field filter.form.first_name class="form-control" %}
+              </div>
+              <div class="form-group col-sm-3 col-md-2">
+                {{ filter.form.last_name.label_tag }}
+                {% render_field filter.form.last_name class="form-control" %}
+              </div>
+          {% endif %}
+          {% if juniors %}
+              <div class="form-group col-sm-3 col-md-2">
+                {{ filter.form.dob1.label_tag }}
+                {% render_field filter.form.dob1 class="form-control" placeholder="DD/MM/YYYY"%}
+              </div>
+              <div class="form-group col-sm-2 col-md-2">
+                {{ filter.form.dob2.label_tag }}
+                {% render_field filter.form.dob2 class="form-control" placeholder="DD/MM/YYYY" %}
+              </div>
+          {% endif %}
+        {% else %}
+        <div class="col-md-6">
+          <h4>All people in database</h4>
         </div>
-        {% if members %}
-            <div class="form-group col-sm-3 col-md-2">
-              {{ filter.form.adult.label_tag }}
-              {% render_field filter.form.adult class="form-control" %}
-            </div>
-            <div class="form-group col-sm-3 col-md-2">
-              {{ filter.form.playing.label_tag }}
-              {% render_field filter.form.playing class="form-control" %}
-            </div>
-        {% endif %}
-        <div class="form-group col-sm-3 col-md-2">
-          {{ filter.form.paid.label_tag }}
-          {% render_field filter.form.paid class="form-control" %}
-        </div>
-        {% if parents is False %}
-            <!--Cannot filter on parent names-->
-            <div class="form-group col-sm-3 col-md-2">
-              {{ filter.form.first_name.label_tag }}
-              {% render_field filter.form.first_name class="form-control" %}
-            </div>
-            <div class="form-group col-sm-3 col-md-2">
-              {{ filter.form.last_name.label_tag }}
-              {% render_field filter.form.last_name class="form-control" %}
-            </div>
-        {% endif %}
-        {% if juniors %}
-            <div class="form-group col-sm-3 col-md-2">
-              {{ filter.form.dob1.label_tag }}
-              {% render_field filter.form.dob1 class="form-control" placeholder="DD/MM/YYYY"%}
-            </div>
-            <div class="form-group col-sm-2 col-md-2">
-              {{ filter.form.dob2.label_tag }}
-              {% render_field filter.form.dob2 class="form-control" placeholder="DD/MM/YYYY" %}
-            </div>
         {% endif %}
       </div>
     </div>
@@ -73,6 +79,7 @@
     </div>
   </form>
 
+ <!-- ACTIONS -->
 <form action="." method="post" class="form-inline"> 
      {% csrf_token %}
     <div class="row">
@@ -81,6 +88,10 @@
             <option value="export">Export</option>
             <option value="mail">Mail</option>
             <option value="group">Add to group</option>
+            {% if user.is_staff %}
+              <option value="renew">Renew subscriptions</option>
+              <option value="invoice">Create invoices</option>
+            {% endif %}
         </select>
         <button class="form-control button btn-primary"  name="go" id="id_go" type="submit">Go</button>
         &nbsp &nbsp
@@ -94,18 +105,19 @@
     </div>
 </form>
 {% endblock %}
+
 {% block scripts %}   
-<script language="JavaScript">
+<script>
     $(document).ready(function () {
         countChecked();
         console.log("ready");
     });
 
 function toggle(source) {
-    checkboxes = document.getElementsByName('selection');
+    var checkboxes = document.getElementsByName('selection');
     var count=0
-    for (var i in checkboxes)
-        checkboxes[i].checked = source.checked;
+    for (i = 0; i < checkboxes.length; i++)
+      checkboxes[i].checked = source.checked;
     countChecked();
 }
 

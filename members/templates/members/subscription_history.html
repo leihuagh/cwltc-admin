@@ -22,13 +22,13 @@
     {% if sub.active %}
         <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">Edit </a>
     {% else %}
-        <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">View</a>
+        <a href="{% url "sub-detail" sub.id %}" class="btn btn-primary btn-xs">View</a>
     {% endif %}
     </td>
     <td>{{ sub.sub_year }}</td>
     <td>{{ sub.start_date }}</td> 
     <td>{{ sub.end_date }}</td>
-    <td>{{ sub.membership.description }}</td>
+    <td>{{ sub.membership_fulldescription }}</td>
     <td>
     {% if sub.has_paid_invoice %}
         Paid invoice

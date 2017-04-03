@@ -11,6 +11,7 @@ from decimal import *
 from .models import *
 from .tables import *
 from .services import *
+from .filters import TransactionFilter
 
 class StartView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/start.html'
@@ -117,22 +118,31 @@ class PosView(LoginRequiredMixin, TemplateView):
             return HttpResponse("Error - wrong id",content_type='application/xhtml+xml')
 
 class TransactionListView(SingleTableView):
+    '''
+    List transactions with filtering
+    '''
     model = Transaction
     table_class = TransactionTable
+    filter_class = TransactionFilter
     template_name = 'pos/transactions.html'
-    table_pagination={'per_page': 15}
+    table_pagination={'per_page': 10}
     main_menu = False
-
+ 
     def get_table_data(self):
         person_id = self.kwargs.get('person_id', None)
         if person_id:
-            return Transaction.objects.filter(person_id=person_id)
+            qs = Transaction.objects.filter(person_id=person_id)
         else:
-            return Transaction.objects.all()
+            qs = Transaction.objects.all()
+        self.filter = self.filter_class(self.request.GET, qs)
+        self.qs = self.filter.qs
+        return self.qs
 
     def get_context_data(self, **kwargs):
         context = super(TransactionListView, self).get_context_data(**kwargs)
         context['main_menu'] = self.main_menu
+        context['filter'] = self.filter
+        context['sum'] = self.qs.aggregate(sum=Sum('total'))['sum']
         person_id = self.kwargs.get('person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)

@@ -582,6 +582,9 @@
     <Compile Include="pos\tables.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="pos\filters.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pos\tests.py" />
     <Compile Include="pos\urls.py">
       <SubType>Code</SubType>

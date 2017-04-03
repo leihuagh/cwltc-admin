@@ -1,7 +1,7 @@
 from datetime import *
 from .models import Person, Membership, Settings, Subscription
 import django_filters
-from django.forms.widgets import *
+
 
 def year_choices():
     choices = []

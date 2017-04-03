@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'report_builder',
     'anymail',
+    'django_mail_viewer',
    # 'markdownx',
     'django_tables2',
     'coverage',
@@ -248,9 +249,10 @@ if DEBUG:
         #EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
         #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     else:
+        EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
         #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
         #EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'temp','emails')
-        EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+        #EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
 else:
 
     EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'

@@ -547,6 +547,16 @@ class Subscription(models.Model):
     def is_invoiced(self):
         return self.invoice_item is not None
 
+    @property
+    def membership_fulldescription(self):
+        ''' Return a description including resigned case '''
+        desc = self.membership.description
+        if self.resigned:
+            # post 2017 data has old membership in parenthesis"
+            if desc <> "Resigned":
+                desc = "Resigned ({})".format(desc)
+        return desc
+
 class Settings(models.Model):
     membership_year = models.SmallIntegerField(default=0)
 

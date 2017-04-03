@@ -338,13 +338,13 @@ class MembersTestCase(TestCase):
             sub_year=2015,
             membership_id=Membership.FULL
         )
-        subscription_activate(sub3, make_live = False)
+        subscription_activate(sub3, activate = False)
         adult = get_adult()
         self.assertEqual(adult.active_sub(2014), sub2)
         self.assertEqual(adult.active_sub(2015), sub3)
         self.assertEqual(adult.sub, sub2)
         
-        subscription_activate(sub3, make_live = True)
+        subscription_activate(sub3, activate = True)
         adult = get_adult()
         self.assertEqual(adult.active_sub(2014), sub2)
         self.assertEqual(adult.active_sub(2015), sub3)
@@ -366,7 +366,7 @@ class MembersTestCase(TestCase):
         self.assertTrue(item.description.find('1/5/2015 to 30/4/2016') > -1, 'Wrong sub')
         self.assertEqual(item.amount, 240, 'Wrong amount: {}'.format(item.amount))
         
-        inv = invoice_create_from_items(adult)
+        inv = invoice_create_from_items(adult, 2015)
         self.assertEqual(Invoice.objects.all().count(), 1, 'actual is: %d' % Invoice.objects.all().count())
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.total, 240, 'Wrong total: {}'.format(inv.total))
@@ -402,7 +402,7 @@ class MembersTestCase(TestCase):
         self.assertTrue(item.description.find('Full membership') > -1, 'Wrong membership')
         self.assertTrue(item.description.find('1/8/2015 to 31/1/2016') > -1, 'Wrong sub')
         self.assertEqual(item.amount, 6 * 21 , 'Wrong amount: {}'.format(item.amount))
-        inv = invoice_create_from_items(adult)
+        inv = invoice_create_from_items(adult, 2015)
         self.assertEqual(Invoice.objects.all().count(), 1, 'actual is: %d' % Invoice.objects.all().count())
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.total, 6 * 21 + 100, 'Wrong total: {}'.format(inv.total))
@@ -492,7 +492,7 @@ class MembersTestCase(TestCase):
 
         #create the invoice for the junior - generates invoice for adult
         junior = get_junior()
-        invoice_create_from_items(junior)
+        invoice_create_from_items(junior, 2015)
         
         # check the invoice is correct
         self.assertEqual(Invoice.objects.all().count(), 1)
@@ -550,7 +550,7 @@ class MembersTestCase(TestCase):
             description='Test BAR',
             amount=100)
 
-        invoice_create_from_items(adult)
+        invoice_create_from_items(adult, 2015)
         self.assertEqual(Invoice.objects.all().count(), 1)
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.person, adult)
@@ -574,7 +574,7 @@ class MembersTestCase(TestCase):
         self.assertEqual(cnote.membership_year, inv.membership_year)
 
         # create new invoice and test cancel without credit_note
-        invoice_create_from_items(adult)   
+        invoice_create_from_items(adult, 2015)   
         self.assertEqual(Invoice.objects.all().count(), 2)
         inv2 = Invoice.objects.filter(state=Invoice.UNPAID)[0]     
         invoice_cancel(inv2, with_credit_note=False)
@@ -585,7 +585,7 @@ class MembersTestCase(TestCase):
         invoice_cancel(inv1, with_credit_note=False)
         self.assertEqual(CreditNote.objects.all().count(), 1) 
 
-        inv3 = invoice_create_from_items(adult)  
+        inv3 = invoice_create_from_items(adult, 2015)  
         invoice_cancel(inv3, with_credit_note=False, superuser=True)
 
     def test_group_create(self):

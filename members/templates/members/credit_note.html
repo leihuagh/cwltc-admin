@@ -2,7 +2,10 @@
 
 {% block content %}
 {% load members_extras %}
-<h3>{{ person.fullname }}</h3>
+<h3>Credit note</h3>
+<h4>
+<a href="{% url "person-detail"  person.id %}">{{ person.first_name }} {{ person.last_name }}</a>
+</h4>
  <form action="." method="post" class="form-inline" id="post-form">
 <table>
     <tr>
@@ -15,7 +18,7 @@
         <td>Created:</td><td>{{ cnote.creation_date|date }}</td>
     </tr>
     <tr>
-        <td>Invoice:</td><td><a href="{% url "invoice-detail" cnote.invoice.id %}">{{ cnote.invoice.id }}</a></td>
+        <td>Invoice:</td><td><a href="{% url "invoice-detail" cnote.invoice_id %}">{{ cnote.invoice.id }}</a></td>
     </tr>
 
     <tr>
@@ -28,5 +31,11 @@
         <td>Detail: </td><td>{{ cnote.detail }}</td>
     </tr>
 </table>
+{% csrf_token %}
+{% if user.is_staff %}
+   <br/>
+  {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete credit note" confirm_yes="Delete" confirm_submit="delete" %}
+  <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger">Delete credit note</a>
+{% endif %}
 </form>
 {% endblock %}

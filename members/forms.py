@@ -1,5 +1,5 @@
 from os import path
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 from django import forms
 from django.forms import Form, ModelForm, ModelMultipleChoiceField, HiddenInput
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
@@ -614,20 +614,20 @@ class SubCorrectForm(ModelForm):
         model = Subscription
         fields = ['membership', 'sub_year', 'start_date', 'end_date']
 
-class SubRenewForm(Form):
+class YearConfirmForm(Form):
     ''' Handle renewal process at start of membership year '''
     sub_year = forms.IntegerField(max_value=2100, min_value = 2014, required=True)
 
     def __init__(self, *args, **kwargs):
-        super(SubRenewForm, self).__init__(*args, **kwargs)
+        super(YearConfirmForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_method = 'post'
-        self.helper.add_input(SubmitButton('renew', 'Renew all subs', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton('apply', 'Apply', css_class='btn-primary'))
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
-        self.fields['sub_year'].initial = datetime.now().year
+        self.fields['sub_year'].initial = Settings.objects.all()[0].membership_year
 
     def clean(self):
-        cleaned_data = super(SubRenewForm, self).clean()
+        cleaned_data = super(YearConfirmForm, self).clean()
         year = cleaned_data.get('sub_year')
 
 class MembersListForm(Form):
@@ -659,15 +659,24 @@ class JuniorsListForm(Form):
 class InvoiceFilterForm(Form):
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
                               initial=Settings.current().membership_year)
-    start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
+    start_datetime = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                     initial=date(Settings.current().membership_year,4,1), required=False)
-    start_date.widget.format = settings.DATE_INPUT_FORMATS[0]
-    end_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
+    start_datetime.widget.format = settings.DATE_INPUT_FORMATS[0]
+    end_datetime = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                   initial=date.today(), required=False)
-    end_date.widget.format = settings.DATE_INPUT_FORMATS[0]
+    end_datetime.widget.format = settings.DATE_INPUT_FORMATS[0]
     paid = forms.BooleanField(initial=True, required=False)
     unpaid = forms.BooleanField(initial=True, required=False)
     cancelled = forms.BooleanField(initial=False, required=False)
+
+    def clean(self):
+        super(InvoiceFilterForm, self).clean()
+        edate = self.cleaned_data['end_datetime']
+        self.cleaned_data['end_datetime'] = datetime.combine(
+            date(edate.year, edate.month, edate.day),
+            time(23,59,59)
+            )
+        return self.cleaned_data
 
 class InvoiceItemForm(ModelForm):
 

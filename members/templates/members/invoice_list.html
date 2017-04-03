@@ -11,12 +11,12 @@
             {{ form.membership_year }}
         </div>
         <div class="form-group">
-            <label for="id_start_date" class="col-md-5 control-label">Created from</label>
-            {{ form.start_date|add_attributes:'datepicker col-md-6' }}
+            <label for="id_start_datetime" class="col-md-5 control-label">Created from</label>
+            {{ form.start_datetime|add_attributes:'datepicker col-md-6' }}
         </div>
         <div class="form-group">
-            <label for="id_end_date" class="col-md-2 control-label">To</label>
-            {{ form.end_date|add_attributes:'datepicker col-md-6' }}
+            <label for="id_end_datetime" class="col-md-2 control-label">To</label>
+            {{ form.end_datetime|add_attributes:'datepicker col-md-6' }}
         </div>
         <div class="form-group">
             <label for="id_paid" class="control-label">Paid</label>
@@ -88,8 +88,8 @@
             paid: $('#id_paid').is(":checked"),
             unpaid: $('#id_unpaid').is(":checked"),
             cancelled: $('#id_cancelled').is(":checked"),
-            start_date: $('#id_start_date').val(),
-            end_date: $('#id_end_date').val(),
+            start_datetime: $('#id_start_datetime').val(),
+            end_datetime: $('#id_end_datetime').val(),
             search: table.search(),
             check_list: checks
         }

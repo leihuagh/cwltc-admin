@@ -69,6 +69,7 @@ def invoice_create_batch(exclude_slug='', size=10000):
     people_ids = InvoiceItem.objects.filter(invoice=None).values_list('person_id', flat=True)
     people = Person.objects.filter(id__in=people_ids)
     total = people.count()
+    year = Settings.objects.all()[0].membership_year
     done = 0
     if size > 0 :
         for person in people:
@@ -77,25 +78,39 @@ def invoice_create_batch(exclude_slug='', size=10000):
             else:
                 include = True
             if include:
-                invoice_create_from_items(person)
+                invoice_create_from_items(person, year)
                 done += 1
                 if done == size:
                     break
     return (total, done)
 
-def invoice_create_from_items(person):
+def invoices_create_from_list(id_list, year):
+    '''
+    Generate invoices for all people in the list of ids
+    And return a count of how many generated
+    This may be less than number of people because of families
+    '''
+    people = Person.objects.filter(id__in=id_list)
+    count = 0
+    for person in people:
+        inv = invoice_create_from_items(person, year)
+        if inv:
+            count += 1
+    return count
+
+def invoice_create_from_items(person, year):
     ''' if there are open invoice items link them to a new invoice
         process all family members who don't pay own bill
         Return invoice or False if there are no items '''
         
     if person.linked and not person.pays_own_bill:
-        return invoice_create_from_items(person.linked)
+        return invoice_create_from_items(person.linked, year)
     else:
         invoice = Invoice.objects.create(
             person = person,
             state = Invoice.UNPAID,
             date = datetime.now(),
-            membership_year = Settings.current().membership_year
+            membership_year = year
             )
         # include all own items
         subs_total = 0
@@ -300,37 +315,37 @@ def subscription_create(person,
                         period=Subscription.ANNUAL,
                         new_member=False,
                         age_list=None):
-        ''' Create a new subscription and link it to a person but do not activate it. '''
-        sub = Subscription()
-        sub.person_member = person
-        sub.sub_year = sub_year
-        year = sub_year if start_month >= Subscription.START_MONTH else sub_year+1
-        sub.start_date = datetime(year, start_month, 1)
-        year = sub_year + 1 if end_month <= Subscription.START_MONTH else sub_year
-        if end_month == 12:
-            sub.end_date = datetime(year, 12, 31)
-        else:
-            sub.end_date = datetime(year, end_month + 1, 1) - timedelta(days=1)
-        sub.period = period
-        # Calculate membership from age if not explicitly passed
-        if membership_id == Membership.AUTO:
-            age = person.age(datetime(sub_year, Subscription.START_MONTH, 1))       
-            sub.membership_id = Membership.FULL
-            if age:
-                if not age_list:
-                    age_list = create_age_list()
-                for entry in age_list:
-                    if age < entry[0]:
-                        sub.membership_id = entry[1]
-                        break               
-        else:
-            sub.membership_id = membership_id
-        sub.new_member = new_member
-        sub.invoiced_month = 0
-        sub.save()
-        return sub
+    ''' Create a new subscription and link it to a person but do not activate it. '''
+    sub = Subscription()
+    sub.person_member = person
+    sub.sub_year = sub_year
+    year = sub_year if start_month >= Subscription.START_MONTH else sub_year+1
+    sub.start_date = datetime(year, start_month, 1)
+    year = sub_year + 1 if end_month <= Subscription.START_MONTH else sub_year
+    if end_month == 12:
+        sub.end_date = datetime(year, 12, 31)
+    else:
+        sub.end_date = datetime(year, end_month + 1, 1) - timedelta(days=1)
+    sub.period = period
+    # Calculate membership from age if not explicitly passed
+    if membership_id == Membership.AUTO:
+        age = person.age(datetime(sub_year, Subscription.START_MONTH, 1))       
+        sub.membership_id = Membership.FULL
+        if age:
+            if not age_list:
+                age_list = create_age_list()
+            for entry in age_list:
+                if age < entry[0]:
+                    sub.membership_id = entry[1]
+                    break               
+    else:
+        sub.membership_id = membership_id
+    sub.new_member = new_member
+    sub.invoiced_month = 0
+    sub.save()
+    return sub
 
-def subscription_activate(sub, make_live=True):
+def subscription_activate(sub, activate=True):
     ''' Activate this subscription and clear all others that have the same year
         Update person.sub only if its for the same year
     '''
@@ -340,12 +355,12 @@ def subscription_activate(sub, make_live=True):
             subold.save()
     sub.active = True
     sub.save()
-    if make_live:
+    if activate:
         sub.person_member.membership_id = sub.membership_id
         sub.person_member.sub = sub
         sub.person_member.save()
   
-def subscription_renew(sub, sub_year, sub_month, generate_item=False, make_live=True, age_list=None):
+def subscription_renew(sub, sub_year, sub_month, generate_item=False, activate=True, age_list=None):
     ''' Generate a new sub if current sub active and expired '''
     new_start = datetime(sub_year, sub_month, 1).date()
     if sub.active and not sub.no_renewal:
@@ -360,10 +375,32 @@ def subscription_renew(sub, sub_year, sub_month, generate_item=False, make_live=
                 period=sub.period,
                 age_list=age_list
                 )
-            subscription_activate(new_sub, make_live)
+            subscription_activate(new_sub, activate)
             if generate_item:
                 subscription_create_invoiceitems(new_sub, sub_month)
             return new_sub
+
+
+def subscription_renew_list(sub_year, sub_month, id_list):
+    '''
+    Renew the current subscription for every person in the list of ids
+    Make it active and generate an invoice item for it
+    Return the number of subs generated
+    '''
+    plist = Person.objects.filter(pk__in=id_list)
+    age_list=create_age_list()
+    count = 0
+    for person in plist:
+        sub = person.sub
+        new_sub = subscription_renew(sub,
+                                     sub_year,
+                                     sub_month,
+                                     generate_item=True,
+                                     activate=True,
+                                     age_list=age_list)
+        if new_sub:
+            count += 1
+    return count
 
 def subscription_renew_batch(sub_year, sub_month, size = 100000):
     '''
@@ -389,7 +426,7 @@ def subscription_renew_batch(sub_year, sub_month, size = 100000):
                                          sub_year,
                                          sub_month,
                                          generate_item=True,
-                                         make_live=False,
+                                         activate=False,
                                          age_list=create_age_list())
             count += 1
             if count == size:
@@ -436,7 +473,6 @@ def subscription_create_invoiceitems(sub, month):
                     pass
             else:
                 # If no fee, consider it paid (honorary life)
-                pdb.set_trace()
                 sub.paid = True
             sub.save()
 
@@ -480,7 +516,8 @@ def person_resign(person):
             items = person.sub.invoiceitem_set.all()
             if items.count() == 1:
                 inv_item = items[0]
-                invoice_cancel(inv_item.invoice, with_credit_note=True)
+                if inv_item.invoice:
+                    invoice_cancel(inv_item.invoice, with_credit_note=True)
                 inv_item.delete()
         person.sub.end_date = date.today()
         person.sub.resigned = True
