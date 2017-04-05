@@ -460,6 +460,7 @@
     <Content Include="members\templates\members\invoice_list.html" />
     <Content Include="members\templates\members\invoice_public.html" />
     <Content Include="members\templates\members\invoice_select.html" />
+    <Content Include="members\templates\members\invoice_table.html" />
     <Content Include="members\templates\members\junior_form.html" />
     <Content Include="members\templates\members\junior_list.html" />
     <Content Include="members\templates\members\layout.html" />
@@ -468,6 +469,7 @@
     <Content Include="members\templates\members\mailtype_detail.html" />
     <Content Include="members\templates\members\mail_campaign_list.html" />
     <Content Include="members\templates\members\person_list.html" />
+    <Content Include="members\templates\members\_statement.html" />
     <Content Include="pos\templates\pos\all_transactions.html" />
     <Content Include="members\templates\public\mailtype_done.html" />
     <Content Include="members\templates\members\mailtype_list.html" />

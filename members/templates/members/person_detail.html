@@ -200,71 +200,50 @@
       </div> <!--/row-->
     </div>
 
-    {% if statement %}
-    <h4>Statement of account</h4>
-    <table id="statement" class="table table-condensed">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Number</th>
-                <th>Detail</th>
-                <th class="text-right">Credit</th>
-                <th class="text-right">Debit</th>
-                <th class="text-right">Balance</th>
-            </tr>
-        </thead>
-        {% for line in statement %}
-        {% with line.0 as entry %}
-        {% with entry|classname as modelclass %}
-        {% if modelclass == 'Invoice' %}
-        <tr>
-            <td><a href="{% url "invoice-detail" entry.id %}" class="btn btn-primary btn-xs">View</a></td>
-            <td>{{ entry.update_date|date }}</td>
-            <td>Invoice</td>
-            <td>{{ entry.id }}</td>
-            <td>{{ state_list|get_option:entry.state }}</td>
-            <td></td>
-            <td class="text-right">£{{ entry.total }}</td>
-            <td class="text-right">£{{ line.1 }}</td>
-        </tr>
-        {% elif modelclass == 'Payment' %}
-        <tr>
-            <td><a href="{% url "payment-detail" entry.id %}" class="btn btn-primary btn-xs">View</a></td>
-            <td>{{ entry.update_date|date }}</td>
-            <td>Payment</td>
-            <td>{{ entry.id }}</td>
-            <td>{{ payment_states|get_option:entry.type }}</td>
-            <td class="text-right">£{{ entry.amount }}</td>
-            <td></td>
-            <td class="text-right">£{{ line.1 }}</td>
-        </tr>
-        {% elif modelclass == 'CreditNote' %}
-        <tr>
-            <td><a href="{% url "creditnote-update" entry.id %}" class="btn btn-primary btn-xs">View</a></td>
-            <td>{{ entry.update_date|date }}</td>
-            <td>Credit note</td>
-            <td>{{ entry.id }}</td>
-            <td>{{ entry.reference }}</td>
-            <td class="text-right">£{{ entry.amount }}</td>
-            <td></td>
-            <td class="text-right">£{{ line.1 }}</td>
-        </tr>
-        {% endif %}
-        {% endwith %}
-        {% endwith %}
+    {% if statements %}
+      <h4>Statement of account</h4>
+   <div class="panel with-nav-tabs panel-default">
+     <div class="panel-heading">
+       <ul class="nav nav-tabs">
+        <li class="active"><a data-toggle="tab" href="#id_unbilled">Unbilled</a></li>
+        <li><a data-toggle="tab" href="#id_year1">{{ year1 }}</a></li>
+        <li><a data-toggle="tab" href="#id_year2">{{ year2 }}</a></li>
+       </ul>
+      </div>
+      <div class="tab-content">
+
+          <div id="id_unbilled" class="panel-body tab-pane fade in active">
+            {% if items %}
+              {% include "members/_invoiceitem_list.html" %}
+              <a href="{% url "invoice-generate" pk=person.id %}" class="btn btn-primary">Generate an invoice</a>
+            {% else %}
+              <h4>No uninvoiced items</h4>
+            {% endif %}
+            <div class="panel-footer">
+              <a href="{% url "item-create" person_id=person.id %}" class="btn btn-primary">Create item</a>
+
+            </div>
+          </div>
+
+
+     
+        {% for statement in statements %}
+          <div id="id_year{{ forloop.counter }}" class="tab-pane fade">
+            {% include "members/_statement.html" %}
+          </div>   
         {% endfor %}
-    </table>
+      </div>
+      <div class="panel-footer">
+        <div class="tab-content">
+          <div id="id_unbilled" class="tab-pane fade in active">
+           <a href="{% url "item-create" person_id=person.id %}" class="btn btn-primary">Create item</a>
+         </div>
+       </div>
+      </div>
+     </div>
     {% endif %}
 
-    {% if items %}
-    {% include "members/_invoiceitem_list.html" %}
-    <a href="{% url "invoice-generate" pk=person.id %}" class="btn btn-primary">Generate an invoice</a>
-    {% else %}
-    <h4>No uninvoiced items</h4>
-    {% endif %}
-    <a href="{% url "item-create" person_id=person.id %}" class="btn btn-primary">Create item</a>
+    
 
 
 </form>

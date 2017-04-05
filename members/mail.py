@@ -88,9 +88,15 @@ def send_template_mail(request, person, text,
     recipient = person
     child = None
     if person.linked:
-        if not person.active_sub(year).membership.is_adult:
-            recipient = person.linked
-            child = person
+        # Get the current sub but deal with case in 
+        # April when year is chnaged by sub is not yet there
+        sub = person.active_sub(year)
+        if not sub:
+            sub = person.active_sub(year-1)
+        if sub:
+            if sub.membership.is_adult:
+                recipient = person.linked
+                child = person
     to = recipient.email
     positive = False
     negative = False

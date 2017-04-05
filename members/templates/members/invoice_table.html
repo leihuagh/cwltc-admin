@@ -1,0 +1,36 @@
+﻿{% extends "members/layout.html" %}
+{% load widget_tweaks %}
+{% block content %}
+<h2>{{ title }}</h2>
+{% load render_table from django_tables2 %}
+<form method="get">
+  <div class="well" style="padding:10px">
+    <div class="row">
+      <div class="form-group col-sm-3 col-md-2 ">
+          {{ filter.form.membership_year.label_tag }}
+          {% render_field filter.form.membership_year class="form-control form-control-sm" %}
+      </div>
+      {% if filter.form.state %}
+       <div class="form-group col-sm-3 col-md-2 ">
+          {{ filter.form.state.label_tag }}
+          {% render_field filter.form.state class="form-control form-control-sm" %}
+      </div>
+      {% endif %}  
+      {% if filter.form.type %}
+       <div class="form-group col-sm-3 col-md-2 ">
+          {{ filter.form.type.label_tag }}
+          {% render_field filter.form.type class="form-control form-control-sm" %}
+      </div>
+      {% endif %} 
+      <div class="form-group col-sm-3 col-md-2">
+        <label for="id_search">&nbsp</label>
+        <button class="form-control btn-primary " id="id_search" type="submit">
+        <span class="glyphicon glyphicon-search"></span> Search
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+<h4>Total = £ {{ total }}</h4>
+{% render_table table %}
+{% endblock content %}

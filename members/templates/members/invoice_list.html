@@ -96,9 +96,7 @@
         ).done(function (json) {
            
             var html = json["data"];
-            var key = json["search"];
             $("#tab_invoices").html(html);
-            $("#invoices").DataTable().search(key).draw();
         }
         ).fail(function (xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +

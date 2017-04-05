@@ -32,12 +32,27 @@ from report_builder.models import Report
 from .filters import *
 from django_tables2 import SingleTableView, RequestConfig
 from pos.services import create_invoiceitems_from_transactions
+from members.tables import InvoiceTable, PaymentTable
 
-def search(request):
-    person_list = Person.objects.all()
-    person_filter = PersonFilter(request.GET, queryset=person_list)
-    return render(request, 'members/person_list.html', {'filter': person_filter})
+class PagedFilteredTableView(SingleTableView):
+    '''
+    Generic view for ddjango tables 2 with filter
+    http://www.craigderington.me/django-generic-listview-with-django-filters-and-django-tables2/
+    '''
+    filter_class = None
+    formhelper_class = None
+    context_filter_name = 'filter'
 
+    def get_queryset(self, **kwargs):
+        qs = super(PagedFilteredTableView, self).get_queryset()
+        self.filter = self.filter_class(self.request.GET, queryset=qs)
+        #self.filter.form.helper = self.formhelper_class()
+        return self.filter.qs
+
+    def get_context_data(self, **kwargs):
+        context = super(PagedFilteredTableView, self).get_context_data()
+        context[self.context_filter_name] = self.filter
+        return context
 
 class SubsTableView(LoginRequiredMixin, SingleTableView):
     #http://stackoverflow.com/questions/13611741/django-tables-column-filtering/15129259#15129259
@@ -279,24 +294,15 @@ def add_membership_context(context):
 
 def set_person_context(context, person):
     year = Settings.current().membership_year
-    entries = person_get_book_entries(person, year)
-    statement = []
-    balance = 0
-    for entry in entries:
-        classname = entry.__class__.__name__
-        if classname == "Invoice":
-            balance += entry.total
-        elif classname == "Payment":
-            balance -= entry.amount
-        elif classname == "CreditNote":
-            balance -= entry.amount
-        statement.append((entry, balance))
-
     context['person'] = person
     context['address'] = person.address
     context['subs'] = person.subscription_set.all().order_by('sub_year')
     context['sub'] = person.sub
-    context['statement'] = statement
+    context['year1'] = year
+    context['year2'] = year -1
+    context['statements'] = []
+    context['statements'].append(person_statement(person, year))
+    context['statements'].append(person_statement(person, year-1))
     context['invoices'] = person.invoice_set.all().order_by('update_date')
     own_items = person.invoiceitem_set.filter(invoice=None).order_by('update_date')
     family_items = InvoiceItem.objects.filter(
@@ -947,7 +953,34 @@ class InvoiceItemDetailView(LoginRequiredMixin, DetailView):
 
 # ================= INVOICES
 
-class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
+class InvoiceListView(LoginRequiredMixin, PagedFilteredTableView):
+    model = Invoice
+    table_class = InvoiceTable
+    filter_class = InvoiceFilter
+    template_name='members/invoice_table.html'
+    table_pagination={ "per_page":10 }
+
+    def get_queryset(self, **kwargs):
+        qs = Invoice.objects.all().select_related('person').select_related('person__membership')
+        
+        # set defaults for first time
+        data = self.request.GET.copy()
+        if len(data) == 0:
+            data['membership_year'] = Settings.current().membership_year
+            data['state'] = Invoice.PAID_IN_FULL
+        self.filter = self.filter_class(data, qs, request=self.request)
+        #self.filter = self.filter_class(self.request.GET, queryset=qs)
+        #self.filter.form.helper = self.formhelper_class()
+        self.total = self.filter.qs.aggregate(total=Sum('total'))['total']
+        return self.filter.qs
+
+    def get_context_data(self, **kwargs):
+        context = super(InvoiceListView, self).get_context_data(**kwargs)
+        context['title'] = "Invoices"
+        context['total'] = self.total if self.total else 0
+        return context
+
+class InvoiceListViewx(LoginRequiredMixin, FormMixin, ListView):
     form_class = InvoiceFilterForm
     model = Invoice
     template_name = 'members/invoice_list.html'
@@ -971,8 +1004,8 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
                 context = self.get_context_data()
                 context['checkboxes'] = False
                 html = render_to_string('members/_invoice_list.html', context)
-                dict = {"data": html, "search": request.POST['search']}
-                return JsonResponse(dict, safe=False)
+                dict = {"data": html} 
+            return JsonResponse(dict, safe=False)
 
             if 'view' in self.form.data:
                 ''' show the rendered mail fro the first unpaid invoice '''
@@ -1041,7 +1074,7 @@ class InvoiceListView(LoginRequiredMixin, FormMixin, ListView):
         return queryset
 
     def get_context_data(self, **kwargs):
-        context = super(InvoiceListView, self).get_context_data(**kwargs)
+        context = super(InvoiceListViewx, self).get_context_data(**kwargs)
         context['state_list'] = Invoice.STATES
         context['invoices'] = self.object_list
         context['form'] = self.form
@@ -1466,7 +1499,34 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         context['user'] = self.request.user
         return context
 
-class PaymentListView(LoginRequiredMixin, FormMixin, TemplateView):
+class PaymentListView(LoginRequiredMixin, PagedFilteredTableView ):
+    model = Payment
+    table_class = PaymentTable
+    filter_class = PaymentFilter
+
+    template_name='members/invoice_table.html'
+    table_pagination={ "per_page":10 }
+
+    def get_queryset(self, **kwargs):
+        qs = Payment.objects.all().select_related('person').select_related('person__membership')
+        # set defaults for first time
+        data = self.request.GET.copy()
+        if len(data) == 0:
+            data['membership_year'] = Settings.current().membership_year
+            data['state'] = Invoice.PAID_IN_FULL
+        self.filter = self.filter_class(data, qs, request=self.request)
+        #self.filter = self.filter_class(self.request.GET, queryset=qs)
+        #self.filter.form.helper = self.formhelper_class()
+        self.total = self.filter.qs.aggregate(total=Sum('amount'))['total']
+        return self.filter.qs
+
+    def get_context_data(self, **kwargs):
+        context = super(PaymentListView, self).get_context_data(**kwargs)
+        context['title'] = "Payments"
+        context['total'] = self.total if self.total else 0
+        return context
+
+class PaymentListViewX(LoginRequiredMixin, FormMixin, TemplateView):
     form_class = PaymentFilterForm
     model = Payment
     template_name = 'members/payment_list.html'
@@ -1498,7 +1558,7 @@ class PaymentListView(LoginRequiredMixin, FormMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         #self.object_list = self.get_queryset()
-        context = super(PaymentListView, self).get_context_data(**kwargs)
+        context = super(PaymentListViewX, self).get_context_data(**kwargs)
         context['form'] = self.get_form(self.form_class)
         context['payments'] = self.object_list
         context['payment_types'] = Payment.TYPES

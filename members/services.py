@@ -558,7 +558,7 @@ def person_delete(person):
     person.delete()
     return ""  
 
-def person_get_book_entries(person, year):
+def person_statement(person, year):
     '''
     Returns a sorted list of invoice, payments and credit notes
     for a person for the specified year
@@ -573,8 +573,19 @@ def person_get_book_entries(person, year):
     payments = person.payment_set.filter(membership_year=year)
     for p in payments:
         entries.append(p)
-    return sorted(entries, key=attrgetter('creation_date'))
-
+    entrie = sorted(entries, key=attrgetter('creation_date'))
+    statement = []
+    balance = 0
+    for entry in entries:
+        classname = entry.__class__.__name__
+        if classname == "Invoice":
+            balance += entry.total
+        elif classname == "Payment":
+            balance -= entry.amount
+        elif classname == "CreditNote":
+            balance -= entry.amount
+        statement.append((entry, balance))
+    return statement
 
 def group_get_or_create(slug):
     '''
@@ -613,7 +624,7 @@ def consolidate(year):
     unpaid_count = 0
     credit_count = 0
     for person in people:
-        entries = person_get_book_entries(person, year)
+        entries = person_statement(person, year)
         balance = 0
         for entry in entries:
             classname = entry.__class__.__name__

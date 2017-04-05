@@ -1,5 +1,5 @@
 from datetime import *
-from .models import Person, Membership, Settings, Subscription
+from .models import Person, Membership, Settings, Subscription, Invoice, Payment
 import django_filters
 
 
@@ -77,3 +77,35 @@ class SubsFilter(SubsBaseFilter):
                                         label='State',
                                         choices=Person.STATES,
                                         empty_label=None)
+
+class InvoiceFilter(django_filters.FilterSet):
+    class Meta:
+        model = Invoice
+        fields = ['membership_year','state']
+
+    membership_year = django_filters.ChoiceFilter(name='membership_year',
+                                       label='Year',
+                                       empty_label=None,
+                                       choices=year_choices()
+                                    )
+    state = django_filters.ChoiceFilter(name='state',
+                                        label='State',
+                                        choices=Invoice.STATES,
+                                        empty_label='All')
+
+class PaymentFilter(django_filters.FilterSet):
+    class Meta:
+        model = Payment
+        fields = ['membership_year', 'type']
+
+    membership_year = django_filters.ChoiceFilter(name='membership_year',
+                                                  label='Year',
+                                                  empty_label=None,
+                                                  choices=year_choices()
+                                                  )
+    type = django_filters.ChoiceFilter(name='type',
+                                       label='Type',
+                                       empty_label='All',
+                                       choices=Payment.TYPES
+                                       )
+                                    

@@ -1,7 +1,7 @@
 import django_tables2 as tables
 from django_tables2.utils import A
 from django.conf import settings
-from members.models import Person, Subscription
+from members.models import Person, Subscription, Invoice, Payment
 
 class PersonTable(tables.Table):
     
@@ -37,3 +37,24 @@ class SubsTable(tables.Table):
                                                             "class": "rowcheckbox"}
                                             },
                                       orderable=False)
+
+class InvoiceTable(tables.Table):
+
+    class Meta:
+        model = Invoice
+        fields = ('creation_date','update_date', 'person.first_name', 'person.last_name', 'person.membership.description','email_count','total', 'state')
+        attrs = {'class': 'table table-condensed'} 
+    
+    total = tables.Column(attrs={'td':{'style':'text-align: right;'}})
+    edit = tables.LinkColumn('invoice-detail', text='Edit', args=[A('id')], orderable=False)
+
+class PaymentTable(tables.Table):
+
+    class Meta:
+        model = Payment
+        fields = ('update_date', 'person.first_name', 'person.last_name', 'person.membership.description', 'type', 'amount', 'banked','invoice')
+        attrs = {'class': 'table table-condensed'} 
+
+    amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
+    invoice = tables.LinkColumn('invoice-detail', text ='Invoice', args=[A('pk')], orderable=False)
+    edit = tables.LinkColumn('payment-detail', text='Edit', args=[A('id')], orderable=False)

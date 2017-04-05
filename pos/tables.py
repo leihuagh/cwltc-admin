@@ -7,9 +7,7 @@ class TransactionTable(tables.Table):
     class Meta:
         model = Transaction
         fields = ('creation_date', 'id', 'person.first_name','person.last_name', 'total',
-                  'layout.invoice_itemtype.description', 'billed')
-
-                  
+                  'layout.invoice_itemtype.description', 'billed')                 
         attrs = {'class': 'table table-condensed'}
          
     total = tables.Column(
