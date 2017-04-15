@@ -260,8 +260,9 @@ class Invoice(models.Model):
     CANCELLED = 3
     PART_CREDIT_NOTE = 4
     ERROR = 5
+    PENDING_GC = 6
     # For filtering
-    PAID_AND_UNPAID = 6
+    NOT_CANCELLED = 7
 
     STATES = (
         (UNPAID, "Unpaid"),
@@ -270,6 +271,7 @@ class Invoice(models.Model):
         (CANCELLED, "Cancelled"),
         (PART_CREDIT_NOTE, "Part paid & credit note"),
         (ERROR, "Error - overpaid"),
+        (PENDING_GC, "Pending GoCardless"),       
         )
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -293,6 +295,19 @@ class Invoice(models.Model):
             self.invoiceitem_set.count(),
             self.total
             )
+
+    @property
+    def payment_state(self):
+        '''
+        Pending Go Cardless payments do not update invoice state automatically
+        So this property deals with that case
+        '''
+        if self.state == Invoice.PAID_IN_FULL:
+            return Invoice.STATES[self.state][1]
+        elif self.gocardless_bill_id <> "":
+            return Invoice.STATES[Invoice.PENDING_GC][1]
+        else:
+            return Invoice.STATES[self.state][1]
 
     def as_dict(self):
         return {

@@ -95,8 +95,9 @@ class InvoiceFilter(django_filters.FilterSet):
         fields = ['membership_year','state']
 
     STATE_CHOICES = (
-        (Invoice.PAID_AND_UNPAID, 'Paid & unpaid'),
+        (Invoice.NOT_CANCELLED, 'All not cancelled'),
         (Invoice.UNPAID, 'Unpaid'),
+        (Invoice.PENDING_GC, 'Pending'),
         (Invoice.PAID_IN_FULL, 'Paid'),
         (Invoice.CANCELLED, 'Cancelled')
         )
@@ -113,8 +114,12 @@ class InvoiceFilter(django_filters.FilterSet):
                                         empty_label=None)
 
     def state_filter(self, queryset, name, value):
-        if value == str(Invoice.PAID_AND_UNPAID):
-            return queryset.filter(Q(state=Invoice.PAID_IN_FULL) | Q(state=Invoice.UNPAID))        
+        if value == str(Invoice.NOT_CANCELLED):
+            return queryset.filter(~Q(state=Invoice.CANCELLED))  
+        elif value == str(Invoice.PENDING_GC):
+            return queryset.filter(Q(state=Invoice.UNPAID) & ~Q(gocardless_bill_id=""))     
+        elif value == str(Invoice.UNPAID):
+            return queryset.filter(Q(state=Invoice.UNPAID) & Q(gocardless_bill_id=""))
         else:
             return queryset.filter(state=value)
 

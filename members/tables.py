@@ -50,7 +50,8 @@ class InvoiceTable(tables.Table):
 
     class Meta:
         model = Invoice
-        fields = ('creation_date','update_date', 'person.first_name', 'person.last_name', 'person.membership.description','email_count','total', 'state')
+        fields = ('creation_date','update_date', 'person.first_name', 'person.last_name',
+                  'person.membership.description','email_count','total', 'payment_state')
         attrs = {'class': 'table table-condensed'} 
     
     total = tables.Column(attrs={'td':{'style':'text-align: right;'}})
