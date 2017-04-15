@@ -54,8 +54,6 @@ class Group(models.Model):
     def __unicode__(self):
         return self.slug 
 
-
-
 class Person(models.Model):
     GENDERS = (
         ('M','Male'),
@@ -102,7 +100,7 @@ class Person(models.Model):
     parent_objects = ParentsManager()
 
     def __unicode__(self):
-        return self.fullname()
+        return self.fullname
 
     def get_absolute_url(self):
         return reverse("person-detail", kwargs={"pk": self.pk})   
@@ -115,7 +113,8 @@ class Person(models.Model):
     
     def age_today(self):
         return self.age(date.today())
-
+    
+    @property
     def fullname(self):
         return self.first_name + " " + self.last_name    
     
@@ -261,6 +260,8 @@ class Invoice(models.Model):
     CANCELLED = 3
     PART_CREDIT_NOTE = 4
     ERROR = 5
+    # For filtering
+    PAID_AND_UNPAID = 6
 
     STATES = (
         (UNPAID, "Unpaid"),
@@ -270,7 +271,6 @@ class Invoice(models.Model):
         (PART_CREDIT_NOTE, "Part paid & credit note"),
         (ERROR, "Error - overpaid"),
         )
-
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     date = models.DateField()
@@ -300,7 +300,7 @@ class Invoice(models.Model):
             "state": self.STATES[self.state][1],
             "creation_date": self.creation_date.strftime(settings.DATE_INPUT_FORMATS[0]),
             "update_date": self.update_date.strftime(settings.DATE_INPUT_FORMATS[0]),
-            "person": self.person.fullname(),
+            "person": self.person.fullname,
             "items": self.invoiceitem_set.count(),
             "email_count": self.email_count,
             "total": '{0:.2f}'.format(self.total)
@@ -348,7 +348,7 @@ class Invoice(models.Model):
         if self.creditnote_set.count() > 0:
             c_note = self.creditnote_set.all()[0]
         context['credit_note'] = c_note
-        addressee = self.person.fullname()
+        addressee = self.person.fullname
         if self.person.first_name == 'Unknown':
             if self.person.person_set.count() > 0:
                 addressee = 'Parent or guardian of '
@@ -467,6 +467,7 @@ class InvoiceItem(models.Model):
     def __unicode__(self):
         return u'%s %d' % (self.description, self.amount)
 
+    @property
     def is_invoiced(self):
         return invoice is not None
 

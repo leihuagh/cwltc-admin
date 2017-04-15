@@ -1,6 +1,6 @@
 from django.test import TestCase
 from pos.models import *
-from members.models import Person, Address
+from members.models import Person, ItemType
 from django.contrib.auth.models import User
 from .services import *
 import factory
@@ -13,14 +13,27 @@ class ItemFactory(factory.DjangoModelFactory):
     class Meta:
         model = Item
 
-class AddressFactory(factory.DjangoModelFactory):
+class LayoutFactory(factory.DjangoModelFactory):
     class Meta:
-        model = Address
+        model = Layout
+    name = "Layout"
 
-    address1 = '5 Field Close',
-    town = 'Molesey',
-    post_code ='KT8 2LA',
-    home_phone ='02085498658'
+
+class ItemTypeFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = ItemType
+    id = 1
+    description = "Item type"
+
+
+#class AddressFactory(factory.DjangoModelFactory):
+#    class Meta:
+#        model = Address
+
+#    address1 = '5 Field Close',
+#    town = 'Molesey',
+#    post_code ='KT8 2LA',
+#    home_phone ='02085498658'
 
 class PersonFactory(factory.DjangoModelFactory):
     class Meta:
@@ -70,10 +83,11 @@ class PosTestCase(TestCase):
         for i in range(10):
             item = ItemFactory.create()
             receipt.append(item.to_dict())
+        layout = LayoutFactory.create()
         person = PersonFactory.create()
         user = UserFactory.create()
         user.save()
-        transaction = create_transaction_from_receipt(user.id, person.id, receipt) 
+        transaction = create_transaction_from_receipt(user.id, person.id, layout.id, receipt) 
         qs = Transaction.objects.all()
         self.assertEqual(len(qs),1)
         t1 = qs[0]

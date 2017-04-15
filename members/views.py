@@ -19,20 +19,19 @@ from django.conf import settings
 from django.core.mail import send_mail
 from braces.views import LoginRequiredMixin, StaffuserRequiredMixin
 from gc_app.views import gc_create_bill_url
+import xlrd
+import json
+from report_builder.models import Report
+from django_tables2 import SingleTableView, RequestConfig
+from pos.services import create_invoiceitems_from_transactions
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group, MailCampaign)
 from .services import *
 from .forms import *
 from .mail import *
 from .excel import *
-import ftpService
-import xlrd
-import json
-from report_builder.models import Report
-from .filters import *
-from django_tables2 import SingleTableView, RequestConfig
-from pos.services import create_invoiceitems_from_transactions
-from members.tables import InvoiceTable, PaymentTable
+from .filters import JuniorFilter, SubsFilter, InvoiceFilter, InvoiceItemFilter, PaymentFilter
+from .tables import InvoiceTable, InvoiceItemTable, PaymentTable
 
 class PagedFilteredTableView(SingleTableView):
     '''
@@ -80,8 +79,8 @@ class SubsTableView(LoginRequiredMixin, SingleTableView):
         
         if self.juniors or self.parents:
             qs = qs.exclude(membership__is_adult=True).filter(
-                sub_year=year).filter(person_member__state=Person.ACTIVE)
-        
+                person_member__state=Person.ACTIVE)
+ 
         # set defaults for first time
         data = self.request.GET.copy()
         if len(data) == 0:
@@ -217,7 +216,7 @@ class PersonLinkView(LoginRequiredMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super(PersonLinkView, self).get_context_data(**kwargs)
-        context['title'] = 'Link ' + Person.objects.get(pk=self.kwargs['pk']).fullname()
+        context['title'] = 'Link ' + Person.objects.get(pk=self.kwargs['pk']).fullname
         return context
 
     def form_valid(self, form):
@@ -265,7 +264,7 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
 
     def post(self, request, *args, **kwargs):
         person = self.get_object()
-        name = person.fullname()
+        name = person.fullname
         if 'delete' in request.POST:
             message = person_delete(person)
             if message == "":
@@ -277,12 +276,19 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
             person_resign(person)
         
         elif 'remove' in request.POST:
+            # remove from group
             slug = request.POST['remove']
             group = Group.objects.filter(slug=slug)[0]
             person.groups.remove(group)
 
         elif 'unlink' in request.POST:
             person.link(None)
+
+        elif 'renew' in request.POST:
+            # renew subscription
+            self.request.session['selected_people_ids'] = [person.id]
+            return redirect(reverse('sub-renew-list'))
+        
         return redirect(person)
 
 def add_membership_context(context):
@@ -294,15 +300,19 @@ def add_membership_context(context):
 
 def set_person_context(context, person):
     year = Settings.current().membership_year
+    years = []
+    statements = []
+    for year in range(year, year-3, -1):
+        years.append(year)
+        statements.append(person_statement(person, year))
+    
+    context['years'] = years
+    context['statements'] = statements      
     context['person'] = person
     context['address'] = person.address
     context['subs'] = person.subscription_set.all().order_by('sub_year')
     context['sub'] = person.sub
-    context['year1'] = year
-    context['year2'] = year -1
-    context['statements'] = []
-    context['statements'].append(person_statement(person, year))
-    context['statements'].append(person_statement(person, year-1))
+
     context['invoices'] = person.invoice_set.all().order_by('update_date')
     own_items = person.invoiceitem_set.filter(invoice=None).order_by('update_date')
     family_items = InvoiceItem.objects.filter(
@@ -348,9 +358,7 @@ def ajax_people(request):
         for person in people:
             person_json = {}
             person_json['id'] = person.id
-            #person_json['label'] = person.fullname()
-            person_json['value'] = person.fullname()
-            #person_json['name'] = person.fullname()
+            person_json['value'] = person.fullname
             results.append(person_json)
         return JsonResponse(results, safe=False)
     else:
@@ -456,8 +464,8 @@ class GroupAddPersonView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super(GroupAddPersonView, self).get_context_data(**kwargs)
         self.person = Person.objects.get(pk=self.kwargs['person_id'])
-        context['message'] = self.person.fullname()
-        context['title'] = "Add " + self.person.fullname() + " to group"
+        context['message'] = self.person.fullname
+        context['title'] = "Add " + self.person.fullname + " to group"
         return context
 
     def form_valid(self, form):
@@ -575,7 +583,9 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         if 'delete' in form.data:
             sub = self.get_object()
             subscription_delete_invoiceitems(sub)
-            return redirect(sub)
+            person = sub.person_member
+            subscription_delete(sub)
+            return redirect(person)
         
         if 'resign' in form.data:
             person_resign(form.instance.person_member)
@@ -626,12 +636,6 @@ class SubHistoryView(LoginRequiredMixin, ListView):
         context['person'] = self.person
         return context
 
-class SubRenewView(LoginRequiredMixin, FormView):
-
-    def get(self, request, *args, **kwargs):
-        sub.renew(sub.sub_year+1, Subscription.START_MONTH)
-        return redirect(sub.person_member)
-
 class SubRenewAllView(LoginRequiredMixin, FormView):
     form_class = YearConfirmForm
     template_name = 'members/generic_crispy_form.html'
@@ -656,6 +660,8 @@ class SubRenewAllView(LoginRequiredMixin, FormView):
 class SubRenewSelectionView(LoginRequiredMixin, FormView):
     '''
     Renew a selected list of subscriptions
+    If the list contains only one person, redirect to the person
+    else redirect to the source path 
     '''
     form_class = YearConfirmForm
     template_name = 'members/generic_crispy_form.html'
@@ -663,22 +669,31 @@ class SubRenewSelectionView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super(SubRenewSelectionView, self).get_context_data(**kwargs)
         selection = self.request.session['selected_people_ids']
-        context['title'] = 'Renew subscriptions'
+        subtext = "subscription"
+        if len(selection) > 1:
+            subtext += "s"
+        context['title'] = "Renew " + subtext
         if selection:
-            context['message'] = '{} subscriptions to renew'.format(len(selection))
+            context['message'] = '{} {} to renew'.format(len(selection), subtext)
         return context
 
     def form_valid(self, form):
-        year = form.cleaned_data['sub_year']
+        sub_year = form.cleaned_data['sub_year']
         selection = self.request.session['selected_people_ids']
         if 'apply' in self.request.POST and selection:
-            count = subscription_renew_list(year, Subscription.START_MONTH, selection)
-            people = "person" if len(selection) == 1 else "people"
-            messages.success(self.request, '{} {} processed and {} subscriptions for {} generated'.format(
-                len(selection),
-                people,
-                count,
-                year))
+            if len(selection) == 1:
+                person = Person.objects.get(pk=self.request.session['selected_people_ids'][0])
+                new_sub = subscription_renew(person.sub, sub_year, Subscription.START_MONTH, generate_item=True)
+                self.request.session['selected_people_ids']=[]
+                return redirect(person)
+            else:
+                count = subscription_renew_list(sub_year, Subscription.START_MONTH, selection)
+                people = "person" if len(selection) == 1 else "people"
+                messages.success(self.request, '{} {} processed and {} subscriptions for {} generated'.format(
+                    len(selection),
+                    people,
+                    count,
+                    year))
         self.request.session['selected_people_ids']=[]
         return redirect(self.request.session['source_path'])
 
@@ -950,6 +965,32 @@ class InvoiceItemUpdateView(LoginRequiredMixin, UpdateView):
 class InvoiceItemDetailView(LoginRequiredMixin, DetailView):
     model = InvoiceItem
     template_name = 'members/invoiceitem_detail.html'
+
+class InvoiceItemTableView(LoginRequiredMixin, PagedFilteredTableView):
+
+    model = InvoiceItem
+    table_class = InvoiceItemTable
+    filter_class = InvoiceItemFilter
+    template_name='members/invoiceitem_table.html'
+    table_pagination={ "per_page":10 }
+
+    def get_queryset(self, **kwargs):
+        qs = InvoiceItem.objects.all().select_related('person')
+        
+        # set defaults for first time
+        data = self.request.GET.copy()
+        #if len(data) == 0:
+        #    data['membership_year'] = Settings.current().membership_year
+        #    data['state'] = Invoice.PAID_IN_FULL
+        self.filter = self.filter_class(data, qs, request=self.request)
+        self.total = self.filter.qs.aggregate(total=Sum('amount'))['total']
+        return self.filter.qs
+
+    def get_context_data(self, **kwargs):
+        context = super(InvoiceItemTableView, self).get_context_data(**kwargs)
+        context['title'] = "Invoice items"
+        context['total'] = self.total if self.total else 0
+        return context
 
 # ================= INVOICES
 
@@ -1640,7 +1681,7 @@ class CreditNoteCreateView(LoginRequiredMixin, CreateView):
         person = Person.objects.get(pk=self.kwargs['person_id'])
         context = super(CreditNoteCreateView, self).get_context_data(**kwargs)
         context['title'] = 'Create credit note'
-        context['message'] = person.fullname()
+        context['message'] = person.fullname
         return context
 
     def form_valid(self, form):

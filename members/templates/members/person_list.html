@@ -13,12 +13,12 @@
             </div>
           {% endif %}
         <!--  Year and state must be present but are hidden except in members view -->
-          {% if members %}
+         
               <div class="form-group col-sm-3 col-md-2 ">
                   {{ filter.form.year.label_tag }}
                   {% render_field filter.form.year class="form-control form-control-sm" %}
               </div>
-         
+          {% if members %}
               <div class="form-group col-sm-3 col-md-2">
                   {{ filter.form.state.label_tag }}
                   {% render_field filter.form.state class="form-control" %}

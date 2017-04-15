@@ -148,10 +148,6 @@ urlpatterns = [
         SubDetailView.as_view(),
         name='sub-detail'
     ),
-    url(r'^sub/renew/(?P<pk>\d+)/$',
-        SubRenewView.as_view(),
-        name='sub-renew'
-    ),
     url(r'^sub/renew/all$',
         SubRenewAllView.as_view(),
         name='sub-renew-all'
@@ -334,7 +330,11 @@ urlpatterns = [
         InvoiceItemDetailView.as_view(),
         name='item-detail'
     ),
-   
+    url(r'^item/table/$',
+        InvoiceItemTableView.as_view(),
+        name='item-table'
+    ),
+
     # TEXTBLOCK
     url(r'^text/create/$',
         TextBlockCreateView.as_view(),

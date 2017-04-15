@@ -148,4 +148,8 @@ span.twitter-typeahead {
     color: #fff;
     background-color: #555;
 }
+.tab-pane {
+    margin-left: 10px;
+    margin-right: 10px;
+}
 /********************************************************************/

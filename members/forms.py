@@ -530,8 +530,8 @@ class SubscriptionForm(ModelForm):
                     (Membership.UNDER_26, "Under 26"),
                     (Membership.COACH, "Coach")
                     ]
-        if self.updating:
-            choices.append((Membership.RESIGNED, "Resigned"))                       
+        #if self.updating:
+        #    choices.append((Membership.RESIGNED, "Resigned"))                       
         self.fields['membership_id'] = forms.ChoiceField(choices = choices)
        
         if self.updating:
@@ -551,9 +551,10 @@ class SubscriptionForm(ModelForm):
                 else:
                     self.helper.add_input(SubmitButton('delete', 'Delete unbilled item', css_class='btn-danger'))
             else:
+                self.helper.add_input(SubmitButton('delete', 'Delete sub', css_class='btn-danger'))
                 self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-            if not instance.resigned:
-                self.helper.add_input(SubmitButton('resign', 'Resign', css_class='btn-warning'))                           
+            #if not instance.resigned:
+            #    self.helper.add_input(SubmitButton('resign', 'Resign', css_class='btn-warning'))                           
         else:
             self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))

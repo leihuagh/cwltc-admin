@@ -1,7 +1,7 @@
 import django_tables2 as tables
 from django_tables2.utils import A
 from django.conf import settings
-from members.models import Person, Subscription, Invoice, Payment
+from members.models import Person, Subscription, Invoice, InvoiceItem, Payment
 
 class PersonTable(tables.Table):
     
@@ -9,8 +9,11 @@ class PersonTable(tables.Table):
         model = Person
         fields = ('first_name', 'last_name', 'email')
         attrs = {'class': 'table table-condensed'} 
-    description = tables.Column(accessor='sub.membership_fulldescription',
-                                verbose_name="Membership", orderable=True)
+
+    description = tables.Column(accessor='membership_fulldescription',
+                                verbose_name='Membership',
+                                order_by='membership.description',
+                                orderable=True)
     edit = tables.LinkColumn('person-detail', text='Edit', args=[A('pk')], orderable=False)
     selection = tables.CheckBoxColumn(accessor='pk',
                                       attrs={ "th__input": {"onclick": "toggle(this)"},
@@ -18,6 +21,7 @@ class PersonTable(tables.Table):
                                                             "class": "rowcheckbox"}
                                             },
                                       orderable=False)
+
 
 class SubsTable(tables.Table):
     
@@ -28,7 +32,10 @@ class SubsTable(tables.Table):
         attrs = {'class': 'table table-condensed'} 
 
     description = tables.Column(accessor='membership_fulldescription',
-                                verbose_name="Membership", orderable=True)
+                                verbose_name='Membership',
+                                order_by='membership.description',
+                                orderable=True)
+
     edit = tables.LinkColumn('person-detail', text='Edit', args=[A('person_member.id')], orderable=False)
     #dob = tables.columns.DateColumn(settings.DATE_FORMAT, accessor='person_member.dob')
     selection = tables.CheckBoxColumn(accessor='person_member.id',
@@ -37,6 +44,7 @@ class SubsTable(tables.Table):
                                                             "class": "rowcheckbox"}
                                             },
                                       orderable=False)
+
 
 class InvoiceTable(tables.Table):
 
@@ -47,6 +55,18 @@ class InvoiceTable(tables.Table):
     
     total = tables.Column(attrs={'td':{'style':'text-align: right;'}})
     edit = tables.LinkColumn('invoice-detail', text='Edit', args=[A('id')], orderable=False)
+
+
+class InvoiceItemTable(tables.Table):
+          
+    class Meta:
+        model = InvoiceItem
+        fields = ('person.fullname', 'invoice.membership_year', 'creation_date', 'item_type.description', 'description', 'amount', 'invoice.id', 'paid')
+        attrs = {'class': 'table table-condensed'} 
+
+    amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
+    edit = tables.LinkColumn('item-detail', text='Edit', args=[A('id')], orderable=False)
+
 
 class PaymentTable(tables.Table):
 

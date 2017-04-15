@@ -455,6 +455,7 @@
     <Content Include="members\templates\members\invoiceitem_detail.html" />
     <Content Include="members\templates\members\invoiceitem_form.html" />
     <Content Include="members\templates\members\invoiceitem_list.html" />
+    <Content Include="members\templates\members\invoiceitem_table.html" />
     <Content Include="members\templates\members\invoice_detail.html" />
     <Content Include="members\templates\members\invoice_email.html" />
     <Content Include="members\templates\members\invoice_list.html" />

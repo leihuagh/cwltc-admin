@@ -6,7 +6,7 @@
 <h3>{{ person.fullname }}</h3>
  <form action="." method="post" class="form-inline" id={{confirm_form_id}}>
     {% csrf_token %}
-    <div class="container">
+
       
       <div class="row">
           <div class="col-md-4">
@@ -141,22 +141,25 @@
               <div class="panel-footer">
                 {% if sub %}
                   {% if sub.resigned %}
-                    <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change subscription</a>
+                    <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New sub</a>
                   {% else %}
                     {% if sub.has_paid_invoice %}
-                      <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change subscription</a>
+                      <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change sub</a>
                     {% else %}
-                      <a href="{% url "sub-update" pk=sub.id %}" class="btn btn-primary btn-sm">Edit current sub</a>
+                      <a href="{% url "sub-update" pk=sub.id %}" class="btn btn-primary btn-sm">Edit sub</a>
                     {% endif %}                                             
                     {% include "members/_confirm.html" with confirm_id="confResign" confirm_title="Resign person" confirm_yes="Resign" confirm_submit="resign" %}
-                    <a href="#" data-toggle="modal" data-target="#confResign" class="btn btn-danger btn-sm">Resign person</a>
+                    <a href="#" data-toggle="modal" data-target="#confResign" class="btn btn-danger btn-sm">Resign</a>
                   {% endif %}
                 {% else %}
-                  <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New subscription</a>
+                  <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New sub</a>
+                {% endif %}
+                {% if person.sub.sub_year < years.0 %}
+                  <button type="submit" name="renew" class="btn btn-primary btn-xs">Renew {{ year.0 }}</button>
                 {% endif %}
                 {% if subs %}
                   <a href="{% url "sub-history" person_id=person.id %}" class="btn btn-primary btn-sm">History</a>                      
-                {% endif %}
+                {% endif %} 
               </div>
             </div>
         </div><!--/col-->
@@ -198,49 +201,41 @@
           </div>
         </div><!--/col-->
       </div> <!--/row-->
-    </div>
+
 
     {% if statements %}
-      <h4>Statement of account</h4>
-   <div class="panel with-nav-tabs panel-default">
-     <div class="panel-heading">
-       <ul class="nav nav-tabs">
-        <li class="active"><a data-toggle="tab" href="#id_unbilled">Unbilled</a></li>
-        <li><a data-toggle="tab" href="#id_year1">{{ year1 }}</a></li>
-        <li><a data-toggle="tab" href="#id_year2">{{ year2 }}</a></li>
-       </ul>
-      </div>
-      <div class="tab-content">
-
-          <div id="id_unbilled" class="panel-body tab-pane fade in active">
+      <div class="panel with-nav-tabs panel-default">
+        <div class="panel-heading">
+          <ul class="nav nav-tabs">       
+            <li class="active"><a data-toggle="tab" href="#id_unbilled">Uninvoiced items</a></li>
+            {% for year in years %}
+              <li><a data-toggle="tab" href="#id_year{{ forloop.counter }}">{{ year }} account</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="tab-content">
+          <div id="id_unbilled" class="tab-pane fade in active"">
             {% if items %}
               {% include "members/_invoiceitem_list.html" %}
-              <a href="{% url "invoice-generate" pk=person.id %}" class="btn btn-primary">Generate an invoice</a>
             {% else %}
-              <h4>No uninvoiced items</h4>
+              <br/><p>No uninvoiced items</p>
             {% endif %}
-            <div class="panel-footer">
-              <a href="{% url "item-create" person_id=person.id %}" class="btn btn-primary">Create item</a>
-
-            </div>
           </div>
-
-
-     
-        {% for statement in statements %}
-          <div id="id_year{{ forloop.counter }}" class="tab-pane fade">
-            {% include "members/_statement.html" %}
-          </div>   
-        {% endfor %}
+          {% for statement in statements %}
+            <div id="id_year{{ forloop.counter }}" class="tab-pane fade">
+              {% include "members/_statement.html" %}
+            </div>   
+          {% endfor %}
+        </div>
+        <div class="panel-footer">
+          <a href="{% url "item-create" person_id=person.id %}" class="btn btn-primary btn-sm">Create item</a>
+          {% if items %}
+            <a href="{% url "invoice-generate" pk=person.id %}" class="btn btn-primary btn-sm">Generate an invoice</a>
+          {% endif %}
+        </div>
       </div>
-      <div class="panel-footer">
-        <div class="tab-content">
-          <div id="id_unbilled" class="tab-pane fade in active">
-           <a href="{% url "item-create" person_id=person.id %}" class="btn btn-primary">Create item</a>
-         </div>
-       </div>
-      </div>
-     </div>
+    {% else %}
+      No statement of account
     {% endif %}
 
     
