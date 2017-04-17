@@ -3,8 +3,10 @@ from django.db.models import Q
 from .models import Person, Membership, Settings, Subscription, Invoice, InvoiceItem, Payment
 import django_filters
 
-def year_choices():
+def year_choices(withNone = False):
     choices = []
+    if withNone:
+        choices.append([0, "Not invoiced"])
     year = Settings.current().membership_year
     for y in range(year, year-5, -1):
         choices.append([y, str(y)])
@@ -81,13 +83,6 @@ class SubsFilter(SubsBaseFilter):
                                         choices=Person.STATES,
                                         empty_label=None)
 
-def inv_year_choices():
-    choices = [[0, 'Not invoiced']]
-    year = Settings.current().membership_year
-    for y in range(year, year-5, -1):
-        choices.append([y, str(y)])
-    return choices
-
 
 class InvoiceFilter(django_filters.FilterSet):
     class Meta:
@@ -105,7 +100,7 @@ class InvoiceFilter(django_filters.FilterSet):
     membership_year = django_filters.ChoiceFilter(name='membership_year',
                                                   label='Year',
                                                   empty_label=None,
-                                                  choices=inv_year_choices())
+                                                  choices=year_choices(withNone=True))
                                    
     state = django_filters.ChoiceFilter(name='state',
                                         label='State',
@@ -130,16 +125,11 @@ class InvoiceItemFilter(django_filters.FilterSet):
         fields = ['item_type', 'paid']
 
     invoiced = django_filters.ChoiceFilter(name='invoice',
-                                            label='Invoiced',
+                                            label='Invoice year',
                                             empty_label=None,
                                             method='has_invoice',
-                                            choices=year_choices())
+                                            choices=year_choices(withNone=True))
    
-    #membership_year = django_filters.ChoiceFilter(name='invoice__membership_year',
-    #                                              label='Year',
-    #                                              empty_label=None,
-    #                                              choices=SubsBaseFilter.year_choices())
-
     def has_invoice(self, queryset, name, value):
         if value == '0':
             return queryset.filter(invoice__isnull=True)

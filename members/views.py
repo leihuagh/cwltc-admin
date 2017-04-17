@@ -60,7 +60,7 @@ class SubsTableView(LoginRequiredMixin, SingleTableView):
     juniors = False
     parents = False
     members = False
-    template_name='members/person_list.html'
+    template_name='members/person_table.html'
     table_pagination={ "per_page":10000 }
 
     def get_table_data(self):
@@ -994,7 +994,7 @@ class InvoiceItemTableView(LoginRequiredMixin, PagedFilteredTableView):
 
 # ================= INVOICES
 
-class InvoiceListView(LoginRequiredMixin, PagedFilteredTableView):
+class InvoiceTableView(LoginRequiredMixin, PagedFilteredTableView):
     model = Invoice
     table_class = InvoiceTable
     filter_class = InvoiceFilter
@@ -1016,10 +1016,41 @@ class InvoiceListView(LoginRequiredMixin, PagedFilteredTableView):
         return self.filter.qs
 
     def get_context_data(self, **kwargs):
-        context = super(InvoiceListView, self).get_context_data(**kwargs)
+        context = super(InvoiceTableView, self).get_context_data(**kwargs)
         context['title'] = "Invoices"
         context['total'] = self.total if self.total else 0
         return context
+
+    
+    def post(self, request, *args, **kwargs):
+        '''
+        POST builds a list of selected people ids in a session variable
+        and calls the action routine
+        '''
+        request.session['source_path'] = request.META['HTTP_REFERER']
+        
+        action = request.POST['action']
+        if action == 'none':
+            return redirect(request.session['source_path'])
+
+        selected_invoices = Invoice.objects.filter(
+            pk__in=request.POST.getlist('selection')
+            )
+
+        if action == 'export':
+            return export_invoices(selected_invoices)
+
+        # remaining actions work with people list
+        # Note values_list does not return a list
+        request.session['selected_people_ids'] = list(selected_invoices.values_list('person_id', flat=True))
+
+        if action == 'group':
+            return redirect('group-add-list')
+
+        if action == 'mail':
+            return redirect('email-selection')
+
+        return redirect('home')
 
 class InvoiceListViewx(LoginRequiredMixin, FormMixin, ListView):
     form_class = InvoiceFilterForm

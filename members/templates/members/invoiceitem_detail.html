@@ -1,38 +1,43 @@
 ﻿{% extends "members/layout.html" %}
 {% block content %}
 <h2>Invoice item</h2>
-
 <h4>
-<a href="{% url "person-detail"  invoiceitem.person_id %}">{{ invoiceitem.person.first_name }} {{ invoiceitem.person.last_name }}</a>
+  <a href="{% url "person-detail"  invoiceitem.person_id %}">{{ invoiceitem.person.first_name }} {{ invoiceitem.person.last_name }}</a>
 </h4>
 <table width="600">
-    <tr>
-        <td>Id:</td><td>{{ invoiceitem.id }}</td>       
-    </tr>
-    <tr>
-        <td>Created:</td><td>{{ invoiceitem.creation_date|date }}</td>       
-    </tr>
-    <tr>
-        <td>Type</td><td>{{ invoiceitem.item_type.description}}</td>      
-    </tr>
-    <tr>
-        <td>Item date:</td><td>{{ invoiceitem.item_date|date }}</td>      
-    </tr>
-    <tr>
-        <td>Description:</td><td>{{ invoiceitem.description }}</td>      
-    </tr>
-    <tr>
-        <td>Amount:</td><td>{{ invoiceitem.amount }}</td>      
-    </tr>
-    <tr>
-        <td>Invoice number:</td>
-        <td>{{ invoiceitem.invoice_id }} &nbsp&nbsp
-        <a href="{% url "invoice-detail" invoiceitem.invoice_id %}" class="btn btn-primary btn-xs">View</a></td>      
-    </tr>
-    <tr>
-        <td>Payment number:</td>
-        <td>{{ invoiceitem.payment_id }} &nbsp&nbsp
-        <a href="{% url "payment-detail" invoiceitem.payment_id %}" class="btn btn-primary btn-xs">View</a></td>      
-    </tr>
+  <tr>
+    <td>Id:</td><td>{{ invoiceitem.id }}</td>       
+  </tr>
+  <tr>
+    <td>Created:</td><td>{{ invoiceitem.creation_date|date }}</td>       
+  </tr>
+  <tr>
+    <td>Type</td><td>{{ invoiceitem.item_type.description}}</td>      
+  </tr>
+  <tr>
+    <td>Item date:</td><td>{{ invoiceitem.item_date|date }}</td>      
+  </tr>
+  <tr>
+    <td>Description:</td><td>{{ invoiceitem.description }}</td>      
+  </tr>
+  <tr>
+    <td>Amount:</td><td>{{ invoiceitem.amount }}</td>      
+  </tr>
+  <tr>
+    <td>Invoice number:</td>
+    <td>
+      {% if invoiceitem.invoice_id %}
+        <a href="{% url "invoice-detail" invoiceitem.invoice_id %}">{{ invoiceitem.invoice_id }}</a>   
+      {% endif %}
+    </td> 
+  </tr>
+  <tr>
+    <td>Payment number:</td>
+    <td>
+      {% if invoiceitem.payment_id %}
+        <a href="{% url "payment-detail" invoiceitem.payment_id %}">{{ invoiceitem.payment_id }}</a>      
+      {% endif %}
+    </td>
+  </tr>
 </table>
 {% endblock content %}

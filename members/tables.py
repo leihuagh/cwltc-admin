@@ -8,6 +8,7 @@ class PersonTable(tables.Table):
     class Meta:
         model = Person
         fields = ('first_name', 'last_name', 'email')
+        sequence = ('selection','...')
         attrs = {'class': 'table table-condensed'} 
 
     description = tables.Column(accessor='membership_fulldescription',
@@ -29,6 +30,7 @@ class SubsTable(tables.Table):
         model = Subscription
         fields = ('person_member.first_name', 'person_member.last_name', 'person_member.email',
                   'description',  'person_member.dob', 'paid')
+        sequence = ('selection','...')
         attrs = {'class': 'table table-condensed'} 
 
     description = tables.Column(accessor='membership_fulldescription',
@@ -38,7 +40,7 @@ class SubsTable(tables.Table):
 
     edit = tables.LinkColumn('person-detail', text='Edit', args=[A('person_member.id')], orderable=False)
     #dob = tables.columns.DateColumn(settings.DATE_FORMAT, accessor='person_member.dob')
-    selection = tables.CheckBoxColumn(accessor='person_member.id',
+    selection = tables.CheckBoxColumn(accessor='person_member.id',verbose_name='Select',
                                       attrs={ "th__input": {"onclick": "toggle(this)"},
                                               "td__input": {"onclick": "countChecked()",
                                                             "class": "rowcheckbox"}
@@ -50,23 +52,42 @@ class InvoiceTable(tables.Table):
 
     class Meta:
         model = Invoice
-        fields = ('creation_date','update_date', 'person.first_name', 'person.last_name',
-                  'person.membership.description','email_count','total', 'payment_state')
+        fields = ('id', 'person.first_name', 'person.last_name',
+                  'person.membership.description','email_count', 'payment_state')
+        sequence = ('selection','...')
         attrs = {'class': 'table table-condensed'} 
     
+    id = tables.LinkColumn('invoice-detail',
+                        verbose_name="Number",
+                        args=[A('id')])
+    created = tables.DateColumn(settings.DATE_FORMAT, accessor='creation_date')
+    updated = tables.DateColumn(settings.DATE_FORMAT, accessor='update_date')
     total = tables.Column(attrs={'td':{'style':'text-align: right;'}})
-    edit = tables.LinkColumn('invoice-detail', text='Edit', args=[A('id')], orderable=False)
-
+    selection = tables.CheckBoxColumn(accessor='id',
+                                      attrs={ "th__input": {"onclick": "toggle(this)"},
+                                              "td__input": {"onclick": "countChecked()",
+                                                        "class": "rowcheckbox"}
+                                        },
+                                    orderable=False)
 
 class InvoiceItemTable(tables.Table):
           
     class Meta:
         model = InvoiceItem
-        fields = ('person.fullname', 'invoice.membership_year', 'creation_date', 'item_type.description', 'description', 'amount', 'invoice.id', 'paid')
+        fields = ('id', 'person.first_name', 'person.last_name', 'item_type.description', 'description', 'paid', 'invoice_id')
+        sequence = ('id', 'year', '...') 
         attrs = {'class': 'table table-condensed'} 
+   
+    id = tables.LinkColumn('item-detail',
+                    verbose_name="Number",
+                    args=[A('id')])
+    year = tables.Column(verbose_name="Year", accessor='invoice.membership_year')
+    created = tables.DateColumn(settings.DATE_FORMAT,
+                                verbose_name="Created",
+                                accessor='creation_date')
 
     amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
-    edit = tables.LinkColumn('item-detail', text='Edit', args=[A('id')], orderable=False)
+
 
 
 class PaymentTable(tables.Table):

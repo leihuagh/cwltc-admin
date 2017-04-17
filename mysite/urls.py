@@ -167,7 +167,7 @@ urlpatterns = [
         name='sub-invoice-cancel'
     ),
     url(r'^invoices/$',
-        InvoiceListView.as_view(),
+        InvoiceTableView.as_view(),
         name='invoice-list'
     ),
     url(r'^invoice/(?P<pk>\d+)/$',
