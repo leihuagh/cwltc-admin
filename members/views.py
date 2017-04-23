@@ -41,7 +41,9 @@ class PagedFilteredTableView(SingleTableView):
     filter_class = None
     formhelper_class = None
     context_filter_name = 'filter'
+    table_pagination={ "per_page":100000 }
 
+    
     def get_queryset(self, **kwargs):
         qs = super(PagedFilteredTableView, self).get_queryset()
         self.filter = self.filter_class(self.request.GET, queryset=qs)
@@ -50,6 +52,7 @@ class PagedFilteredTableView(SingleTableView):
 
     def get_context_data(self, **kwargs):
         context = super(PagedFilteredTableView, self).get_context_data()
+        context['lines'] = self.table_pagination['per_page']
         context[self.context_filter_name] = self.filter
         return context
 
@@ -999,7 +1002,7 @@ class InvoiceTableView(LoginRequiredMixin, PagedFilteredTableView):
     table_class = InvoiceTable
     filter_class = InvoiceFilter
     template_name='members/invoice_table.html'
-    table_pagination={ "per_page":10 }
+   # table_pagination={ "per_page":10 }
 
     def get_queryset(self, **kwargs):
         qs = Invoice.objects.all().select_related('person').select_related('person__membership')
@@ -1009,6 +1012,8 @@ class InvoiceTableView(LoginRequiredMixin, PagedFilteredTableView):
         if len(data) == 0:
             data['membership_year'] = Settings.current().membership_year
             data['state'] = Invoice.PAID_IN_FULL
+            data['lines'] = 20
+        self.table_pagination['per_page'] = int(data['lines'])
         self.filter = self.filter_class(data, qs, request=self.request)
         #self.filter = self.filter_class(self.request.GET, queryset=qs)
         #self.filter.form.helper = self.formhelper_class()
@@ -2078,7 +2083,12 @@ class ImportExcelMore(LoginRequiredMixin, FormView):
 class ImportExcelView(LoginRequiredMixin, FormView):
     ''' Capture the excel name and batch size '''
     form_class = XlsInputForm
-    template_name = 'members/import_excel.html'
+    template_name = 'members/generic_crispy_form.html'
+
+    def get_context_data(self, **kwargs):
+        context =  super(ImportExcelView, self).get_context_data(**kwargs)
+        context['title'] = "Import from Excel"
+        return context
 
     def form_valid(self,form):
         try:

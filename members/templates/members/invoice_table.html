@@ -4,7 +4,7 @@
 {% load render_table from django_tables2 %}
 {% block content %}
 
-<form method="get">
+<form method="get" id="id_search_form">
   <div class="well" style="padding:10px">
     <div class="row">
       <div class="col-sm-3 col-md-2 ">
@@ -26,47 +26,56 @@
           {{ filter.form.type.label_tag }}
           {% render_field filter.form.type class="form-control form-control-sm" %}
       </div>
-      {% endif %} 
-      <div class="form-group col-sm-3 col-md-offset-4 col-md-2">
+      {% endif %}
+      <div class="col-md-offset-3 col-md-1">
+        <label for="id_lines">Rows</label>
+        <select class="form-control " id="id_lines" name="lines">
+          <option value="10" {% if lines == 10 %}selected="selected" {% endif %}>10 rows</option>
+          <option value="20" {% if lines == 20 %}selected="selected" {% endif %}>20 rows</option>
+          <option value="50" {% if lines == 50 %}selected="selected" {% endif %}>50 rows</option>
+          <option value="100000" {% if lines == 100000 %}selected="selected" {% endif %}>All rows</option>
+        </select>
+      </div>
+      <div class="form-group col-sm-3  col-md-2">
         <label for="id_search">&nbsp</label>
-        <button class="form-control btn-primary " id="id_search" type="submit">
+        <button class="form-control btn-primary " id="id_search" type="button">
         <span class="glyphicon glyphicon-search"></span> Search
         </button>
       </div>
     </div>
   </div>
 </form>
-
+<div class="loader" id="id_loader"></div>
 
 <!-- ACTIONS -->
-<form action="." method="post" class="form-inline">
-  <div class="container">
-    {% csrf_token %}
-    <div class="row">
-      <div class="col-md-2">
-        <h5><span id="id-count">0</span> of {{ table.rows|length }} rows selected</h5>
-      </div>
-      <div class="col-md-3">
-        <div class="input-group">
-          <select class="form-control " id="id_action", name="action">
-            <option value="none" selected="selected">No action</option>
-            <option value="export">Export invoices</option>
-            <option value="mail">Mail people</option>
-            <option value="group">Add people to group</option>
-          </select>
-          <span class = "input-group-btn">
-            <button class="btn btn-primary" name="go" id="id_go" type="submit">Go</button>
-          </span>
-        </div>
-      </div>
-      <div class="col-md-offset-5 col-md-2">
-        <h4>Total = £ {{ total }}</h4>
+<form action="." method="post" class="form-inline" id="id_action_form" style="visibility:hidden">
+  {% csrf_token %}
+  <div class="row">
+    <div class="col-md-3">
+      <h5><span id="id-count">0</span> of {{ table.rows|length }} rows selected</h5>
+    </div>
+    <div class="col-md-3">
+      <div class="input-group">
+        <select class="form-control " id="id_action", name="action">
+          <option value="none" selected="selected">No action</option>
+          <option value="export">Export invoices</option>
+          <option value="mail">Mail people</option>
+          <option value="group">Add people to group</option>
+        </select>
+        <span class = "input-group-btn">
+          <button class="btn btn-primary" name="go" id="id_go" type="submit">Go</button>
+        </span>
       </div>
     </div>
+    <div class="col-md-3">
+    </div>
+    <div class="col-md-3" align="right" >
+      <h4>Total = £ {{ total }}</h4>
+    </div>
   </div>
-
-  <div class="panel panel-primary">
-    <div class="panel-body" style="max-height: 60%;overflow-y: scroll;">
+  
+  <div class="panel panel-primary" >
+    <div class="panel-body" id="id_table_panel" style="max-height: 60%;overflow-y: scroll;">
       {% render_table table 'django_tables2/table.html'%}
     </div>
   </div>

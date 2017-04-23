@@ -16,18 +16,17 @@ class ServicesError(Error):
     def __init__(self, message):
         self.message = message
 
-def invoice_pay_by_gocardless(invoice, amount, fee):
+def invoice_pay_by_gocardless(invoice, amount, fee, date):
     '''
     Create a gocardless payment record and pay an invoice
     '''
-    year = Settings.current().membership_year
     payment = Payment(type=Payment.DIRECT_DEBIT,
                         person=invoice.person,
                         amount=amount,
                         fee=fee,
-                        membership_year=year,
+                        membership_year=invoice.membership_year,
                         banked=True,
-                        banked_date=datetime.now(),
+                        banked_date=date
                         )
     payment.save()
     invoice_pay(invoice, payment)

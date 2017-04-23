@@ -1,0 +1,58 @@
+﻿{% extends "members/layout.html" %}
+{% block content %}
+<h3>{{ title }}</h3>
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
+<br/>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <div class="row">
+    <div class="col-lg-12 col-sm-12 col-12">
+      <div class="input-group">
+          <label class="input-group-btn">
+              <span class="btn btn-primary">
+                  Browse&hellip; <input type="file" style="display: none;" name="upload_file" >
+              </span>
+          </label>
+          <input type="text" class="form-control" readonly>
+      </div>
+    </div>
+  </div>
+  <br/>
+  <button class="btn btn-primary" type="submit">Import</button>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+  // https://www.abeautifulsite.net/whipping-file-inputs-into-shape-with-bootstrap-3
+$(function () {
+
+  // We can attach the `fileselect` event to all file inputs on the page
+  $(document).on('change', ':file', function () {
+    var input = $(this),
+        numFiles = input.get(0).files ? input.get(0).files.length : 1,
+        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+    input.trigger('fileselect', [numFiles, label]);
+  });
+
+  // We can watch for our custom `fileselect` event like this
+  $(document).ready(function () {
+    console.log("ready");
+    $(':file').on('fileselect', function (event, numFiles, label) {
+
+      var input = $(this).parents('.input-group').find(':text'),
+          log = numFiles > 1 ? numFiles + ' files selected' : label;
+
+      if (input.length) {
+        input.val(log);
+      } else {
+        if (log) alert(log);
+      }
+
+    });
+  });
+});
+</script>
+{% endblock %}

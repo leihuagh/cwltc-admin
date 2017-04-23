@@ -1,18 +1,27 @@
 # Go cardless views
 import gocardless
-from django.views.generic import View, RedirectView, TemplateView, ListView, DetailView
+from decimal import Decimal
+from datetime import date, datetime
+import json
+import logging
+import csv
+from django.views.generic import View, RedirectView, TemplateView, ListView, DetailView, FormView
 from django import http
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.conf import settings
-from members.models import Invoice, Payment
-from members.services import invoice_pay_by_gocardless
-from gc_app.models import WebHook
+from django.shortcuts import redirect, render
+from django.contrib import messages
+from django.core.urlresolvers import reverse
 from braces.views import LoginRequiredMixin
-from decimal import Decimal
-import json
-import logging
-import gc_app
+
+from members.models import Invoice, Payment, ExcelBook
+from members.services import invoice_pay_by_gocardless
+from members.forms import XlsInputForm
+
+from .models import WebHook
+from .forms import  UploadForm
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +111,7 @@ class GCWebhook(View):
                     except:                                      
                         hook.error = "Invoice {} not found".format(bill_id)
                         hook.save()
-                        return http.HttpResponse(status=403)
+                        return HttpResponse(status=403)
 
                     # fake the sandbox webhooks to match the invoice total
                     if gocardless.environment == 'sandbox':
@@ -116,7 +125,7 @@ class GCWebhook(View):
 
                     if action == 'paid':
                         try:
-                            invoice_pay_by_gocardless(invoice, amount, fee)
+                            invoice_pay_by_gocardless(invoice, amount, fee, datetime.now())
                             hook.processed = True
                         except Exception as ex:                                      
                             hook.error = ex.message
@@ -138,7 +147,7 @@ class GCWebhook(View):
                     else:
                         hook.error= "Unknown action" 
                     hook.save()                        
-                return http.HttpResponse(status=200)
+                return HttpResponse(status=200)
 
             elif resource_type == 'subscription':
                 if action == 'cancelled':
@@ -149,10 +158,10 @@ class GCWebhook(View):
                         print("Subscription {0} cancelled".format(subscription['id']))
                 elif action== 'expired':
                     pass
-                return http.HttpResponse(status=200)
+                return HttpResponse(status=200)
 
             elif resource_type == 'pre_authorization':
-                return http.HttpResponse(status=200)
+                return HttpResponse(status=200)
 
         else:
             hook = WebHook(resource_type="Bad payload",
@@ -161,7 +170,7 @@ class GCWebhook(View):
                 processed=False,
                 error="Bad payload")
             hook.save()       
-            return http.HttpResponse(status=403)
+            return HttpResponse(status=403)
 
 class WebHookList(LoginRequiredMixin, ListView):
     model = WebHook 
@@ -183,3 +192,73 @@ class WebHookDetailView(LoginRequiredMixin, DetailView):
         context['message'] = '<pre>' + json.dumps(json.loads(hook.message), indent=4) + '</pre>' # .replace('\n', '<br />').replace(' ','&nbsp')
         return context
 
+class GcImportView(LoginRequiredMixin, FormView):
+    '''
+    Import a GoCardless csv file
+    '''
+    form_class = UploadForm
+    template_name = 'members/file_select.html'
+
+    def get_context_data(self, **kwargs):
+        context =  super(GcImportView, self).get_context_data(**kwargs)
+        context['title'] = "Import GoCardless csv file"
+        return context
+
+    def form_valid(self, form):
+        result, errors = process_csvfile(self.request.FILES['upload_file'])
+        if errors:
+            messages.error(self.request, errors)
+        else:
+            messages.success(self.request, result)
+        return super(GcImportView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('gc-import')
+
+
+def process_csvfile(f):
+    '''
+    Read a GoCardless export and update all invoices that are now paid out
+    '''
+    reader = csv.DictReader(f)
+    record_count = 0
+    paid_count = 0
+    mismatches = []
+    notfounds = []
+    errors = ""
+    result = ""
+    try:
+        for row in reader:         
+            id = row['id']
+            status= row['status']
+            amount = Decimal(row['amount'])
+            fee = Decimal(row['transaction_fee'])
+            dateparts = row['payout_date'].split('/')
+            payout_date = date(int(dateparts[2]), int(dateparts[1]), int(dateparts[0]))
+            meta = row['metadata.description'].split(':')
+            ids = meta[1].split('/')
+            person_id = ids[0].strip()
+            invoice_id = ids[1].strip()
+            record_count += 1
+            if status == 'paid_out':
+                try:
+                    invoice = Invoice.objects.get(pk=invoice_id)
+                    if invoice.gocardless_bill_id == id:
+                        if invoice.state <> Invoice.PAID_IN_FULL:
+                            invoice_pay_by_gocardless(invoice, amount, fee, payout_date)
+                            paid_count += 1
+                    else:
+                        mismatches.append(invoice_id)
+                except Exception as ex:
+                    notfounds.append(invoice_id)
+        result = "{} records processed and {} invoices changed to paid state.".format(
+            record_count, paid_count)        
+        if len(mismatches) > 0:
+            errors = "Mismatched invoice ids: " + ",".join(map(str, mismatches))
+        if len(notfounds) > 0:
+            errors += " Not found invoice ids: " + ",".join(map(str, notfounds))
+        
+    except KeyError:
+
+        errors = "Invalid file format"
+    return [result, errors]

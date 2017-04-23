@@ -32,11 +32,10 @@ urlpatterns = [
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
-    
-    #url(r'^markdownx/', include('markdownx.urls')),
-    
     url(r'^pos/', include('pos.urls')),
+    url(r'^gocardless/', include('gc_app.urls')),
 
+    #url(r'^markdownx/', include('markdownx.urls')),
     url(r'ajax/people/',
         ajax_people,
         name = "ajax-people"
@@ -74,23 +73,23 @@ urlpatterns = [
         name='group-add-list'
     ),
 
-    #   GO CARDLESS
-    url(r'^gocardless/confirm/$',
-        GCConfirm.as_view(template_name = "gc_app/success.html"),
-        name='gc_success'
-    ),
-    url(r'^gocardless/webhook/$',
-        GCWebhook.as_view(),
-        name='gc_webhook'
-    ),
-    url(r'^webhook/list/$',
-        WebHookList.as_view(),
-        name='webhook-list'
-    ),
-    url(r'^webhook/(?P<pk>\d+)/$',
-        WebHookDetailView.as_view(),
-        name='webhook-detail'
-    ),
+    ##   GO CARDLESS
+    #url(r'^gocardless/confirm/$',
+    #    GCConfirm.as_view(template_name = "gc_app/success.html"),
+    #    name='gc_success'
+    #),
+    #url(r'^gocardless/webhook/$',
+    #    GCWebhook.as_view(),
+    #    name='gc_webhook'
+    #),
+    #url(r'^webhook/list/$',
+    #    WebHookList.as_view(),
+    #    name='webhook-list'
+    #),
+    #url(r'^webhook/(?P<pk>\d+)/$',
+    #    WebHookDetailView.as_view(),
+    #    name='webhook-detail'
+    #),
     url(r'^resign/$',
         ResignedView.as_view(),
         name='resigned'

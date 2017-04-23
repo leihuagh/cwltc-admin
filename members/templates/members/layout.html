@@ -11,18 +11,17 @@
 
 <!-- Optional theme -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
-
-
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.css" />
-    <script src="{% static 'members/scripts/modernizr-2.6.2.js' %}"></script>
-    <link rel='stylesheet' type='text/css' href='{% static 'members/content/jquery-ui/smoothness/jquery-ui.css' %}' />
-    <link rel="stylesheet" type="text/css" href="{% static 'members/content/jquery.smartmenus.bootstrap.css' %}" />
-    <link rel="stylesheet" type="text/css" href="{% static 'members/content/site.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/site.css' %}">
-    {% block head %}
-    {% endblock %}
+  
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.css" />
+<script src="{% static 'members/scripts/modernizr-2.6.2.js' %}"></script>
+<link rel='stylesheet' type='text/css' href='{% static 'members/content/jquery-ui/smoothness/jquery-ui.css' %}' />
+<link rel="stylesheet" type="text/css" href="{% static 'members/content/jquery.smartmenus.bootstrap.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'members/content/site.css' %}" />
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+{% block head %}
+{% endblock %}
 </head>
+
 
 <body>
 {% include "members/_navbar.html" %}
@@ -32,13 +31,14 @@
 {% include "members/_messages.html" %}
  </div>
 <div class="container body-content">
-    {% block content %}
-    {% endblock %}
-        <hr/>
-        <footer>
-            <p>Membership Management System &copy; {{ year }} ISKT Ltd</p>
-        </footer>
-    </div>
+  {% block content %}
+  {% endblock %}
+  <hr/>
+
+  <footer>
+    <p>Membership Management System &copy; {{ year }} ISKT Ltd</p>
+  </footer>
+</div>
 
 
 <script src="{% static 'members/scripts/jquery-1.10.2.js' %}"></script>

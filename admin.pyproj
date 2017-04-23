@@ -444,13 +444,13 @@
     <Content Include="members\templates\members\email.html" />
     <Content Include="members\templates\members\categories_list.html" />
     <Content Include="members\templates\members\fees_list.html" />
+    <Content Include="members\templates\members\file_select.html" />
     <Content Include="members\templates\members\filter_member.html" />
     <Content Include="members\templates\members\generic_crispy_form.html" />
     <Content Include="members\templates\members\generic_result.html" />
     <Content Include="members\templates\members\group_add_person.html" />
     <Content Include="members\templates\members\group_detail.html" />
     <Content Include="members\templates\members\group_list.html" />
-    <Content Include="members\templates\members\import_excel.html" />
     <Content Include="members\templates\members\import_more.html" />
     <Content Include="members\templates\members\index.html" />
     <Content Include="members\templates\members\invoiceitem_detail.html" />
@@ -525,8 +525,14 @@
     <Content Include="static\css\site.css" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="gc_app\forms.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="gc_app\models.py" />
     <Compile Include="gc_app\tests.py" />
+    <Compile Include="gc_app\urls.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="gc_app\views.py" />
     <Compile Include="gc_app\__init__.py" />
     <Compile Include="manage.py" />
@@ -540,7 +546,7 @@
     <Compile Include="members\management\commands\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="members\management\__init__.py">
+    <Compile Include="members\static\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="members\serializers.py">

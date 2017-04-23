@@ -11,3 +11,4 @@ class WebHook(models.Model):
     error = models.CharField(max_length=80)
     invoice = models.ForeignKey(Invoice, null=True)
     subscription = models.ForeignKey(Subscription, null=True)
+

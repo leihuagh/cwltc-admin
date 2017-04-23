@@ -19,6 +19,7 @@ from .widgets import MonthYearWidget
 from .models import (Person, Address, Subscription, Membership, Invoice, InvoiceItem,
                      Payment, CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings)
 from .excel import *
+from .filters import year_choices
 
 # 
 TEMPLATE_PACK = getattr(settings, 'CRISPY_TEMPLATE_PACK', 'bootstrap')
@@ -528,7 +529,8 @@ class SubscriptionForm(ModelForm):
             elif age < Subscription.UNDER_26_AGE:
                 choices = [
                     (Membership.UNDER_26, "Under 26"),
-                    (Membership.COACH, "Coach")
+                    (Membership.COACH, "Coach"),
+                    (Membership.NON_PLAYING, "Non playing")
                     ]
         #if self.updating:
         #    choices.append((Membership.RESIGNED, "Resigned"))                       
@@ -915,7 +917,11 @@ class PaymentForm(ModelForm):
     class Meta:
         model = Payment
         fields = ['membership_year', 'type', 'reference', 'amount', 'banked_date']
-        widgets = {'banked_date': forms.DateInput(attrs={'class':'datepicker'}),}
+        widgets = {'banked_date': forms.DateInput(attrs={'class':'datepicker'}),
+                   'membership_year': forms.Select(choices=year_choices())
+                   }
+    
+
 
 class PaymentFilterForm(Form):
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
