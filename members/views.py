@@ -1013,7 +1013,9 @@ class InvoiceTableView(LoginRequiredMixin, PagedFilteredTableView):
             data['membership_year'] = Settings.current().membership_year
             data['state'] = Invoice.PAID_IN_FULL
             data['lines'] = 20
-        self.table_pagination['per_page'] = int(data['lines'])
+        lines = data.get('lines',0)
+        if lines > 0:
+            self.table_pagination['per_page'] = lines
         self.filter = self.filter_class(data, qs, request=self.request)
         #self.filter = self.filter_class(self.request.GET, queryset=qs)
         #self.filter.form.helper = self.formhelper_class()

@@ -1,7 +1,6 @@
-from datetime import date,datetime
+from datetime import date, datetime
 import pdb
 import django
-import pdb
 from django.test import TestCase
 from members.models import (Person, Address, Membership, Subscription, Fees, Invoice, Payment,
                             InvoiceItem, ItemType, CreditNote, Group)
@@ -517,7 +516,7 @@ class MembersTestCase(TestCase):
         fee = total/100
         if fee > 2:
             fee = 2
-        invoice_pay_by_gocardless(inv, total, fee)
+        invoice_pay_by_gocardless(inv, total, fee, datetime.now())
         payment = Payment.objects.all()[0]
         self.assertEqual(payment.state, Payment.FULLY_MATCHED)  
         self.assertEqual(payment.membership_year, 2015)  

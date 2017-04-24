@@ -18,7 +18,6 @@ from braces.views import LoginRequiredMixin
 
 from members.models import Invoice, Payment, ExcelBook
 from members.services import invoice_pay_by_gocardless
-from members.forms import XlsInputForm
 
 from .models import WebHook
 from .forms import  UploadForm
@@ -233,12 +232,12 @@ def process_csvfile(f):
             status= row['status']
             amount = Decimal(row['amount'])
             fee = Decimal(row['transaction_fee'])
-            dateparts = row['payout_date'].split('/')
-            payout_date = date(int(dateparts[2]), int(dateparts[1]), int(dateparts[0]))
+            payout_date = unpack_date(row['payout_date'])
             meta = row['metadata.description'].split(':')
             ids = meta[1].split('/')
             person_id = ids[0].strip()
             invoice_id = ids[1].strip()
+
             record_count += 1
             if status == 'paid_out':
                 try:
@@ -262,3 +261,38 @@ def process_csvfile(f):
 
         errors = "Invalid file format"
     return [result, errors]
+
+def unpack_date_helper(date_string):
+    '''
+    Unpack a date string separated by - or / into parts
+    original gocardless file uses yyyy-mm-dd
+    If its been through Excel it will be dd/mm/yyyy
+    always return list [yyyy, mm, dd]
+    ''' 
+    dateparts = date_string.split('-')
+    if len(dateparts) == 3:
+        return dateparts
+    dateparts = date_string.split('/')      
+    if len(dateparts) == 3:
+        return  [dateparts[2], dateparts[1], dateparts[0]]
+    raise ValueError("Cannot parse date", date_string)
+
+def unpack_date(date_string):
+    '''
+    Unpack a date string separated by - or / to a date
+    '''
+    dateparts = unpack_date_helper(date_string)
+    return  date(int(dateparts[0]), int(dateparts[1]), int(dateparts[2]))
+
+def unpack_datetime(datetime_string):
+    '''
+    Unpack a datetime string separated by - or / to a datetime
+    '''
+    parts = datetime_string.split(' ')
+    if len(parts) == 2:
+        dateparts = unpack_date_helper(parts[0])
+        timeparts = parts[1].split(':')
+        if len(timeparts) == 3:
+            return datetime(int(dateparts[0]), int(dateparts[1]), int(dateparts[2]),
+                              int(timeparts[0]), int(timeparts[1]), int(timeparts[2]))
+    raise ValueError("Cannot parse time from ", datetime_string)

@@ -121,7 +121,7 @@ def send_template_mail(request, person, text,
                 total_unpaid += inv.total
                 token = signer.sign(inv.id)
                 url= request.build_absolute_uri(reverse('invoice-public', args=(token,)))
-                anchor ='<a href="' + url + '">Invoice ' + str(inv.id) + '</a>'
+                anchor ='<p><a href="' + url + '">Invoice ' + str(inv.id) + '</a><p>'
                 invoice_urls.append(anchor)
         context = Context({
             'first_name':recipient.first_name,
