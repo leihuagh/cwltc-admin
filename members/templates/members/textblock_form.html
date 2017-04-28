@@ -1,15 +1,23 @@
 ﻿{% extends "members/layout.html" %}
-{% block head %}
-    {% load wysiwyg %}
-    {% wysiwyg_setup %}
-{% endblock %}
 
 {% block content %}
     {% load crispy_forms_tags %}
     <h2>{{ title }}</h2>
     {% crispy form %}
-    {% if option = None %}
-        {% wysiwyg_editor "id_text" %}
-    {% endif %}
 {% endblock %}
+{% block scripts %}
+<script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
+<script type="text/javascript">
+  tinymce.init({
+    selector: '#id_text',
+    height: 300,
+    width: 800,
 
+    browser_spellcheck: true,
+    plugins: 'code advlist autolink link image lists charmap print preview',
+
+    toolbar1: 'undo redo | styleselect, formatselect, fontselect, fontsizeselect, mybutton',
+    toolbar2: 'bold, italic, underline | alignleft, aligncenter, alignright, alignjustify | cut, copy, paste | bullist, numlist | outdent, indent',
+  });
+</script>
+{% endblock %}

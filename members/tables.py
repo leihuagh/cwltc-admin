@@ -11,7 +11,7 @@ class PersonTable(tables.Table):
         sequence = ('selection','...')
         attrs = {'class': 'table table-condensed'} 
 
-    description = tables.Column(accessor='membership_fulldescription',
+    description = tables.Column(accessor='sub.membership_fulldescription',
                                 verbose_name='Membership',
                                 order_by='membership.description',
                                 orderable=True)

@@ -583,7 +583,7 @@ class SubscriptionForm(ModelForm):
         m += 1
         if m > 12:
             m = 1
-            Y += 1
+            y += 1
         end_date = date(y, m, 1) - timedelta(days=1)
         cleaned_data['end_date'] = end_date
         start_date = cleaned_data['start_date']
@@ -957,10 +957,20 @@ class CreditNoteForm(ModelForm):
         fields = ['membership_year', 'amount', 'reference']
 
 class TextBlockForm(ModelForm):
+    
+    class Meta:
+        model = TextBlock
+        fields = ['name', 'type', 'text']
+        widgets = {
+            'text': Textarea(attrs={'cols': 1, 'rows': 1
+            })}
+
+    
 
     def __init__(self, *args, **kwargs):
         no_delete = kwargs.pop('no_delete' ,False)
         super(TextBlockForm, self).__init__(*args, **kwargs)
+        self.fields['text'].required = False # get round bug in tinymce
         self.helper = FormHelper(self)
         self.helper.field_class = 'input-xlarge'
         self.helper.form_method = 'post'
@@ -972,12 +982,8 @@ class TextBlockForm(ModelForm):
         if not no_delete:
             self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
 
-    class Meta:
-        model = TextBlock
-        fields = ['name', 'type', 'text']
-        widgets = {
-            'text': Textarea(attrs={'cols': 1, 'rows': 1
-            })}
+
+
 
 class MailCampaignForm(ModelForm):
 

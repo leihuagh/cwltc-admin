@@ -312,6 +312,7 @@ def set_person_context(context, person):
     context['years'] = years
     context['statements'] = statements      
     context['person'] = person
+    context['state'] = Person.STATES[person.state][1]
     context['address'] = person.address
     context['subs'] = person.subscription_set.all().order_by('sub_year')
     context['sub'] = person.sub
@@ -1859,8 +1860,7 @@ class MailCampaignBeeView(LoginRequiredMixin, TemplateView):
 class TextBlockCreateView(LoginRequiredMixin, CreateView):
     model = TextBlock
     form_class = TextBlockForm
-    template_name = 'members/email.html'
-    template_object_name = 'textblock'
+    template_name = 'members/textblock_form.html'
 
     def get_context_data(self, **kwargs):       
         context = super(TextBlockCreateView, self).get_context_data(**kwargs)
@@ -1871,19 +1871,24 @@ class TextBlockCreateView(LoginRequiredMixin, CreateView):
         kwargs = super(TextBlockCreateView, self).get_form_kwargs()
         kwargs.update({'no_delete': True})
         return kwargs
-
+    
     def form_invalid(self, form):
         if 'cancel' in form.data:
             return (redirect('text-list'))
         return super(TextBlockCreateView, self).form_invalid(form)
 
+    def form_valid(self, form):
+        if 'cancel' in form.data:
+            return (redirect('text-list'))
+        return super(TextBlockCreateView, self).form_valid(form)
+    
     def get_success_url(self):
         return reverse('text-list')
  
 class TextBlockUpdateView(LoginRequiredMixin, UpdateView):
     model = TextBlock
     form_class = TextBlockForm
-    template_name = 'members/email.html'
+    template_name = 'members/textblock_form.html'
 
     def get_context_data(self, **kwargs):
         context = super(TextBlockUpdateView, self).get_context_data(**kwargs)
@@ -1923,7 +1928,7 @@ class EmailView(LoginRequiredMixin, FormView):
         context['title'] = target
         blocks = TextBlock.objects.all()
         try:
-            value_list=[]
+            value_list = []
             for block in blocks:
                 dict_entry = { "text": "'" + block.name + "'", "value": "'" + str(block.id) + "'" }
                 json_entry = json.dumps(dict_entry).replace('"','')

@@ -1,22 +1,21 @@
 ﻿{% extends "members/layout.html" %}
-
 {% block content %}
 {% load members_extras %}
-
 <h3>{{ person.fullname }}</h3>
  <form action="." method="post" class="form-inline" id={{confirm_form_id}}>
     {% csrf_token %}
-
       
       <div class="row">
           <div class="col-md-4">
               <div class="panel panel-default">
                   <div class="panel-heading">
-                  {% if person.email %}{{ person.email }}{% else %}No email address{% endif %}
-                  </div>                                                
-                  <table class="table table-condensed">
+                  Person detail
+                  </div>  
+                                                        
+                  <table class="table table-condensed table-detail">
+                      
                       <tr><td>Id:</td><td>{{ person.id }} </td></tr>
-                      <tr><td>State</td><td>{{ person.state }} </td></tr>
+                      <tr><td>State:</td><td>{{ state }} </td></tr>
                       <tr>
                           <td>Date of birth:</td>
                           <td>
@@ -32,9 +31,9 @@
                               {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}
                           </td>
                       </tr>
+                    <tr><td>Email:</td><td>{{ person.email }} </td></tr>
                   </table>
-
-
+   
                   <div class="panel-footer">
                       <a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a> 
                         {% if person.email %}
@@ -70,7 +69,7 @@
               <div class="panel panel-default">
                   <div class="panel-heading">Family</div>
 
-                  <table class="table table-condensed">
+                  <table class="table table-detail">
                   {% if parent %}
                     {% ifequal parent.id person.id %}<tr class="info">{% else %}<tr>{% endifequal %}
                       <td><strong><a href="{% url "person-detail" pk=parent.id %}">{{ parent.fullname }}</a></strong></td>
@@ -150,13 +149,14 @@
                     {% endif %}                                             
                     {% include "members/_confirm.html" with confirm_id="confResign" confirm_title="Resign person" confirm_yes="Resign" confirm_submit="resign" %}
                     <a href="#" data-toggle="modal" data-target="#confResign" class="btn btn-danger btn-sm">Resign</a>
+                    {% if sub.sub_year < years.0 %}
+                      <button type="submit" name="renew" class="btn btn-primary btn-sm">Renew {{ year.0 }}</button>
+                    {% endif %}
                   {% endif %}
                 {% else %}
                   <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New sub</a>
                 {% endif %}
-                {% if person.sub.sub_year < years.0 %}
-                  <button type="submit" name="renew" class="btn btn-primary btn-sm">Renew {{ year.0 }}</button>
-                {% endif %}
+
                 {% if subs %}
                   <a href="{% url "sub-history" person_id=person.id %}" class="btn btn-primary btn-sm">History</a>                      
                 {% endif %} 
@@ -167,8 +167,8 @@
         <div class="col-md-4">
           <div class="panel panel-default">
             <div class="panel-heading">Groups</div>
-            <div class="panel-body">
-              <table>
+
+              <table class="table table-condensed table-detail">
               {% for group in person.groups.all %}
                 <tr>
                 <td width="75%">{{ group.slug }}</td>
@@ -176,7 +176,7 @@
                 <button type="submit" name="remove" value="{{ group.slug }}" class="btn btn-danger btn-xs">Remove</button>
               {% endfor %}
               </table>
-            </div>
+
             <div class="panel-footer">
               <a href="{% url "group-add-person" person_id=person.id %}" class="btn btn-primary btn-sm">Add to a group</a>
             </div>
@@ -207,14 +207,14 @@
       <div class="panel with-nav-tabs panel-default">
         <div class="panel-heading">
           <ul class="nav nav-tabs">       
-            <li class="active"><a data-toggle="tab" href="#id_unbilled">Uninvoiced items</a></li>
+            <li><a data-toggle="tab" href="#id_unbilled">Uninvoiced items</a></li>
             {% for year in years %}
-              <li><a data-toggle="tab" href="#id_year{{ forloop.counter }}">{{ year }} account</a></li>
+              <li{% if forloop.first %} class="active" {% endif %}><a data-toggle="tab" href="#id_year{{ forloop.counter }}">{{ year }} account</a></li>
             {% endfor %}
           </ul>
         </div>
         <div class="tab-content">
-          <div id="id_unbilled" class="tab-pane fade in active"">
+          <div id="id_unbilled" class="tab-pane fade">
             {% if items %}
               {% include "members/_invoiceitem_list.html" %}
             {% else %}
@@ -222,7 +222,7 @@
             {% endif %}
           </div>
           {% for statement in statements %}
-            <div id="id_year{{ forloop.counter }}" class="tab-pane fade">
+            <div id="id_year{{ forloop.counter }}" class="tab-pane fade {% if forloop.first %} in active {% endif %}"%}">
               {% include "members/_statement.html" %}
             </div>   
           {% endfor %}
