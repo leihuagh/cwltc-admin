@@ -175,6 +175,7 @@ span.twitter-typeahead {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
 .table-detail > tbody > tr > td {
     font-size: 14px;
     padding-left: 15px;
