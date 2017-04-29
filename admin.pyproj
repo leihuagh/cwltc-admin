@@ -470,6 +470,7 @@
     <Content Include="members\templates\members\loginpartial.html" />
     <Content Include="members\templates\members\mailtype_detail.html" />
     <Content Include="members\templates\members\mail_campaign_list.html" />
+    <Content Include="members\templates\members\person_link.html" />
     <Content Include="members\templates\members\person_table.html" />
     <Content Include="members\templates\members\_statement.html" />
     <Content Include="pos\templates\pos\all_transactions.html" />

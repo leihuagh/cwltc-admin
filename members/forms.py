@@ -337,9 +337,9 @@ class JuniorForm(ModelForm):
 class PersonLinkForm(Form):
     ''' Link a person to another '''
 
-    first_name = forms.CharField(max_length=30, required=True)
-    last_name = forms.CharField(max_length=30, required=True)
-
+    first_name = forms.CharField(max_length=30, required=False)
+    last_name = forms.CharField(max_length=30, required=False)
+    id = forms.IntegerField(required=False)
     
     def __init__(self, *args, **kwargs):
         super(Form, self).__init__(*args, **kwargs)
@@ -351,32 +351,27 @@ class PersonLinkForm(Form):
         self.helper.layout = Layout(
             Fieldset('Select parent / bill payer:',
                 'first_name',
-                'last_name'
+                'last_name',
+                'id'
                 ),
             ButtonHolder(
                 SubmitButton('link', 'Link', css_class='btn-primary'),
                 SubmitButton('cancel', 'Cancel', css_class='btn-default')
             )
         )
-
-    def clean_first_name(self):
-        data = self.cleaned_data['first_name']
-        if len(data) < 1:
-            raise forms.ValidationError('Specify at least 1 character')
-        return data
-
-    def clean_last_name(self):
-        data = self.cleaned_data['last_name']
-        if len(data) < 1:
-            raise forms.ValidationError('Specify at least 1 character')
-        return data
-    
+   
     def clean(self):
         cleaned_data = super(PersonLinkForm, self).clean()
-        matches = Person.objects.filter(
-            first_name__startswith=cleaned_data.get('first_name'),
-            last_name__startswith=cleaned_data.get('last_name')
-            )
+        id = cleaned_data.get('id')
+        if id:
+            matches = Person.objects.filter(pk=id)
+        else:
+            if len(cleaned_data.get('first_name')) == 0 and len(cleaned_data.get('last_name')) == 0:
+                raise forms.ValidationError('Specify at least name')
+            matches = Person.objects.filter(
+                first_name__startswith=cleaned_data.get('first_name'),
+                last_name__startswith=cleaned_data.get('last_name')
+                )
         if matches.count() == 1:
             self.person = matches[0]
         elif matches.count() == 0:

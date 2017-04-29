@@ -226,6 +226,7 @@ class PersonLinkView(LoginRequiredMixin, FormView):
         child = Person.objects.get(pk=self.kwargs['pk'])
         if 'link' in form.data:
             person_link_to_parent(child, form.person)
+            messages.success(self.request, child.fullname + " is linked to " + form.person.fullname)
             return redirect(form.person)
         else:
             return redirect(child)
