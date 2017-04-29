@@ -370,6 +370,13 @@ def ajax_people(request):
         mimetype = 'application/json'
         return HttpResponse(data, mimetype)
 
+def search_person(request):
+    '''
+    Redirect to a person detail page
+    In response to a search on the navbar
+    '''
+    id = request.GET.get('person_id')
+    return redirect(reverse('person-detail', kwargs={'pk':id}))
 
 class PersonExportView(LoginRequiredMixin, View):
 

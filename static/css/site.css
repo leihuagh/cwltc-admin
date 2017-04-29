@@ -179,3 +179,8 @@ span.twitter-typeahead {
     font-size: 14px;
     padding-left: 15px;
 }
+.dropdown-menu {
+  width: 220px;
+}
+
+

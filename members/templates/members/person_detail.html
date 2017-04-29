@@ -41,7 +41,7 @@
                         {% else %}No email address{% endif %}                                                        
                       {% if user.is_staff %}
                         {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete person" confirm_yes="Delete" confirm_submit="delete" %}
-                        <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger btn-sm">Delete person</a>
+                        <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger btn-sm">Delete</a>
                       {% endif %}
                   </div>
               </div>

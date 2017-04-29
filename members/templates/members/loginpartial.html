@@ -14,12 +14,12 @@
       </ul>
     </li>
     </ul> 
-    <ul class="nav navbar-nav navbar-right">
-      <li><span class="navbar-brand">User: {{ user.username }}</span></li>
+    <ul class="nav navbar-text navbar-right">
+      <li><span class="navbar-nav">User: {{ user.username }}</span></li>
     </ul>
 
 {% else %}
-  <ul class="nav navbar-nav navbar-right">
+  <ul class="nav navbar-brand navbar-right">
       <li><a href="{% url 'login' %}">Log in</a></li>
   </ul>
 {% endif %}

@@ -39,7 +39,11 @@ urlpatterns = [
     url(r'ajax/people/',
         ajax_people,
         name = "ajax-people"
-        ),
+    ),
+    url(r'search/person/',
+        search_person,
+        name="search-person"
+    ),
 
     # YEAR END
     url(r'^yearend/$',
@@ -73,23 +77,6 @@ urlpatterns = [
         name='group-add-list'
     ),
 
-    ##   GO CARDLESS
-    #url(r'^gocardless/confirm/$',
-    #    GCConfirm.as_view(template_name = "gc_app/success.html"),
-    #    name='gc_success'
-    #),
-    #url(r'^gocardless/webhook/$',
-    #    GCWebhook.as_view(),
-    #    name='gc_webhook'
-    #),
-    #url(r'^webhook/list/$',
-    #    WebHookList.as_view(),
-    #    name='webhook-list'
-    #),
-    #url(r'^webhook/(?P<pk>\d+)/$',
-    #    WebHookDetailView.as_view(),
-    #    name='webhook-detail'
-    #),
     url(r'^resign/$',
         ResignedView.as_view(),
         name='resigned'

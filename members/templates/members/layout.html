@@ -11,7 +11,6 @@
 
 <!-- Optional theme -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-  
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.css" />
 <script src="{% static 'members/scripts/modernizr-2.6.2.js' %}"></script>
 <link rel='stylesheet' type='text/css' href='{% static 'members/content/jquery-ui/smoothness/jquery-ui.css' %}' />
@@ -21,13 +20,10 @@
 {% block head %}
 {% endblock %}
 </head>
-
-
 <body>
 {% include "members/_navbar.html" %}
 
-
-<div class="container body-content">
+  <div class="container body-content">
 {% include "members/_messages.html" %}
  </div>
 <div class="container body-content">
@@ -47,34 +43,14 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 
-<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.js"></script>
 <script type='text/javascript' src='{% static 'members/scripts/jquery-ui.js' %}'></script>
-<!-- SmartMenus jQuery plugin -->
+<!--<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.js"></script>
 <script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.js' %}'></script>
 <script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.bootstrap.js' %}'></script>
 
-<script type="text/javascript">
-$(function() {
-  $("#navSearch").autocomplete({
-    source: "/ajax/people/",
-    minLength: 3,
-    select: function (event, ui) {
-        window.location = "/XXXX".replace ("XXXX", ui.item.id);
-    }
-  });
-  $("#navSearch").keydown(function (e) {
-      if (e.keyCode != $.ui.keyCode.TAB) return;
-
-      e.keyCode = $.ui.keyCode.DOWN;
-      $(this).trigger(e);
-
-      e.keyCode = $.ui.keyCode.ENTER;
-      $(this).trigger(e);
-
-      $(this).siblings("input").select();
-  });
-})
-</script>
+-->
+<script src= {% static 'js/typeahead.bundle.js' %}></script>
+<script src="{% static 'js/my_typeahead.js' %}"></script>
 
 {% block scripts %}
 {% endblock %}
