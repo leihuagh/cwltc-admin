@@ -227,7 +227,7 @@ class PersonLinkView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         child = Person.objects.get(pk=self.kwargs['pk'])
        
-        if 'link' in request.POST:
+        if 'submit' in request.POST:
             id = request.POST['person_id']
             if id.isdigit():
                 target = Person.objects.get(pk = request.POST['person_id'])  
