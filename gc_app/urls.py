@@ -5,11 +5,11 @@ from gc_app.views import *
 urlpatterns = [
     url(r'confirm/$',
         GCConfirm.as_view(template_name = "gc_app/success.html"),
-        name='gc_success'
+        name='gc-success'
     ),
     url(r'webhook/$',
         GCWebhook.as_view(),
-        name='gc_webhook'
+        name='gc-webhook'
     ),
     url(r'hook/list/$',
         WebHookList.as_view(),

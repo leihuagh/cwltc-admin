@@ -75,8 +75,8 @@ class SubsTableView(LoginRequiredMixin, SingleTableView):
         
         if not self.filter_class:
             self.filter = None
-            return Person.objects.all().order_by('last_name')
-
+            return Person.objects.all().select_related('sub__membership').order_by('last_name')
+        
         qs = Subscription.objects.filter(active=True
             ).select_related('membership').select_related('person_member')
         
@@ -213,23 +213,58 @@ class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['pk']})
 
-class PersonLinkView(LoginRequiredMixin, FormView):
-    form_class = PersonLinkForm
-    template_name = 'members/generic_crispy_form.html'
+class PersonLinkView(LoginRequiredMixin, TemplateView):
+    template_name = 'members/person_link_merge.html'
 
     def get_context_data(self, **kwargs):
         context = super(PersonLinkView, self).get_context_data(**kwargs)
-        context['title'] = 'Link ' + Person.objects.get(pk=self.kwargs['pk']).fullname
+        context['title'] = 'Link person'
+        context['person'] = Person.objects.get(pk=self.kwargs['pk']).fullname
+        context['info'] = "All invoices, payments and credit notes will be transferred to the person you select below." 
+        context['action'] = "Link"
         return context
 
-    def form_valid(self, form):
+    def post(self, request, *args, **kwargs):
         child = Person.objects.get(pk=self.kwargs['pk'])
-        if 'link' in form.data:
-            person_link_to_parent(child, form.person)
-            messages.success(self.request, child.fullname + " is linked to " + form.person.fullname)
-            return redirect(form.person)
-        else:
-            return redirect(child)
+       
+        if 'link' in request.POST:
+            id = request.POST['person_id']
+            if id.isdigit():
+                target = Person.objects.get(pk = request.POST['person_id'])  
+                if target == child:
+                    messages.error(request, "Cannot link a person to themself")
+                elif target.linked:
+                    messages.error(request, "Cannot link to a person that has a parent")
+                else:
+                    person_link(child, target)
+                    messages.success(request, '{} has been linked to {}'.format(child.fullname, target.fullname))
+                    return redirect(target)
+            else:
+                messages.error(request, "No person selected")
+        return redirect('person-link', pk=child.id)
+
+class PersonMergeView(LoginRequiredMixin, TemplateView):
+    template_name = 'members/person_link_merge.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(PersonMergeView, self).get_context_data(**kwargs)
+        context['title'] = 'Merge person with another'
+        context['person'] = Person.objects.get(pk=self.kwargs['pk']).fullname
+        context['info'] = "All linked records of {} will be transferred to the person you select below.".format(
+            context['person']) 
+        context['action'] = "Merge"
+        return context
+
+    def post(self, request, *args, **kwargs):
+        person = Person.objects.get(pk=self.kwargs['pk'])
+       
+        if 'submit' in request.POST:
+            target = Person.objects.get(pk = request.POST['person_id'])    
+            person_merge(person, target)
+            messages.success(request, '{} has been merged with this record'.format(person.fullname))
+            return redirect(target)
+        return redirect(person)
+
 
 class PersonUnlinkView(LoginRequiredMixin, View):
 
@@ -270,11 +305,14 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
         person = self.get_object()
         name = person.fullname
         if 'delete' in request.POST:
-            message = person_delete(person)
-            if message == "":
-                messages.success(self.request, "{0} deleted".format(name))
+            errs = person_delete(person)
+            if len(errs) == 0:
+                messages.success(self.request, "{0} deleted".format(person.fullname))
                 return redirect(reverse('home'))
-            messages.error(self.request, "{0} was not deleted. Error: {1}".format(name, message))
+            message = "{0} was not deleted /n"
+            for err in errs:
+                message += err + '/n'
+            messages.error(self.request, err)
         
         elif 'resign' in request.POST:
             person_resign(person)
@@ -303,13 +341,14 @@ def add_membership_context(context):
     context['mem_dict'] = mem_dict
 
 def set_person_context(context, person):
+    context['can_delete'] = person_can_delete(person)
+
     year = Settings.current().membership_year
     years = []
     statements = []
     for year in range(year, year-3, -1):
         years.append(year)
-        statements.append(person_statement(person, year))
-    
+        statements.append(person_statement(person, year)) 
     context['years'] = years
     context['statements'] = statements      
     context['person'] = person
@@ -317,7 +356,6 @@ def set_person_context(context, person):
     context['address'] = person.address
     context['subs'] = person.subscription_set.all().order_by('sub_year')
     context['sub'] = person.sub
-
     context['invoices'] = person.invoice_set.all().order_by('update_date')
     own_items = person.invoiceitem_set.filter(invoice=None).order_by('update_date')
     family_items = InvoiceItem.objects.filter(
@@ -339,23 +377,21 @@ def set_person_context(context, person):
     context['payments'] = person.payment_set.all().order_by('update_date')
     return context
 
-class PersonSearchView(LoginRequiredMixin, TemplateView):
-    template_name = 'members/person_search.html'
-
 def ajax_people(request):
     '''
-    Returns a list of people for automcomplete search field
+    Returns a list of people for autocomplete search field
+    If id filed is sentm include the id after the name
     '''
     if request.is_ajax():
         results = []
-        q = request.GET.get('term', '')
-        if q == "":
-            q= request.GET.get('search','')
+        q = request.GET.get('term','')
         keys = q.split(" ", 1)
-
         if len(keys) == 1:
-            people = Person.objects.filter(Q(first_name__istartswith=q) |
-                                           Q(last_name__istartswith=q))[:20]
+            if q.isdigit():
+                people = Person.objects.filter(pk=q)
+            else:
+                people = Person.objects.filter(Q(first_name__istartswith=q) |
+                                               Q(last_name__istartswith=q))[:20]
         else:
             people = Person.objects.filter(first_name__istartswith=keys[0],
                                            last_name__istartswith=keys[1]
@@ -364,6 +400,8 @@ def ajax_people(request):
             person_json = {}
             person_json['id'] = person.id
             person_json['value'] = person.fullname
+            if request.GET.get('id',''):
+                person_json['value'] += ' (id = {})'.format(person.id)
             results.append(person_json)
         return JsonResponse(results, safe=False)
     else:
@@ -376,8 +414,11 @@ def search_person(request):
     Redirect to a person detail page
     In response to a search on the navbar
     '''
-    id = request.GET.get('person_id')
+    id = request.GET.get('person_nav')
     return redirect(reverse('person-detail', kwargs={'pk':id}))
+
+
+
 
 class PersonExportView(LoginRequiredMixin, View):
 

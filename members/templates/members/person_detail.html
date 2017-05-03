@@ -38,11 +38,13 @@
                       <a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a> 
                         {% if person.email %}
                           <a href="{% url "email-person" person=person.id %}" class="btn btn-primary btn-sm">Send email</a>
-                        {% else %}No email address{% endif %}                                                        
+                        {% endif %}                                                        
                       {% if user.is_staff %}
-                        {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete person" confirm_yes="Delete" confirm_submit="delete" %}
-                        <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger btn-sm">Delete</a>
-                      {% endif %}
+                        {% if can_delete %}
+                          {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete person" confirm_yes="Delete" confirm_submit="delete" %}
+                          <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger btn-sm">Delete</a>
+                        {% endif %}  
+                    {% endif %}
                   </div>
               </div>
           </div>

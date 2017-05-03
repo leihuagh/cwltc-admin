@@ -470,8 +470,9 @@
     <Content Include="members\templates\members\loginpartial.html" />
     <Content Include="members\templates\members\mailtype_detail.html" />
     <Content Include="members\templates\members\mail_campaign_list.html" />
-    <Content Include="members\templates\members\person_link.html" />
+    <Content Include="members\templates\members\person_link_merge.html" />
     <Content Include="members\templates\members\person_table.html" />
+    <Content Include="members\templates\members\_person_search.html" />
     <Content Include="members\templates\members\_statement.html" />
     <Content Include="pos\templates\pos\all_transactions.html" />
     <Content Include="members\templates\public\mailtype_done.html" />
@@ -482,7 +483,6 @@
     <Content Include="members\templates\members\payment_list.html" />
     <Content Include="members\templates\members\person_detail.html" />
     <Content Include="members\templates\members\person_form.html" />
-    <Content Include="members\templates\members\person_search.html" />
     <Content Include="members\templates\members\person_table_ajax.html" />
     <Content Include="members\templates\members\resigned.html" />
     <Content Include="members\templates\members\subscription_detail.html" />
@@ -515,6 +515,7 @@
     <Content Include="pos\templates\pos\transaction_detail.html" />
     <Content Include="pos\templates\pos\_transactions.html" />
     <Content Include="static\js\my_typeahead.js" />
+    <Content Include="static\js\person_typeahead.js" />
     <Content Include="static\js\typeahead.bundle.js" />
     <Content Include="pos\templates\pos\base.html" />
     <Content Include="pos\templates\pos\getuser.html" />

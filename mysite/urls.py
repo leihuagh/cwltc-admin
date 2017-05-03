@@ -275,13 +275,13 @@ urlpatterns = [
        PersonUnlinkView.as_view(),
        name='person-unlink'
     ),
+    url(r'^person/merge/(?P<pk>\d+)/$',
+       PersonMergeView.as_view(),
+       name='person-merge'
+    ),
     url(r'^person/link/(?P<pk>\d+)/$',
        PersonLinkView.as_view(),
        name='person-link'
-    ),
-    url(r'^person/search/$',
-       PersonSearchView.as_view(),
-       name='person-search'
     ),
     url(r'^junior/create$',
        JuniorCreateView.as_view(),

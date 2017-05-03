@@ -45,7 +45,6 @@ class PersonFactory(factory.DjangoModelFactory):
     mobile_phone ='07985748548'
     email ='is@ktconsultants.co.uk'
     dob ='1954-07-07'
-    #address = factory.SubFactory(AddressFactory).create(),
     state = Person.ACTIVE     
 
 class UserFactory(factory.Factory):

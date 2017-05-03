@@ -181,10 +181,7 @@ class PersonForm(ModelForm):
                 self.person.address = address
         self.person.save()
 
-class PersonSearchForm(Form):
-    first_name = forms.CharField(max_length=30)
-    last_name = forms.CharField(max_length=30)
-     
+
 class AddressForm(ModelForm):
     
     class Meta:

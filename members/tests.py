@@ -176,6 +176,59 @@ class MembersTestCase(TestCase):
             state=Person.ACTIVE
         )
 
+    def test_merge_people(self):
+        adult = get_adult()
+        sub1 = subscription_create(
+            person=adult,
+            sub_year=2015,
+            membership_id=Membership.AUTO
+            )
+        subscription_activate(sub1)
+        subscription_create_invoiceitems(sub1, month=5)
+        junior = get_junior()
+        sub2 = subscription_create(
+            person=junior,
+            sub_year=2015,
+            membership_id=Membership.AUTO
+            )
+        subscription_activate(sub2)
+        subscription_create_invoiceitems(sub2, month=5)
+        inv = invoice_create_from_items(adult, 2015)
+        payment = Payment(person=adult, amount=100)
+        payment.save()
+        cnote = CreditNote(person=adult, amount=100)
+        cnote.save()
+        
+        adult = get_adult()  
+        self.assertEqual(len(adult.subscription_set.all()), 1)
+        self.assertEqual(len(adult.invoice_set.all()), 1)
+        self.assertEqual(len(adult.invoiceitem_set.all()), 2)
+        self.assertEqual(len(adult.payment_set.all()), 1)
+        self.assertEqual(len(adult.creditnote_set.all()), 1)
+
+        life = get_life()
+        person_merge(adult, life)
+
+        # adult should no longer exist
+        adults = Person.objects.filter(first_name="Adult")
+        self.assertEqual(len(adults), 0)
+
+        # family should be linked to life
+        junior = get_junior()
+        self.assertEqual(junior.linked, life)
+        cadet = get_cadet()
+        self.assertEqual(cadet.linked, life)
+        wife = get_wife()
+        self.assertEqual(wife.linked, life)
+        
+        # life should have the subs, invoices, items, payments and creditnotes
+        life = get_life()
+        self.assertEqual(len(life.subscription_set.all()), 1)
+        self.assertEqual(len(life.invoice_set.all()), 1)
+        self.assertEqual(len(life.invoiceitem_set.all()), 2)
+        self.assertEqual(len(life.payment_set.all()), 1)
+        self.assertEqual(len(life.creditnote_set.all()), 1)
+
     def test_sub_start_and_end(self):
         m_start = bill_month(5)
         m_end = bill_month(4)
@@ -770,3 +823,6 @@ def get_junior():
 
 def get_cadet():
     return Person.objects.all().filter(first_name = "Cadet", last_name = "Child")[0]     
+
+def get_life():
+    return Person.objects.all().filter(first_name = "Life")[0] 

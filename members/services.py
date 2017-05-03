@@ -569,39 +569,46 @@ def person_resign(person):
         person.state = Person.RESIGNED
         person.save()
                     
-def person_link_to_parent(child, parent):
-    ''' 
-    Link child to parent
-    If parent = None, just unlink
-    Delete any unknown parents without children
+
+def person_test_delete(person):
     '''
-    old_parent = child.linked
-    old_address = child.address
-    child.linked = parent
-    child.save()
-    if (
-        old_parent and
-        old_parent.membership == Membership.NON_MEMBER and
-        old_parent.person_set.count() == 0 and
-        old_parent.first_name == 'Unknown'):
-            old_parent.delete()
-    if old_address.person_set.count() == 0:
-        address.delete()
+    Return [] if person can be deleted
+    else return alist of reasons why not
+    We don't test for subs so hon life paid subs can be deleted
+    '''
+    messages = []
+    if person.person_set.count() > 0:
+       messages.append("Person has family records")
+    if person.invoice_set.count() > 0:
+        messages.append("Person has invoice records")
+    if person.payment_set.count() > 0:
+       messages.append("Person has payment records") 
+    if person.creditnote_set.count() > 0:
+        messages.append("Person has credit notes")
+    if person.invoiceitem_set.count() > 0:
+        messages.append("Person has invoice items")
+    return messages
+
+
+def person_can_delete(person):
+    '''
+    True if person can be deleted
+    '''
+    return person_test_delete(person) == []
+
 
 def person_delete(person):
     ''' 
-    Delete a person if they have no family
+    Delete a person if they have no linked records
     Also deletes the address if no one else linked to it
     '''
-    if person.person_set.count() > 0:
-        return "Person has {0} children".format(person.person_set.count())             
-    for inv in person.invoice_set.all():
-        if not inv.delete():
-            return "Invoice {0} cannot be deleted".format(inv.id)
-    if person.address.person_set.count() == 1:
-        person.address.delete()
-    person.delete()
-    return ""  
+    messages = person_test_delete(person)
+    if messages == []:
+        if person.address.person_set.count() == 1:
+            person.address.delete()
+        person.delete()
+    return messages
+
 
 def person_statement(person, year):
     '''
@@ -631,6 +638,62 @@ def person_statement(person, year):
             balance -= entry.amount
         statement.append((entry, balance))
     return statement
+
+
+def person_merge(person_from, person_to):
+    '''
+    Merge two people into one
+    Move all related items from person_from to person_to
+    Then delete person_to and their address record
+    '''
+    person_reassign_records(person_from, person_to)
+    for sub in person_from.subscription_set.all():
+        sub.person_member = person_to
+        sub.save()
+    for invitem in person_from.invoiceitem_set.all():
+        invitem.person = person_to
+        invitem.save()
+    person_delete(person_from)
+
+
+def person_reassign_records(person_from, person_to):
+    '''
+    Reassign all family and finance records to a parent person
+    '''
+    for child in person_from.person_set.all():
+        child.linked = person_to
+        child.address = person_to.address
+        child.save()
+    for invoice in person_from.invoice_set.all():
+        invoice.person = person_to
+        invoice.save()
+    for payment in person_from.payment_set.all():
+        payment.person = person_to
+        payment.save()
+    for cnote in person_from.creditnote_set.all():
+        cnote.person = person_to
+        cnote.save()
+
+
+def person_link(child, parent):
+    ''' 
+    Link child to parent
+    If parent = None, just unlink
+    Delete any unknown parents without children
+    '''
+    person_reassign_records(child, parent)
+    old_parent = child.linked
+    old_address = child.address
+    child.linked = parent
+    child.save()
+    if (
+        old_parent and
+        old_parent.membership == Membership.NON_MEMBER and
+        old_parent.person_set.count() == 0 and
+        old_parent.first_name == 'Unknown'):
+            old_parent.delete()
+    if old_address.person_set.count() == 0:
+        address.delete()
 
 def group_get_or_create(slug):
     '''
