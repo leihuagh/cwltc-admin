@@ -1,29 +1,18 @@
 from datetime import date, datetime
 import pdb
 import django
-from django.test import SimpleTestCase
+from django.test import TestCase, SimpleTestCase
 import factory
 from gc_app.views import unpack_date, unpack_datetime
-from members.models import Settings
+from members.models import Settings, Invoice, InvoiceItem, ItemType, Payment
 
-
-class SettingsFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = Settings
-    id = 1
-    membership_year = 2015
 
 class dates(SimpleTestCase):
+    '''
+    Test date unpacking from GoCardless export csv file
+    Note format is differenbt wjenm run on US server"!
+    '''
     
-    @classmethod
-    def setUpTestData(cls):
-        pdb.set_trace()
-        settings = SettingsFactory.create()
-    
-    def testSettings(self):
-        year = Settings.current()
-        self.assertEqual(year, 2015)
-
     def testDate1(self):
         s = '2016-01-31'
         d = unpack_date(s)

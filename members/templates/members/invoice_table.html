@@ -30,9 +30,9 @@
       <div class="col-md-offset-3 col-md-1">
         <label for="id_lines">Rows</label>
         <select class="form-control " id="id_lines" name="lines">
-          <option value="10" {% if lines == 10 %}selected="selected" {% endif %}>10 rows</option>
-          <option value="20" {% if lines == 20 %}selected="selected" {% endif %}>20 rows</option>
-          <option value="50" {% if lines == 50 %}selected="selected" {% endif %}>50 rows</option>
+          <option value="10" {% if lines == '10' %}selected="selected" {% endif %}>10 rows</option>
+          <option value="20" {% if lines == '20' %}selected="selected" {% endif %}>20 rows</option>
+          <option value="50" {% if lines == '50' %}selected="selected" {% endif %}>50 rows</option>
           <option value="100000" {% if lines == 100000 %}selected="selected" {% endif %}>All rows</option>
         </select>
       </div>

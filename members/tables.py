@@ -98,5 +98,5 @@ class PaymentTable(tables.Table):
         attrs = {'class': 'table table-condensed'} 
 
     amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
-    invoice = tables.LinkColumn('invoice-detail', text ='Invoice', args=[A('pk')], orderable=False)
+    invoice = tables.LinkColumn('invoice-detail', text = lambda r: r.invoice_id, args=[A('invoice_id')], orderable=False)
     edit = tables.LinkColumn('payment-detail', text='Edit', args=[A('id')], orderable=False)

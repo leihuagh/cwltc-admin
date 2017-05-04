@@ -110,7 +110,7 @@ class GCWebhook(View):
                     except:                                      
                         hook.error = "Invoice {} not found".format(bill_id)
                         hook.save()
-                        return HttpResponse(status=403)
+                        continue
 
                     # fake the sandbox webhooks to match the invoice total
                     if gocardless.environment == 'sandbox':

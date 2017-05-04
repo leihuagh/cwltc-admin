@@ -570,18 +570,25 @@ class MembersTestCase(TestCase):
         if fee > 2:
             fee = 2
         invoice_pay_by_gocardless(inv, total, fee, datetime.now())
+        self.assertEqual(Payment.objects.count(), 1)
         payment = Payment.objects.all()[0]
         self.assertEqual(payment.state, Payment.FULLY_MATCHED)  
-        self.assertEqual(payment.membership_year, 2015)  
+        self.assertEqual(payment.membership_year, 2015) 
         
+       
         # check the invoice and items are paid
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.state, Invoice.PAID_IN_FULL)  
         items = inv.invoiceitem_set.filter(paid=True).count()
         self.assertEqual(items, 6)
 
-        # check the active subs are not paid because they are for 2014    
+        # check a second payment call fails
+        with self.assertRaises(Exception) as context:
+            invoice_pay_by_gocardless(inv, total, fee, datetime.now())
+        self.assertTrue("Already paid in full" in context.exception.message)
+        self.assertEqual(Payment.objects.count(), 1)
 
+        # check the active subs are not paid because they are for 2014    
         for person in Person.objects.all():
             if person.sub:
                 self.assertFalse(person.sub.paid, "2014 Sub wrongly marked as paid")

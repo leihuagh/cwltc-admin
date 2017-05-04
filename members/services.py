@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from operator import attrgetter
+from nose.tools import nottest
 from members.models import *
 import pdb
 
@@ -20,6 +21,9 @@ def invoice_pay_by_gocardless(invoice, amount, fee, date):
     '''
     Create a gocardless payment record and pay an invoice
     '''
+    if invoice.state == Invoice.PAID_IN_FULL:
+        raise ServicesError("Already paid in full")
+        return
     payment = Payment(type=Payment.DIRECT_DEBIT,
                         person=invoice.person,
                         amount=amount,
@@ -569,8 +573,8 @@ def person_resign(person):
         person.state = Person.RESIGNED
         person.save()
                     
-
-def person_test_delete(person):
+@nottest
+def person_testfor_delete(person):
     '''
     Return [] if person can be deleted
     else return alist of reasons why not
@@ -594,7 +598,7 @@ def person_can_delete(person):
     '''
     True if person can be deleted
     '''
-    return person_test_delete(person) == []
+    return person_testfor_delete(person) == []
 
 
 def person_delete(person):
@@ -602,7 +606,7 @@ def person_delete(person):
     Delete a person if they have no linked records
     Also deletes the address if no one else linked to it
     '''
-    messages = person_test_delete(person)
+    messages = person_testfor_delete(person)
     if messages == []:
         if person.address.person_set.count() == 1:
             person.address.delete()

@@ -1052,7 +1052,6 @@ class InvoiceTableView(LoginRequiredMixin, PagedFilteredTableView):
     table_class = InvoiceTable
     filter_class = InvoiceFilter
     template_name='members/invoice_table.html'
-   # table_pagination={ "per_page":10 }
 
     def get_queryset(self, **kwargs):
         qs = Invoice.objects.all().select_related('person').select_related('person__membership')
@@ -1063,12 +1062,10 @@ class InvoiceTableView(LoginRequiredMixin, PagedFilteredTableView):
             data['membership_year'] = Settings.current().membership_year
             data['state'] = Invoice.PAID_IN_FULL
             data['lines'] = 20
-        lines = data.get('lines',0)
+        lines = data.get('lines', 0)
         if lines > 0:
             self.table_pagination['per_page'] = lines
         self.filter = self.filter_class(data, qs, request=self.request)
-        #self.filter = self.filter_class(self.request.GET, queryset=qs)
-        #self.filter.form.helper = self.formhelper_class()
         self.total = self.filter.qs.aggregate(total=Sum('total'))['total']
         return self.filter.qs
 
@@ -1076,6 +1073,7 @@ class InvoiceTableView(LoginRequiredMixin, PagedFilteredTableView):
         context = super(InvoiceTableView, self).get_context_data(**kwargs)
         context['title'] = "Invoices"
         context['total'] = self.total if self.total else 0
+        context['lines'] = self.table_pagination['per_page']
         return context
 
     
@@ -1632,20 +1630,19 @@ class PaymentListView(LoginRequiredMixin, PagedFilteredTableView ):
     model = Payment
     table_class = PaymentTable
     filter_class = PaymentFilter
-
     template_name='members/invoice_table.html'
-    table_pagination={ "per_page":10 }
 
     def get_queryset(self, **kwargs):
-        qs = Payment.objects.all().select_related('person').select_related('person__membership')
+        qs = Payment.objects.all().select_related('person').select_related('person__membership').select_related('invoice')
         # set defaults for first time
         data = self.request.GET.copy()
         if len(data) == 0:
             data['membership_year'] = Settings.current().membership_year
-            data['state'] = Invoice.PAID_IN_FULL
+            data['lines'] = 20
+        lines = data.get('lines', 0)
+        if lines > 0:
+            self.table_pagination['per_page'] = lines
         self.filter = self.filter_class(data, qs, request=self.request)
-        #self.filter = self.filter_class(self.request.GET, queryset=qs)
-        #self.filter.form.helper = self.formhelper_class()
         self.total = self.filter.qs.aggregate(total=Sum('amount'))['total']
         return self.filter.qs
 

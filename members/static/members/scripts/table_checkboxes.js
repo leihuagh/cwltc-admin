@@ -8,12 +8,8 @@ $(document).ready(function () {
     //$('#id_table_panel').show();
 });
 
-$(window).load(function () {
-    //document.getElementById('id_table_panel').style.display = 'none';
-   // $('#id_table_panel').hide();
-});
 
-// toggle / untoggle as checkboxes in the list
+// toggle / untoggle all checkboxes in the list
 function toggle(source) {
     var checkboxes = document.getElementsByName('selection');
     var count=0
@@ -25,17 +21,18 @@ function toggle(source) {
 // Count the number of checked rows
 function countChecked() {
     var count = document.querySelectorAll('.rowcheckbox:checked').length;
+    
+    var goDisabled = ((count === 0) | (count > 1000));
+    if (count > 1000) {
+        count = "Too many"
+    };
     document.getElementById('id-count').innerText = count
-    var goDisabled = (count === 0);
     $('#id_action').prop('disabled', goDisabled);
     $('#id_go').prop('disabled', goDisabled);
 }
 
 function doSearch() {
     $('#id_loader').show();
-    //$('#id_table_panel').hide();
-   
-    //document.getElementById('id_table_panel').style.visibility = 'hidden';
     document.getElementById('id_action_form').style.visibility = 'hidden';
     document.getElementById('id_loader').style.display = 'inherit';
     document.getElementById('id_search_form').submit();
