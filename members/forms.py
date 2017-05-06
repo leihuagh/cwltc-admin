@@ -67,9 +67,11 @@ class FilterMemberAjaxForm(Form):
             ]
 
 class PersonForm(ModelForm):
-    ''' Handles creation of a person with new address
-        creation of a linked person with linked address
-        update of a person '''
+    '''
+    Handles creation of a person with new address
+    creation of a linked person with linked address
+    update of a person
+    '''
 
     address1 = forms.CharField(max_length=50)
     address2 = forms.CharField(max_length=50, required=False)
@@ -89,7 +91,6 @@ class PersonForm(ModelForm):
                 'british_tennis',
                 'pays_own_bill',
                 'notes']
-        widgets = {'dob': forms.DateInput(attrs={'placeholder':'DD/MM/YYYY'}),}
 
     def __init__(self, *args, **kwargs):
         self.link = kwargs.pop('link', None)
@@ -103,10 +104,27 @@ class PersonForm(ModelForm):
         instance = getattr(self, 'instance', None)
         self.updating = instance and instance.id
 
+        no_complete = [
+                'first_name',
+                'last_name',
+                'mobile_phone',
+                'british_tennis',
+                'notes',
+                'address1',
+                'address2',
+                'post_code',
+                'home_phone'
+                ]
+        for field in no_complete:
+            self.fields[field].widget.attrs = {'autocomplete':"off"}
+
         self.fields['dob'].label = 'Date of birth'
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
+        self.fields['dob'].widget.attrs = {'autocomplete':"off", 'placeholder':'DD/MM/YYYY'}
 
+        self.fields['email'].attrs = {'autocomplete':"off"}
+        
         if self.link:
             self.fields['email'].required = False  
              
@@ -128,9 +146,9 @@ class PersonForm(ModelForm):
                 'address2',
                 'town',
                 'post_code', 
-                'home_phone', 
             )
-        contact_set = Fieldset('Contact details',        
+        contact_set = Fieldset('Contact details', 
+                'home_phone',                          
                 'mobile_phone',
                 'email'
             )

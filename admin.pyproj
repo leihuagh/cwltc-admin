@@ -514,6 +514,7 @@
     <Content Include="pos\templates\pos\member_menu.html" />
     <Content Include="pos\templates\pos\transaction_detail.html" />
     <Content Include="pos\templates\pos\_transactions.html" />
+    <Content Include="public\templates\index.html" />
     <Content Include="static\js\my_typeahead.js" />
     <Content Include="static\js\person_typeahead.js" />
     <Content Include="static\js\typeahead.bundle.js" />
@@ -604,6 +605,13 @@
     </Compile>
     <Compile Include="pos\views.py" />
     <Compile Include="pos\__init__.py" />
+    <Compile Include="public\admin.py" />
+    <Compile Include="public\apps.py" />
+    <Compile Include="public\migrations\__init__.py" />
+    <Compile Include="public\models.py" />
+    <Compile Include="public\tests.py" />
+    <Compile Include="public\views.py" />
+    <Compile Include="public\__init__.py" />
     <Compile Include="setup.py" />
     <Compile Include="wsgi.py" />
     <Compile Include="wsgi\wsgi.py" />
@@ -683,6 +691,9 @@
     <Folder Include="pos\static\pos\js\" />
     <Folder Include="pos\templates\" />
     <Folder Include="pos\templates\pos\" />
+    <Folder Include="public\" />
+    <Folder Include="public\migrations\" />
+    <Folder Include="public\templates\" />
     <Folder Include="static" />
     <Folder Include="static\css\" />
     <Folder Include="static\js\" />

@@ -6,14 +6,15 @@ from datetime import datetime
 from django.conf import settings
 from django.conf.urls import url, include
 from django.views.generic import TemplateView
-from members.forms import BootstrapAuthenticationForm
-from members.views import *
-from gc_app.views import *
-from members.viewsets import *
-from django_filters.views import FilterView
-
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django_filters.views import FilterView
+
+from members.forms import BootstrapAuthenticationForm
+from members.views import *
+from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
+from gc_app.views import *
+
 admin.autodiscover()
 from members.tables import *
 from django_mail_viewer import urls as django_mail_viewer_urls
