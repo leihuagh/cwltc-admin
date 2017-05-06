@@ -94,7 +94,7 @@ def send_template_mail(request, person, text,
         if not sub:
             sub = person.active_sub(year-1)
         if sub:
-            if sub.membership.is_adult:
+            if not sub.membership.is_adult:
                 recipient = person.linked
                 child = person
     to = recipient.email
