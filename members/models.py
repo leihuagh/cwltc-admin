@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.dispatch import receiver 
-from sets import Set
+#from sets import Set
 from markdownx.models import MarkdownxField
 
 #import pdb; pdb.set_trace()
@@ -186,6 +186,13 @@ class Membership(models.Model):
         (COACH, "Coach")
         ]
 
+    JOIN_CHOICES =  [
+        (NON_MEMBER, 'No membership (parent)'),
+        (FULL, 'Full membership'),
+        (OFF_PEAK, "Off peak (Mon - Fri to 6pm)"),
+        (PARENT, 'Parent - to play with children'),
+        (UNDER_26, 'Under 26'),
+        ]
 
     description = models.CharField(max_length=20, verbose_name='Membership')
     is_adult = models.BooleanField(default=True)
@@ -200,7 +207,65 @@ class Membership(models.Model):
         mem = cls(id = id, description = description)
         mem.save()
         return mem
-   
+
+
+class AdultApplication(models.Model):
+    '''
+    Additional data captured during application
+    '''
+    BEGINNER = 0
+    IMPROVER = 1
+    RUSTY = 2
+    INTERMEDIATE = 3
+    ADVANCED = 4
+
+    ABILITIES = [
+        (BEGINNER, 'Beginner'),
+        (IMPROVER, 'Improver'),
+        (RUSTY, 'Rusty - Returning to tennis'),
+        (INTERMEDIATE, 'Intermediate - average club player'),
+        (ADVANCED, 'Advanced  - club team player'),
+        ]
+
+    MEMBER = 0
+    SCHOOL = 1
+    WEB = 2
+    LTA = 3
+    FLYER = 4
+    AD = 5
+    OTHER = 6
+
+    SOURCES = [
+        (MEMBER, 'Friend, relative or member'),
+        (SCHOOL, 'School'),
+        (WEB, 'Web search'),
+        (LTA, 'LTA search or promotion'),
+        (FLYER, 'Leaflet'),
+        (AD, 'Advertisement'),
+        (OTHER, 'Other'),
+        ]
+
+    ability = models.SmallIntegerField('Judge your tennnis ability',
+                                       choices = ABILITIES, default = BEGINNER)
+    singles = models.BooleanField('Singles', default=False)
+    doubles = models.BooleanField('Doubles', default=False)
+    coaching1 = models.BooleanField('Individual coaching', default=False)
+    coaching2 = models.BooleanField('Group coaching', default=False)
+    daytime = models.BooleanField('Daytime tennis', default=False)
+    family = models.BooleanField('Family tennis', default=False)
+    social = models.BooleanField('Social tennis', default=False)
+    competitions = models.BooleanField('Club competitions', default=False)
+    teams = models.BooleanField('Team tennis', default=False)
+
+    club = models.CharField('Name of previous tennis club (if any)',
+                            max_length=30)
+    source = models.SmallIntegerField('How did you hear about us?',
+                                      choices = SOURCES, default = WEB,)
+    membership = models.SmallIntegerField('Membership category',
+                                          choices = Membership.JOIN_CHOICES, default = Membership.FULL)
+    rules = models.BooleanField('I agree to abide by the club rules', default=False)
+    person = models.ForeignKey(Person)
+      
 class Fees(models.Model):
     membership = models.ForeignKey('Membership')
     sub_year = models.SmallIntegerField()
@@ -304,7 +369,7 @@ class Invoice(models.Model):
         '''
         if self.state == Invoice.PAID_IN_FULL:
             return Invoice.STATES[self.state][1]
-        elif self.gocardless_bill_id <> "":
+        elif self.gocardless_bill_id != "":
             return Invoice.STATES[Invoice.PENDING_GC][1]
         else:
             return Invoice.STATES[self.state][1]
@@ -569,7 +634,7 @@ class Subscription(models.Model):
         desc = self.membership.description
         if self.resigned:
             # post 2017 data has old membership in parenthesis"
-            if desc <> "Resigned":
+            if desc != "Resigned":
                 desc = "Resigned ({})".format(desc)
         return desc
 

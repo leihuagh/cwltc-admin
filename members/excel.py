@@ -5,7 +5,7 @@ from django.conf import settings
 from datetime import date, datetime
 from xlrd import open_workbook, xldate_as_tuple
 from xlwt import Workbook, Style, easyxf
-from numbers import Number
+from numbers import Numberm
 
 from members.models import (Membership, Person, Address, Fees, Subscription, ItemType,
                             Invoice, InvoiceItem, Payment)
@@ -45,7 +45,7 @@ def import_items(sheet, save_data):
         count=0
         for row in range(1, sheet.nrows):
             try:
-                if sheet.cell_value(row, col_id) <> u"":
+                if sheet.cell_value(row, col_id) != u"":
                     person_id = int(sheet.cell_value(row, col_id))                 
                     amount = sheet.cell_value(row, col_amount)
                     item_id = int(sheet.cell_value(row, col_item_id))
@@ -67,8 +67,8 @@ def import_items(sheet, save_data):
                         if not isinstance(amount, Number):
                             raise TypeError()
                         item = ItemType.objects.get(id=item_id)
-            except Exception, e:
-                errors.append(repr(e) + 'Error on row {}' .format(row + 1))
+            except (ValueError, TypeError):
+                errors.append('Error on row {}' .format(row + 1))
                 continue  
         return [count, errors]
     else:
@@ -274,8 +274,8 @@ def import_members_3(book, size):
                         count += 1
                         if count == size:
                             break
-        except Exception, e:
-            errors.append(repr(e) + 'Row {} for {} of {}'.format(row, child,parent))
+        except Exception:
+            errors.append('Row {} for {} of {}'.format(row, child,parent))
             continue
     return [count, errors]
 
@@ -310,7 +310,7 @@ def export_sheet(book, model_name):
     # but ignore creation_date or update_date
     columns = []
     for field in my_model._meta.fields:
-        if field.name <> 'creation_date' and field.name <> 'update_date':
+        if field.name !='creation_date' and field.name != 'update_date':
             columns.append(field.attname)
     
     # write a header row

@@ -1,6 +1,8 @@
 from django.conf.urls import url, include
 from pos.views import *
 
+# POS App URLs
+
 urlpatterns = [
     url(r'^$', StartView.as_view(), name='pos-start'),
     url(r'layout/$', PosView.as_view(), name='pos-view'),

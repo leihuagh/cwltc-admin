@@ -28,13 +28,15 @@
     <table style="width:100%">
         <tr>
             <td width="120"><img src="{% static "members/content/CWLTC logo small.png" %}"/></td>
-            <td><h2>Coombe Wood Lawn Tennis Club</h2></td>
-            <td>,,,</td>
+            <td><h2 class="display-2">Coombe Wood Lawn Tennis Club</h2><h4><em>Kingston's premier tennis club</em></h4></td>
+            <td></td>
         </tr>
     </table>
-
+{% include "members/_messages.html" %}
 </div>
-    {% include "members/_messages.html" %}
+{% block image %}
+{% endblock %}
+    
 <div class="container">
     {% block content %}
     {% endblock %}

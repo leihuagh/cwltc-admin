@@ -1,0 +1,29 @@
+{% extends "public/layout.html" %}
+{% load staticfiles %}
+{% block image %}
+<img class="img-responsive" src="{% static "members/content/DronePicture.jpg" alt="Coombe wood courts" %}"/>
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <h3>Members login</h3>
+        <p>For registered club members only</p><br /><br />
+        <a class="btn btn-success" href="{% url 'public-login' %}">Login</a>
+    </div>
+    <div class="col-md-4">
+        <h3>Registration</h3>
+        <p>For existing club members who want to use our online facilities</p><br />
+        <a class="btn btn-success" href="{% url 'public-register' %}">Register</a>
+    </div>
+    <div class="col-md-4">
+        <h3>Apply to join</h3>
+        <p>For prospective members</p><br />
+        <a class="btn btn-success" href="{% url 'public-apply-junior' %}">Junior application form</a>
+        <p></p>
+        <a class="btn btn-success" href="{% url 'public-apply-adult' %}">Adult  application form </a>
+    </div>
+
+
+</div>
+
+{% endblock %}

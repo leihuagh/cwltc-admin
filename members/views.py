@@ -18,7 +18,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.core.mail import send_mail
 from braces.views import LoginRequiredMixin, StaffuserRequiredMixin
-from gc_app.views import gc_create_bill_url
+
 import xlrd
 import json
 from report_builder.models import Report
@@ -175,6 +175,11 @@ class PersonActionMixin(object):
     def form_valid(self, form):
         messages.info(self.request, self.success_msg)
         return super(PersonActionMixin, self).form_valid(form)
+
+
+    def get_success_url(self):
+        return reverse('home')
+
 
 class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     model = Person
@@ -1936,7 +1941,7 @@ class EmailView(LoginRequiredMixin, FormView):
             messages.info(self.request, result)
             return redirect('person-detail', pk=self.person.id)
 
-        elif group_id <> '':
+        elif group_id != '':
             group = Group.objects.get(pk=group_id)
             result = send_multiple_mails(self.request, group.person_set.all(),
                                          text, from_email, None, None, subject, mail_types)
@@ -2025,8 +2030,8 @@ class ImportExcelView(LoginRequiredMixin, FormView):
             # When we save the new one, any old file will be overwritten
             newbook = ExcelBook(file = input_excel)
             newbook.save() 
-        except Exception, e:       
-            messages.error(self.request,"Error reading Excel file \n" + repr(e))
+        except Exception:       
+            messages.error(self.request,"Error reading Excel file \n")
             return redirect(reverse('import'))
 
         

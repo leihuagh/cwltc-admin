@@ -85,7 +85,7 @@ def invoice_create_batch(exclude_slug='', size=10000):
     done = 0
     if size > 0 :
         for person in people:
-            if exclude_slug <> '':
+            if exclude_slug != '':
                 include = not person.groups.filter(slug=exclude_slug).exists()
             else:
                 include = True
@@ -745,7 +745,7 @@ def consolidate(year):
                 balance -= entry.amount
             elif classname == "CreditNote":
                 balance -= entry.amount
-        if balance <> 0:
+        if balance != 0:
             if balance > 0:
                 desc = 'Unpaid amount carried forward from ' + str(year)
                 type = ItemType.UNPAID

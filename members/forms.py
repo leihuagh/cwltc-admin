@@ -1,7 +1,7 @@
 from os import path
 from datetime import date, datetime, timedelta, time
 from django import forms
-from django.forms import Form, ModelForm, ModelMultipleChoiceField, HiddenInput
+from django.forms import Form, ModelForm, ModelMultipleChoiceField, HiddenInput, inlineformset_factory
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
@@ -16,7 +16,7 @@ from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, F
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
 from markdownx.fields import MarkdownxFormField
 from .widgets import MonthYearWidget
-from .models import (Person, Address, Subscription, Membership, Invoice, InvoiceItem,
+from .models import (Person, Address, AdultApplication, Subscription, Membership, Invoice, InvoiceItem,
                      Payment, CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings)
 from .excel import *
 from .filters import year_choices
@@ -37,10 +37,6 @@ def DefaultHelper(form):
     helper.field_class = 'col-lg-6'
     helper.form_method = 'post'
     return helper
-
-class HorizontalRadioRenderer(forms.RadioSelect.renderer):
-  def render(self):
-    return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
 
 class FilterMemberForm(Form):
     
@@ -73,8 +69,8 @@ class PersonForm(ModelForm):
     update of a person
     '''
 
-    address1 = forms.CharField(max_length=50)
-    address2 = forms.CharField(max_length=50, required=False)
+    address1 = forms.CharField(max_length=50, label='Address 1')
+    address2 = forms.CharField(max_length=50, label='Address 2', required=False)
     town = forms.CharField(max_length=30)
     post_code = forms.CharField(max_length=15)
     home_phone = forms.CharField(max_length=20, required=False)
@@ -94,6 +90,7 @@ class PersonForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.link = kwargs.pop('link', None)
+        self.public = kwargs.pop('public', None)
         super(PersonForm, self).__init__(*args, **kwargs)
         if self.link:
             self.parent = Person.objects.get(pk=self.link)
@@ -123,35 +120,32 @@ class PersonForm(ModelForm):
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
         self.fields['dob'].widget.attrs = {'autocomplete':"off", 'placeholder':'DD/MM/YYYY'}
 
-        self.fields['email'].attrs = {'autocomplete':"off"}
+        self.fields['email'].widget.attrs = {'autocomplete':"off"}
         
         if self.link:
             self.fields['email'].required = False  
              
         self.helper = FormHelper(self)
         self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
+        self.helper.label_class = 'col-sm-4 '
+        self.helper.field_class = 'col-sm-8 '
         self.helper.form_method = 'post'
         self.helper.form_show_errors = True
-        name_set = Div(
-                'first_name',
-                'last_name', 
-                'gender',
-                'dob',
-                'state',
-            )
-        address_set = Fieldset('Address',
-                'address1',
-                'address2',
-                'town',
-                'post_code', 
-            )
-        contact_set = Fieldset('Contact details', 
-                'home_phone',                          
-                'mobile_phone',
-                'email'
-            )
+        
+        name_set = self.make_panel('Adult',
+                                   'first_name',
+                                   'last_name', 
+                                   'gender',
+                                   'dob',
+                                   'mobile_phone',
+                                   'email'
+                                   )         
+        address_set = self.make_panel('address1',
+                    'address2',
+                    'town',
+                    'post_code',
+                    'home_phone'
+                    )
         other_set = Fieldset('Other information',
                 'notes',
                 'british_tennis',
@@ -163,12 +157,21 @@ class PersonForm(ModelForm):
 
         if not self.link and not self.updating:
             self.helper.layout.append(address_set)
-        self.helper.layout.append(contact_set)
-        self.helper.layout.append(other_set)
-        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-        if not self.updating:
-            self.helper.add_input(SubmitButton('submit_sub', 'Save and add sub', css_class='btn-primary'))
-        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        if not self.public:
+            self.helper.layout.append(other_set)
+            self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+            if not self.updating:
+                self.helper.add_input(SubmitButton('submit_sub', 'Save and add sub', css_class='btn-primary'))
+            self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+
+    def make_panel(self, heading, *args):
+        return(
+            Div(
+                Div(HTML(heading), css_class='panel panel-heading'),
+                Div(*args, css_class='panel-body'),
+                css_class='panel panel-default'
+                )
+            )
 
     def clean(self):
         ''' remove address errors if linked person or update '''
@@ -861,7 +864,7 @@ class EmailForm(Form):
         self.fields['selected'].widget = HiddenInput()
         if to:
             my_fields = Div('from_email', 'to')
-        elif group <> '-1':
+        elif group != '-1':
             my_fields = Div('from_email', 'group')
         elif selection:
             my_fields = Div('from_email')
@@ -1097,16 +1100,4 @@ class SelectSheetsForm(Form):
             for sheet_name in book.sheet_names():
                 self.fields[sheet_name] = forms.BooleanField(required = False)
 
-class ContactForm(Form):
-    message = forms.CharField(max_length=2000, required=True, widget=forms.Textarea)
-    email = forms.EmailField(required=True)
 
-    def __init__(self, *args, **kwargs):
-        resigned = kwargs.pop('resigned', False)
-        super(ContactForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_method = 'post'
-        postText = 'submit'
-        if resigned:
-            postText = 'resign'
-        self.helper.add_input(SubmitButton(postText, 'Send', css_class='btn-primary'))

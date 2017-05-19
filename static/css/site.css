@@ -2,6 +2,10 @@
     font-family: 'Source Sans Pro', sans-serif;
 }
 
+/* padding after navbar */
+body {
+    padding-top: 50px;
+}
 
 span.twitter-typeahead .tt-menu,
 span.twitter-typeahead .tt-dropdown-menu {

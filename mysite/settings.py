@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'django_tables2',
     'coverage',
     'pos',
+    'public',
     'django_nose'
 )
 

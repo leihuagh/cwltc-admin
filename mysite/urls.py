@@ -14,7 +14,7 @@ from members.forms import BootstrapAuthenticationForm
 from members.views import *
 from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
 from gc_app.views import *
-
+from public.views import *
 admin.autodiscover()
 from members.tables import *
 from django_mail_viewer import urls as django_mail_viewer_urls
@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^report_builder/', include('report_builder.urls')),
     url(r'^pos/', include('pos.urls')),
     url(r'^gocardless/', include('gc_app.urls')),
+    url(r'^public/', include('public.urls')),
 
     #url(r'^markdownx/', include('markdownx.urls')),
     url(r'ajax/people/',
@@ -455,7 +456,7 @@ urlpatterns = [
         name='logout'),
     url(r'^password_change/$', auth_views.password_change,
         {'template_name': 'auth/password_change_form.html',
-            'post_change_redirect': '/registartion/password_change/done/'}, 
+            'post_change_redirect': '/password_change/done/'}, 
         name='password_change'),
     url(r'^password_change/done/$', auth_views.password_change_done,
         {'template_name': 'auth/password_change_done.html'}, 

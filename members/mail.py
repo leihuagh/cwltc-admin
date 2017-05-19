@@ -34,7 +34,7 @@ def do_mail(request, invoice, option):
         
     html_body = render_to_string("members/invoice_email.html", context)
     target = invoice.person.email if option == 'send' else "is@ktconsultants.co.uk"
-    if target <> '':
+    if target != '':
         text_plain = strip_tags(html_body)
         msg = EmailMultiAlternatives(subject=subject,
                                         from_email="subs@coombewoodltc.co.uk",
@@ -146,7 +146,7 @@ def send_template_mail(request, person, text,
                                 subject=subject,
                                 html_body=html_body)
                 return 'sent'
-            except Exception, e:       
+            except Exception:     
                 return 'bad email address'
         return False
     else:
