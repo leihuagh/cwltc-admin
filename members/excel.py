@@ -5,7 +5,7 @@ from django.conf import settings
 from datetime import date, datetime
 from xlrd import open_workbook, xldate_as_tuple
 from xlwt import Workbook, Style, easyxf
-from numbers import Numberm
+from numbers import Number
 
 from members.models import (Membership, Person, Address, Fees, Subscription, ItemType,
                             Invoice, InvoiceItem, Payment)
