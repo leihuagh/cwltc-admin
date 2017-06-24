@@ -54,7 +54,6 @@ INSTALLED_APPS = (
     'authentication',
     'django_nose',
     'schedule',
-    'djangobower',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -176,21 +175,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'djangobower.finders.BowerFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder'
 )
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]
-
-BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, "components")
-
-BOWER_INSTALLED_APPS = (
-    'jquery',
-    'jquery-ui',
-    'bootstrap'
-)
-
 
 MEDIA_ROOT = os.environ.get('OPENSHIFT_DATA_DIR', '')
 
