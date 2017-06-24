@@ -746,6 +746,7 @@
     <Folder Include="templates\" />
     <Folder Include="wsgi" />
     <Folder Include="wsgi\static\" />
+    <Folder Include="wsgi\static\media\" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env36\">
