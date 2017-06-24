@@ -6,52 +6,51 @@
 
 {% endblock %}
 {% block navbar %}
-  <div class="container">
-    <div class="navbar navbar-custom" role="navigation">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/">Members site</a>
-        </div>
-        {% if user.is_authenticated %}
-          <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                    aria-expanded="false">Menu 1</a>
-                <ul class="dropdown-menu col-xs-3">
-                  <li><a href="{% url 'members-list' %}">Members</a></li>
-                </ul>
-              </li>
-            </ul>
-            <form id="logoutForm" action="/logout" method="post" class="navbar-right">
-              {% csrf_token %}
-              <ul class="nav navbar-nav navbar-right">
-                <li><a href="javascript:document.getElementById('logoutForm').submit()">Log out</a></li>
-              </ul>
-            </form>
-            <ul class="nav navbar-nav navbar-right">
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                  aria-expanded="false">Account</a>
-                <ul class="dropdown-menu">
-                  <li><a href="/password_change">Change password</a></li>
-                </ul>
-              </li>
-            </ul> 
-            <ul class="nav navbar-text navbar-right">
-              <li><span class="navbar-nav">User: {{ user.username }}</span></li>
-            </ul>
-          </div>
-        {% endif %}    
+  <div class="navbar navbar-fixed-top navbar-custom" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">CWLTC Members</a>
       </div>
+      {% if user.is_authenticated %}
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                  aria-expanded="false">Menu 1</a>
+              <ul class="dropdown-menu col-xs-3">
+                <li><a href="{% url 'members-list' %}">Members</a></li>
+              </ul>
+            </li>
+          </ul>
+          <form id="logoutForm" action="/logout" method="post" class="navbar-right">
+            {% csrf_token %}
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="javascript:document.getElementById('logoutForm').submit()">Log out</a></li>
+            </ul>
+          </form>
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                aria-expanded="false">Account</a>
+              <ul class="dropdown-menu">
+                <li><a href="/password_change">Change password</a></li>
+              </ul>
+            </li>
+          </ul> 
+          <ul class="nav navbar-text navbar-right">
+            <li><span class="navbar-nav">User: {{ user.username }}</span></li>
+          </ul>
+        </div>
+      {% endif %}    
     </div>
   </div>
+
 {% endblock %}
 
 {% block content %}
