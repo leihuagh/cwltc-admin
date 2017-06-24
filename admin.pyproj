@@ -48,7 +48,6 @@
     <Content Include="members\static\members\content\flatly_bootstrap.css" />
     <Content Include="members\static\members\content\bootstrap.min.css" />
     <Content Include="members\static\members\content\CWLTC logo small.png" />
-    <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_diagonals-thick_8_333333_40x40.png" />
     <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_flat_65_ffffff_40x100.png" />
     <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_glass_40_111111_1x400.png" />
     <Content Include="members\static\members\content\jquery-ui\black-tie\images\ui-bg_glass_55_1c1c1c_1x400.png" />
