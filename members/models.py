@@ -3,9 +3,9 @@ import os
 from django.db import models
 from django.db.models import Q
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.dispatch import receiver 
-#from sets import Set
 from markdownx.models import MarkdownxField
 
 #import pdb; pdb.set_trace()
@@ -25,20 +25,6 @@ class Address(models.Model):
 
     def get_absolute_url(self):
         return reverse("person-detail", kwargs={"pk": self.pk})
-
-class ParentsManagerOld(models.Manager):
-    def get_queryset(self):
-        kids = Person.objects.filter(
-            Q(membership_id = Membership.CADET) |
-            Q(membership_id = Membership.JUNIOR)
-            )
-        parent_set = Set([])
-        for kid in kids:
-            if kid.linked:
-                if not kid.linked_id in parent_set:
-                    parent_set.add(kid.linked_id)
-        parents = Person.objects.filter(id__in=parent_set)
-        return parents
 
 class ParentsManager(models.Manager):
     def get_queryset(self):
@@ -81,7 +67,10 @@ class Person(models.Model):
     notes = models.TextField(blank=True)  
     pays_own_bill = models.BooleanField(default = False)
     state = models.SmallIntegerField(choices=STATES, default=ACTIVE)
-    date_joined = models.DateField(null=True, blank=True)  
+    date_joined = models.DateField(null=True, blank=True)
+    hex_key = models.CharField(max_length=50, null=True, blank=True)
+    allow_phone = models.BooleanField(default = True)
+    allow_email = models.BooleanField(default = True)
     #
     membership = models.ForeignKey('Membership', blank=True, null=True)
     linked = models.ForeignKey('self', blank=True, null=True)
@@ -89,6 +78,7 @@ class Person(models.Model):
     groups = models.ManyToManyField(Group)
     unsubscribed = models.ManyToManyField('MailType')
     sub = models.ForeignKey('Subscription', blank=True, null=True)
+    auth = models.OneToOneField(User, related_name='person', blank=False, null=True, on_delete=models.SET_NULL)
     # -- Navigation --
     # person_set
     # invoice_set

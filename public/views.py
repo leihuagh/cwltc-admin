@@ -3,14 +3,16 @@ from django.views.generic import DetailView, TemplateView, CreateView
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.views.generic.edit import FormView, ProcessFormView
 from django.forms import Form, inlineformset_factory
+
 from members.models import Group, Invoice, Person, MailType, AdultApplication
 from members import mail
 from members.services import group_get_or_create
 from members.forms import JuniorForm, PersonForm
 from gc_app.views import gc_create_bill_url
-from .forms import ContactForm, AdultApplicationFormHelper
+from .forms import ContactForm, AdultApplicationFormHelper, RegisterForm, RegisterTokenForm
 
 # ================= Public Views accessed through a token
 
@@ -137,14 +139,18 @@ class ContactView(FormView):
     def form_invalid(self, form):
         return super(ContactView, self).form_invalid(form)  
 
+
 class ResignedView(TemplateView):
     template_name = 'public/resigned.html'
+
 
 class ThankyouView(TemplateView):
     template_name = 'public/thankyou.html'
 
+
 class PublicHomeView(TemplateView):
     template_name = 'public/start.html'
+
 
 class ApplyJuniorView(FormView):
     model = Person
@@ -165,7 +171,6 @@ class ApplyJuniorView(FormView):
 
     def get_success_url(self):
         return reverse('sub-create', kwargs={'person_id': self.form.junior.id})
-
 
 
 class ApplyAdultView(CreateView):
@@ -243,10 +248,50 @@ class ApplyAdultView(CreateView):
         apply_form.save()
         return HttpResponseRedirect(self.get_success_url())
 
+
 class RegisterView(FormView):
-    template_name = 'public/start.html'
-    pass
+    '''
+    Capture details of an existing member so they
+    can register for the system
+    '''
+    template_name = 'public/crispy_form.html'
+    form_class = RegisterForm
+
+    def form_valid(self, form):
+        person = form.cleaned_data['person']
+        if person.auth_id:
+            user = User.objects.filter(pk=person.auth_id)
+            if len(user) == 1:
+                messages.error(self.request, 'You area already registered wwth username {}'.format(user[0].username))
+                return redirect('public-login')
+        signer = Signer()
+        token = signer.sign(person.id)
+        return redirect('public-register2', token=token)
+   
+
+class RegisterTokenView(FormView):
+    '''
+    Register a member identified in a token
+    Creates a link from Person to User in auth system
+    '''
+    template_name = 'public/crispy_form.html'
+    form_class = RegisterTokenForm
+
+    def form_valid(self, form):
+        username = form.cleaned_data['username']
+        password  = form.cleaned_data['password']
+        signer = Signer()
+        person_id = signer.unsign(self.kwargs['token'])
+        try:
+            person = Person.objects.get(pk=person_id)
+            person.auth = User.objects.create_user(username, person.email, password,
+                                                   first_name=person.first_name,
+                                                   last_name=person.last_name)
+            person.save()
+        except DoesNotExist:
+            messages.error('Invalid token')
+        return redirect('public-home')
 
 class LoginView(FormView):
     template_name = 'public/start.html'
-    pass
+

@@ -10,7 +10,7 @@
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{5F0BE9CA-D677-4A4D-8806-6076C0FAAD37};{349c5851-65df-11da-9384-00065b846f21};{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
-    <LaunchProvider>Web launcher</LaunchProvider>
+    <LaunchProvider>Django launcher</LaunchProvider>
     <InterpreterId>MSBuild|{049ce763-3eda-4fae-ad70-4d48d505ad6b}|$(MSBuildProjectFullPath)</InterpreterId>
     <UseIISExpress>true</UseIISExpress>
     <DjangoSettingsModule>mysite.settings</DjangoSettingsModule>
@@ -24,6 +24,20 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="authentication\templates\authentication\form_field.html" />
+    <Content Include="authentication\templates\authentication\logged_out.html" />
+    <Content Include="authentication\templates\authentication\login.html" />
+    <Content Include="authentication\templates\authentication\password_change_done.html" />
+    <Content Include="authentication\templates\authentication\password_change_form.html" />
+    <Content Include="authentication\templates\authentication\password_reset_complete.html" />
+    <Content Include="authentication\templates\authentication\password_reset_confirm.html" />
+    <Content Include="authentication\templates\authentication\password_reset_done.html" />
+    <Content Include="authentication\templates\authentication\password_reset_form.html" />
+    <Content Include="club\static\club\css\club.css" />
+    <Content Include="club\templates\club\club_base.html" />
+    <Content Include="club\templates\club\home.html" />
+    <Content Include="club\templates\club\layout.html" />
+    <Content Include="club\templates\club\search.html" />
     <Content Include="gc_app\templates\gc_app\success.html" />
     <Content Include="gc_app\templates\gc_app\webhook_detail.html" />
     <Content Include="gc_app\templates\gc_app\webhook_list.html" />
@@ -426,15 +440,6 @@
     <Content Include="members\static\members\scripts\respond.min.js" />
     <Content Include="members\static\members\scripts\table_checkboxes.js" />
     <Content Include="members\static\members\scripts\_references.js" />
-    <Content Include="members\templates\auth\form_field.html" />
-    <Content Include="members\templates\auth\logged_out.html" />
-    <Content Include="members\templates\auth\login.html" />
-    <Content Include="members\templates\auth\password_change_done.html" />
-    <Content Include="members\templates\auth\password_change_form.html" />
-    <Content Include="members\templates\auth\password_reset_complete.html" />
-    <Content Include="members\templates\auth\password_reset_confirm.html" />
-    <Content Include="members\templates\auth\password_reset_done.html" />
-    <Content Include="members\templates\auth\password_reset_form.html" />
     <Content Include="members\templates\members\about.html" />
     <Content Include="members\templates\members\address_form.html" />
     <Content Include="members\templates\members\bee.html" />
@@ -464,6 +469,7 @@
     <Content Include="members\templates\members\invoice_table.html" />
     <Content Include="members\templates\members\junior_form.html" />
     <Content Include="members\templates\members\junior_list.html" />
+    <Content Include="members\templates\members\layout1.html" />
     <Content Include="members\templates\members\layout.html" />
     <Content Include="members\templates\members\login.html" />
     <Content Include="members\templates\members\loginpartial.html" />
@@ -512,11 +518,15 @@
     <Content Include="pos\templates\pos\_transactions.html" />
     <Content Include="public\templates\public\adult_application.html" />
     <Content Include="public\templates\public\contact.html" />
+    <Content Include="public\templates\public\crispy_form.html" />
     <Content Include="public\templates\public\start.html" />
     <Content Include="public\templates\public\invoice_public.html" />
     <Content Include="public\templates\public\layout.html" />
     <Content Include="public\templates\public\mailtype_done.html" />
     <Content Include="public\templates\public\mailtype_manage.html" />
+    <Content Include="templates\_logo_header.html" />
+    <Content Include="static\images\CWLTC logo small.png" />
+    <Content Include="static\images\DronePicture.JPG" />
     <Content Include="static\js\person_typeahead.js" />
     <Content Include="static\js\typeahead.bundle.js" />
     <Content Include="pos\templates\pos\base.html" />
@@ -528,8 +538,22 @@
     <Content Include="pos\templates\pos\lineitems.html" />
     <Content Include="requirements.txt" />
     <Content Include="static\css\site.css" />
+    <Content Include="templates\base.html" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="authentication\apps.py" />
+    <Compile Include="authentication\migrations\__init__.py" />
+    <Compile Include="authentication\__init__.py" />
+    <Compile Include="club\admin.py" />
+    <Compile Include="club\apps.py" />
+    <Compile Include="club\migrations\__init__.py" />
+    <Compile Include="club\models.py" />
+    <Compile Include="club\tests.py" />
+    <Compile Include="club\urls.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="club\views.py" />
+    <Compile Include="club\__init__.py" />
     <Compile Include="gc_app\forms.py">
       <SubType>Code</SubType>
     </Compile>
@@ -564,6 +588,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="members\templatetags\wysiwyg.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="members\validators.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="members\viewsets.py">
@@ -624,6 +651,17 @@
     <Compile Include="wsgi\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="authentication\" />
+    <Folder Include="authentication\migrations\" />
+    <Folder Include="authentication\templates\" />
+    <Folder Include="authentication\templates\authentication\" />
+    <Folder Include="club\" />
+    <Folder Include="club\migrations\" />
+    <Folder Include="club\static\" />
+    <Folder Include="club\static\club\" />
+    <Folder Include="club\static\club\css\" />
+    <Folder Include="club\templates\" />
+    <Folder Include="club\templates\club\" />
     <Folder Include="gc_app\" />
     <Folder Include="gc_app\templates\" />
     <Folder Include="gc_app\templates\gc_app\" />
@@ -686,7 +724,6 @@
     <Folder Include="members\static\members\scripts" />
     <Folder Include="members\templates\" />
     <Folder Include="members\templates\members" />
-    <Folder Include="members\templates\auth\" />
     <Folder Include="members\templatetags" />
     <Folder Include="mysite" />
     <Folder Include="pos\" />
@@ -699,11 +736,16 @@
     <Folder Include="pos\templates\pos\" />
     <Folder Include="public\" />
     <Folder Include="public\migrations\" />
+    <Folder Include="public\static\" />
+    <Folder Include="public\static\public\" />
     <Folder Include="public\templates\" />
     <Folder Include="public\templates\public\" />
     <Folder Include="static" />
     <Folder Include="static\css\" />
     <Folder Include="static\js\" />
+    <Folder Include="static\images\" />
+    <Folder Include="templates\" />
+    <Folder Include="templates\" />
     <Folder Include="wsgi" />
   </ItemGroup>
   <ItemGroup>

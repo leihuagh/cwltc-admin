@@ -19,6 +19,7 @@ admin.autodiscover()
 from members.tables import *
 from django_mail_viewer import urls as django_mail_viewer_urls
 from rest_framework import routers
+
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'groups', GroupViewSet)
@@ -29,6 +30,7 @@ urlpatterns = [
         HomeView.as_view(),
         name='home'
     ),
+    url(r'^schedule/', include('schedule.urls')),
     url(r'^mv/', include(django_mail_viewer_urls)),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
@@ -36,6 +38,7 @@ urlpatterns = [
     url(r'^pos/', include('pos.urls')),
     url(r'^gocardless/', include('gc_app.urls')),
     url(r'^public/', include('public.urls')),
+    url(r'^club/', include('club.urls')),
 
     #url(r'^markdownx/', include('markdownx.urls')),
     url(r'ajax/people/',
@@ -448,38 +451,35 @@ urlpatterns = [
         name='bee'
     ),
    
-    url(r'^login/$', auth_views.login, 
-        {'template_name': 'auth/login.html'},
+    url(r'^login/$', auth_views.LoginView.as_view(
+        template_name='authentication/login.html'),
          name='login'),
-    url(r'^logout$', auth_views.logout, 
-        {'next_page': '/'},
+    url(r'^logout$', auth_views.LogoutView.as_view(
+        next_page='/public/'),
         name='logout'),
-    url(r'^password_change/$', auth_views.password_change,
-        {'template_name': 'auth/password_change_form.html',
-            'post_change_redirect': '/password_change/done/'}, 
+    url(r'^password_change/$', auth_views.PasswordChangeView.as_view(
+        template_name='authentication/password_change_form.html'),
         name='password_change'),
-    url(r'^password_change/done/$', auth_views.password_change_done,
-        {'template_name': 'auth/password_change_done.html'}, 
+    url(r'^password_change/done/$', auth_views.PasswordChangeDoneView.as_view(
+        template_name='authentication/password_change_done.html'), 
         name='password_change_done'),
-    url(r'^password_reset/$', auth_views.password_reset,
-        {'template_name': 'auth/password_reset_form.html'}, 
+    url(r'^password_reset/$', auth_views.PasswordResetView.as_view(
+        template_name='authentication/password_reset_form.html'), 
         name='password_reset'),
-    url(r'^password_reset/done/$', auth_views.password_reset_done,
-        {'template_name': 'auth/password_reset_done.html'}, 
+    url(r'^password_reset/done/$', auth_views.PasswordResetDoneView.as_view(
+        template_name='authentication/password_reset_done.html'), 
         name='password_reset_done'),
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', 
-        auth_views.password_reset_confirm,
-        {'template_name': 'auth/password_reset_confirm.html'}, 
+        auth_views.PasswordResetConfirmView.as_view(
+        template_name='authentication/password_reset_confirm.html'), 
         name='password_reset_confirm'),
-    url(r'^reset/done/$', auth_views.password_reset_complete,
-        {'template_name': 'auth/password_reset_complete.html'}, 
+    url(r'^reset/done/$', auth_views.PasswordResetCompleteView.as_view(
+        template_name='authentication/password_reset_complete.html'), 
         name='password_reset_complete'),
-
 
     url(r'^admin/',
         include(admin.site.urls)
-    ),
-    
+    ),  
 ]
 
 if settings.DEBUG:

@@ -15,12 +15,12 @@
         <form id="form_member" role="form" method="POST" >
           <div class="input-group input-group-lg">
             <span class="input-group-addon" id="sizing-addon1">Member login</span>
-            <input type="text" class="form-control typeahead tt-query"aria-describedby="sizing-addon1"
+            <input type="text" class="form-control typeahead tt-query" id = "search_id" aria-describedby="sizing-addon1"
                     autocomplete="on" spellcheck="false"> 
           </div>
           <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
           <input name="person_id" id="person_id" type="hidden" value="" />      
-          <input type="submit" class="button" id ="submit" style="display: none" name="login" value="Login">
+          <input type="submit" class="button" id ="submit_id" style="display: none" name="login" value="Login">
         </form>
       </div>
       <div class="col-md-5">
@@ -33,7 +33,12 @@
 </div>
 {% endblock content %}
 {% block scripts %}
-<script src="{% static 'js/my_typeahead.js' %}"></script>
+<script src="{% static 'js/person_typeahead.js' %}"></script>
+<script>
+$(document).ready(function () {
+  bind_typeahead('#search_id', '#person_id','#submit_id')
+});
+</script>
 {% endblock %}
 
 

@@ -1,6 +1,6 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "python.pythonPath": "d:/Django/admin/env2711/scripts/python.exe",
+    "python.pythonPath": "d:/Django/admin/envAdmin/scripts/python.exe",
     "files.exclude": {
       "**/.git": true,
       "**/.svn": true,

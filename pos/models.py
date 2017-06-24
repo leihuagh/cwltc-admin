@@ -16,7 +16,7 @@ class Item(models.Model):
     def to_dict(self):
         '''
         Create a dictionary item used while transaction is being created
-        Decimla fields are converted to integers do they can be saved in json format
+        Decimal fields are converted to integers so they can be saved in json format
         '''
         item_dict = {}
         item_dict['id'] = self.id

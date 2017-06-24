@@ -19,8 +19,8 @@ if ON_PAAS:
     if os.environ['OPENSHIFT_APP_NAME'] == "admin":
         PRODUCTION = True
         #DEBUG = False
-else: 
-    DEBUG = True 
+else:
+    DEBUG = True
     SECRET_KEY = ')_7av^!cy(wfx=k#3*7x+(=j^fzv+ot^1@sh9s9t=8$bu@r(z$'
     ALLOWED_HOSTS = []
 
@@ -34,7 +34,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	'django.contrib.admin.apps.SimpleAdminConfig',
+    'django.contrib.admin.apps.SimpleAdminConfig',
     'debug_toolbar',
     'import_export',
     'crispy_forms',
@@ -50,7 +50,11 @@ INSTALLED_APPS = (
     'coverage',
     'pos',
     'public',
-    'django_nose'
+    'club',
+    'authentication',
+    'django_nose',
+    'schedule',
+    'djangobower',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -168,15 +172,25 @@ NUMBER_GROUPING = 3
 STATIC_URL = '/static/'
 
 # This is where the static files get served from
-STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi','static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'djangobower.finders.BowerFinder',
 )
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]
+
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, "components")
+
+BOWER_INSTALLED_APPS = (
+    'jquery',
+    'jquery-ui',
+    'bootstrap'
+)
+
 
 MEDIA_ROOT = os.environ.get('OPENSHIFT_DATA_DIR', '')
 
@@ -202,6 +216,18 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
         },
+    },
+]
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'members.validators.OneAlphaAndOneNumericValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
 ]
 
@@ -240,7 +266,7 @@ TEMPLATES = [
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
-LOGIN_URL ='/login/'
+LOGIN_URL = '/login/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
@@ -257,7 +283,7 @@ if DEBUG:
 else:
 
     EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
-    
+
 DJANGO_WYSIWYG_FLAVOR = 'tinymce'
 
 ANYMAIL = {

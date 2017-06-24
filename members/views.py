@@ -17,7 +17,7 @@ from django.template import Template, Context
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.core.mail import send_mail
-from braces.views import LoginRequiredMixin, StaffuserRequiredMixin
+from braces.views import StaffuserRequiredMixin, StaffuserRequiredMixin
 
 import xlrd
 import json
@@ -33,9 +33,17 @@ from .excel import *
 from .filters import JuniorFilter, SubsFilter, InvoiceFilter, InvoiceItemFilter, PaymentFilter
 from .tables import InvoiceTable, InvoiceItemTable, PaymentTable
 
+def permission_denied(view, request):
+    '''
+    Redirect to login with error message when user has not got staff permission
+    '''
+    messages.error(request, "You are logged in as {} but don't have permission to access {}.\
+    Would you like to login as a different user?".format(request.user, request.path))
+    return redirect('login')
+
 class PagedFilteredTableView(SingleTableView):
     '''
-    Generic view for ddjango tables 2 with filter
+    Generic view for django tables 2 with filter
     http://www.craigderington.me/django-generic-listview-with-django-filters-and-django-tables2/
     '''
     filter_class = None
@@ -56,9 +64,9 @@ class PagedFilteredTableView(SingleTableView):
         context[self.context_filter_name] = self.filter
         return context
 
-class SubsTableView(LoginRequiredMixin, SingleTableView):
+class SubsTableView(StaffuserRequiredMixin, SingleTableView):
     #http://stackoverflow.com/questions/13611741/django-tables-column-filtering/15129259#15129259
-  
+    raise_exception = permission_denied
     filter_class = None
     juniors = False
     parents = False
@@ -141,7 +149,9 @@ class SubsTableView(LoginRequiredMixin, SingleTableView):
 
         return redirect('home')
 
-class HomeView(LoginRequiredMixin, TemplateView):
+
+
+class HomeView(StaffuserRequiredMixin, TemplateView):
     template_name = 'members/index.html'
 
     def get_context_data(self, **kwargs):
@@ -151,7 +161,7 @@ class HomeView(LoginRequiredMixin, TemplateView):
         context['db_name'] = settings.DATABASES['default']['NAME']
         return context
 
-class PersonList(LoginRequiredMixin, ListView):
+class PersonList(StaffuserRequiredMixin, ListView):
     model = Person
     template_name = 'members/person_list.html'
 
@@ -181,7 +191,7 @@ class PersonActionMixin(object):
         return reverse('home')
 
 
-class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
+class PersonCreateView(StaffuserRequiredMixin, PersonActionMixin, CreateView):
     model = Person
     template_name = 'members/generic_crispy_form.html'
     success_msg = "Person created"
@@ -208,7 +218,7 @@ class PersonCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
             return reverse('sub-create', kwargs={'person_id': self.form.person.id})
         return reverse('person-detail', kwargs={'pk': self.form.person.id})
 
-class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
+class PersonUpdateView(StaffuserRequiredMixin, PersonActionMixin, UpdateView):
     model = Person
     template_name = 'members/generic_crispy_form.html'
     success_msg = "Person updated"
@@ -217,7 +227,7 @@ class PersonUpdateView(LoginRequiredMixin, PersonActionMixin, UpdateView):
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['pk']})
 
-class PersonLinkView(LoginRequiredMixin, TemplateView):
+class PersonLinkView(StaffuserRequiredMixin, TemplateView):
     template_name = 'members/person_link_merge.html'
 
     def get_context_data(self, **kwargs):
@@ -247,7 +257,7 @@ class PersonLinkView(LoginRequiredMixin, TemplateView):
                 messages.error(request, "No person selected")
         return redirect('person-link', pk=child.id)
 
-class PersonMergeView(LoginRequiredMixin, TemplateView):
+class PersonMergeView(StaffuserRequiredMixin, TemplateView):
     template_name = 'members/person_link_merge.html'
 
     def get_context_data(self, **kwargs):
@@ -270,12 +280,12 @@ class PersonMergeView(LoginRequiredMixin, TemplateView):
         return redirect(person)
 
 
-class PersonUnlinkView(LoginRequiredMixin, View):
+class PersonUnlinkView(StaffuserRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         person = Person.objects.get(pk=self.kwargs['pk'])
 
-class JuniorCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
+class JuniorCreateView(StaffuserRequiredMixin, PersonActionMixin, CreateView):
     model = Person
     template_name = 'members/junior_form.html'
     success_msg = "Junior and parent created"
@@ -295,7 +305,7 @@ class JuniorCreateView(LoginRequiredMixin, PersonActionMixin, CreateView):
     def get_success_url(self):
         return reverse('sub-create', kwargs={'person_id': self.form.junior.id})
 
-class PersonDetailView(LoginRequiredMixin, DetailView):
+class PersonDetailView(StaffuserRequiredMixin, DetailView):
     model = Person
     template_name = 'members/person_detail.html'
 
@@ -384,7 +394,7 @@ def set_person_context(context, person):
 def ajax_people(request):
     '''
     Returns a list of people for autocomplete search field
-    If id filed is sentm include the id after the name
+    If id field is sentm include the id after the name
     '''
     if request.is_ajax():
         results = []
@@ -422,16 +432,14 @@ def search_person(request):
     return redirect(reverse('person-detail', kwargs={'pk':id}))
 
 
-
-
-class PersonExportView(LoginRequiredMixin, View):
+class PersonExportView(StaffuserRequiredMixin, View):
 
     def get(self, request, option="all"):
         return export_members(option)
 
 # ============== Address
 
-class AddressUpdateView(LoginRequiredMixin, UpdateView):
+class AddressUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Address
     form_class = AddressForm
     template_name = 'members/address_form.html'
@@ -467,7 +475,7 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
 
 # ============== Groups
 
-class GroupCreateView(LoginRequiredMixin, CreateView):
+class GroupCreateView(StaffuserRequiredMixin, CreateView):
     model = Group
     form_class = GroupForm
     template_name = 'members/generic_crispy_form.html'
@@ -475,13 +483,13 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('group-list')
 
-class GroupListView(LoginRequiredMixin, ListView):
+class GroupListView(StaffuserRequiredMixin, ListView):
     ''' List all groups'''
     model = Group
     template_name = 'members/group_list.html'
     context_object_name = 'groups'
 
-class GroupDetailView(LoginRequiredMixin, DetailView):
+class GroupDetailView(StaffuserRequiredMixin, DetailView):
     model = Group
     template_name = 'members/group_detail.html'
 
@@ -514,7 +522,7 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
             return redirect(reverse('email-group', kwargs={'group': group.id}))
         return redirect(reverse('group-list'))
 
-class GroupAddPersonView(LoginRequiredMixin, FormView):
+class GroupAddPersonView(StaffuserRequiredMixin, FormView):
     form_class = GroupAddPersonForm
     template_name = 'members/generic_crispy_form.html'
 
@@ -538,7 +546,7 @@ class GroupAddPersonView(LoginRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('group-detail', kwargs={'pk':self.group.id})
 
-class GroupAddListView(LoginRequiredMixin, FormView):
+class GroupAddListView(StaffuserRequiredMixin, FormView):
     form_class = GroupAddPersonForm
     template_name = 'members/generic_crispy_form.html'
 
@@ -566,7 +574,7 @@ class GroupAddListView(LoginRequiredMixin, FormView):
 
 # ============== Subscriptions
 
-class SubCreateView(LoginRequiredMixin, CreateView):
+class SubCreateView(StaffuserRequiredMixin, CreateView):
     model = Subscription
     form_class = SubscriptionForm
     template_name = 'members/subscription_form.html'
@@ -602,7 +610,7 @@ class SubCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
 
-class SubUpdateView(LoginRequiredMixin, UpdateView):
+class SubUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Subscription
     form_class = SubscriptionForm
     template_name = 'members/subscription_form.html'
@@ -654,7 +662,7 @@ class SubUpdateView(LoginRequiredMixin, UpdateView):
         subscription_create_invoiceitems(sub, sub.start_date.month)
         return reverse('person-detail', kwargs={'pk':sub.person_member_id})
 
-class SubCorrectView(LoginRequiredMixin, UpdateView):
+class SubCorrectView(StaffuserRequiredMixin, UpdateView):
     ''' standard model view that skips validation '''
     model = Subscription
     form_class = SubCorrectForm
@@ -663,7 +671,7 @@ class SubCorrectView(LoginRequiredMixin, UpdateView):
         subscription_activate(self.get_object())
         return reverse('person-detail', kwargs={'pk':sub.person_member_id})
 
-class SubDetailView(LoginRequiredMixin, DetailView):
+class SubDetailView(StaffuserRequiredMixin, DetailView):
     model = Subscription
     template_name = 'members/subscription_detail.html'
 
@@ -678,7 +686,7 @@ class SubDetailView(LoginRequiredMixin, DetailView):
                 break
         return context
 
-class SubHistoryView(LoginRequiredMixin, ListView):
+class SubHistoryView(StaffuserRequiredMixin, ListView):
     ''' Subs history for 1 person '''
     model = Subscription
     template_name = 'members/subscription_history.html'
@@ -693,7 +701,7 @@ class SubHistoryView(LoginRequiredMixin, ListView):
         context['person'] = self.person
         return context
 
-class SubRenewAllView(LoginRequiredMixin, FormView):
+class SubRenewAllView(StaffuserRequiredMixin, FormView):
     form_class = YearConfirmForm
     template_name = 'members/generic_crispy_form.html'
 
@@ -714,7 +722,7 @@ class SubRenewAllView(LoginRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('home')
 
-class SubRenewSelectionView(LoginRequiredMixin, FormView):
+class SubRenewSelectionView(StaffuserRequiredMixin, FormView):
     '''
     Renew a selected list of subscriptions
     If the list contains only one person, redirect to the person
@@ -757,7 +765,7 @@ class SubRenewSelectionView(LoginRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('home')
 
-class SubRenewBatch(LoginRequiredMixin, FormView):
+class SubRenewBatch(StaffuserRequiredMixin, FormView):
     form_class = XlsMoreForm
     template_name = 'members/import_more.html'
 
@@ -773,7 +781,7 @@ class SubRenewBatch(LoginRequiredMixin, FormView):
 
 # ============ Year end
 
-class YearEndView(LoginRequiredMixin, StaffuserRequiredMixin, FormView):
+class YearEndView(StaffuserRequiredMixin, FormView):
     ''' Manage setting '''
     form_class = SettingsForm
     template_name = 'members/generic_crispy_form.html'
@@ -867,7 +875,7 @@ class YearEndView(LoginRequiredMixin, StaffuserRequiredMixin, FormView):
             state=Invoice.UNPAID, membership_year=year, gocardless_bill_id='', total__gt=0)
         return invs
 
-class SubInvoiceCancel(LoginRequiredMixin, View):
+class SubInvoiceCancel(StaffuserRequiredMixin, View):
     ''' Deletes unpaid items and invoices associated with a sub '''
     
     def get(self, request, *args, **kwargs):
@@ -880,7 +888,7 @@ class SubInvoiceCancel(LoginRequiredMixin, View):
 
 # ============ Fees
 
-class FeesCreateView(LoginRequiredMixin, CreateView):
+class FeesCreateView(StaffuserRequiredMixin, CreateView):
     model = Fees
     form_class = FeesForm
     template_name = 'members/fees_form.html'
@@ -888,7 +896,7 @@ class FeesCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('fees-list')   
    
-class FeesUpdateView(LoginRequiredMixin, UpdateView):
+class FeesUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Fees
     form_class = FeesForm
     template_name = 'members/generic_crispy_form.html'                 
@@ -915,7 +923,7 @@ class FeesUpdateView(LoginRequiredMixin, UpdateView):
                        kwargs={'year': self.get_object().sub_year} 
                       )
 
-class FeesListView(LoginRequiredMixin, ListView):
+class FeesListView(StaffuserRequiredMixin, ListView):
     model = Fees
     template_name = 'members/fees_list.html'
 
@@ -958,13 +966,13 @@ class FeesListView(LoginRequiredMixin, ListView):
 
 # ================ Membership categories
 
-class CategoriesListView(LoginRequiredMixin, ListView):
+class CategoriesListView(StaffuserRequiredMixin, ListView):
     model = Membership
     template_name= 'members/categories_list.html'
 
 # ================ Invoice items
 
-class InvoiceItemListView(LoginRequiredMixin, ListView):
+class InvoiceItemListView(StaffuserRequiredMixin, ListView):
     model = InvoiceItem
     template_name = 'members/invoiceitem_list.html'
 
@@ -976,7 +984,7 @@ class InvoiceItemListView(LoginRequiredMixin, ListView):
         context['state_list'] = Invoice.STATES
         return context
 
-class InvoiceItemCreateView(LoginRequiredMixin, CreateView):
+class InvoiceItemCreateView(StaffuserRequiredMixin, CreateView):
     model = InvoiceItem
     form_class = InvoiceItemForm
     form = InvoiceItemForm()
@@ -995,7 +1003,7 @@ class InvoiceItemCreateView(LoginRequiredMixin, CreateView):
         form.instance.person = Person.objects.get(pk = self.kwargs['person_id'])
         return super(InvoiceItemCreateView, self).form_valid(form)
 
-class InvoiceItemUpdateView(LoginRequiredMixin, UpdateView):
+class InvoiceItemUpdateView(StaffuserRequiredMixin, UpdateView):
     model = InvoiceItem
     form_class = InvoiceItemForm
     template_name = 'members/invoiceitem_form.html'
@@ -1019,11 +1027,11 @@ class InvoiceItemUpdateView(LoginRequiredMixin, UpdateView):
             item.delete()
             return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':person_id}))
 
-class InvoiceItemDetailView(LoginRequiredMixin, DetailView):
+class InvoiceItemDetailView(StaffuserRequiredMixin, DetailView):
     model = InvoiceItem
     template_name = 'members/invoiceitem_detail.html'
 
-class InvoiceItemTableView(LoginRequiredMixin, PagedFilteredTableView):
+class InvoiceItemTableView(StaffuserRequiredMixin, PagedFilteredTableView):
 
     model = InvoiceItem
     table_class = InvoiceItemTable
@@ -1051,7 +1059,7 @@ class InvoiceItemTableView(LoginRequiredMixin, PagedFilteredTableView):
 
 # ================= INVOICES
 
-class InvoiceTableView(LoginRequiredMixin, PagedFilteredTableView):
+class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
     model = Invoice
     table_class = InvoiceTable
     filter_class = InvoiceFilter
@@ -1111,7 +1119,7 @@ class InvoiceTableView(LoginRequiredMixin, PagedFilteredTableView):
 
         return redirect('home')
 
-class InvoiceListViewx(LoginRequiredMixin, FormMixin, ListView):
+class InvoiceListViewx(StaffuserRequiredMixin, FormMixin, ListView):
     form_class = InvoiceFilterForm
     model = Invoice
     template_name = 'members/invoice_list.html'
@@ -1218,7 +1226,7 @@ class InvoiceListViewx(LoginRequiredMixin, FormMixin, ListView):
                     )['total__sum']
         return context
 
-class InvoiceDetailView(LoginRequiredMixin, DetailView):
+class InvoiceDetailView(StaffuserRequiredMixin, DetailView):
     model = Invoice
     template_name = 'members/invoice_detail.html'
 
@@ -1260,7 +1268,7 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
         context['show_buttons'] = True
         return context
 
-class InvoiceGenerateView(LoginRequiredMixin, View):
+class InvoiceGenerateView(StaffuserRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         person = Person.objects.get(pk=self.kwargs['pk'])
@@ -1273,7 +1281,7 @@ class InvoiceGenerateView(LoginRequiredMixin, View):
             return redirect(person)
         return
 
-class InvoicesGenerateSelectionView(LoginRequiredMixin, FormView):
+class InvoicesGenerateSelectionView(StaffuserRequiredMixin, FormView):
     '''
     Create invoices for a selection of people
     '''
@@ -1305,7 +1313,7 @@ class InvoicesGenerateSelectionView(LoginRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('home')
 
-class InvoiceMailView(LoginRequiredMixin, View):
+class InvoiceMailView(StaffuserRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         invoice= Invoice.objects.get(pk=self.kwargs['pk'])
@@ -1315,7 +1323,7 @@ class InvoiceMailView(LoginRequiredMixin, View):
             return result
         return redirect(invoice)
 
-class InvoiceMailConfigView(LoginRequiredMixin, FormView):
+class InvoiceMailConfigView(StaffuserRequiredMixin, FormView):
     form_class = EmailTextForm
     template_name = 'members/generic_crispy_form.html'
 
@@ -1344,7 +1352,7 @@ class InvoiceMailConfigView(LoginRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('invoice-detail', kwargs={'pk':self.kwargs['pk']})
 
-class InvoiceMailBatchView(LoginRequiredMixin, View):
+class InvoiceMailBatchView(StaffuserRequiredMixin, View):
     ''' Send email for all invoices that are unpaid and have not been emailed
         get asks for confirmation
         put sends the mail '''
@@ -1369,7 +1377,7 @@ class InvoiceMailBatchView(LoginRequiredMixin, View):
         return Invoice.objects.filter(state=Invoice.UNPAID, membership_year=year)
 
 
-class InvoiceSelectView(LoginRequiredMixin, FormView):
+class InvoiceSelectView(StaffuserRequiredMixin, FormView):
     form_class = InvoiceSelectForm
     template_name = 'members/invoice_select.html'
 
@@ -1383,7 +1391,7 @@ class InvoiceSelectView(LoginRequiredMixin, FormView):
 
 # ================ MailType Views
 
-class MailTypeCreateView(LoginRequiredMixin, CreateView):
+class MailTypeCreateView(StaffuserRequiredMixin, CreateView):
     model = MailType
     form_class = MailTypeForm
     template_name = 'members/generic_crispy_form.html'
@@ -1391,7 +1399,7 @@ class MailTypeCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('mailtype-list')
 
-class MailTypeUpdateView(LoginRequiredMixin, UpdateView):
+class MailTypeUpdateView(StaffuserRequiredMixin, UpdateView):
 
     model = MailType
     form_class = MailTypeForm
@@ -1424,14 +1432,14 @@ class MailTypeUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('mailtype-list')
 
-class MailTypeListView(LoginRequiredMixin, ListView):
+class MailTypeListView(StaffuserRequiredMixin, ListView):
     ''' List all mail type '''
     model = MailType
     template_name = 'members/mailtype_list.html'
     context_object_name = 'mailtypes'
     ordering = 'sequence'
 
-class MailTypeDetailView(LoginRequiredMixin, DetailView):
+class MailTypeDetailView(StaffuserRequiredMixin, DetailView):
     model = MailType
     template_name = 'members/mailtype_detail.html'
 
@@ -1445,7 +1453,7 @@ class MailTypeDetailView(LoginRequiredMixin, DetailView):
 
 # ================== PAYMENTS
 
-class PaymentCreateView(LoginRequiredMixin, CreateView):
+class PaymentCreateView(StaffuserRequiredMixin, CreateView):
     model = Payment
     form_class = PaymentForm
     template_name = 'members/payment_form.html'
@@ -1475,7 +1483,7 @@ class PaymentCreateView(LoginRequiredMixin, CreateView):
         return reverse('invoice-detail',
                        kwargs={'pk':self.kwargs['invoice_id']})
 
-class PaymentUpdateView(LoginRequiredMixin, StaffuserRequiredMixin, UpdateView):
+class PaymentUpdateView(StaffuserRequiredMixin, UpdateView):
     '''
     Allows payment detail to be updated bu authorised user
     '''
@@ -1493,7 +1501,7 @@ class PaymentUpdateView(LoginRequiredMixin, StaffuserRequiredMixin, UpdateView):
         return reverse('invoice-detail',
                        kwargs={'pk':invoice_id})
 
-class PaymentDetailView(LoginRequiredMixin, DetailView):
+class PaymentDetailView(StaffuserRequiredMixin, DetailView):
     model = Payment
     template_name = 'members/payment_detail.html'
 
@@ -1504,7 +1512,7 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         context['user'] = self.request.user
         return context
 
-class PaymentListView(LoginRequiredMixin, PagedFilteredTableView ):
+class PaymentListView(StaffuserRequiredMixin, PagedFilteredTableView ):
     model = Payment
     table_class = PaymentTable
     filter_class = PaymentFilter
@@ -1530,7 +1538,7 @@ class PaymentListView(LoginRequiredMixin, PagedFilteredTableView ):
         context['total'] = self.total if self.total else 0
         return context
 
-class PaymentListViewX(LoginRequiredMixin, FormMixin, TemplateView):
+class PaymentListViewX(StaffuserRequiredMixin, FormMixin, TemplateView):
     form_class = PaymentFilterForm
     model = Payment
     template_name = 'members/payment_list.html'
@@ -1634,7 +1642,7 @@ class PaymentListViewX(LoginRequiredMixin, FormMixin, TemplateView):
 
 # ================== CREDIT NOTES
 
-class CreditNoteCreateView(LoginRequiredMixin, CreateView):
+class CreditNoteCreateView(StaffuserRequiredMixin, CreateView):
     model = CreditNote
     form_class = CreditNoteForm
     template_name = 'members/generic_crispy_form.html'
@@ -1656,7 +1664,7 @@ class CreditNoteCreateView(LoginRequiredMixin, CreateView):
         return reverse('person-detail',
                        kwargs={'pk':self.kwargs['person_id']})
 
-class CreditNoteDetailView(LoginRequiredMixin, DetailView):
+class CreditNoteDetailView(StaffuserRequiredMixin, DetailView):
     ''' Credit note detail with staff option to delete '''
     model = CreditNote
     template_name = 'members/credit_note.html'
@@ -1677,7 +1685,7 @@ class CreditNoteDetailView(LoginRequiredMixin, DetailView):
 
 # ================ MailCampaign Views
 
-class MailCampaignCreateView(LoginRequiredMixin, CreateView):
+class MailCampaignCreateView(StaffuserRequiredMixin, CreateView):
     model = MailCampaign
     form_class = MailCampaignForm
     template_name = 'members/generic_crispy_form.html'
@@ -1699,7 +1707,7 @@ class MailCampaignCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('mail-campaign-bee', kwargs={'pk': self.object.id})
 
-class MailCampaignUpdateView(LoginRequiredMixin, UpdateView):
+class MailCampaignUpdateView(StaffuserRequiredMixin, UpdateView):
 
     model = MailCampaign
     form_class = MailCampaignForm
@@ -1734,13 +1742,13 @@ class MailCampaignUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('mail-campaign-bee', kwargs={'pk': self.object.id})
 
-class MailCampaignListView(LoginRequiredMixin, ListView):
+class MailCampaignListView(StaffuserRequiredMixin, ListView):
     ''' List all mail type '''
     model = MailCampaign
     template_name = 'members/mail_campaign_list.html'
     context_object_name = 'mail_campaigns'
 
-class MailCampaignBeeView(LoginRequiredMixin, TemplateView):
+class MailCampaignBeeView(StaffuserRequiredMixin, TemplateView):
     '''
     Edit campaign using bee editor
     '''
@@ -1781,7 +1789,7 @@ class MailCampaignBeeView(LoginRequiredMixin, TemplateView):
 
 # ================== TEXT BLOCKS
 
-class TextBlockCreateView(LoginRequiredMixin, CreateView):
+class TextBlockCreateView(StaffuserRequiredMixin, CreateView):
     model = TextBlock
     form_class = TextBlockForm
     template_name = 'members/textblock_form.html'
@@ -1809,7 +1817,7 @@ class TextBlockCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('text-list')
  
-class TextBlockUpdateView(LoginRequiredMixin, UpdateView):
+class TextBlockUpdateView(StaffuserRequiredMixin, UpdateView):
     model = TextBlock
     form_class = TextBlockForm
     template_name = 'members/textblock_form.html'
@@ -1835,13 +1843,13 @@ class TextBlockUpdateView(LoginRequiredMixin, UpdateView):
             return redirect(reverse('text-list'))
         return super(TextBlockUpdateView, self).form_invalid(form)
     
-class TextBlockListView(LoginRequiredMixin, ListView):
+class TextBlockListView(StaffuserRequiredMixin, ListView):
     model = TextBlock               
     template_name = 'members/textblock_list.html'
     
 # ==================== EMAIL
 
-class EmailView(LoginRequiredMixin, FormView):
+class EmailView(StaffuserRequiredMixin, FormView):
     form_class = EmailForm
     template_name = 'members/email.html'
     selection = False
@@ -1959,7 +1967,7 @@ class EmailView(LoginRequiredMixin, FormView):
         else:
             return redirect('home')
 
-class ImportExcelMore(LoginRequiredMixin, FormView):
+class ImportExcelMore(StaffuserRequiredMixin, FormView):
     form_class = XlsMoreForm
     template_name = 'members/import_more.html'
 
@@ -2011,7 +2019,7 @@ class ImportExcelMore(LoginRequiredMixin, FormView):
                     return HttpResponseRedirect(reverse('import_more',
                                                         args=[3, count, size]))
 
-class ImportExcelView(LoginRequiredMixin, FormView):
+class ImportExcelView(StaffuserRequiredMixin, FormView):
     ''' Capture the excel name and batch size '''
     form_class = XlsInputForm
     template_name = 'members/generic_crispy_form.html'
@@ -2058,7 +2066,7 @@ class ImportExcelView(LoginRequiredMixin, FormView):
         #else:
         return HttpResponseRedirect(reverse('select-sheets'))
 
-class SelectSheets(LoginRequiredMixin, FormView):
+class SelectSheets(StaffuserRequiredMixin, FormView):
     ''' Select itemtype sheets to import ''' 
     form_class = SelectSheetsForm
     template_name = 'members/generic_crispy_form.html'
@@ -2094,7 +2102,7 @@ class SelectSheets(LoginRequiredMixin, FormView):
             context['message'] = '{} items were {} from {} sheets'.format(total, 'imported' if do_import else 'checked', sheet_count)
             return render(self.request, 'members/generic_result.html', context)
 
-class InvoiceBatchView(LoginRequiredMixin, FormView):
+class InvoiceBatchView(StaffuserRequiredMixin, FormView):
     form_class = XlsMoreForm
     template_name = 'members/import_more.html'
 

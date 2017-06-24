@@ -11,7 +11,7 @@
 
 <!-- Optional theme -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
+<link rel="stylesheet" type="text/css"  href="{% static 'public/css/public_css.css' %}">
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -25,13 +25,28 @@
 
 <body>
 <div class="container">
-    <table style="width:100%">
-        <tr>
-            <td width="120"><img src="{% static "members/content/CWLTC logo small.png" %}"/></td>
-            <td><h2 class="display-2">Coombe Wood Lawn Tennis Club</h2><h4><em>Kingston's premier tennis club</em></h4></td>
-            <td></td>
-        </tr>
-    </table>
+  <table style="width:100%">
+    <tr>
+      <td width="120"><img src="{% static "members/content/CWLTC logo small.png" %}"/></td>
+      <td><h2 class="display-2">Coombe Wood Lawn Tennis Club</h2><h4><em>Kingston's premier tennis club</em></h4></td>
+      <td></td>
+    </tr>
+  </table>
+   {% if user.is_authenticated %}
+    <div class="navbar navbar-custom" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">Members site</a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 {% include "members/_messages.html" %}
 </div>
 {% block image %}
@@ -42,7 +57,7 @@
     {% endblock %}
     <hr/>
     <footer>
-        <p>Membership Management System &copy; 2016 ISKT Ltd</p>
+        <p>Membership Management System &copy; 2017 ISKT Ltd</p>
     </footer>
 </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
