@@ -1,0 +1,40 @@
+﻿{% extends "club/club_base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+<div class="container">
+    {% include '_logo_header.html' %}
+  <div class="row">
+    <div class="col-md-4">
+      <h3>Personal details</h3>
+      <p>Review and edit the details that we hold about you.</p>
+      <a class="btn btn-success" href="{% url 'club-person' %}">Go</a>
+    </div>
+    <div class="col-md-4">
+      <h3>Account details</h3>
+      <p>Check your account status</p>
+      <a class="btn btn-success" href="{% url 'club-account' %}">Account</a>
+      </div>
+    <div class="col-md-4">
+      <h3>Search members database</h3>
+      <a class="btn btn-success" href="{% url 'club-search' %}">Search</a>
+    </div>
+  </div>
+
+  {% if user.is_active and user.is_staff %}
+  <br />
+  <div class="row">
+    <div class="col-md-4">
+      <h3>Administration</h3>
+      <a class="btn btn-success" href="{% url 'home' %}">CWLTC Admin site</a>
+    </div>
+    {% if user.is_superuser %}
+      <div class="col-md-4">
+        <h3>Django admin</h3>
+        <a class="btn btn-success" href="/admin/">Django admin</a>
+      </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

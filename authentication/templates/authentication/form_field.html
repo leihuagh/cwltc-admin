@@ -1,0 +1,18 @@
+{% load members_extras %}
+<div class="form-group {% if field.errors %}has-error{% endif %}">
+  <label for="{{ field.id_for_label }}" class="col-sm-2 control-label">{{ field.label }}</label>
+  <div class="col-sm-3 ">
+    {{ field|add_class:'form-control input-md' }}
+    {% if field.errors %}
+        <span class='text-danger'>{{ field.errors|join:'<br />' }}</span>
+    {% endif %}
+
+  </div>
+    {% if field.help_text %}
+      {% autoescape off %}
+<div class="col-sm-3">
+        <span class="help-block ">{{ field.help_text }}</span>
+  </div>
+      {% endautoescape %}
+    {% endif %}
+</div>

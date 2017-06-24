@@ -1,0 +1,13 @@
+﻿{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %} 
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'members/content/site.css' %}" />
+{% endblock head %}
+{% block content %}
+<h2>{{ title }}</h2>
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
+{% crispy form %}
+{% endblock content %}

@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} CWLTC Members</title>
+    {% load staticfiles %}
+
+    <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.css" />
+<script src="{% static 'members/scripts/modernizr-2.6.2.js' %}"></script>
+<link rel='stylesheet' type='text/css' href='{% static 'members/content/jquery-ui/smoothness/jquery-ui.css' %}' />
+<link rel="stylesheet" type="text/css" href="{% static 'members/content/jquery.smartmenus.bootstrap.css' %}" />
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'members/content/site.css' %}" -->
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+{% block head %}
+{% endblock %}
+</head>
+<body>
+{% include "members/_navbar.html" %}
+
+  <div class="container body-content">
+{% include "members/_messages.html" %}
+ </div>
+<div class="container body-content">
+  {% block content %}
+  {% endblock %}
+  <hr/>
+
+  <footer>
+    <p>Membership Management System &copy; {{ year }} ISKT Ltd</p>
+  </footer>
+</div>
+
+
+<script src="{% static 'members/scripts/jquery-1.10.2.js' %}"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<script type='text/javascript' src='{% static 'members/scripts/jquery-ui.js' %}'></script>
+<!--<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.js"></script>
+<script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.js' %}'></script>
+<script type='text/javascript' src='{% static 'members/scripts/jquery.smartmenus.bootstrap.js' %}'></script>
+
+-->
+<script src= {% static 'js/typeahead.bundle.js' %}></script>
+<script src="{% static 'js/person_typeahead.js' %}"></script>
+<script>
+$(document).ready(function () {
+  //typeahead('#person_nav', '#submit_nav')
+  //init_typeahead();
+  bind_typeahead('#search_nav', '#person_nav','#submit_nav')
+});
+</script>
+{% block scripts %}
+{% endblock %}
+
+</body>
+</html>

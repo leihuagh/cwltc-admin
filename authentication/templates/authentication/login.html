@@ -1,0 +1,36 @@
+{% extends "club/club_base.html" %}
+
+{% block content %}
+
+  <h3><span class="col-sm-offset-2">Member log in</span></h3>
+  <br/>
+  <div class="row" style="border-bottom:ridge">
+    {% if form.errors %}
+      <div class="alert alert-danger">
+          <p><strong>Please enter a correct username and password. Note that both fields are case-sensitive.</strong></p>
+      </div>
+    {% endif %}
+    <form action="." method="post" class="form-horizontal" role="form">{% csrf_token %}
+           
+      {% for field in form %}
+          {% include 'authentication/form_field.html' %}
+      {% endfor %}
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-6">
+          <input type="hidden" name="next" value="/club/" />
+          <button type="submit" class="btn btn-success">Log in</button>
+          <a href="{% url 'public-home' %}" class="btn btn-default">Back</a>
+        </div>
+      </div>
+    </form>
+    <div class="col-sm-offset-2 col-sm-10 text-info">
+      <p></p>
+      <p><a href="{% url 'password_reset' %}">I forgot my password</a></p>
+    </div>
+
+  </div>
+
+{% endblock %}
+{% block scripts %}
+
+{% endblock %}
