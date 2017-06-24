@@ -536,6 +536,9 @@
     <Content Include="requirements.txt" />
     <Content Include="static\css\site.css" />
     <Content Include="templates\base.html" />
+    <Content Include="wsgi\static\schedule.css" />
+    <Content Include="wsgi\static\schedule.js" />
+    <Content Include="wsgi\static\__init__.pyc" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="authentication\apps.py" />
@@ -645,6 +648,7 @@
     <Compile Include="public\__init__.py" />
     <Compile Include="setup.py" />
     <Compile Include="wsgi.py" />
+    <Compile Include="wsgi\static\__init__.py" />
     <Compile Include="wsgi\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
@@ -741,6 +745,7 @@
     <Folder Include="templates\" />
     <Folder Include="templates\" />
     <Folder Include="wsgi" />
+    <Folder Include="wsgi\static\" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env36\">
