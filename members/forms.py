@@ -14,7 +14,6 @@ from django.template.defaultfilters import slugify
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder, BaseInput
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
-from markdownx.fields import MarkdownxFormField
 from .widgets import MonthYearWidget
 from .models import (Person, Address, AdultApplication, Subscription, Membership, Invoice, InvoiceItem,
                      Payment, CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings)
@@ -68,12 +67,17 @@ class PersonForm(ModelForm):
     creation of a linked person with linked address
     update of a person
     '''
+    APPLY_CHOICES = [
+        (0, 'Application is only for juniors'),
+        (1, 'Adult or family application')
+        ]
 
     address1 = forms.CharField(max_length=50, label='Address 1')
     address2 = forms.CharField(max_length=50, label='Address 2', required=False)
     town = forms.CharField(max_length=30)
     post_code = forms.CharField(max_length=15)
-    home_phone = forms.CharField(max_length=20, required=False)
+    home_phone = forms.CharField(max_length=20, required=False) 
+    applying = forms.ChoiceField(initial=False, widget=forms.RadioSelect, choices=APPLY_CHOICES)
 
     class Meta:
         model = Person
@@ -81,13 +85,13 @@ class PersonForm(ModelForm):
                 'first_name',
                 'last_name',
                 'dob',
-                'state',
+                #'state',
                 'email',
                 'mobile_phone',
-                'british_tennis',
-                'pays_own_bill',
-                'notes']
-
+                #'british_tennis',
+                #'pays_own_bill',
+                #'notes']
+                ]
     def __init__(self, *args, **kwargs):
         self.link = kwargs.pop('link', None)
         self.public = kwargs.pop('public', None)
@@ -105,8 +109,8 @@ class PersonForm(ModelForm):
                 'first_name',
                 'last_name',
                 'mobile_phone',
-                'british_tennis',
-                'notes',
+                #'british_tennis',
+                #'notes',
                 'address1',
                 'address2',
                 'post_code',
@@ -140,29 +144,39 @@ class PersonForm(ModelForm):
                                    'mobile_phone',
                                    'email'
                                    )         
-        address_set = self.make_panel('address1',
+        address_set = self.make_panel('Address',
+                    'address1',
                     'address2',
                     'town',
                     'post_code',
                     'home_phone'
                     )
-        other_set = Fieldset('Other information',
+        
+        other_set = self.make_panel('Other information',
                 'notes',
                 'british_tennis',
                 'pays_own_bill',
-                'pays_family_bill',    
+                'pays_family_bill',
+                'state'
             )       
             
         self.helper.layout = Layout(name_set)
-
+        
         if not self.link and not self.updating:
             self.helper.layout.append(address_set)
-        if not self.public:
-            self.helper.layout.append(other_set)
-            self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-            if not self.updating:
-                self.helper.add_input(SubmitButton('submit_sub', 'Save and add sub', css_class='btn-primary'))
-            self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        self.helper.layout.append(
+                        Fieldset('Are you applying for membership? (Select no if junior application)',
+                        'applying')
+                        )
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True
+
+        #if not self.public:
+        #    self.helper.layout.append(other_set)
+        #    self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+        #    if not self.updating:
+        #        self.helper.add_input(SubmitButton('submit_sub', 'Save and add sub', css_class='btn-primary'))
+        #    self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
 
     def make_panel(self, heading, *args):
         return(
@@ -1015,11 +1029,6 @@ class MailCampaignForm(ModelForm):
         model = MailCampaign
         fields = ['name', 'mail_template', 'json'] 
         widgets = {'json': forms.HiddenInput()}
-
-class EditorForm(Form):
-    text = MarkdownxFormField()
-
-    myfield = MarkdownxFormField()
 
 class XlsInputForm(Form):
     IMPORT_FILE_TYPES = ['.xls', ]

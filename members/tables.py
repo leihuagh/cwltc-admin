@@ -23,6 +23,19 @@ class PersonTable(tables.Table):
                                             },
                                       orderable=False)
 
+class ApplicantTable(tables.Table):
+    
+    class Meta:
+        model = Person
+        fields = ('date_joined', 'first_name', 'last_name', 'email')
+        attrs = {'class': 'table table-condensed'} 
+
+    membership = tables.Column(accessor='person.membership.description',
+                                verbose_name='Membership',
+                                orderable=True)
+    edit = tables.LinkColumn('person-detail', text='Edit', args=[A('pk')], orderable=False)
+
+
 
 class SubsTable(tables.Table):
     

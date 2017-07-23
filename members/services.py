@@ -322,6 +322,25 @@ def create_age_list():
             ).values_list(
                 'cutoff_age', 'id'))
 
+def membership_from_dob(dob, sub_year=Settings.current().membership_year, age_list=None):
+    '''
+    Return membership id for a date of birth
+    Defaults to adult full
+    '''
+    membership_id = Membership.FULL
+    if dob:
+        date = datetime(sub_year, Subscription.START_MONTH, 1)
+        age = date.year - dob.year - ((date.month, date.day) < (dob.month, dob.day))
+
+        if not age_list:
+            age_list = create_age_list()
+        for entry in age_list:
+            if age < entry[0]:
+                membership_id = entry[1]
+                break
+    return membership_id
+
+
 def subscription_create(person,
                         sub_year,
                         start_month=Subscription.START_MONTH,
@@ -346,15 +365,7 @@ def subscription_create(person,
     sub.period = period
     # Calculate membership from age if not explicitly passed
     if membership_id == Membership.AUTO:
-        age = person.age(datetime(sub_year, Subscription.START_MONTH, 1))       
-        sub.membership_id = Membership.FULL
-        if age:
-            if not age_list:
-                age_list = create_age_list()
-            for entry in age_list:
-                if age < entry[0]:
-                    sub.membership_id = entry[1]
-                    break               
+        sub.membership_id= membership_from_dob(person.dob, sub_year, age_list)              
     else:
         sub.membership_id = membership_id
     sub.new_member = new_member
@@ -608,8 +619,9 @@ def person_delete(person):
     '''
     messages = person_testfor_delete(person)
     if messages == []:
-        if person.address.person_set.count() == 1:
-            person.address.delete()
+        if person.address:
+            if person.address.person_set.count() == 1:
+                person.address.delete()
         person.delete()
     return messages
 

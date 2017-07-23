@@ -94,7 +94,6 @@
     <Content Include="members\templates\members\person_detail.html" />
     <Content Include="members\templates\members\person_form.html" />
     <Content Include="members\templates\members\person_table_ajax.html" />
-    <Content Include="members\templates\members\resigned.html" />
     <Content Include="members\templates\members\subscription_detail.html" />
     <Content Include="members\templates\members\subscription_form.html" />
     <Content Include="members\templates\members\members_list.html" />
@@ -102,7 +101,6 @@
     <Content Include="members\templates\members\textblock_form.html" />
     <Content Include="members\templates\members\textblock_list.html" />
     <Content Include="members\templates\members\invoice_pdf.html" />
-    <Content Include="members\templates\members\thankyou.html" />
     <Content Include="members\templates\members\_confirm.html" />
     <Content Include="members\templates\members\_how_to_pay_old.html" />
     <Content Include="members\templates\members\_messages.html" />
@@ -124,13 +122,18 @@
     <Content Include="pos\templates\pos\transaction_detail.html" />
     <Content Include="pos\templates\pos\_transactions.html" />
     <Content Include="public\templates\public\adult_application.html" />
-    <Content Include="public\templates\public\contact.html" />
+    <Content Include="public\templates\public\application.html" />
+    <Content Include="public\templates\public\apply_thankyou.html" />
+    <Content Include="public\templates\public\apply_wizard.html" />
     <Content Include="public\templates\public\crispy_form.html" />
-    <Content Include="public\templates\public\start.html" />
+    <Content Include="public\templates\public\home.html" />
     <Content Include="public\templates\public\invoice_public.html" />
-    <Content Include="public\templates\public\layout.html" />
     <Content Include="public\templates\public\mailtype_done.html" />
     <Content Include="public\templates\public\mailtype_manage.html" />
+    <Content Include="public\templates\public\public_base.html" />
+    <Content Include="public\templates\public\resigned.html" />
+    <Content Include="public\templates\public\thankyou.html" />
+    <Content Include="public\templates\public\wizard_done.html" />
     <Content Include="templates\_logo_header.html" />
     <Content Include="static\images\CWLTC logo small.png" />
     <Content Include="static\images\DronePicture.JPG" />

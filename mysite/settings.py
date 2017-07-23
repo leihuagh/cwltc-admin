@@ -36,18 +36,18 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin.apps.SimpleAdminConfig',
     'debug_toolbar',
+    'formtools',
     'import_export',
     'crispy_forms',
     'widget_tweaks',
-	'members',
-    'gc_app',
     'rest_framework',
     'report_builder',
     'anymail',
     'django_mail_viewer',
-   # 'markdownx',
     'django_tables2',
     'coverage',
+	'members',
+    'gc_app',
     'pos',
     'public',
     'club',
@@ -71,6 +71,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
     'PAGE_SIZE': 10
 }
+
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 ROOT_URLCONF = 'mysite.urls'
 

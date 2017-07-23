@@ -1,18 +1,24 @@
+from datetime import datetime
 from django.shortcuts import render, render_to_response, redirect, get_object_or_404
-from django.views.generic import DetailView, TemplateView, CreateView
+from django.views.generic import DetailView, TemplateView, CreateView, View
 from django.core.signing import Signer
-from django.core.urlresolvers import reverse
+from django.core.mail import send_mail
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.http import HttpResponse
+from formtools.wizard.views import SessionWizardView
 from django.views.generic.edit import FormView, ProcessFormView
 from django.forms import Form, inlineformset_factory
 
-from members.models import Group, Invoice, Person, MailType, AdultApplication
+from members.models import Group, Invoice, Person, MailType, AdultApplication, Settings, Subscription
 from members import mail
 from members.services import group_get_or_create
 from members.forms import JuniorForm, PersonForm
 from gc_app.views import gc_create_bill_url
-from .forms import ContactForm, AdultApplicationFormHelper, RegisterForm, RegisterTokenForm
+#from .forms import ContactForm, AdultApplicationFormHelper, RegisterForm, RegisterTokenForm
+from .forms import *
+from members.services import membership_from_dob
 
 # ================= Public Views accessed through a token
 
@@ -102,21 +108,26 @@ class InvoicePublicView(DetailView):
 
 class ContactView(FormView):
     form_class = ContactForm
-    template_name = 'public/contact.html'
+    template_name = 'public/crispy_form.html'
     resigned = False
 
     def get_context_data(self, **kwargs):
         context = super(ContactView, self).get_context_data(**kwargs)
         if self.resigned:
+            context['title'] = "Resignation"
             context['message'] = "Please tell us briefly why you have resigned"
         else:
-            context['message'] = "Please enter your query"
+            context['title'] = "Send message to club management"
         return context
 
     def form_valid(self, form):
-        if self.kwargs['person_id']:
-            person = Person.objects.get(pk=self.kwargs['person_id'])
-            message = "From {} id {} >".format(person.email, person.id)
+        id = self.kwargs.get('person_id')
+        if id:
+            try:
+                person = Person.objects.get(pk=id)
+                message = "From {} id {} >".format(person.email, person.id)
+            except Person.DoesNotExist:
+                message = "From bad person id {} >".format(id)         
         else:
             message = ""
         message += form.cleaned_data['email']
@@ -149,104 +160,7 @@ class ThankyouView(TemplateView):
 
 
 class PublicHomeView(TemplateView):
-    template_name = 'public/start.html'
-
-
-class ApplyJuniorView(FormView):
-    model = Person
-    template_name = 'members/junior_form.html'
-    success_msg = "Junior and parent created"
-    form_class = JuniorForm
-
-    def form_invalid(self, form):
-        if 'cancel' in form.data:
-            return HttpResponseRedirect(reverse('home'))
-        return super(JuniorCreateView, self).form_invalid(form)
-
-    def form_valid(self, form):
-        self.form = form
-        if 'cancel' in form.data:
-            return HttpResponseRedirect(reverse('home'))
-        return super(JuniorCreateView, self).form_valid(form)
-
-    def get_success_url(self):
-        return reverse('sub-create', kwargs={'person_id': self.form.junior.id})
-
-
-class ApplyAdultView(CreateView):
-    model = Person
-    template_name = 'public/adult_application.html'
-    form_class = PersonForm
-
-    def get_form_kwargs(self):
-        kwargs = super(ApplyAdultView, self).get_form_kwargs()
-        kwargs.update({'public': True})
-        #kwargs.update({'link': self.kwargs['link']})
-        return kwargs
-
-    def get(self, request, *args, **kwargs):
-        '''
-        Handles GET requests and instantiates blank versions of the form
-        and its inline formsets.
-        '''
-        self.object = None
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        formset = inlineformset_factory(Person, AdultApplication,
-                                        fields = ['ability',                                          
-                                                  'singles',
-                                                  'doubles',
-                                                  'coaching1',
-                                                  'coaching2',
-                                                  'daytime',
-                                                  'family',
-                                                  'social',
-                                                  'competitions',
-                                                  'teams',
-                                                  'club',
-                                                  'source',
-                                                  'membership',
-                                                  'rules'],
-                                        extra=1
-                                        )
-        helper = AdultApplicationFormHelper()
-        return self.render_to_response(
-            self.get_context_data(form=form, formset=formset, helper=helper)
-            )
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handles POST requests, instantiating a form instance and its inline
-        formsets with the passed POST variables and then checking them for
-        validity.
-        """
-        self.object = None
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        formset = AdultApplicationtFormSet(self.request.POST)
-        if form.is_valid() and formset.is_valid():
-            return self.form_valid(form, formset)
-        else:
-            return self.form_invalid(form, formset)
-
-    def form_invalid(self, form):
-        if 'cancel' in form.data:
-            return redirect('home')
-        return self.render_to_response(
-            self.get_context_data(form=form, formset=apply_form)
-            )
-
-    def form_valid(self, form):
-        '''
-        Called when all forms are valid
-        Creates a person with linked profle
-        '''
-        if 'cancel' in form.data:
-            return redirect('home')
-        self.object = form.save()
-        apply_form.instance = self.object
-        apply_form.save()
-        return HttpResponseRedirect(self.get_success_url())
+    template_name = 'public/home.html'
 
 
 class RegisterView(FormView):
@@ -292,6 +206,226 @@ class RegisterTokenView(FormView):
             messages.error('Invalid token')
         return redirect('public-home')
 
+
 class LoginView(FormView):
     template_name = 'public/start.html'
 
+#========== APPLICATION FORM HANDLING ============
+
+def add_profile(object, request):
+    '''
+    Add an object to the session's profile list
+    '''
+    profiles = request.session['profiles']
+    profiles.append(object)
+    request.session['profiles'] = profiles
+
+def add_session_context(context, request):
+    '''
+    Add all session variables to context
+    '''
+    context['person'] = request.session['person']
+    context['address'] = request.session['address']
+    context['family'] = request.session['family']
+    context['profiles'] = request.session['profiles']
+    return context
+
+def clear_session(request):
+    '''
+    Clear session variables
+    '''
+    request.session['person'] = None
+    request.session['address'] = None
+    request.session['post'] = None
+    request.session['family'] = []
+    request.session['profiles'] = []
+
+def add_family(member, request):
+    '''
+    Add a family member to the session
+    '''
+    family_list = request.session['family']
+    family_list.append(member)
+    request.session['family'] = family_list
+
+
+class Apply(View):
+    '''
+    Start the application process by initialising session variables
+    '''
+    def get(self, request, *args, **kwargs):
+        clear_session(request)
+        return redirect('public-apply-main')       
+
+
+class ApplyMain(TemplateView):
+    '''
+    Get name and address of main applicant
+    '''
+    template_name = 'public/application.html'
+
+    def get(self, request, *args, **kwargs):
+        #if request.session.get('person', None):
+        #    return redirect('public-apply')
+        self.name_form = NameForm()
+        self.address_form = AddressForm()
+        posted = request.session.get('post', None)
+        if posted:
+            self.name_form = NameForm(posted)
+            self.address_form = AddressForm(posted)
+        return render(request, self.template_name, self.get_context_data(**kwargs))
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle completed name and address form
+        """
+        self.name_form = NameForm(request.POST)
+        self.address_form = AddressForm(request.POST)
+        
+        if self.name_form.is_valid() and self.address_form.is_valid():
+            if not (self.name_form.cleaned_data['mobile_phone'] or self.address_form.cleaned_data['home_phone']):
+                errtext = 'At least one of mobile phone or home phone must be entered'
+                self.name_form.add_error('mobile_phone', errtext)
+                self.address_form.add_error('home_phone', errtext)
+            else:
+                request.session['person'] = self.name_form.save(commit=False)
+                request.session['address'] = self.address_form.save(commit=False)
+                request.session['post'] = request.POST
+                if not 'dob' in request.POST:
+                    add_profile(None, request)
+                    return redirect('public-apply-junior')
+                else:
+                    dob = self.name_form.cleaned_data['dob']
+                    membership_id = membership_from_dob(dob)
+                    if membership_id == Membership.FULL:
+                        # for now membership.FULL covers all adults
+                        # actual adult membership will be determined in profile
+                        request.session['person'].membership_id = membership_id
+                        return redirect('public-apply-adult')
+                self.name_form.add_error(None,"Please enter adult information on this form")
+                self.name_form.add_error('dob', "Not an adult's date of birth")
+        return render(request, self.template_name, self.get_context_data(**kwargs))
+
+    def get_context_data(self, **kwargs):  
+        kwargs['name_form'] = self.name_form
+        kwargs['address_form'] = self.address_form
+        kwargs['form_title'] = "Adult Application Form"
+        return super(ApplyMain, self).get_context_data(**kwargs)
+
+
+class ApplyAdultView(CreateView):
+    '''
+    Get adult membership type and profile
+    '''
+    template_name = 'public/application.html'
+    form_class = AdultApplicationForm
+    
+    def form_valid(self, form):
+        add_profile(form.save(commit=False), self.request)
+        if 'add' in self.request.POST:
+            return redirect('public-apply-add')
+        return redirect('public-apply-submit')
+
+    def get_context_data(self, **kwargs):
+        kwargs['form_title'] = "Adult Application: " + self.request.session['person'].first_name
+        return add_session_context(super(ApplyAdultView, self).get_context_data(**kwargs), self.request)
+
+
+class ApplyAddView(CreateView):
+    '''
+    Get name and dob of next family member
+    '''
+    template_name = 'public/application.html'
+    form_class = FamilyMemberForm
+    model = Person
+
+    def form_valid(self, form):
+        add_family(form.save(commit=False), self.request)
+
+        dob = form.cleaned_data['dob']
+        membership_id = membership_from_dob(dob)
+        if membership_id == Membership.FULL:
+            return redirect('public-apply-adult')
+        return redirect('public-apply-junior', membership_id=membership_id )  
+
+    def get_context_data(self, **kwargs):  
+        kwargs['form_title'] = "Add family member"
+        return add_session_context(super(ApplyAddView, self).get_context_data(**kwargs), self.request)
+
+
+class ApplyJuniorView(FormView):
+    '''
+    Just confirm junior or cadet and get next action
+    '''
+    template_name = 'public/application.html'
+    form_class = ApplyJuniorForm
+
+    def form_valid(self, form):
+        family = self.request.session['family']
+        family[-1].membership_id = self.kwargs['membership_id']
+        self.request.session['family'] = family
+
+        add_profile(None, self.request)
+
+        if 'add' in self.request.POST:
+            return redirect('public-apply-add')
+        return redirect('public-apply-submit')
+    
+    def get_context_data(self, **kwargs):
+        membership = Membership.objects.get(pk=self.kwargs['membership_id']).description
+        person = self.request.session['family'][-1]
+        kwargs['form_title'] = membership + ': ' + person.first_name + ' ' + person.last_name
+        return add_session_context(super(ApplyJuniorView, self).get_context_data(**kwargs), self.request)
+
+
+class ApplySubmitView(FormView):
+    '''
+    Confirm everything and get acceptance
+    Add all to database
+    '''
+    template_name='public/application.html'
+    form_class = ApplySubmitForm
+
+    def form_valid(self, form):
+        person = self.request.session['person']
+        address = self.request.session['address']
+        family = self.request.session['family']
+        profiles = self.request.session['profiles']
+        index = 0
+        if person:
+            address.save()
+            person.address = address
+            person.state = Person.APPLIED
+            person.date_joined = datetime.today()
+        
+            if profiles[index]:
+                person.membership_id = profiles[index].membership_id
+                person.save()
+                profiles[index].person = person
+                profiles[index].save()
+            else:
+                person.membership_id = Membership.NON_MEMBER
+                person.save()
+            index += 1   
+            for kid in family:
+                kid.linked = person
+                kid.address = address
+                kid.state = Person.APPLIED
+                kid.date_joined = person.date_joined
+                kid.save()
+                if profiles[index]:
+                    profiles[index].person = kid
+                    profiles[index].save()
+                index += 1            
+            clear_session(self.request)
+            return redirect('public-apply-thankyou')
+        else:
+            form.add_error(None, "This form has already been submitted.",)
+            return render(self.request, self.template_name, self.get_context_data(form=form))
+
+    def get_context_data(self, **kwargs):
+        return add_session_context(super(ApplySubmitView, self).get_context_data(**kwargs), self.request)
+
+
+class ApplyThankyouView(TemplateView):
+    template_name = 'public/apply_thankyou.html'

@@ -2,7 +2,6 @@ from django.contrib import admin
 from members.models import *
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
-from markdownx.admin import MarkdownxModelAdmin
 
 # Admin mods to support Excel import export
 class PersonResource(resources.ModelResource):
@@ -116,4 +115,3 @@ admin.site.register(Group, GroupAdmin)
 admin.site.register(MailType, MailTypeAdmin)
 admin.site.register(MailTemplate, MailTemplateAdmin)
 admin.site.register(MailCampaign, MailCampaignAdmin)
-admin.site.register(Editor, MarkdownxModelAdmin)

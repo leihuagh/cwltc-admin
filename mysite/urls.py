@@ -82,10 +82,7 @@ urlpatterns = [
         name='group-add-list'
     ),
 
-    url(r'^resign/$',
-        ResignedView.as_view(),
-        name='resigned'
-    ),
+
     url(r'^contact/$',
         ContactView.as_view(),
         name='contact'
@@ -93,14 +90,6 @@ urlpatterns = [
     url(r'^contact/(?P<person_id>\d+)/$',
         ContactView.as_view(),
         name='contact-person'
-    ),
-    url(r'^contact/resigned/(?P<person_id>\d+)$',
-        ContactView.as_view(resigned=True),
-        name='contact-resigned'
-    ),
-    url(r'^thankyou/$',
-        ThankyouView.as_view(),
-        name='thankyou'
     ),
     
     #   MEMBERSHIP CATEGORIES
@@ -260,6 +249,9 @@ urlpatterns = [
         ),
         name='all-people-list'
     ),
+    url(r'^people/applied/$', AppliedTableView.as_view(),
+        name='applied-list'),
+
     url(r'^list/$',
        PersonList.as_view(),
        name='person-list'

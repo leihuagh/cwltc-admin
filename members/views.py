@@ -31,7 +31,7 @@ from .forms import *
 from .mail import *
 from .excel import *
 from .filters import JuniorFilter, SubsFilter, InvoiceFilter, InvoiceItemFilter, PaymentFilter
-from .tables import InvoiceTable, InvoiceItemTable, PaymentTable
+from .tables import InvoiceTable, InvoiceItemTable, PaymentTable, ApplicantTable
 
 def permission_denied(view, request):
     '''
@@ -150,7 +150,6 @@ class SubsTableView(StaffuserRequiredMixin, SingleTableView):
         return redirect('home')
 
 
-
 class HomeView(StaffuserRequiredMixin, TemplateView):
     template_name = 'members/index.html'
 
@@ -160,6 +159,19 @@ class HomeView(StaffuserRequiredMixin, TemplateView):
         context['membership_year'] = Settings.current().membership_year
         context['db_name'] = settings.DATABASES['default']['NAME']
         return context
+
+
+class AppliedTableView(StaffuserRequiredMixin, SingleTableView):
+    '''
+    List of people who have applied to join
+    '''
+    template_name='members/person_table.html'
+    table_pagination={ "per_page":10000 }
+    table_class = ApplicantTable
+
+    def get_queryset(self):
+        return Person.objects.filter(state=Person.APPLIED).order_by('last_name')
+
 
 class PersonList(StaffuserRequiredMixin, ListView):
     model = Person
@@ -173,6 +185,7 @@ class PersonList(StaffuserRequiredMixin, ListView):
         context = super(PersonList, self).get_context_data(**kwargs)
         add_membership_context(context)
         return context
+
 
 class PersonActionMixin(object):
     """
@@ -394,7 +407,7 @@ def set_person_context(context, person):
 def ajax_people(request):
     '''
     Returns a list of people for autocomplete search field
-    If id field is sentm include the id after the name
+    If id field is sent include the id after the name
     '''
     if request.is_ajax():
         results = []

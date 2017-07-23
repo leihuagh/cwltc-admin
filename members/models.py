@@ -69,8 +69,8 @@ class Person(models.Model):
     state = models.SmallIntegerField(choices=STATES, default=ACTIVE)
     date_joined = models.DateField(null=True, blank=True)
     hex_key = models.CharField(max_length=50, null=True, blank=True)
-    allow_phone = models.BooleanField(default = True)
-    allow_email = models.BooleanField(default = True)
+    allow_phone = models.BooleanField(default=True)
+    allow_email = models.BooleanField(default=True)
     #
     membership = models.ForeignKey('Membership', blank=True, null=True)
     linked = models.ForeignKey('self', blank=True, null=True)
@@ -234,7 +234,9 @@ class AdultApplication(models.Model):
         (AD, 'Advertisement'),
         (OTHER, 'Other'),
         ]
-
+    membership_id = models.SmallIntegerField('Membership type',
+                                          choices = Membership.ADULT_CHOICES,
+                                          default = Membership.FULL)
     ability = models.SmallIntegerField('Judge your tennnis ability',
                                        choices = ABILITIES, default = BEGINNER)
     singles = models.BooleanField('Singles', default=False)
@@ -248,12 +250,9 @@ class AdultApplication(models.Model):
     teams = models.BooleanField('Team tennis', default=False)
 
     club = models.CharField('Name of previous tennis club (if any)',
-                            max_length=30)
+                            max_length=80, blank=True)
     source = models.SmallIntegerField('How did you hear about us?',
                                       choices = SOURCES, default = WEB,)
-    membership = models.SmallIntegerField('Membership category',
-                                          choices = Membership.JOIN_CHOICES, default = Membership.FULL)
-    rules = models.BooleanField('I agree to abide by the club rules', default=False)
     person = models.ForeignKey(Person)
       
 class Fees(models.Model):

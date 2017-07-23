@@ -1,23 +1,26 @@
-﻿<!DOCTYPE html>
+﻿{% extends "public/public_base.html" %}
 {% load staticfiles %}
 {% load members_extras %}
 {% load crispy_forms_tags %} 
-<html>
-  <head>
-      <meta charset="utf-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>ADULT Application form</title>
-      <link rel="stylesheet" type="text/css" href="{% static 'members/content/bootstrap.min.css' %}" />
-  </head>
-  <body>
-
-    <div class="container">
-      <img src="{% static "members/content/CWLTC logo small.png" %}"/>
-      <form method="post" action="" class="">
-        {% crispy form %}
-        {% crispy formset helper %}
-        <input class="submit" type="submit" value="Submit">
-      </form>
+{% block head %}
+   <title>ADULT Application Form</title>
+{% endblock %}
+{% block content %}
+  <form action="{% url 'public-apply-adult' %}" method="POST">
+    {% crispy form %}
+    {% crispy formset helper %}
+    <div class="form-actions">
+      <input type="submit" name="submit" value="Save" class="btn btn-primary" id="submit-save">
     </div>
-  </body>
-</html>
+  </form>
+{% endblock %}
+{% block scripts %}
+<script>
+$(document).ready(function(){
+    document.getElementById('id_adultapplication_set-0-applying').addEventListener('change', function () {
+        var style = this.value == 0 ? 'none' : 'block';
+        document.getElementById('profile').style.display = style;
+    });
+ });
+</script>
+{% endblock %}

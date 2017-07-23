@@ -1,10 +1,11 @@
 from django import forms
-from django.forms import Form, ModelForm
+from django.forms import Form, ModelForm, inlineformset_factory
 from django.contrib.auth.models import User
+from django.conf import settings
 from crispy_forms.helper import FormHelper, Layout
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder, BaseInput 
 from members.forms import SubmitButton
-from members.models import AdultApplication, Person, Address
+from members.models import AdultApplication, Person, Address, Membership
 
 class ContactForm(Form):
     message = forms.CharField(max_length=2000, required=True, widget=forms.Textarea)
@@ -18,38 +19,9 @@ class ContactForm(Form):
         postText = 'submit'
         if resigned:
             postText = 'resign'
-        self.helper.add_input(SubmitButton(postText, 'Send', css_class='btn-primary'))
+        self.helper.add_input(SubmitButton(postText, 'Send', css_class='btn-success'))
 
-class AdultApplicationForm(ModelForm):
-    class Meta:
-        model = AdultApplication
-        fields = ['ability',
-                  'singles', 'doubles', 'coaching1', 'coaching2', 'daytime', 'family', 'social', 'competitions', 'teams',
-                  'club', 'source', 'membership', 'rules']
-        
 
-class AdultApplicationFormHelper(FormHelper):
-
-    def __init__(self, *args, **kwargs):
-        super(AdultApplicationFormHelper, self).__init__(*args, **kwargs)      
-        self.form_class = 'form-horizontal'
-        self.label_class = 'col-sm-4 '
-        self.field_class = 'col-sm-8 '
-        self.form_method = 'post'
-        self.layout = Layout(
-            Fieldset('Please judge your tennis level:', 'ability'),
-            Fieldset("Tick all activities that interest you",
-                     'singles', 'doubles', 'coaching1', 'coaching2', 'daytime', 'family', 'social', 'competitions', 'teams',
-                    ), 
-            Fieldset('Name of previous tennis club (if any)', 'club'),
-            Fieldset('How did you hear about Coombe Wood?', 'source'),
-            Fieldset('Select the membership category', 'membership'),
-            Fieldset('I agree to obey the rules of the club', 'rules'), 
-            ButtonHolder(
-                SubmitButton('submit', 'Save', css_class='btn-primary'),
-                SubmitButton('cancel', 'Cancel', css_class='btn-default')
-                )
-            )
 
 class RegisterForm(Form):
     '''
@@ -181,3 +153,157 @@ class RegisterTokenForm(Form):
         
         return self.cleaned_data
 
+
+    # Forms for the application process
+
+class NameForm(ModelForm):
+    '''
+    Capture name but with no form tag because
+    may be combined with address form
+    '''   
+    class Meta:
+        model = Person
+        fields = [
+                'first_name',
+                'last_name',
+                'gender',
+                'dob',
+                #'state',
+                'email',
+                'mobile_phone',
+                #'british_tennis',
+                #'pays_own_bill',
+                #'notes']
+                ]
+        widgets = {'dob': forms.DateInput(attrs={'id': 'datepicker1'})}
+    
+    def __init__(self, *args, **kwargs):
+        super(NameForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True
+
+class AddressForm(ModelForm):
+    '''
+    Capture address but with no form tag
+    because may be combined with name form
+    '''   
+    class Meta:
+        model = Address
+        fields = ['address1', 'address2','town','post_code','home_phone']
+
+    def __init__(self, *args, **kwargs):
+        super(AddressForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True
+
+
+class AdultApplicationForm(ModelForm):
+    '''
+    Capture adult profile
+    '''   
+    class Meta:
+        model = AdultApplication
+        fields = [
+            'membership_id',
+            'ability',                                          
+            'singles',
+            'doubles',
+            'coaching1',
+            'coaching2',
+            'daytime',
+            'family',
+            'social',
+            'competitions',
+            'teams',
+            'club',
+            ]
+
+    def __init__(self, *args, **kwargs):
+        super(AdultApplicationForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    Div(
+                        Div('membership_id',
+                        'ability',
+                        'club',
+                        css_class = "well"),    
+                    css_class = "col-md-4"),  
+                    Div(
+                        Div(Fieldset('Tick all activities that interest you',
+                                 'singles', 'doubles', 'coaching1', 'coaching2', 'daytime', 'family', 'social', 'competitions', 'teams',
+                                ),
+                        css_class = "well"), 
+                    css_class = "col-md-4"),
+                css_class = "row"),
+            ButtonHolder(
+                SubmitButton('add', 'Add a family member', css_class='btn-success'),
+                SubmitButton('submit', 'Submit application', css_class='btn-success')
+                ),
+            )
+
+        )
+                
+
+
+class FamilyMemberForm(NameForm):
+    '''
+    Capture family member name and dob
+    '''
+    
+    def __init__(self, *args, **kwargs):
+        super(FamilyMemberForm, self).__init__(*args, **kwargs)
+        del self.fields['email']
+        del self.fields['mobile_phone']
+        self.helper = FormHelper(self)
+        self.helper.render_required_fields = False
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    Div('first_name', 'last_name', 'gender', 'dob',
+                        css_class="well"
+                        ),
+                    css_class="col-md-4"
+                    ),
+                css_class="row"
+                ),
+            Submit('next', 'Next', css_class='btn-success')
+            )
+
+
+class ApplyJuniorForm(Form):
+    notes = forms.CharField(max_length=100, required = False,
+                           widget=forms.Textarea,
+                           label = "Enter any special notes")
+    
+    def __init__(self, *args, **kwargs):
+        super(ApplyJuniorForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    Div('notes',
+                        css_class="well"),
+                    css_class="col-md-4"),
+                css_class="row"),
+            ButtonHolder(
+                SubmitButton('add', 'Add family member', css_class='btn-success'),
+                SubmitButton('submit', 'Submit application', css_class='btn-success'),
+                )
+            )
+
+class ApplySubmitForm(Form):
+    rules = forms.BooleanField(required=True, label="I agree to be bound by the club rules")
+
+    def __init__(self, *args, **kwargs):
+        super(ApplySubmitForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            'rules',
+            ButtonHolder(
+                SubmitButton('submit', 'Submit application', css_class='btn-success'),
+                )
+            )

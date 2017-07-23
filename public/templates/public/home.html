@@ -1,12 +1,9 @@
-{% extends "base.html" %}
+{% extends "public/public_base.html" %}
 {% load staticfiles %}
-{% block header %}
-{% endblock %}
 
 {% block content %}
   <div class="container body-content" style="background-color:white">
     <div class="row">
-      {% include '_logo_header.html' %}
       <div class="solidLine"></div>
       <img class="img-responsive" src="{% static "images/DronePicture.jpg" alt="Coombe wood courts" %}"/>
       <div class="solidLine"></div>
