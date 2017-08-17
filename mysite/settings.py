@@ -54,7 +54,6 @@ INSTALLED_APPS = (
     'club',
     'authentication',
     'django_nose',
-    'schedule',
 )
 
 MIDDLEWARE_CLASSES = (
