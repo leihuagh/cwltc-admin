@@ -11,6 +11,13 @@ body {
     background: rgb(195, 224, 186);
 }
 
+.fixed-panel {
+    min-height: 60vh;
+    max-height: 60vh;
+    overflow-y: scroll;
+}
+
+
 span.twitter-typeahead .tt-menu,
 span.twitter-typeahead .tt-dropdown-menu {
   position: absolute;

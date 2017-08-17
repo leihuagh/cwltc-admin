@@ -94,7 +94,7 @@ urlpatterns = [
     
     #   MEMBERSHIP CATEGORIES
     url(r'^categories/list/$',
-        CategoriesListView.as_view(),
+        MembershipTableView.as_view(),
         name='categories-list'
     ),
     #   FEES

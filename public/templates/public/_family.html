@@ -1,0 +1,15 @@
+﻿{% load members_extras %}
+<div class="row">
+  <div class="col-sm-4">
+    <div class="well well-sm">
+      <table class="table table-condensed">
+        <thead><tr><th>Applicants</th></tr></thead>
+        {% for p in family %}
+          <tr class="success">
+            <td>{{ p|index:0}}</td><td>{{ p|index:1}}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>

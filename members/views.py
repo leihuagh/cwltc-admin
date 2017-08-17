@@ -31,7 +31,7 @@ from .forms import *
 from .mail import *
 from .excel import *
 from .filters import JuniorFilter, SubsFilter, InvoiceFilter, InvoiceItemFilter, PaymentFilter
-from .tables import InvoiceTable, InvoiceItemTable, PaymentTable, ApplicantTable
+from .tables import InvoiceTable, InvoiceItemTable, PaymentTable, ApplicantTable, MembershipTable
 
 def permission_denied(view, request):
     '''
@@ -165,12 +165,17 @@ class AppliedTableView(StaffuserRequiredMixin, SingleTableView):
     '''
     List of people who have applied to join
     '''
-    template_name='members/person_table.html'
+    template_name='members/generic_table.html'
     table_pagination={ "per_page":10000 }
     table_class = ApplicantTable
 
     def get_queryset(self):
         return Person.objects.filter(state=Person.APPLIED).order_by('last_name')
+
+    def get_context_data(self, **kwargs):
+        context = super(AppliedTableView, self).get_context_data(**kwargs)
+        context['title'] = 'Applicants'
+        return context
 
 
 class PersonList(StaffuserRequiredMixin, ListView):
@@ -979,9 +984,17 @@ class FeesListView(StaffuserRequiredMixin, ListView):
 
 # ================ Membership categories
 
-class CategoriesListView(StaffuserRequiredMixin, ListView):
+
+class MembershipTableView(StaffuserRequiredMixin, SingleTableView):
     model = Membership
-    template_name= 'members/categories_list.html'
+    table_class = MembershipTable
+    template_name= 'members/generic_table.html'   
+    table_pagination={ "per_page":10000 }
+   
+    def get_context_data(self, **kwargs):
+        context = super(MembershipTableView, self).get_context_data(**kwargs)
+        context['title'] = 'Membership categories'
+        return context
 
 # ================ Invoice items
 

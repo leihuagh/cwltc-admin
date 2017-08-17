@@ -1,17 +1,10 @@
 ﻿{% extends "base.html" %}
 {% load staticfiles %}
-{% block head %}
-{% endblock %}
-{% block header %}
-{% endblock %}
 {% block navbar %}
   {% include "members/_navbar.html" %}
   {% include "members/_messages.html" %}
 {% endblock %}
-{% block content %}
-{% endblock %}  
-
-{% block scripts %}
+{% block typeahead %}
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
   <script src="{% static 'js/person_typeahead.js' %}"></script>
   <script>
@@ -19,4 +12,4 @@
     bind_typeahead('#search_nav', '#person_nav','#submit_nav')
   });
   </script>
-{% endblock %}
+{% endblock %} 

@@ -1,7 +1,7 @@
 import django_tables2 as tables
 from django_tables2.utils import A
 from django.conf import settings
-from members.models import Person, Subscription, Invoice, InvoiceItem, Payment
+from members.models import Person, Subscription, Invoice, InvoiceItem, Payment, Membership
 
 class PersonTable(tables.Table):
     
@@ -23,18 +23,18 @@ class PersonTable(tables.Table):
                                             },
                                       orderable=False)
 
+
 class ApplicantTable(tables.Table):
     
     class Meta:
         model = Person
-        fields = ('date_joined', 'first_name', 'last_name', 'email')
+        fields = ('first_name', 'last_name', 'date_joined', 'email', 'linked')
         attrs = {'class': 'table table-condensed'} 
-
-    membership = tables.Column(accessor='person.membership.description',
+ 
+    membership = tables.Column(accessor='membership.description',
                                 verbose_name='Membership',
                                 orderable=True)
     edit = tables.LinkColumn('person-detail', text='Edit', args=[A('pk')], orderable=False)
-
 
 
 class SubsTable(tables.Table):
@@ -83,6 +83,7 @@ class InvoiceTable(tables.Table):
                                         },
                                     orderable=False)
 
+
 class InvoiceItemTable(tables.Table):
           
     class Meta:
@@ -98,9 +99,7 @@ class InvoiceItemTable(tables.Table):
     created = tables.DateColumn(settings.DATE_FORMAT,
                                 verbose_name="Created",
                                 accessor='creation_date')
-
     amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
-
 
 
 class PaymentTable(tables.Table):
@@ -113,3 +112,9 @@ class PaymentTable(tables.Table):
     amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
     invoice = tables.LinkColumn('invoice-detail', text = lambda r: r.invoice_id, args=[A('invoice_id')], orderable=False)
     edit = tables.LinkColumn('payment-detail', text='Edit', args=[A('id')], orderable=False)
+
+class MembershipTable(tables.Table):
+
+    class Meta:
+        model = Membership
+        attrs = {'class': 'table table-condensed'} 

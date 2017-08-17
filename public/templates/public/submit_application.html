@@ -1,0 +1,108 @@
+﻿{% extends "public/public_base.html" %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+{% load members_extras %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="row">
+  <div class="col-sm-12">
+    <img class="img-responsive" src="{% static "images/panorama.jpg" alt="Coombe wood courts" %}"/>
+  </div>  
+</div>  
+<form class="form-horizontal" role="form" action="{% url "public-apply-submit" %}" method="post">{% csrf_token %}
+{% if family %}
+  {% include "public/_family.html" %}
+{% endif %}
+
+<div class="row">
+  <div class="col-sm-6">
+    <div class="well well-sm">
+      <ul>
+        <li class="checkbox">
+          <label><input type="checkbox"  name="rules" required>All people listed above agree to abide by the rules of the club</label>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+
+  {% if children %}
+    <div class="well">
+    <h4><strong>Parent / guardian declaration</strong> </h4>
+<p>
+      As the parent or guardian of {{ children }} you must agree to the following:
+</p>
+      <ul>
+        <li>
+{{ children }} may take part in the general activities of the club.
+        </li>
+        <li>
+All special care needs, dietary requirements, allergies or medical conditions that could affect your child's safety at the club have been recorded. <br/>
+
+     
+        </li>
+        <li>
+I will inform the club of any changes to the information provided on this form.
+        </li>
+      </ul>
+       <ul><li class="checkbox">
+      <label><input type="checkbox"  name="agree" required>I agree to all of the above</label>
+    </li></ul>
+    <strong>Photo consent</strong>
+    <p>
+      There are occasions when photographs of juniors are taken at the club for publicity purposes.
+      These may be displayed on the club's notice boards, web site, social media pages or promotional literature and occasionally may be sent to the local press.
+      <ul>
+        <li class="radio">
+          <label><input type="radio" name="photo" checked>I give consent for my child to be photographed</label>
+        </li>
+        <li class="radio">
+          <label><input type="radio" name="photo">I do not give consent for my child to be photographed</label>
+        </li>
+      </ul>
+    </p>
+      </div>
+  {% endif %}
+  <div class="well">
+      <strong>Privacy</strong>
+  <p>
+We take the privacy of your information seriously and will not share it with third parties without your permission. You can read our privacy policy
+    <a href="{% url 'privacy-policy' %}">here.</a>
+  </p>
+  <strong>Email</strong>
+  <p>
+  We manage membership applications and subsequent subscription renewals by email. It is a condition of membership that you consent 
+    to receiving such emails. <br/>
+  From time to time we also send newsletters and other club-related emails. You will have the opportunity to unsubscribe from such emails at any time.
+           <ul><li class="checkbox">
+    <label><input type="checkbox"  name="email" required>I agree to receive emails from Coombe Wood LTC</label>
+</li></ul>
+  </p>
+
+  {% if adult %}
+    <strong>Members database</strong>
+    <p>
+    The members database allows registered members to look up the email and phone details of other members for the purposes of arranging games.
+    You must consent to your details being visible if you wish to enter club tournaments.
+    </p>
+  <ul>
+    <li class="radio">
+      <label><input type="radio" name="database" class="check-margin10" checked>I agree to my email and phone number being visible</label>
+    </li>
+    <li class="radio">
+      <label><input type="radio" name="no_database">I do not agree to my email and phone number being visible</label>
+    </li>
+  </ul>
+  {% endif %}
+</div>
+  <input type="submit" name="back" class="btn btn-success" value="Back" formnovalidate >
+  <input type="submit" class="btn btn-success" value="Sumbit application" >
+</form>
+{% endblock %}
+
+
+
+
+

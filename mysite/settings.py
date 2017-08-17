@@ -23,7 +23,7 @@ else:
     DEBUG = True
     SECRET_KEY = ')_7av^!cy(wfx=k#3*7x+(=j^fzv+ot^1@sh9s9t=8$bu@r(z$'
     ALLOWED_HOSTS = []
-
+    DIGITAL_OCEAN = False
 if ON_PAAS and DEBUG:
     print("*** Warning - Debug mode is on ***")
 
@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'formtools',
     'import_export',
     'crispy_forms',
+    'django_extensions',
     'widget_tweaks',
     'rest_framework',
     'report_builder',
@@ -114,6 +115,17 @@ elif REMOTE_SANDBOX:
             'PASSWORD': 'M4lhCiAkIV-_',
             'HOST': '127.0.0.1',
             'PORT': '5433',
+            }
+        }
+elif DIGITAL_OCEAN:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'admin',
+            'USER': 'django',
+            'PASSWORD': '302453b9eabd041c355eda462965bc2a',
+            'HOST': '139.59.185.182',
+            'PORT': '5432',
             }
         } 
 else:  

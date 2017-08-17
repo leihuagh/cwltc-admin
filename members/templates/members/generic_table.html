@@ -1,0 +1,13 @@
+﻿{% extends "members/layout.html" %}
+{% load static %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+  <h2>{{ title }}</h2>
+
+{% render_table table 'django_tables2/table.html '%}
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'members/scripts/table_checkboxes.js' %}"></script>
+{% endblock %}

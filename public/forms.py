@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import Form, ModelForm, inlineformset_factory
+from django.forms import Form, ModelForm, HiddenInput, RadioSelect
 from django.contrib.auth.models import User
 from django.conf import settings
 from crispy_forms.helper import FormHelper, Layout
@@ -175,10 +175,18 @@ class NameForm(ModelForm):
                 #'pays_own_bill',
                 #'notes']
                 ]
-        widgets = {'dob': forms.DateInput(attrs={'id': 'datepicker1'})}
+        widgets = {'dob': forms.DateInput(attrs={'placeholder':'DD/MM/YYYY'})}
     
+    form_type = forms.CharField(initial='Name', widget=HiddenInput, required=False)
+
     def __init__(self, *args, **kwargs):
+        adult = kwargs.pop('adult', True)
+        back = kwargs.pop('back', False)
+        next = kwargs.pop('next', False)
         super(NameForm, self).__init__(*args, **kwargs)
+        if not adult:
+            del self.fields['dob']
+            del self.fields['gender']
         self.helper = FormHelper(self)
         self.helper.form_tag = False
         self.helper.disable_csrf = True
@@ -199,7 +207,7 @@ class AddressForm(ModelForm):
         self.helper.disable_csrf = True
 
 
-class AdultApplicationForm(ModelForm):
+class AdultProfileForm(ModelForm):
     '''
     Capture adult profile
     '''   
@@ -219,42 +227,46 @@ class AdultApplicationForm(ModelForm):
             'teams',
             'club',
             ]
+    form_type = forms.CharField(initial='Adult', widget=HiddenInput, required=False)
 
     def __init__(self, *args, **kwargs):
-        super(AdultApplicationForm, self).__init__(*args, **kwargs)
+        choices = kwargs.pop('choices', Membership.adult_choices())
+        delete = kwargs.pop('delete', False)
+        super(AdultProfileForm, self).__init__(*args, **kwargs)
+        self.fields['membership_id'].choices = choices
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
             Div(
-                Div(
                     Div(
-                        Div('membership_id',
-                        'ability',
-                        'club',
-                        css_class = "well"),    
-                    css_class = "col-md-4"),  
+                        Div('form_type', 'membership_id',
+                            HTML("""{% load members_extras %}
+                            {% for mem in memberships %}
+                            <strong>{{ mem|index:0 }} membership</strong><br/>
+                            Annual fee: &pound{{ mem|index:1 }}
+                            {% if mem|index:2 %} + Joining fee: &pound{{ mem|index:2 }} {% endif %}<br/>
+                            {{ mem|index:3 }}<br/><br/>
+                            {% endfor%}"""),   
+                            'club',
+                            css_class = "well"),    
+                        css_class = "col-md-4"),  
                     Div(
-                        Div(Fieldset('Tick all activities that interest you',
+                        Div('ability', HTML("<strong>Tick all activities that interest you:</strong>"),
                                  'singles', 'doubles', 'coaching1', 'coaching2', 'daytime', 'family', 'social', 'competitions', 'teams',
-                                ),
-                        css_class = "well"), 
+                                css_class = "well"),
                     css_class = "col-md-4"),
                 css_class = "row"),
-            ButtonHolder(
-                SubmitButton('add', 'Add a family member', css_class='btn-success'),
-                SubmitButton('submit', 'Submit application', css_class='btn-success')
-                ),
+            Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
+            Submit('next', 'Next >', css_class='btn btn-success')
             )
-
-        )
-                
+ 
 
 
 class FamilyMemberForm(NameForm):
     '''
     Capture family member name and dob
-    '''
-    
+    '''  
     def __init__(self, *args, **kwargs):
+        delete = kwargs.pop('delete', False)
         super(FamilyMemberForm, self).__init__(*args, **kwargs)
         del self.fields['email']
         del self.fields['mobile_phone']
@@ -263,47 +275,70 @@ class FamilyMemberForm(NameForm):
         self.helper.layout = Layout(
             Div(
                 Div(
-                    Div('first_name', 'last_name', 'gender', 'dob',
+                    Div('form_type', 'first_name', 'last_name', 'gender', 'dob',
                         css_class="well"
                         ),
                     css_class="col-md-4"
                     ),
                 css_class="row"
                 ),
-            Submit('next', 'Next', css_class='btn-success')
+            Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
+            Submit('next', 'Next >', css_class='btn-success')
             )
+        if delete:
+            self.helper.layout.append(Submit('delete', 'Delete applicant', css_class='btn-danger'))
 
 
-class ApplyJuniorForm(Form):
+class ChildProfileForm(Form):
+    form_type = forms.CharField(initial='Child', widget=HiddenInput, required=False)
+    membership_id = forms.CharField(required=False, widget=HiddenInput)
     notes = forms.CharField(max_length=100, required = False,
                            widget=forms.Textarea,
-                           label = "Enter any special notes")
+                           label = "Use the box below to describe any special care needs, dietary requirements, allergies or medical conditions:")
     
     def __init__(self, *args, **kwargs):
-        super(ApplyJuniorForm, self).__init__(*args, **kwargs)
+        delete = kwargs.pop('delete', False)
+        super(ChildProfileForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
             Div(
                 Div(
-                    Div('notes',
-                        css_class="well"),
-                    css_class="col-md-4"),
+                    Div('form_type', 'membership_id', 'notes', HTML("In the event of injury, illness or other medical need, all reasonable steps will be taken to contact you, and to deal with the situation appropriately."), css_class="well"),
+                    css_class="col-md-6"),
                 css_class="row"),
-            ButtonHolder(
-                SubmitButton('add', 'Add family member', css_class='btn-success'),
-                SubmitButton('submit', 'Submit application', css_class='btn-success'),
-                )
+            Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
+            Submit('next', 'Next >', css_class='btn btn-success')
+            )
+
+
+class ApplyNextActionForm(Form):
+
+    def __init__(self, *args, **kwargs):
+        delete = kwargs.pop('delete', False)
+        super(ApplyNextActionForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
+            SubmitButton('add', 'Add a family member', css_class='btn-success'),
+            SubmitButton('submit', 'Complete application', css_class='btn-success')
             )
 
 class ApplySubmitForm(Form):
+    PHOTO_CHOICES = ((True, 'I give consent to photographs being taken of my child'),
+                     (False, 'I do not give consent to photographs being taken of my child')
+                     )
+    CONTACT_CHOICES = ((True, 'I agree to my email mail and phone number being visible'),
+                      (False, 'I do not agree to my mail and phone number being visible')
+                      )     
+    photo_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=PHOTO_CHOICES))
+    contact_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=CONTACT_CHOICES))
+    test = forms.TypedChoiceField(widget=RadioSelect(choices=CONTACT_CHOICES))
     rules = forms.BooleanField(required=True, label="I agree to be bound by the club rules")
 
     def __init__(self, *args, **kwargs):
+        delete = kwargs.pop('delete', False)
+        children = kwargs.pop('children' , None)
         super(ApplySubmitForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper(self)
-        self.helper.layout = Layout(
-            'rules',
-            ButtonHolder(
-                SubmitButton('submit', 'Submit application', css_class='btn-success'),
-                )
-            )
+        if not children:
+            del self.fields['photo_consent']
+

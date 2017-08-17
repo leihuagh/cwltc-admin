@@ -1,28 +1,21 @@
 ﻿{% extends "public/public_base.html" %}
 {% load staticfiles %}
-{% load crispy_forms_tags %} 
+{% load crispy_forms_tags %}
+{% load members_extras %}
 {% block head %}
   <link rel="stylesheet" type="text/css"  href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.min.css" />
    <title>{{ title }}</title>
 {% endblock %}
 {% block content %}
-  {% if person %}
-    <div class="row">
-      <div class="col-sm-4">
-        <table class="table">
-          <tr>
-            <td>Adult:</td><td> {{ person.first_name }} {{ person.last_name }}</td>
-          </tr>
-          {% for p in family %}
-            <tr>
-              <td>Family member</td><td>{{ p.first_name }} {{ p.last_name }}</td>
-            </tr>
-          {% endfor %}
-        </table>
-      </div>
-    </div>
-  {% endif %}
-    <h2>{{ form_title }}</h2>
+<div class="row">
+  <div class="col-sm-12">
+    <img class="img-responsive" src="{% static "images/panorama.jpg" alt="Coombe wood courts" %}"/>
+  </div>  
+</div> 
+{% if family %}
+  {% include "public/_family.html" %}
+{% endif %}
+ <h3>{{ form_title }} {{ name }}</h3>
   {% if name_form %}
     <form action="{% url 'public-apply-main' %}" method="POST">
       <div class="row">
@@ -35,33 +28,34 @@
         <div class="col-md-4">
           <div class="well">
             {% crispy address_form %}
-          </div>
-          <input type="submit" name="next" value="Next" class="btn btn-success pull-right" id="id_next">
+          </div>       
         </div>
-      </div>   
+      </div> 
+      <input type="submit" name="next" value="Next >" class="btn btn-success" id="id_next">
     </form>
   {% else %}
+
     {% crispy form %} 
   {% endif %}
 
 {% endblock %}
 {% block scripts %}
 <!---https://github.com/uxsolutions/bootstrap-datepicker-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js"></script>#}
 <script>
-  $(document).ready(function () {
-    $(function () {
-      $('#datepicker1').datepicker({
-        endDate: "0d",
-        format: 'dd/mm/yyyy',
-        language: 'en-GB',
-        startView: 3,
-        minViewMode: 0,
-        maxViewMode: 3,
-        autoclose: true
-        });
-    });
- });
+ // $(document).ready(function () {
+ //   $(function () {
+ //     $('#datepicker1').datepicker({
+ //       endDate: "0d",
+ //       format: 'dd/mm/yyyy',
+ //       language: 'en-GB',
+ //       startView: 3,
+ //       minViewMode: 0,
+ //       maxViewMode: 3,
+ //       autoclose: true
+ //       });
+ //   });
+ //});
 
 </script>
 {% endblock %}

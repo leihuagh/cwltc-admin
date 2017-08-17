@@ -122,6 +122,7 @@ class Person(models.Model):
     def invoices(self, state):
         return self.invoice_set.filter(state=state).order_by('update_date')                           
 
+
 class Membership(models.Model):
     AUTO = -1
     FULL = 1
@@ -185,8 +186,10 @@ class Membership(models.Model):
         ]
 
     description = models.CharField(max_length=20, verbose_name='Membership')
+    long_description = models.CharField(max_length=300, verbose_name='Description', blank=True )
     is_adult = models.BooleanField(default=True)
     is_playing = models.BooleanField(default=True)
+    apply_online = models.BooleanField(default=True)
     cutoff_age = models.IntegerField(default=0)
     
     def __unicode__(self):
@@ -198,7 +201,28 @@ class Membership(models.Model):
         mem.save()
         return mem
 
-
+    @classmethod
+    def adult_choices(cls, membership_id=0, description=False):
+        '''
+        Return a list of adult membership choices for membership field
+        If description is set return descriptions else return list for choice widget
+        '''
+        if membership_id:
+            qs = Membership.objects.filter(pk=membership_id)
+        else:
+            qs = Membership.objects.filter(
+            is_adult=True, cutoff_age=0, apply_online=True
+            ).order_by('id')
+        if description:
+            year = Settings.current().membership_year
+            result = []
+            for record in qs:
+                fee=Fees.objects.filter(membership_id=record.id, sub_year=year)[0]
+                result.append([record.description, fee.annual_sub, fee.joining_fee, record.long_description])
+            return result
+        else:
+            return list(qs.values_list('id', 'description'))
+    
 class AdultApplication(models.Model):
     '''
     Additional data captured during application
@@ -253,7 +277,7 @@ class AdultApplication(models.Model):
                             max_length=80, blank=True)
     source = models.SmallIntegerField('How did you hear about us?',
                                       choices = SOURCES, default = WEB,)
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(Person, blank=True, null=True)
       
 class Fees(models.Model):
     membership = models.ForeignKey('Membership')
@@ -474,7 +498,7 @@ class Payment(models.Model):
     banked = models.BooleanField(default=False)
     banked_date = models.DateField(null=True)
     fee = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
-    invoice = models.ForeignKey(Invoice,blank=True, null=True)
+    invoice = models.ForeignKey(Invoice, blank=True, null=True)
 
     def __unicode__(self):
         return "Payment:{} amount:{} credited:{} state:{}".format(

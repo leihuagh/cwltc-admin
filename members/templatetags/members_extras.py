@@ -22,6 +22,13 @@ def get_option(options, key):
         return "{} is out of range".format(key)
 
 @register.filter
+def index(List, i):
+    '''
+    Gets value form indexed list
+    '''
+    return List[int(i)]
+
+@register.filter
 def classname(obj):
     '''
     Returns the classname of an object

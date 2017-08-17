@@ -2,13 +2,12 @@
 {% load staticfiles %}
 
 {% block content %}
-  <div class="container body-content" style="background-color:white">
     <div class="row">
-      <div class="solidLine"></div>
-      <img class="img-responsive" src="{% static "images/DronePicture.jpg" alt="Coombe wood courts" %}"/>
-      <div class="solidLine"></div>
+
+      <img class="img-responsive" src="{% static "images/Drone1200.jpg" alt="Coombe wood courts" %}"/>
+
     </div>    
-    <div class="row">
+    <div class="row" style="background-color:floralwhite">
       <div class="col-md-4">
         <h3>Members login</h3>
             <a class="btn btn-success" href="{% url 'login' %}">Login</a>
@@ -24,12 +23,12 @@
     
       </div>
       <div class="col-md-4">
-        <h3>Apply to join</h3>
-        <a class="btn btn-success" href="{% url 'public-apply-adult' %}">Application form</a>
-        <br />
-        <p>For all prospective members</p>
+        <h3>Apply for membership</h3>
+        <a class="btn btn-success" href="{% url 'public-apply-adult' %}">Adult application form</a>
+        <p>Use this form when an adult or a family is applying for membership</p>
+        <a class="btn btn-success" href="{% url 'public-apply-child' %}">Child application form</a>
+        <p>Use this form when only children are applying for membership</p>
       </div>
     </div>
-  </div>
 
 {% endblock %}
