@@ -30,7 +30,6 @@ urlpatterns = [
         HomeView.as_view(),
         name='home'
     ),
-    url(r'^schedule/', include('schedule.urls')),
     url(r'^mv/', include(django_mail_viewer_urls)),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
