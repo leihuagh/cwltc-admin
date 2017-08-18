@@ -47,7 +47,7 @@ INSTALLED_APPS = (
     'django_mail_viewer',
     'django_tables2',
     'coverage',
-	'members',
+    'members',
     'gc_app',
     'pos',
     'public',
