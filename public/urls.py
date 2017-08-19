@@ -15,7 +15,7 @@ urlpatterns = [
     url(r'apply/addchild/(?P<index>\d+)/(?P<membership_id>\d+)/$', ApplyChildProfileView.as_view(),
        name='public-apply-addchild'),
     url(r'apply/submit/$', ApplySubmitView.as_view(), name='public-apply-submit'),
-    url(r'apply/thankyou/$', ApplyThankyouView.as_view(), name='public-apply-thankyou'),
+    url(r'apply/thankyou/$', ApplyThankYouView.as_view(), name='public-apply-thankyou'),
     url(r'register/$', RegisterView.as_view(), name='public-register'),
     url(r'register/person/(?P<token>.+)/$', RegisterTokenView.as_view(), name='public-register2'),
     url(r'thankyou/$', ThankyouView.as_view(), name='public-thankyou'),

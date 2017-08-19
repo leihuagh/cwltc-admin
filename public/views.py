@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from formtools.wizard.views import SessionWizardView
 from django.views.generic.edit import FormView, ProcessFormView
-from django.forms import Form, inlineformset_factory
+from django.forms import Form
 
 from members.models import Group, Invoice, Person, MailType, AdultApplication, Settings, Subscription
 from members import mail
@@ -22,10 +22,11 @@ from members.services import membership_from_dob
 
 # ================= Public Views accessed through a token
 
+
 class MailTypeSubscribeView(TemplateView):
-    '''
+    """
     Displays a form with checkboxes that allows a user to unsubscribe
-    '''
+    """
     template_name = 'public/mailtype_manage.html'
 
     def get_context_data(self, **kwargs):
@@ -61,8 +62,8 @@ class MailTypeSubscribeView(TemplateView):
     def post(self, request, *args, **kwargs):
         self.get_person()
         checklist = request.POST.getlist('checks')
-        mailtypes = MailType.objects.all()
-        for m in mailtypes:
+        mail_types = MailType.objects.all()
+        for m in mail_types:
             if str(m.id) in checklist:
                 m.person_set.remove(self.person)
             else:
@@ -72,6 +73,7 @@ class MailTypeSubscribeView(TemplateView):
         else:
             messages.info(request, "Your mail choices have been saved")
             return redirect(self.person)
+
 
 class InvoicePublicView(DetailView):
     model = Invoice
@@ -105,6 +107,7 @@ class InvoicePublicView(DetailView):
             group = group_get_or_create("2017Resign")
             invoice.person.groups.add(group)
             return redirect(reverse('contact-resigned', kwargs={'person_id': invoice.person.id}))
+
 
 class ContactView(FormView):
     form_class = ContactForm
@@ -164,10 +167,10 @@ class PublicHomeView(TemplateView):
 
 
 class RegisterView(FormView):
-    '''
+    """
     Capture details of an existing member so they
     can register for the system
-    '''
+    """
     template_name = 'public/crispy_form.html'
     form_class = RegisterForm
 
@@ -184,10 +187,10 @@ class RegisterView(FormView):
    
 
 class RegisterTokenView(FormView):
-    '''
+    """
     Register a member identified in a token
     Creates a link from Person to User in auth system
-    '''
+    """
     template_name = 'public/crispy_form.html'
     form_class = RegisterTokenForm
 
@@ -210,30 +213,32 @@ class RegisterTokenView(FormView):
 class LoginView(FormView):
     template_name = 'public/start.html'
 
-#========== APPLICATION FORM HANDLING ============
+# ========== APPLICATION FORM HANDLING ============
 
 def add_session_context(context, request):
-    '''
+    """
     Add all session variables to context
-    '''
+    """
     context['person'] = request.session['person']
     context['address'] = request.session['address']
    # context['family'] = request.session['family']
     return context
 
+
 def clear_session(request):
-    '''
+    """
     Clear session variables
-    '''
+    """
     request.session['person'] = None
     request.session['address'] = None
     request.session['family'] = []
     request.session['posts'] = []
 
+
 def session_update_post(index, request):
-    '''
+    """
     Save request.POST data in session at index
-    '''
+    """
     posts = request.session['posts']
     request.POST._mutable = True
     request.POST['path'] = request.path
@@ -243,32 +248,35 @@ def session_update_post(index, request):
         posts[index] = request.POST
     request.session['posts'] = posts
 
+
 def session_get_post(index, request):
-    '''
+    """
     Return post data for index else None
-    '''
+    """
     posts = request.session['posts']
     if index >= 0 and index < len(posts):
         return posts[index]
     return None
 
+
 def session_delete_post(index, request):
-    '''
+    """
     Delete post data for index
     If it is not the last one in the list,
     delete the next record (profile) too
-    '''
+    """
     posts = request.session['posts']
     if index < len(posts):
         posts[index]['deleted'] = True
         if index + 1< len(posts):
             posts[index + 1]['deleted'] = True
         request.session.modified = True
- 
+
+
 def session_next_index(index, request):
-    '''
+    """
     Return next index, skipping deleted records
-    '''
+    """
     posts = request.session['posts']
     i = index
     while i + 1 < len(posts):
@@ -276,11 +284,12 @@ def session_next_index(index, request):
         if not posts[i].get('deleted', False):
             return i
     return len(posts)
-            
+
+
 def session_back(index, request):
-    '''
+    """
     Return previous path, skipping deleted records
-    '''
+    """
     posts = request.session['posts']
     while index > 0:
         index -= 1
@@ -288,15 +297,17 @@ def session_back(index, request):
             return posts[index]['path']
     return posts[0]['path']
 
+
 #def session_previous_path(index, request):
-#    '''
+#    """
 #    Return path of previous form view
 #    Index = 0 means we want last page before submit
-#    '''
+#    """
 #    if index == 0:
 #        index = len(request.session['posts'])
 #    post = session_get_post(index - 1, request)
 #    return post['path']
+
 
 def session_update_kwargs(view, kwargs):
     if view.request.method == 'GET':
@@ -306,16 +317,18 @@ def session_update_kwargs(view, kwargs):
             kwargs.update({'delete': True})
     return kwargs
 
+
 def session_last_index(request):
-    '''
+    """
     return the next free index
-    '''
+    """
     return len(request.session['posts']) - 1
 
+
 def build_family(request):
-    '''
+    """
     Return a list of name and membership for each family member
-    '''
+    """
     posts = request.session['posts']
     i = 0
     family = []
@@ -337,10 +350,11 @@ def build_family(request):
             i += 1
     return family
 
+
 def build_children(request):
-    '''
+    """
     Return a string of comma separated child names (if any)
-    '''
+    """
     posts = request.session['posts']
     i = 1
     children = ""
@@ -359,29 +373,29 @@ def build_children(request):
 
 
 class ApplyAdult(View):
-    '''
+    """
     Start the application process for adult or family
-    '''
-    def get(self, request, *args, **kwargs):
+    """
+    def get(self, request):
         clear_session(request)
         request.session['adult'] = True
         return redirect('public-apply-main')       
 
 
 class ApplyChild(View):
-    '''
+    """
     Start the application process for children only
-    '''
-    def get(self, request, *args, **kwargs):
+    """
+    def get(self, request):
         clear_session(request)
         request.session['adult'] = False
         return redirect('public-apply-main') 
 
 
 class ApplyMain(TemplateView):
-    '''
+    """
     Get name and address of main applicant
-    '''
+    """
     template_name = 'public/application.html'
 
     def get(self, request, *args, **kwargs):
@@ -408,7 +422,7 @@ class ApplyMain(TemplateView):
                 request.session['address'] = self.address_form.save(commit=False)
                 session_update_post(0, request)
 
-                if not 'dob' in request.POST:
+                if 'dob' not in request.POST:
                     return redirect('public-apply-add', index=1)
                 else:
                     dob = self.name_form.cleaned_data['dob']
@@ -429,18 +443,19 @@ class ApplyMain(TemplateView):
 
 
 class ApplyAddView(CreateView):
-    '''
+    """
     Get name and dob of next family member
     Also handles deletion of member when page revisited
-    '''
+    """
     template_name = 'public/application.html'
     form_class = FamilyMemberForm
     model = Person
+    index = -1
 
     def dispatch(self, request, *args, **kwargs):
         self.index = int(self.kwargs['index'])
         return super(ApplyAddView, self).dispatch(request, *args, **kwargs)   
-    
+
     def get_form_kwargs(self):      
         kwargs = super(ApplyAddView, self).get_form_kwargs()
         kwargs['initial']={'last_name': self.request.session['person'].last_name}
@@ -480,9 +495,9 @@ class ApplyAddView(CreateView):
 
 
 class ApplyAdultProfileView(CreateView):
-    '''
+    """
     Get adult membership type and profile
-    '''
+    """
     template_name = 'public/application.html'
     form_class = AdultProfileForm
     
@@ -491,7 +506,7 @@ class ApplyAdultProfileView(CreateView):
         self.membership_id = int(self.kwargs['membership_id'])
         last_post = session_get_post(self.index - 1, self.request)
         self.full_name = last_post['first_name'] + " " + last_post['last_name']
-        return super(ApplyAdultProfileView, self).dispatch(request, *args, **kwargs)      
+        return super(ApplyAdultProfileView, self).dispatch(request, *args, **kwargs)
     
     def get_form_kwargs(self):      
         kwargs = super(ApplyAdultProfileView, self).get_form_kwargs()
@@ -517,9 +532,9 @@ class ApplyAdultProfileView(CreateView):
 
 
 class ApplyChildProfileView(FormView):
-    '''
+    """
     Get child notes
-    '''
+    """
     template_name = 'public/application.html'
     form_class = ChildProfileForm
    
@@ -559,9 +574,9 @@ class ApplyChildProfileView(FormView):
 
 
 class ApplyNextActionView(FormView):
-    '''
+    """
     Decide to Add another member or submit
-    '''
+    """
     template_name = 'public/application.html'
     form_class = ApplyNextActionForm
 
@@ -579,20 +594,20 @@ class ApplyNextActionView(FormView):
 
 
 class ApplySubmitView(TemplateView):
-    '''
+    """
     Confirm everything and get acceptance
     Add all to database
-    '''
-    template_name='public/submit_application.html'
+    """
+    template_name = 'public/submit_application.html'
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context_data(**kwargs))
 
     def post(self, request, *args, **kwargs):
         if 'back' in request.POST:
-            return redirect(session_back(self.index, request))
+            return redirect(session_back(0, request))
 
- #       if not request.POST.get['rules', None]:
+#       if not request.POST.get['rules', None]:
         try:
             person = self.request.session['person']
             address = self.request.session['address']
@@ -664,8 +679,9 @@ class ApplySubmitView(TemplateView):
         return super(ApplySubmitView, self).get_context_data(**kwargs)
 
 
-class ApplyThankyouView(TemplateView):
+class ApplyThankYouView(TemplateView):
     template_name = 'public/apply_thankyou.html'
+
 
 class PrivacyPolicyView(TemplateView):
     template_name = 'public/privacy_policy.html'
