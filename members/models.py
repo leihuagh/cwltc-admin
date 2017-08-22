@@ -26,7 +26,9 @@ class Address(models.Model):
     def get_absolute_url(self):
         return reverse("person-detail", kwargs={"pk": self.pk})
 
+
 class ParentsManager(models.Manager):
+
     def get_queryset(self):
         kids =  Person.objects.filter(sub__membership__is_adult=False).values_list('linked_id')
         parents = Person.objects.filter(id__in=kids)

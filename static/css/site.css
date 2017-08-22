@@ -7,10 +7,6 @@ body {
     padding-top: 50px;
 }
 
-.well {
-    background: rgb(195, 224, 186);
-}
-
 .fixed-panel {
     min-height: 60vh;
     max-height: 60vh;

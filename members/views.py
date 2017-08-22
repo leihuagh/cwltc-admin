@@ -34,18 +34,19 @@ from .filters import JuniorFilter, SubsFilter, InvoiceFilter, InvoiceItemFilter,
 from .tables import InvoiceTable, InvoiceItemTable, PaymentTable, ApplicantTable, MembershipTable
 
 def permission_denied(view, request):
-    '''
+    """
     Redirect to login with error message when user has not got staff permission
-    '''
+    """
     messages.error(request, "You are logged in as {} but don't have permission to access {}.\
     Would you like to login as a different user?".format(request.user, request.path))
     return redirect('login')
 
+
 class PagedFilteredTableView(SingleTableView):
-    '''
+    """
     Generic view for django tables 2 with filter
     http://www.craigderington.me/django-generic-listview-with-django-filters-and-django-tables2/
-    '''
+    """
     filter_class = None
     formhelper_class = None
     context_filter_name = 'filter'
@@ -64,8 +65,9 @@ class PagedFilteredTableView(SingleTableView):
         context[self.context_filter_name] = self.filter
         return context
 
+
 class SubsTableView(StaffuserRequiredMixin, SingleTableView):
-    #http://stackoverflow.com/questions/13611741/django-tables-column-filtering/15129259#15129259
+    # http://stackoverflow.com/questions/13611741/django-tables-column-filtering/15129259#15129259
     raise_exception = permission_denied
     filter_class = None
     juniors = False
@@ -75,9 +77,9 @@ class SubsTableView(StaffuserRequiredMixin, SingleTableView):
     table_pagination={ "per_page":10000 }
 
     def get_table_data(self):
-        '''
+        """
         Perform the query and do the filtering
-        '''
+        """
         year = Settings.current().membership_year
 
         
@@ -114,10 +116,10 @@ class SubsTableView(StaffuserRequiredMixin, SingleTableView):
         return context
 
     def post(self, request, *args, **kwargs):
-        '''
+        """
         POST builds a list of selected people ids in a session variable
         and calls the action routine
-        '''
+        """
         request.session['selected_people_ids'] = request.POST.getlist('selection')
         request.session['source_path'] = request.META['HTTP_REFERER']
         action = request.POST['action']
@@ -162,11 +164,11 @@ class HomeView(StaffuserRequiredMixin, TemplateView):
 
 
 class AppliedTableView(StaffuserRequiredMixin, SingleTableView):
-    '''
+    """
     List of people who have applied to join
-    '''
-    template_name='members/generic_table.html'
-    table_pagination={ "per_page":10000 }
+    """
+    template_name = 'members/generic_table.html'
+    table_pagination = { "per_page":10000 }
     table_class = ApplicantTable
 
     def get_queryset(self):
@@ -236,6 +238,7 @@ class PersonCreateView(StaffuserRequiredMixin, PersonActionMixin, CreateView):
             return reverse('sub-create', kwargs={'person_id': self.form.person.id})
         return reverse('person-detail', kwargs={'pk': self.form.person.id})
 
+
 class PersonUpdateView(StaffuserRequiredMixin, PersonActionMixin, UpdateView):
     model = Person
     template_name = 'members/generic_crispy_form.html'
@@ -244,6 +247,7 @@ class PersonUpdateView(StaffuserRequiredMixin, PersonActionMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['pk']})
+
 
 class PersonLinkView(StaffuserRequiredMixin, TemplateView):
     template_name = 'members/person_link_merge.html'
@@ -275,6 +279,7 @@ class PersonLinkView(StaffuserRequiredMixin, TemplateView):
                 messages.error(request, "No person selected")
         return redirect('person-link', pk=child.id)
 
+
 class PersonMergeView(StaffuserRequiredMixin, TemplateView):
     template_name = 'members/person_link_merge.html'
 
@@ -303,6 +308,7 @@ class PersonUnlinkView(StaffuserRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         person = Person.objects.get(pk=self.kwargs['pk'])
 
+
 class JuniorCreateView(StaffuserRequiredMixin, PersonActionMixin, CreateView):
     model = Person
     template_name = 'members/junior_form.html'
@@ -322,6 +328,7 @@ class JuniorCreateView(StaffuserRequiredMixin, PersonActionMixin, CreateView):
 
     def get_success_url(self):
         return reverse('sub-create', kwargs={'person_id': self.form.junior.id})
+
 
 class PersonDetailView(StaffuserRequiredMixin, DetailView):
     model = Person
@@ -366,7 +373,7 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
         return redirect(person)
 
 def add_membership_context(context):
-    ''' Add membership dictionary to context '''
+    """ Add membership dictionary to context """
     mem_dict = {}
     for mem in Membership.objects.all():
         mem_dict[mem.id] = mem.description
@@ -409,11 +416,12 @@ def set_person_context(context, person):
     context['payments'] = person.payment_set.all().order_by('update_date')
     return context
 
+
 def ajax_people(request):
-    '''
+    """
     Returns a list of people for autocomplete search field
     If id field is sent include the id after the name
-    '''
+    """
     if request.is_ajax():
         results = []
         q = request.GET.get('term','')
@@ -441,11 +449,12 @@ def ajax_people(request):
         mimetype = 'application/json'
         return HttpResponse(data, mimetype)
 
+
 def search_person(request):
-    '''
+    """
     Redirect to a person detail page
     In response to a search on the navbar
-    '''
+    """
     id = request.GET.get('person_nav')
     return redirect(reverse('person-detail', kwargs={'pk':id}))
 
@@ -501,11 +510,13 @@ class GroupCreateView(StaffuserRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('group-list')
 
+
 class GroupListView(StaffuserRequiredMixin, ListView):
-    ''' List all groups'''
+    """ List all groups"""
     model = Group
     template_name = 'members/group_list.html'
     context_object_name = 'groups'
+
 
 class GroupDetailView(StaffuserRequiredMixin, DetailView):
     model = Group
@@ -540,6 +551,7 @@ class GroupDetailView(StaffuserRequiredMixin, DetailView):
             return redirect(reverse('email-group', kwargs={'group': group.id}))
         return redirect(reverse('group-list'))
 
+
 class GroupAddPersonView(StaffuserRequiredMixin, FormView):
     form_class = GroupAddPersonForm
     template_name = 'members/generic_crispy_form.html'
@@ -563,6 +575,7 @@ class GroupAddPersonView(StaffuserRequiredMixin, FormView):
 
     def get_success_url(self):
         return reverse('group-detail', kwargs={'pk':self.group.id})
+
 
 class GroupAddListView(StaffuserRequiredMixin, FormView):
     form_class = GroupAddPersonForm
@@ -598,7 +611,7 @@ class SubCreateView(StaffuserRequiredMixin, CreateView):
     template_name = 'members/subscription_form.html'
 
     def get_form_kwargs(self):
-        ''' pass the person_id to the form '''
+        """ pass the person_id to the form """
         kwargs = super(SubCreateView, self).get_form_kwargs()
         kwargs.update({'person_id': self.kwargs['person_id']})
         return kwargs
@@ -628,13 +641,14 @@ class SubCreateView(StaffuserRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['person_id']})
 
+
 class SubUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Subscription
     form_class = SubscriptionForm
     template_name = 'members/subscription_form.html'
 
     def get_form_kwargs(self):
-        ''' pass the person_id to the form '''
+        """ pass the person_id to the form """
         sub = self.get_object()
         kwargs = super(SubUpdateView, self).get_form_kwargs()
         kwargs.update({'person_id': sub.person_member_id})
@@ -680,14 +694,16 @@ class SubUpdateView(StaffuserRequiredMixin, UpdateView):
         subscription_create_invoiceitems(sub, sub.start_date.month)
         return reverse('person-detail', kwargs={'pk':sub.person_member_id})
 
+
 class SubCorrectView(StaffuserRequiredMixin, UpdateView):
-    ''' standard model view that skips validation '''
+    """ standard model view that skips validation """
     model = Subscription
     form_class = SubCorrectForm
 
     def get_success_url(self):
         subscription_activate(self.get_object())
         return reverse('person-detail', kwargs={'pk':sub.person_member_id})
+
 
 class SubDetailView(StaffuserRequiredMixin, DetailView):
     model = Subscription
@@ -704,8 +720,9 @@ class SubDetailView(StaffuserRequiredMixin, DetailView):
                 break
         return context
 
+
 class SubHistoryView(StaffuserRequiredMixin, ListView):
-    ''' Subs history for 1 person '''
+    """ Subs history for 1 person """
     model = Subscription
     template_name = 'members/subscription_history.html'
     context_object_name = 'subs'
@@ -718,6 +735,7 @@ class SubHistoryView(StaffuserRequiredMixin, ListView):
         context = super(SubHistoryView, self).get_context_data(**kwargs)
         context['person'] = self.person
         return context
+
 
 class SubRenewAllView(StaffuserRequiredMixin, FormView):
     form_class = YearConfirmForm
@@ -740,12 +758,13 @@ class SubRenewAllView(StaffuserRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('home')
 
+
 class SubRenewSelectionView(StaffuserRequiredMixin, FormView):
-    '''
+    """
     Renew a selected list of subscriptions
     If the list contains only one person, redirect to the person
     else redirect to the source path 
-    '''
+    """
     form_class = YearConfirmForm
     template_name = 'members/generic_crispy_form.html'
 
@@ -783,6 +802,7 @@ class SubRenewSelectionView(StaffuserRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('home')
 
+
 class SubRenewBatch(StaffuserRequiredMixin, FormView):
     form_class = XlsMoreForm
     template_name = 'members/import_more.html'
@@ -800,7 +820,7 @@ class SubRenewBatch(StaffuserRequiredMixin, FormView):
 # ============ Year end
 
 class YearEndView(StaffuserRequiredMixin, FormView):
-    ''' Manage setting '''
+    """ Manage setting """
     form_class = SettingsForm
     template_name = 'members/generic_crispy_form.html'
 
@@ -893,8 +913,9 @@ class YearEndView(StaffuserRequiredMixin, FormView):
             state=Invoice.UNPAID, membership_year=year, gocardless_bill_id='', total__gt=0)
         return invs
 
+
 class SubInvoiceCancel(StaffuserRequiredMixin, View):
-    ''' Deletes unpaid items and invoices associated with a sub '''
+    """ Deletes unpaid items and invoices associated with a sub """
     
     def get(self, request, *args, **kwargs):
         sub = get_object_or_404(Subscription, pk = self.kwargs['pk'])
@@ -913,7 +934,8 @@ class FeesCreateView(StaffuserRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse('fees-list')   
-   
+
+
 class FeesUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Fees
     form_class = FeesForm
@@ -940,6 +962,8 @@ class FeesUpdateView(StaffuserRequiredMixin, UpdateView):
         return reverse('fees-list',
                        kwargs={'year': self.get_object().sub_year} 
                       )
+
+
 
 class FeesListView(StaffuserRequiredMixin, ListView):
     model = Fees
@@ -984,7 +1008,6 @@ class FeesListView(StaffuserRequiredMixin, ListView):
 
 # ================ Membership categories
 
-
 class MembershipTableView(StaffuserRequiredMixin, SingleTableView):
     model = Membership
     table_class = MembershipTable
@@ -1010,6 +1033,7 @@ class InvoiceItemListView(StaffuserRequiredMixin, ListView):
         context['state_list'] = Invoice.STATES
         return context
 
+
 class InvoiceItemCreateView(StaffuserRequiredMixin, CreateView):
     model = InvoiceItem
     form_class = InvoiceItemForm
@@ -1028,6 +1052,7 @@ class InvoiceItemCreateView(StaffuserRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.person = Person.objects.get(pk = self.kwargs['person_id'])
         return super(InvoiceItemCreateView, self).form_valid(form)
+
 
 class InvoiceItemUpdateView(StaffuserRequiredMixin, UpdateView):
     model = InvoiceItem
@@ -1053,9 +1078,11 @@ class InvoiceItemUpdateView(StaffuserRequiredMixin, UpdateView):
             item.delete()
             return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':person_id}))
 
+
 class InvoiceItemDetailView(StaffuserRequiredMixin, DetailView):
     model = InvoiceItem
     template_name = 'members/invoiceitem_detail.html'
+
 
 class InvoiceItemTableView(StaffuserRequiredMixin, PagedFilteredTableView):
 
@@ -1114,12 +1141,11 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
         context['lines'] = self.table_pagination['per_page']
         return context
 
-    
     def post(self, request, *args, **kwargs):
-        '''
+        """
         POST builds a list of selected people ids in a session variable
         and calls the action routine
-        '''
+        """
         request.session['source_path'] = request.META['HTTP_REFERER']
         
         action = request.POST['action']
@@ -1145,112 +1171,114 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
 
         return redirect('home')
 
-class InvoiceListViewx(StaffuserRequiredMixin, FormMixin, ListView):
-    form_class = InvoiceFilterForm
-    model = Invoice
-    template_name = 'members/invoice_list.html'
 
-    def get(self, request, *args, **kwargs):
-        ''' GET return HTML '''
-        # From ProcessFormMixin
-        self.form = self.get_form(self.form_class)
-        # From BaseListView
-        self.object_list = self.get_queryset()
-        context = self.get_context_data()
-        return self.render_to_response(context)
+# class InvoiceListViewx(StaffuserRequiredMixin, FormMixin, ListView):
+#     form_class = InvoiceFilterForm
+#     model = Invoice
+#     template_name = 'members/invoice_list.html'
+#
+#     def get(self, request, *args, **kwargs):
+#         """ GET return HTML """
+#         # From ProcessFormMixin
+#         self.form = self.get_form(self.form_class)
+#         # From BaseListView
+#         self.object_list = self.get_queryset()
+#         context = self.get_context_data()
+#         return self.render_to_response(context)
+#
+#     def post(self, request, *args, **kwargs):
+#         """ POST handles submit and ajax request """
+#         self.form = self.get_form(self.form_class)
+#         if self.form.is_valid():
+#             self.object_list = self.get_queryset()
+#
+#             if request.is_ajax():
+#                 context = self.get_context_data()
+#                 context['checkboxes'] = False
+#                 html = render_to_string('members/_invoice_list.html', context)
+#                 dict = {"data": html}
+#                 return JsonResponse(dict, safe=False)
+#
+#             if 'view' in self.form.data:
+#                 """ show the rendered mail fro the first unpaid invoice """
+#                 for inv in self.object_list:
+#                     if inv.state == Invoice.UNPAID and (
+#                             inv.gocardless_bill_id == "") and (
+#                             inv.total > 0):
+#                         return do_mail(request, inv, 'view')
+#                 return HttpResponse('No unpaid mails to view')
+#
+#             if 'mail' in self.form.data:
+#                 count = 0
+#                 for inv in self.object_list:
+#                     if inv.state == Invoice.UNPAID and (
+#                             inv.gocardless_bill_id == "") and (
+#                             inv.total > 0):
+#                         count += do_mail(request, inv, 'send')
+#                 return HttpResponse("Sent {} mails for {} invoices".format(
+#                     count, self.object_list.count()))
+#
+#             if 'export' in self.form.data:
+#                 return export_invoices(self.object_list)
+#
+#         context = self.get_context_data()
+#         return self.render_to_response(context)
+# 
+#     def get_queryset(self):
+#         form = self.form
+#         # default settings for initial get which does not use the form
+#         year = Settings.current().membership_year
+#         start_datetime = datetime(year, Subscription.START_MONTH-1,1)
+#         end_datetime = datetime.combine(date.today(), time(23, 59, 59))
+#         q_paid = Invoice.PAID_IN_FULL
+#         q_unpaid = Invoice.UNPAID
+#         q_cancelled = -1
+#         if getattr(form, 'cleaned_data', None):
+#             q_paid = -1
+#             q_unpaid = -1
+#             q_cancelled = -1
+#             if form.cleaned_data['membership_year']:
+#                 year = form.cleaned_data['membership_year']
+#             if form.cleaned_data['start_datetime']:
+#                 start_datetime = form.cleaned_data['start_datetime']
+#             if form.cleaned_data['end_datetime']:
+#                 end_datetime = form.cleaned_data['end_datetime']
+#             if form.cleaned_data['membership_year']:
+#                 year = form.cleaned_data['membership_year']
+#             if form.cleaned_data['paid']:
+#                 q_paid = Invoice.PAID_IN_FULL
+#             if form.cleaned_data['unpaid']:
+#                 q_unpaid = Invoice.UNPAID
+#             if form.cleaned_data['cancelled']:
+#                 q_cancelled = Invoice.CANCELLED
+#         queryset = Invoice.objects.filter(
+#             membership_year=year,
+#             creation_date__gte=start_datetime,
+#             creation_date__lte=end_datetime).filter(
+#                 Q(state=q_paid) |
+#                 Q(state=q_unpaid) |
+#                 Q(state=q_cancelled)
+#             ).select_related(
+#                 'person'
+#             ).order_by(
+#                 'person__last_name'
+#             )
+#         return queryset
+# 
+#     def get_context_data(self, **kwargs):
+#         context = super(InvoiceListViewx, self).get_context_data(**kwargs)
+#         context['state_list'] = Invoice.STATES
+#         context['invoices'] = self.object_list
+#         context['form'] = self.form
+#         context['count'] = self.object_list.count()
+#         context['total'] = self.object_list.aggregate(Sum('total'))['total__sum']
+#         context['pending'] = self.object_list.filter(
+#             state=Invoice.UNPAID).exclude(
+#                 gocardless_bill_id="").aggregate(
+#                     Sum('total')
+#                     )['total__sum']
+#         return context
 
-    def post(self, request, *args, **kwargs):
-        ''' POST handles submit and ajax request '''
-        self.form = self.get_form(self.form_class)
-        if self.form.is_valid():
-            self.object_list = self.get_queryset()
-
-            if request.is_ajax():
-                context = self.get_context_data()
-                context['checkboxes'] = False
-                html = render_to_string('members/_invoice_list.html', context)
-                dict = {"data": html} 
-            return JsonResponse(dict, safe=False)
-
-            if 'view' in self.form.data:
-                ''' show the rendered mail fro the first unpaid invoice '''
-                for inv in self.object_list:
-                    if inv.state == Invoice.UNPAID and (
-                            inv.gocardless_bill_id == "") and (
-                            inv.total > 0):
-                        return do_mail(request, inv, 'view')
-                return HttpResponse('No unpaid mails to view')
-
-            if 'mail' in self.form.data:
-                count = 0
-                for inv in self.object_list:
-                    if inv.state == Invoice.UNPAID and (
-                            inv.gocardless_bill_id == "") and (
-                            inv.total > 0):
-                        count += do_mail(request, inv, 'send')
-                return HttpResponse("Sent {} mails for {} invoices".format(
-                    count, self.object_list.count()))
-
-            if 'export' in self.form.data:
-                return export_invoices(self.object_list)
-
-        context = self.get_context_data()
-        return self.render_to_response(context)
-
-    def get_queryset(self):
-        form = self.form
-        # default settings for initial get which does not use the form
-        year = Settings.current().membership_year
-        start_datetime = datetime(year, Subscription.START_MONTH-1,1)
-        end_datetime = datetime.combine(date.today(), time(23, 59, 59))
-        q_paid = Invoice.PAID_IN_FULL
-        q_unpaid = Invoice.UNPAID
-        q_cancelled = -1
-        if getattr(form, 'cleaned_data', None):
-            q_paid = -1
-            q_unpaid = -1
-            q_cancelled = -1
-            if form.cleaned_data['membership_year']:
-                year = form.cleaned_data['membership_year']
-            if form.cleaned_data['start_datetime']:
-                start_datetime = form.cleaned_data['start_datetime']
-            if form.cleaned_data['end_datetime']:
-                end_datetime = form.cleaned_data['end_datetime']
-            if form.cleaned_data['membership_year']:
-                year = form.cleaned_data['membership_year']
-            if form.cleaned_data['paid']:
-                q_paid = Invoice.PAID_IN_FULL
-            if form.cleaned_data['unpaid']:
-                q_unpaid = Invoice.UNPAID
-            if form.cleaned_data['cancelled']:
-                q_cancelled = Invoice.CANCELLED
-        queryset = Invoice.objects.filter(
-            membership_year=year,
-            creation_date__gte=start_datetime,
-            creation_date__lte=end_datetime).filter(
-                Q(state=q_paid) |
-                Q(state=q_unpaid) |
-                Q(state=q_cancelled)
-            ).select_related(
-                'person'
-            ).order_by(
-                'person__last_name'
-            )
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super(InvoiceListViewx, self).get_context_data(**kwargs)
-        context['state_list'] = Invoice.STATES
-        context['invoices'] = self.object_list
-        context['form'] = self.form
-        context['count'] = self.object_list.count()
-        context['total'] = self.object_list.aggregate(Sum('total'))['total__sum']
-        context['pending'] = self.object_list.filter(
-            state=Invoice.UNPAID).exclude(
-                gocardless_bill_id="").aggregate(
-                    Sum('total')
-                    )['total__sum']
-        return context
 
 class InvoiceDetailView(StaffuserRequiredMixin, DetailView):
     model = Invoice
@@ -1305,12 +1333,12 @@ class InvoiceGenerateView(StaffuserRequiredMixin, View):
             return redirect(invoice)
         else:
             return redirect(person)
-        return
+        
 
 class InvoicesGenerateSelectionView(StaffuserRequiredMixin, FormView):
-    '''
+    """
     Create invoices for a selection of people
-    '''
+    """
     form_class = YearConfirmForm
     template_name = 'members/generic_crispy_form.html'
 
@@ -1339,6 +1367,7 @@ class InvoicesGenerateSelectionView(StaffuserRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('home')
 
+
 class InvoiceMailView(StaffuserRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
@@ -1348,6 +1377,7 @@ class InvoiceMailView(StaffuserRequiredMixin, View):
         if option == 'view':
             return result
         return redirect(invoice)
+
 
 class InvoiceMailConfigView(StaffuserRequiredMixin, FormView):
     form_class = EmailTextForm
@@ -1378,10 +1408,11 @@ class InvoiceMailConfigView(StaffuserRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('invoice-detail', kwargs={'pk':self.kwargs['pk']})
 
+
 class InvoiceMailBatchView(StaffuserRequiredMixin, View):
-    ''' Send email for all invoices that are unpaid and have not been emailed
+    """ Send email for all invoices that are unpaid and have not been emailed
         get asks for confirmation
-        put sends the mail '''
+        put sends the mail """
 
     def get(self, request, *args, **kwargs):
         count = self.get_list().count
@@ -1425,6 +1456,7 @@ class MailTypeCreateView(StaffuserRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('mailtype-list')
 
+
 class MailTypeUpdateView(StaffuserRequiredMixin, UpdateView):
 
     model = MailType
@@ -1458,12 +1490,14 @@ class MailTypeUpdateView(StaffuserRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('mailtype-list')
 
+
 class MailTypeListView(StaffuserRequiredMixin, ListView):
-    ''' List all mail type '''
+    """ List all mail type """
     model = MailType
     template_name = 'members/mailtype_list.html'
     context_object_name = 'mailtypes'
     ordering = 'sequence'
+
 
 class MailTypeDetailView(StaffuserRequiredMixin, DetailView):
     model = MailType
@@ -1485,7 +1519,7 @@ class PaymentCreateView(StaffuserRequiredMixin, CreateView):
     template_name = 'members/payment_form.html'
 
     def get_form_kwargs(self):
-        ''' if view passed an invoice pass the total to the form '''
+        """ if view passed an invoice pass the total to the form """
         kwargs = super(PaymentCreateView, self).get_form_kwargs()
         self.inv = Invoice.objects.get(pk=self.kwargs['invoice_id'])
         if self.inv:
@@ -1509,10 +1543,11 @@ class PaymentCreateView(StaffuserRequiredMixin, CreateView):
         return reverse('invoice-detail',
                        kwargs={'pk':self.kwargs['invoice_id']})
 
+
 class PaymentUpdateView(StaffuserRequiredMixin, UpdateView):
-    '''
+    """
     Allows payment detail to be updated bu authorised user
-    '''
+    """
     model = Payment
     form_class = PaymentForm
     template_name = 'members/payment_form.html'
@@ -1527,6 +1562,7 @@ class PaymentUpdateView(StaffuserRequiredMixin, UpdateView):
         return reverse('invoice-detail',
                        kwargs={'pk':invoice_id})
 
+
 class PaymentDetailView(StaffuserRequiredMixin, DetailView):
     model = Payment
     template_name = 'members/payment_detail.html'
@@ -1537,6 +1573,7 @@ class PaymentDetailView(StaffuserRequiredMixin, DetailView):
         context['payment_states'] = Payment.STATES
         context['user'] = self.request.user
         return context
+
 
 class PaymentListView(StaffuserRequiredMixin, PagedFilteredTableView ):
     model = Payment
@@ -1564,20 +1601,21 @@ class PaymentListView(StaffuserRequiredMixin, PagedFilteredTableView ):
         context['total'] = self.total if self.total else 0
         return context
 
+
 class PaymentListViewX(StaffuserRequiredMixin, FormMixin, TemplateView):
     form_class = PaymentFilterForm
     model = Payment
     template_name = 'members/payment_list.html'
 
     def get(self, request, *args, **kwargs):
-        ''' GET returns HTML '''
+        """ GET returns HTML """
         self.form = self.get_form(self.form_class)
         self.object_list = self.get_queryset()
         context = self.get_context_data()
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
-        ''' POST handles submit and ajax request '''
+        """ POST handles submit and ajax request """
         self.form = self.get_form(self.form_class)
         if self.form.is_valid():
             self.object_list = self.get_queryset()
@@ -1690,8 +1728,9 @@ class CreditNoteCreateView(StaffuserRequiredMixin, CreateView):
         return reverse('person-detail',
                        kwargs={'pk':self.kwargs['person_id']})
 
+
 class CreditNoteDetailView(StaffuserRequiredMixin, DetailView):
-    ''' Credit note detail with staff option to delete '''
+    """ Credit note detail with staff option to delete """
     model = CreditNote
     template_name = 'members/credit_note.html'
     def get_context_data(self, **kwargs):
@@ -1733,6 +1772,7 @@ class MailCampaignCreateView(StaffuserRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('mail-campaign-bee', kwargs={'pk': self.object.id})
 
+
 class MailCampaignUpdateView(StaffuserRequiredMixin, UpdateView):
 
     model = MailCampaign
@@ -1768,20 +1808,22 @@ class MailCampaignUpdateView(StaffuserRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('mail-campaign-bee', kwargs={'pk': self.object.id})
 
+
 class MailCampaignListView(StaffuserRequiredMixin, ListView):
-    ''' List all mail type '''
+    """ List all mail type """
     model = MailCampaign
     template_name = 'members/mail_campaign_list.html'
     context_object_name = 'mail_campaigns'
 
+
 class MailCampaignBeeView(StaffuserRequiredMixin, TemplateView):
-    '''
+    """
     Edit campaign using bee editor
-    '''
+    """
     template_name = 'members/bee.html'
 
     def get(self, request, *args, **kwargs):
-        ''' Bee editor is asking for json template '''
+        """ Bee editor is asking for json template """
         if request.is_ajax():
             campaign = MailCampaign.objects.get(pk = request.GET['campaign_id'])
             return JsonResponse(campaign.json, safe=False)
@@ -1792,7 +1834,7 @@ class MailCampaignBeeView(StaffuserRequiredMixin, TemplateView):
         action = request.POST['action']
         html = request.POST['html']
         if action =='save':
-            ''' Save pressed in BEE editor so update the campaign '''
+            """ Save pressed in BEE editor so update the campaign """
             campaign = MailCampaign.objects.get(pk=request.POST['campaignId'])
             campaign.text = html
             campaign.json = request.POST['template']
@@ -1800,7 +1842,7 @@ class MailCampaignBeeView(StaffuserRequiredMixin, TemplateView):
             return redirect(reverse('mail-campaign-list'))
 
         elif action == "send":
-            ''' send a test mail '''
+            """ send a test mail """
             from_email = getattr(settings, "INFO_EMAIL", "is@ktconsultants.co.uk")
             to_email = getattr(settings, "TEST_EMAIL", "is@ktconsultants.co.uk")
             send_htmlmail(from_email=from_email, to=to_email, subject="Test", html_body=html)
@@ -1842,7 +1884,8 @@ class TextBlockCreateView(StaffuserRequiredMixin, CreateView):
     
     def get_success_url(self):
         return reverse('text-list')
- 
+
+
 class TextBlockUpdateView(StaffuserRequiredMixin, UpdateView):
     model = TextBlock
     form_class = TextBlockForm
@@ -1869,6 +1912,7 @@ class TextBlockUpdateView(StaffuserRequiredMixin, UpdateView):
             return redirect(reverse('text-list'))
         return super(TextBlockUpdateView, self).form_invalid(form)
     
+
 class TextBlockListView(StaffuserRequiredMixin, ListView):
     model = TextBlock               
     template_name = 'members/textblock_list.html'
@@ -1913,9 +1957,9 @@ class EmailView(StaffuserRequiredMixin, FormView):
         return kwargs
 
     def get_initial(self):
-        '''
+        """
         This is called by get_context_data
-        '''
+        """
         initial = super(EmailView, self).get_initial()
         person_id = self.kwargs.get('person', '')
         if person_id:
@@ -1993,6 +2037,7 @@ class EmailView(StaffuserRequiredMixin, FormView):
         else:
             return redirect('home')
 
+
 class ImportExcelMore(StaffuserRequiredMixin, FormView):
     form_class = XlsMoreForm
     template_name = 'members/import_more.html'
@@ -2011,8 +2056,8 @@ class ImportExcelMore(StaffuserRequiredMixin, FormView):
         start = int(self.kwargs['start'])
         size = int(self.kwargs['size'])   
         if pass_no == 1:
-            ''' Pass 1
-                Create the members '''
+            """ Pass 1
+                Create the members """
     
             with open_excel_workbook(my_book.file) as book:
                 next = import_members_1(book, start, size)
@@ -2045,8 +2090,9 @@ class ImportExcelMore(StaffuserRequiredMixin, FormView):
                     return HttpResponseRedirect(reverse('import_more',
                                                         args=[3, count, size]))
 
+
 class ImportExcelView(StaffuserRequiredMixin, FormView):
-    ''' Capture the excel name and batch size '''
+    """ Capture the excel name and batch size """
     form_class = XlsInputForm
     template_name = 'members/generic_crispy_form.html'
 
@@ -2092,8 +2138,9 @@ class ImportExcelView(StaffuserRequiredMixin, FormView):
         #else:
         return HttpResponseRedirect(reverse('select-sheets'))
 
+
 class SelectSheets(StaffuserRequiredMixin, FormView):
-    ''' Select itemtype sheets to import ''' 
+    """ Select itemtype sheets to import """ 
     form_class = SelectSheetsForm
     template_name = 'members/generic_crispy_form.html'
     
@@ -2128,6 +2175,7 @@ class SelectSheets(StaffuserRequiredMixin, FormView):
             context['message'] = '{} items were {} from {} sheets'.format(total, 'imported' if do_import else 'checked', sheet_count)
             return render(self.request, 'members/generic_result.html', context)
 
+
 class InvoiceBatchView(StaffuserRequiredMixin, FormView):
     form_class = XlsMoreForm
     template_name = 'members/import_more.html'
@@ -2159,8 +2207,6 @@ def reports(request):
         html += "<br \>" + f.name
     return HttpResponse(html)
 
-
-     
               
 
 def fixup_postgresql(request):
@@ -2170,10 +2216,12 @@ def fixup_postgresql(request):
         cursor.execute("SELECT setval('members_fees_id_seq', (SELECT MAX(id) FROM members_fees)+1)")
         cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
 
+
 def testmailgun(request):
     #send_simple_message()
     mailgun_send()
     return HttpResponse("sent")
+
 
 def bee_test(request):
     if request.is_ajax():

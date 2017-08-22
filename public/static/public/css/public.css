@@ -1,0 +1,8 @@
+/* padding after navbar */
+body {
+    padding-top: 0px;
+}
+
+.well {
+    background: rgb(195, 224, 186);
+}

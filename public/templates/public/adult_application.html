@@ -1,14 +1,13 @@
-﻿{% extends "public/public_base.html" %}
+{% extends "public/public_base.html" %}
 {% load staticfiles %}
 {% load members_extras %}
 {% load crispy_forms_tags %} 
-{% block head %}
+{% block title %}
    <title>ADULT Application Form</title>
 {% endblock %}
 {% block content %}
   <form action="{% url 'public-apply-adult' %}" method="POST">
     {% crispy form %}
-    {% crispy formset helper %}
     <div class="form-actions">
       <input type="submit" name="submit" value="Save" class="btn btn-primary" id="submit-save">
     </div>

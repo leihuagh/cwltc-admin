@@ -79,7 +79,7 @@ class InvoicePublicView(DetailView):
     model = Invoice
     template_name = 'public/invoice_public.html'
 
-    def get_object(self, querset=None):
+    def get_object(self, queryset=None):
         signer = Signer()
         try:
             invoice_id = signer.unsign(self.kwargs['token'])

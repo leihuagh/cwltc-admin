@@ -7,6 +7,7 @@ from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, F
 from members.forms import SubmitButton
 from members.models import AdultApplication, Person, Address, Membership
 
+
 class ContactForm(Form):
     message = forms.CharField(max_length=2000, required=True, widget=forms.Textarea)
     email = forms.EmailField(required=True)
@@ -20,7 +21,6 @@ class ContactForm(Form):
         if resigned:
             postText = 'resign'
         self.helper.add_input(SubmitButton(postText, 'Send', css_class='btn-success'))
-
 
 
 class RegisterForm(Form):
@@ -57,8 +57,8 @@ class RegisterForm(Form):
         email = cleaned_data.get('email')
         post_code= cleaned_data.get('post_code').replace(' ','').lower()
         people = Person.objects.filter(first_name=first_name,
-                                    last_name=last_name,
-                                    email=email)
+                                       last_name=last_name,
+                                       email=email)
         if len(people) == 0:
             raise forms.ValidationError("No matching person")
         if len(people) == 1:

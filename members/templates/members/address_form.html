@@ -9,5 +9,12 @@
         <h4><a href="{% url "person-detail" pk=child.id %}">{{ child.first_name }} {{ child.last_name }}</a></h4>
     {% endfor child %}   
 {% endif %}
-{% crispy form %}
+
+<div class="row">
+  <div class="col col-sm-6">
+    <div class="well">
+      {% crispy form %}
+    </div>
+  </div>
+</div>
 {% endblock content %}

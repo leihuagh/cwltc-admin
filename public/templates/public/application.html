@@ -1,11 +1,7 @@
-﻿{% extends "public/public_base.html" %}
+{% extends "public/public_base.html" %}
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 {% load members_extras %}
-{% block head %}
-  <link rel="stylesheet" type="text/css"  href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.min.css" />
-   <title>{{ title }}</title>
-{% endblock %}
 {% block content %}
 <div class="row">
   <div class="col-sm-12">
@@ -34,28 +30,7 @@
       <input type="submit" name="next" value="Next >" class="btn btn-success" id="id_next">
     </form>
   {% else %}
-
     {% crispy form %} 
   {% endif %}
 
-{% endblock %}
-{% block scripts %}
-<!---https://github.com/uxsolutions/bootstrap-datepicker-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js"></script>#}
-<script>
- // $(document).ready(function () {
- //   $(function () {
- //     $('#datepicker1').datepicker({
- //       endDate: "0d",
- //       format: 'dd/mm/yyyy',
- //       language: 'en-GB',
- //       startView: 3,
- //       minViewMode: 0,
- //       maxViewMode: 3,
- //       autoclose: true
- //       });
- //   });
- //});
-
-</script>
 {% endblock %}
