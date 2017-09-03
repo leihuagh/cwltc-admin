@@ -1,8 +1,21 @@
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import environ
+root = environ.Path(__file__) - 2 # three folder back (/a/b/c/ - 3 = /)
+env = environ.Env(DEBUG=(bool, False),) # set default values and casting
+# env_path = os.path.join(root, '.env')
+environ.Env.read_env() # reading .env file
+
 import socket
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+
+# This is where the static files get served from
+STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
+
+
 
 # openshift is our PAAS for now.
 ON_PAAS = 'OPENSHIFT_REPO_DIR' in os.environ
@@ -26,6 +39,35 @@ else:
     DIGITAL_OCEAN = False
 if ON_PAAS and DEBUG:
     print("*** Warning - Debug mode is on ***")
+
+
+
+if PRODUCTION:
+    GO_CARDLESS = {
+        'ENVIRONMENT': 'production',
+        'APP_ID': '8MZAE33KTS90MKJV0QDG8MC1FCG8J6P556NYQ16K0AXRR3SS5YDF1E7V1PENGHPF',
+        'APP_SECRET': 'QCV54646DRQH6YMV8W2WETBN0RT003V3QPZFRMDTYW4B0HKW9455H1HB0PQ9AZ71',
+        'ACCESS_TOKEN': 'YSVM80D2XAT63RY29GHCD7K34E923X80T7A1NTJVNSNK3A33YTD7PB62PH5Z8XXH',
+        'MERCHANT_ID': '0VTW3337YC'
+        }
+    GO_CARDLESS = env.dict('GO_CARDLESS_PRODUCTION')
+else:
+    GO_CARDLESS = {
+        'ENVIRONMENT': 'sandbox',
+        'APP_ID': '2J7RAH17Y3Q2PMGGACBJEQK4EY8X6VGXXB60D3SKR4YAAKWAV9G87K7H6BKSGKCQ',
+        'APP_SECRET': 'K5NNZA4KKTSPCE2TF1PPKP41K9VMNEVWVMZGZEYQWM8T4897J1A1ZAGV6FDQ8QXT',
+        'ACCESS_TOKEN': '6T93JFXX6XTS7C38XCZRWZ7379AJTXXBXE8ZC53FJMYZ0KBPG0S5S77G73N1FCX3',
+        'MERCHANT_ID': '0VTW3337YC'
+        }
+    GO_CARDLESS = env.dict('GO_CARDLESS_SANDBOX')
+BEE_FREE_ID = 'ab151c30-4d75-496f-b610-733eee85b12b'
+BEE_FREE_ID = env.str('BEE_FREE_ID')
+BEE_FREE_SECRET = 'v5Z89TTSVNHXI4QG8DX1qRd8uYixLygn1TO8wrQy78rSWcbvtVP'
+BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
+ANYMAIL = {
+    "MAILGUN_API_KEY": 'key-44e941ede1264ea215021bb0b3634eb4',
+}
+ANYMAIL = env.dict('ANYMAIL')
 
 # Application definition
 INSTALLED_APPS = (
@@ -140,6 +182,11 @@ else:
             }
         }
 
+DATABASES = {
+        'default': env.db_url('DATABASE_URL')
+    }
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 LANGUAGE_CODE = 'en-uk'
@@ -179,12 +226,6 @@ DATETIME_INPUT_FORMATS = (
 DECIMAL_SEPARATOR = u'.'
 THOUSAND_SEPARATOR = u','
 NUMBER_GROUPING = 3
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-
-# This is where the static files get served from
-STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -288,33 +329,14 @@ else:
 
 DJANGO_WYSIWYG_FLAVOR = 'tinymce'
 
-ANYMAIL = {
-    "MAILGUN_API_KEY": 'key-44e941ede1264ea215021bb0b3634eb4',
-}
+
 DEFAULT_FROM_EMAIL = 'Coombe Wood LTC <subs@coombewoodltc.co.uk>'
 SUBS_EMAIL = 'subs@coombewoodltc.co.uk'
 INFO_EMAIL = 'info@coombewoodltc.co.uk'
 TEST_EMAIL = 'is@ktconsultants.co.uk'
 
 
-if PRODUCTION:
-    GO_CARDLESS = {
-        'ENVIRONMENT': 'production',
-        'APP_ID': '8MZAE33KTS90MKJV0QDG8MC1FCG8J6P556NYQ16K0AXRR3SS5YDF1E7V1PENGHPF',
-        'APP_SECRET': 'QCV54646DRQH6YMV8W2WETBN0RT003V3QPZFRMDTYW4B0HKW9455H1HB0PQ9AZ71',
-        'ACCESS_TOKEN': 'YSVM80D2XAT63RY29GHCD7K34E923X80T7A1NTJVNSNK3A33YTD7PB62PH5Z8XXH',
-        'MERCHANT_ID': '0VTW3337YC'
-        }
-else:
-    GO_CARDLESS = {
-        'ENVIRONMENT': 'sandbox',
-        'APP_ID': '2J7RAH17Y3Q2PMGGACBJEQK4EY8X6VGXXB60D3SKR4YAAKWAV9G87K7H6BKSGKCQ',
-        'APP_SECRET': 'K5NNZA4KKTSPCE2TF1PPKP41K9VMNEVWVMZGZEYQWM8T4897J1A1ZAGV6FDQ8QXT',
-        'ACCESS_TOKEN': '6T93JFXX6XTS7C38XCZRWZ7379AJTXXBXE8ZC53FJMYZ0KBPG0S5S77G73N1FCX3',
-        'MERCHANT_ID': '0VTW3337YC'
-        }
-BEE_FREE_ID = 'ab151c30-4d75-496f-b610-733eee85b12b'
-BEE_FREE_SECRET = 'v5Z89TTSVNHXI4QG8DX1qRd8uYixLygn1TO8wrQy78rSWcbvtVP'
+
 
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 INTERNAL_IPS = ['127.0.0.1', '::1']
