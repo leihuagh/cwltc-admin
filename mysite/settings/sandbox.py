@@ -1,7 +1,7 @@
 import socket
 from .base import *
 DEBUG = 'DEBUG' in os.environ
-env_path = os.path.join(BASE_DIR, "data", ".env")
+env_path = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], ".env")
 environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
