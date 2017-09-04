@@ -14,19 +14,15 @@ def get_env_variable(var_name):
 
 root = environ.Path(__file__) - 3  # three folder back (/a/b/c/ - 3 = /)
 env = environ.Env(DEBUG=(bool, False), )  # set default values and casting
-environ.Env.read_env()  # reading .env file
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+BASE_DIR = str(root)
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 
 # This is where the static files get served from
 STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
 
-BEE_FREE_ID = env.str('BEE_FREE_ID')
-BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
-
-ANYMAIL = env.dict('ANYMAIL')
 
 INSTALLED_APPS = (
     'django.contrib.auth',
