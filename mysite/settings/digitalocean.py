@@ -7,13 +7,13 @@ environ.Env.read_env(env_path)
 
 DATABASES = {'default': env.db_url('DATABASE_URL')}
 
-ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
-SECURE_SSL_REDIRECT = True
+ALLOWED_HOSTS = ['139.59.185.182']
+SECURE_SSL_REDIRECT = False
 
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
-SECRET_KEY = os.environ['OPENSHIFT_SECRET_TOKEN']
-GO_CARDLESS = env.dict('GO_CARDLESS_PRODUCTION')
+SECRET_KEY = env.str('SECRET_KEY')
+GO_CARDLESS = env.dict('GO_CARDLESS_SANDBOX')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 ANYMAIL = env.dict('ANYMAIL')
