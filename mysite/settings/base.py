@@ -164,6 +164,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 DJANGO_WYSIWYG_FLAVOR = 'tinymce'
 
+EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
 DEFAULT_FROM_EMAIL = 'Coombe Wood LTC <subs@coombewoodltc.co.uk>'
 SUBS_EMAIL = 'subs@coombewoodltc.co.uk'
 INFO_EMAIL = 'info@coombewoodltc.co.uk'

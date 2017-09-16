@@ -2,9 +2,9 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django_mail_viewer import urls as django_mail_viewer_urls
+from mysite.views import index_view
 from members.views import *
 from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
-from gc_app.views import *
 from public.views import *
 from members.tables import *
 from rest_framework import routers
@@ -17,25 +17,27 @@ router.register(r'groups', GroupViewSet)
 router.register(r'invoices', InvoiceViewSet)
 
 urlpatterns = [
-    url(r'^$',
-        HomeView.as_view(),
-        name='home'
-        ),
+    url(r'^$', index_view, name='index'),
+    url(r'^public/', include('public.urls')),
     url(r'^mv/', include(django_mail_viewer_urls)),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
     url(r'^pos/', include('pos.urls')),
     url(r'^gocardless/', include('gc_app.urls')),
-    url(r'^public/', include('public.urls')),
     url(r'^club/', include('club.urls')),
 
+    url(r'^home/',
+        HomeView.as_view(),
+        name='home'
+        ),
+
     # url(r'^markdownx/', include('markdownx.urls')),
-    url(r'ajax/people/',
+    url(r'^ajax/people/',
         ajax_people,
         name="ajax-people"
         ),
-    url(r'search/person/',
+    url(r'^search/person/',
         search_person,
         name="search-person"
         ),

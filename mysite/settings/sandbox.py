@@ -33,4 +33,7 @@ SECRET_KEY = os.environ['OPENSHIFT_SECRET_TOKEN']
 GO_CARDLESS = env.dict('GO_CARDLESS_SANDBOX')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
+if DEBUG:
+    EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
+
 ANYMAIL = env.dict('ANYMAIL')

@@ -1,15 +1,12 @@
 from datetime import datetime
-from django.shortcuts import render, render_to_response, redirect, get_object_or_404
+from django.shortcuts import render, render_to_response, redirect
 from django.views.generic import DetailView, TemplateView, CreateView, View
 from django.core.signing import Signer
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.http import HttpResponse
-from formtools.wizard.views import SessionWizardView
-from django.views.generic.edit import FormView, ProcessFormView
-from django.forms import Form
+from django.views.generic.edit import FormView
 
 from members.models import Group, Invoice, Person, MailType, AdultApplication, Settings, Subscription
 from members import mail
@@ -20,8 +17,8 @@ from gc_app.views import gc_create_bill_url
 from .forms import *
 from members.services import membership_from_dob
 
-# ================= Public Views accessed through a token
 
+# ================= Public Views accessed through a token
 
 class MailTypeSubscribeView(TemplateView):
     """
@@ -221,7 +218,6 @@ def add_session_context(context, request):
     """
     context['person'] = request.session['person']
     context['address'] = request.session['address']
-   # context['family'] = request.session['family']
     return context
 
 
@@ -253,11 +249,11 @@ def session_get_post(index, request):
     """
     Return post data for index else None
     """
-    posts = request.session['posts']
-    if index >= 0 and index < len(posts):
-        return posts[index]
+    posts = request.session.get('posts', None)
+    if posts:
+        if index >= 0 and index < len(posts):
+            return posts[index]
     return None
-
 
 def session_delete_post(index, request):
     """
@@ -296,17 +292,6 @@ def session_back(index, request):
         if not posts[index].get('deleted', False):
             return posts[index]['path']
     return posts[0]['path']
-
-
-#def session_previous_path(index, request):
-#    """
-#    Return path of previous form view
-#    Index = 0 means we want last page before submit
-#    """
-#    if index == 0:
-#        index = len(request.session['posts'])
-#    post = session_get_post(index - 1, request)
-#    return post['path']
 
 
 def session_update_kwargs(view, kwargs):
