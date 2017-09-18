@@ -1,9 +1,9 @@
+import string
 from django import forms
 from django.forms import Form, ModelForm, HiddenInput, RadioSelect
 from django.contrib.auth.models import User
-from django.conf import settings
-from crispy_forms.helper import FormHelper, Layout
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder, BaseInput 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Div, Submit, HTML, Fieldset, ButtonHolder 
 from members.forms import SubmitButton
 from members.models import AdultApplication, Person, Address, Membership
 
@@ -17,16 +17,16 @@ class ContactForm(Form):
         super(ContactForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
-        postText = 'submit'
+        post_text = 'submit'
         if resigned:
-            postText = 'resign'
-        self.helper.add_input(SubmitButton(postText, 'Send', css_class='btn-success'))
+            post_text = 'resign'
+        self.helper.add_input(SubmitButton(post_text, 'Send', css_class='btn-success'))
 
 
 class RegisterForm(Form):
-    '''
+    """
     Register an existing member with the auth system
-    '''
+    """
     first_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
     email = forms.EmailField(max_length=75)
@@ -41,21 +41,22 @@ class RegisterForm(Form):
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
             Fieldset('Enter the following information to identify yourself',
-            'first_name', 'last_name', 'email', 'post_code'),
+                     'first_name', 'last_name', 'email', 'post_code'),
             Div(
                 ButtonHolder(
                     SubmitButton('submit', 'Next', css_class='btn-success'),
                     HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>')
                     ),
-                css_class = 'col-sm-offset-2')
+                css_class='col-sm-offset-2')
             )
+        self.person = None
 
     def clean(self):
         cleaned_data = super(RegisterForm, self).clean()
         first_name = cleaned_data.get('first_name')
         last_name = cleaned_data.get('last_name')
         email = cleaned_data.get('email')
-        post_code= cleaned_data.get('post_code').replace(' ','').lower()
+        post_code = cleaned_data.get('post_code').replace(' ', '').lower()
         people = Person.objects.filter(first_name=first_name,
                                        last_name=last_name,
                                        email=email)
@@ -72,7 +73,7 @@ class RegisterForm(Form):
         
         if not self.person:
             raise forms.ValidationError('No matching member found', code='invalid')
-        if not self.person.address.post_code.replace(" ","").lower() == post_code:
+        if not self.person.address.post_code.replace(' ', '').lower() == post_code:
             raise forms.ValidationError('Post code is wrong', code='invalid')
         if self.person.state == Person.RESIGNED:
             raise forms.ValidationError('You cannot register because you have resigned from the club', code='invalid')
@@ -90,9 +91,9 @@ class RegisterForm(Form):
             
     
 class RegisterTokenForm(Form):
-    '''
+    """
     Stage 2 - user defines a username and password
-    '''
+    """
     username = forms.CharField(max_length=30)
     password = forms.CharField(max_length=30, widget=forms.PasswordInput)
     password_again = forms.CharField(max_length=30, widget=forms.PasswordInput)
@@ -104,7 +105,9 @@ class RegisterTokenForm(Form):
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
             Fieldset('Choose a username and password',
-            'username', 'password', 'password_again',  HTML('The PIN is optional - it will give you fast access to the bar system')),
+                     'username', 'password', 'password_again',
+                     HTML('The PIN is optional - it will give you fast access to the bar system')
+                     ),
             'pin',
             ButtonHolder(
                 SubmitButton('submit', 'Register', css_class='btn-primary'),
@@ -125,42 +128,36 @@ class RegisterTokenForm(Form):
         if password != cleaned_data.get('password_again'):
             raise forms.ValidationError('Passwords do not match', code='invalid_password')
        
-       # Pasword must contain at least 1 character and 1 number and be at least 8 characters
-        # https://djangosnippets.org/snippets/2551/       
-      
-        # Setup Our Lists of Characters and Numbers
-        characters = list(ascii_letters)
-        numbers = [str(i) for i in range(10)]
-        
-        # Assume False until Proven Otherwise
-        numCheck = False
-        charCheck = False
-
-        # Loop until we Match        
+        # Password must have at least 1 character and 1 number     
+        num_check = False
+        char_check = False     
         for char in password: 
-            if not charCheck:
-                if char in characters:
-                    charCheck = True
-            if not numCheck:
-                if char in numbers:
-                    numCheck = True
-            if numCheck and charCheck:
+            if not char_check:
+                if char in string.ascii_letters:
+                    char_check = True
+            if not num_check:
+                if char in string.digits:
+                    num_check = True
+            if num_check and char_check:
                 break
         
-        if not numCheck or not charCheck:
-            raise forms.ValidationError(u'Your password must include at least \
-                                          one letter and at least one number.', code='invalid_password')
-        
-        return self.cleaned_data
+        if not num_check or not char_check:
+            raise forms.ValidationError('Your password must include at least \
+                                         one letter and at least one number.', code='invalid_password')
 
+        return self.cleaned_data
 
     # Forms for the application process
 
+    def as_ul(self):
+        return super().as_ul()
+
+
 class NameForm(ModelForm):
-    '''
+    """
     Capture name but with no form tag because
     may be combined with address form
-    '''   
+    """   
     class Meta:
         model = Person
         fields = [
@@ -168,21 +165,21 @@ class NameForm(ModelForm):
                 'last_name',
                 'gender',
                 'dob',
-                #'state',
+                # 'state',
                 'email',
                 'mobile_phone',
-                #'british_tennis',
-                #'pays_own_bill',
-                #'notes']
+                # 'british_tennis',
+                # 'pays_own_bill',
+                # 'notes']
                 ]
-        widgets = {'dob': forms.DateInput(attrs={'placeholder':'DD/MM/YYYY'})}
+        widgets = {'dob': forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY'})}
     
     form_type = forms.CharField(initial='Name', widget=HiddenInput, required=False)
 
     def __init__(self, *args, **kwargs):
         adult = kwargs.pop('adult', True)
-        back = kwargs.pop('back', False)
-        next = kwargs.pop('next', False)
+        kwargs.pop('back', False)
+        kwargs.pop('next', False)
         super(NameForm, self).__init__(*args, **kwargs)
         if not adult:
             del self.fields['dob']
@@ -191,14 +188,15 @@ class NameForm(ModelForm):
         self.helper.form_tag = False
         self.helper.disable_csrf = True
 
+
 class AddressForm(ModelForm):
-    '''
+    """
     Capture address but with no form tag
     because may be combined with name form
-    '''   
+    """   
     class Meta:
         model = Address
-        fields = ['address1', 'address2','town','post_code','home_phone']
+        fields = ['address1', 'address2', 'town', 'post_code', 'home_phone']
 
     def __init__(self, *args, **kwargs):
         super(AddressForm, self).__init__(*args, **kwargs)
@@ -208,9 +206,9 @@ class AddressForm(ModelForm):
 
 
 class AdultProfileForm(ModelForm):
-    '''
+    """
     Capture adult profile
-    '''   
+    """   
     class Meta:
         model = AdultApplication
         fields = [
@@ -231,7 +229,7 @@ class AdultProfileForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop('choices', Membership.adult_choices())
-        delete = kwargs.pop('delete', False)
+        kwargs.pop('delete', False)
         super(AdultProfileForm, self).__init__(*args, **kwargs)
         self.fields['membership_id'].choices = choices
         self.helper = FormHelper(self)
@@ -247,24 +245,24 @@ class AdultProfileForm(ModelForm):
                             {{ mem|index:3 }}<br/><br/>
                             {% endfor%}"""),   
                             'club',
-                            css_class = "well"),    
-                        css_class = "col-md-4"),  
+                            css_class="well"),    
+                        css_class="col-md-4"),  
                     Div(
                         Div('ability', HTML("<strong>Tick all activities that interest you:</strong>"),
-                                 'singles', 'doubles', 'coaching1', 'coaching2', 'daytime', 'family', 'social', 'competitions', 'teams',
-                                css_class = "well"),
-                    css_class = "col-md-4"),
-                css_class = "row"),
+                            'singles', 'doubles', 'coaching1', 'coaching2', 'daytime',
+                            'family', 'social', 'competitions', 'teams',
+                            css_class="well"),
+                        css_class="col-md-4"),
+                    css_class="row"),
             Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
             Submit('next', 'Next >', css_class='btn btn-success')
             )
  
 
-
 class FamilyMemberForm(NameForm):
-    '''
+    """
     Capture family member name and dob
-    '''  
+    """  
     def __init__(self, *args, **kwargs):
         delete = kwargs.pop('delete', False)
         super(FamilyMemberForm, self).__init__(*args, **kwargs)
@@ -292,18 +290,19 @@ class FamilyMemberForm(NameForm):
 class ChildProfileForm(Form):
     form_type = forms.CharField(initial='Child', widget=HiddenInput, required=False)
     membership_id = forms.CharField(required=False, widget=HiddenInput)
-    notes = forms.CharField(max_length=100, required = False,
-                           widget=forms.Textarea,
-                           label = "Use the box below to describe any special care needs, dietary requirements, allergies or medical conditions:")
+    notes = forms.CharField(max_length=100, required=False,
+                            widget=forms.Textarea,
+                            label="Use the box below to describe any special care needs, dietary requirements, allergies or medical conditions:")
     
     def __init__(self, *args, **kwargs):
-        delete = kwargs.pop('delete', False)
+        kwargs.pop('delete', False)
         super(ChildProfileForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
             Div(
                 Div(
-                    Div('form_type', 'membership_id', 'notes', HTML("In the event of injury, illness or other medical need, all reasonable steps will be taken to contact you, and to deal with the situation appropriately."), css_class="well"),
+                    Div('form_type', 'membership_id', 'notes',
+                        HTML("In the event of injury, illness or other medical need, all reasonable steps will be taken to contact you, and to deal with the situation appropriately."), css_class="well"),
                     css_class="col-md-6"),
                 css_class="row"),
             Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
@@ -314,7 +313,7 @@ class ChildProfileForm(Form):
 class ApplyNextActionForm(Form):
 
     def __init__(self, *args, **kwargs):
-        delete = kwargs.pop('delete', False)
+        kwargs.pop('delete', False)
         super(ApplyNextActionForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
@@ -323,22 +322,22 @@ class ApplyNextActionForm(Form):
             SubmitButton('submit', 'Complete application', css_class='btn-success')
             )
 
+
 class ApplySubmitForm(Form):
     PHOTO_CHOICES = ((True, 'I give consent to photographs being taken of my child'),
                      (False, 'I do not give consent to photographs being taken of my child')
                      )
     CONTACT_CHOICES = ((True, 'I agree to my email mail and phone number being visible'),
-                      (False, 'I do not agree to my mail and phone number being visible')
-                      )     
+                       (False, 'I do not agree to my mail and phone number being visible')
+                       )
     photo_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=PHOTO_CHOICES))
     contact_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=CONTACT_CHOICES))
     test = forms.TypedChoiceField(widget=RadioSelect(choices=CONTACT_CHOICES))
     rules = forms.BooleanField(required=True, label="I agree to be bound by the club rules")
 
     def __init__(self, *args, **kwargs):
-        delete = kwargs.pop('delete', False)
-        children = kwargs.pop('children' , None)
+        kwargs.pop('delete', False)
+        children = kwargs.pop('children', None)
         super(ApplySubmitForm, self).__init__(*args, **kwargs)
         if not children:
             del self.fields['photo_consent']
-
