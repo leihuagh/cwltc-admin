@@ -6,7 +6,6 @@ env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
 
 DATABASES = {'default': env.db_url('DATABASE_URL_SANDBOX')}
-
 ALLOWED_HOSTS = ['sandbox.coombewoodltc.com']
 SECURE_SSL_REDIRECT = True
 

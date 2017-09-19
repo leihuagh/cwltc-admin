@@ -700,11 +700,11 @@ class TextBlock(models.Model):
     @classmethod
     def add_email_context(self, context):
         blocks = TextBlock.email_params()
-        if blocks[0] > 0:
+        if int(blocks[0]) > 0:
             context['text_intro'] = TextBlock.objects.get(pk=blocks[0])
-        if blocks[1] > 0:
+        if int(blocks[1]) > 0:
             context['text_notes'] = TextBlock.objects.get(pk=blocks[1])
-        if blocks[2] > 0:
+        if int(blocks[2]) > 0:
             context['text_closing'] = TextBlock.objects.get(pk=blocks[2])
     
     @classmethod
