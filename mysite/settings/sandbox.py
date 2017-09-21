@@ -1,6 +1,7 @@
 import socket
 from .base import *
 DEBUG = 'DEBUG' in os.environ
+SITE_NAME = "Sandbox"
 env_path = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], ".env")
 environ.Env.read_env(env_path)
 

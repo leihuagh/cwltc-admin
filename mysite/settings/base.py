@@ -99,6 +99,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
+                'mysite.context_processors.site_name',
             ],
         },
     },
