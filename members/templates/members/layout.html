@@ -1,13 +1,10 @@
 ﻿{% extends "base.html" %}
 {% load staticfiles %}
-{% if site_name == "OpenShift" %}
-  {% block navbar %}
-    Site has closed down
-  {% endblock %}
-{%  else %}
 {% block navbar %}
-  {% include "members/_navbar.html" %}
-  {% include "members/_messages.html" %}
+  {% if site_name != "OpenShift" %}
+    {% include "members/_navbar.html" %}
+    {% include "members/_messages.html" %}
+  {% endif %}
 {% endblock %}
 {% block typeahead %}
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
@@ -18,4 +15,3 @@
   });
   </script>
 {% endblock %} 
-{% endif %}

@@ -6,16 +6,16 @@
   <div class="jumbotron">
   <img src="{% static "images/CWLTC logo small.png" %}"/>
   <h2> This site is now closed!</h2>
-  The CWLTC membership administration site is now live at <a href="https://www.coombewoodltc.com/home"></a>
+  The CWLTC membership administration site is now live <a href="https://www.coombewoodltc.com/home">here</a>
   </div>
 {%  else %}
   <div class="jumbotron">
   <img src="{% static "images/CWLTC logo small.png" %}"/>
       <h2>Coombe Wood Lawn Tennis Club</h2>
       <p class="lead">Membership system
-      {% if sitename  == "Sandbox" %}
+      {% if site_name  == "Sandbox" %}
        [SANDBOX]
-      {% elif sitename == "Dev" %}
+      {% elif site_name == "Dev" %}
        [Local Develeopment]
       {% endif %}
       </p>

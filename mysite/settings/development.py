@@ -1,12 +1,12 @@
 from .base import *
-SITE_NAME = "Development"
+SITE_NAME = "OpenShift"
 DEBUG = True
 # We could use the default path but make it explicit for clarity
 env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
-    'debug_toolbar',
+#   'debug_toolbar',
 #    'django_nose',
 )
 
