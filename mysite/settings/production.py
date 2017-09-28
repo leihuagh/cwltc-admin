@@ -21,6 +21,7 @@ else:
     raise ImproperlyConfigured(error_msg)
 
 ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
+
 SECURE_SSL_REDIRECT = True
 
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
