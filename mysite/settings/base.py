@@ -73,11 +73,9 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder'
 )
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static")
-]
+STATICFILES_DIRS = []
 
-MEDIA_ROOT = os.environ.get('OPENSHIFT_DATA_DIR', '')
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 TEMPLATES = [
     {
@@ -158,12 +156,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LOGIN_URL = '/login/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-DJANGO_WYSIWYG_FLAVOR = 'tinymce'
+# DJANGO_WYSIWYG_FLAVOR = 'tinymce'
 
 EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
 DEFAULT_FROM_EMAIL = 'Coombe Wood LTC <subs@coombewoodltc.co.uk>'
@@ -171,5 +168,5 @@ SUBS_EMAIL = 'subs@coombewoodltc.co.uk'
 INFO_EMAIL = 'info@coombewoodltc.co.uk'
 TEST_EMAIL = 'is@ktconsultants.co.uk'
 
-INTERNAL_IPS = ['127.0.0.1', '::1']
+# INTERNAL_IPS = ['127.0.0.1', '::1']
 
