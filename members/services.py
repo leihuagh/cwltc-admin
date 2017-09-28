@@ -552,7 +552,7 @@ def subscription_create_invoiceitem(sub, start_absmonth, end_absmonth, fee):
         item_type_id=ItemType.SUBSCRIPTION,
         item_date=datetime.today(),
         description=u'{mem} membership from {start} to {end}'.format(
-            mem=str(sub.membership),
+            mem=str(sub.membership.description),
             start=formatted_date(sub_start_date(start_absmonth, sub.sub_year)),
             end=formatted_date(sub_end_date(end_absmonth, sub.sub_year))
             ),   

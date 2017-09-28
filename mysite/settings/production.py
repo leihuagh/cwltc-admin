@@ -1,6 +1,6 @@
 import socket
 from .base import *
-SITE_NAME = ""
+SITE_NAME = "OpenShift"
 DEBUG = False
 env_path = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], ".env")
 environ.Env.read_env(env_path)

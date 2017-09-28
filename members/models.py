@@ -20,7 +20,7 @@ class Address(models.Model):
     post_code = models.CharField(max_length=15)
     home_phone = models.CharField(max_length=20, blank=True)
     
-    def __unicode__(self):
+    def __str__(self):
         return self.post_code
 
     def get_absolute_url(self):
@@ -39,7 +39,7 @@ class Group(models.Model):
     description = models.CharField(max_length=80)
     #generated = models.BooleanField(default = False)
     
-    def __unicode__(self):
+    def __str__(self):
         return self.slug 
 
 class Person(models.Model):
@@ -91,7 +91,7 @@ class Person(models.Model):
     objects = models.Manager()
     parent_objects = ParentsManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.fullname
 
     def get_absolute_url(self):
@@ -194,7 +194,7 @@ class Membership(models.Model):
     apply_online = models.BooleanField(default=True)
     cutoff_age = models.IntegerField(default=0)
     
-    def __unicode__(self):
+    def __str__(self):
         return self.description
 
     @classmethod
@@ -288,7 +288,7 @@ class Fees(models.Model):
     monthly_sub = models.DecimalField(max_digits=7, decimal_places=2, default=0)
     joining_fee = models.DecimalField(max_digits=7, decimal_places=2, null=True)
  
-    def __unicode__(self):
+    def __str__(self):
         return u'%s %s %s' % (self.sub_year, self.membership, self.annual_sub)
 
     def calc_sub(self, start_date, end_date, period):
@@ -369,7 +369,7 @@ class Invoice(models.Model):
     # invoiceitem_set
     # creditnote_set
     # payment_set
-    def __unicode__(self):
+    def __str__(self):
         return "Invoice {}, {} items, total = {}".format(
             Invoice.STATES[self.state][1],
             self.invoiceitem_set.count(),
@@ -502,7 +502,7 @@ class Payment(models.Model):
     fee = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
     invoice = models.ForeignKey(Invoice, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "Payment:{} amount:{} credited:{} state:{}".format(
             Payment.TYPES[self.type][1],
             self.amount,
@@ -542,7 +542,7 @@ class ItemType(models.Model):
     description = models.CharField(max_length=30)
     credit = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.description
 
 class InvoiceItem(models.Model):
@@ -559,7 +559,7 @@ class InvoiceItem(models.Model):
     payment = models.ForeignKey(Payment, blank=True, null=True)
     subscription = models.ForeignKey('Subscription', blank=True, null=True)
     
-    def __unicode__(self):
+    def __str__(self):
         return u'%s %d' % (self.description, self.amount)
 
     @property
@@ -615,7 +615,7 @@ class Subscription(models.Model):
     invoiced_month = models.SmallIntegerField()
     no_renewal = models.BooleanField(default=False)       
 
-    def __unicode__(self):  
+    def __str__(self):  
         return u'Sub {} {} {} {}'.format (
             self.person_member,
             self.membership,
@@ -671,7 +671,7 @@ class BarTransaction(models.Model):
     price = models.DecimalField(max_digits=7, decimal_places = 2)
     total = models.DecimalField(max_digits=7, decimal_places = 2)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.id + " " + description + total
 
 
@@ -694,7 +694,7 @@ class TextBlock(models.Model):
     type = models.SmallIntegerField(choices=TYPES, default=BLOCK)
     text = models.TextField(null=False, blank=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{0}: {1}".format(self.type, self.name)
 
     @classmethod
@@ -734,7 +734,7 @@ class MailTemplate(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     json = models.TextField(null=False, blank=False)
     
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -751,7 +751,7 @@ class MailCampaign(models.Model):
     json = models.TextField(null=True, blank=True)
     mail_template = models.ForeignKey(MailTemplate, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 class MailType(models.Model):
@@ -761,7 +761,7 @@ class MailType(models.Model):
     sequence = models.IntegerField(default=0)
     mail_campaign = models.ForeignKey(MailCampaign, null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 class ExcelBook(models.Model):

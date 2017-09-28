@@ -7,7 +7,7 @@ environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
     'debug_toolbar',
-    'django_nose',
+#    'django_nose',
 )
 
 MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware', )

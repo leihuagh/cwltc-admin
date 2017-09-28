@@ -10,7 +10,7 @@ class Item(models.Model):
     sale_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     cost_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
      
-    def __unicode__(self):
+    def __str__(self):
         return self.description 
     
     def to_dict(self):
@@ -24,13 +24,13 @@ class Item(models.Model):
         item_dict['sale_price'] = int(100 * self.sale_price)
         item_dict['cost_price'] = int(100 * self.cost_price)
         item_dict['quantity'] = 1
-        item_dict['total'] = unichr(163) + " " + str(self.sale_price)
+        item_dict['total'] = chr(163) + " " + str(self.sale_price)
         return item_dict 
 
 class Layout(models.Model):
     name = models.CharField(max_length=25)
     invoice_itemtype = models.ForeignKey(ItemType, null=True)
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 class Location(models.Model):
@@ -40,7 +40,7 @@ class Location(models.Model):
     item = models.ForeignKey(Item, blank=True, null=True)
     layout = models.ForeignKey(Layout, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         name = "Layout: {}, Row: {}, Col: {}, ".format(str(self.layout.name),
                                                     str(self.row), str(self.col))
         if self.item:
@@ -55,7 +55,7 @@ class Transaction(models.Model):
     billed = models.BooleanField()
     layout = models.ForeignKey(Layout, blank=True, null=True)
     
-    def __unicode__(self):
+    def __str__(self):
         return "{} {} {} {}".format(str(self.id),
                                     str(self.person.first_name),
                                     str(self.person.last_name),
@@ -68,5 +68,5 @@ class LineItem(models.Model):
     quantity = models.IntegerField()
     transaction = models.ForeignKey(Transaction, blank=True, null=True)
     
-    def __unicode__(self):
+    def __str__(self):
         return "{} {}".format(self.item.description, self.transaction_id)

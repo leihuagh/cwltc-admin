@@ -13,17 +13,17 @@ class MembersTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super(MembersTestCase, cls).setUpClass()
-        django.setup()
-        cls.discoverRunner = DiscoverRunner()
-        cls.discoverRunner.setup_test_environment()
-        cls.old_config = cls.discoverRunner.setup_databases()
-        super(MembersTestCase, cls).setUpClass()
+        # django.setup()
+        # cls.discoverRunner = DiscoverRunner()
+        # cls.discoverRunner.setup_test_environment()
+        # cls.old_config = cls.discoverRunner.setup_databases()
+        # super(MembersTestCase, cls).setUpClass()
 
     @classmethod
     def tearDownClass(cls):
-        super(ViewTest, cls).tearDownClass()
-        cls.discoverRunner.teardown_databases(cls.old_config)
-        cls.discoverRunner.teardown_test_environment()
+        super(MembersTestCase, cls).tearDownClass()
+        # cls.discoverRunner.teardown_databases(cls.old_config)
+        # cls.discoverRunner.teardown_test_environment()
 
     @classmethod
     def setUpTestData(cls):

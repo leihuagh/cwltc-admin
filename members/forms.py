@@ -840,7 +840,7 @@ class EmailTextForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(EmailTextForm, self).__init__(*args, **kwargs)
-        text_choices = [(-1, u'None')] + [(x.id, x.name) for x in TextBlock.objects.filter(
+        text_choices = [(-1, 'None')] + [(x.id, x.name) for x in TextBlock.objects.filter(
             ~Q(name__startswith='_')).order_by('name')]
         self.fields['intro'].choices = text_choices
         self.fields['notes'].choices = text_choices
@@ -872,7 +872,7 @@ class EmailForm(Form):
         text = kwargs.pop('text', '')
         selection = kwargs.pop('selection', False)
         super(EmailForm, self).__init__(*args, **kwargs)
-        choices = [(-1, u'None')] + [(x.id, x.slug) for x in Group.objects.order_by('slug')]
+        choices = [(-1, 'None')] + [(x.id, x.slug) for x in Group.objects.order_by('slug')]
         self.fields['group'].choices = choices
         self.helper = FormHelper()
         self.helper.form_id = 'id-emailForm'
@@ -899,7 +899,7 @@ class EmailForm(Form):
 
     def clean(self):
         cleaned_data = super(EmailForm, self).clean()
-        if cleaned_data['to'] == u'' and cleaned_data['group'] == '-1':
+        if cleaned_data['to'] == '' and cleaned_data['group'] == '-1':
             raise forms.ValidationError('No To or group selected')
         return self.cleaned_data
 

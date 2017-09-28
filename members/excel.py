@@ -32,13 +32,13 @@ def import_items(sheet, save_data):
     row = 0
     for col in range(0, sheet.ncols):
         value = sheet.cell(row,col).value.upper() 
-        if value == u'ID':
+        if value == 'ID':
             col_id = col
-        elif value == u'CODE':
+        elif value == 'CODE':
             col_item_id = col
-        elif value == u'AMOUNT':
+        elif value == 'AMOUNT':
             col_amount = col
-        elif value == u'DESCRIPTION':
+        elif value == 'DESCRIPTION':
             col_description = col
 
     if col_id > -1 and col_item_id > -1 and col_amount > -1:  
@@ -49,10 +49,10 @@ def import_items(sheet, save_data):
                     person_id = int(sheet.cell_value(row, col_id))                 
                     amount = sheet.cell_value(row, col_amount)
                     item_id = int(sheet.cell_value(row, col_item_id))
-                    description = u''
+                    description = ''
                     if col_description > 0:
                         description = sheet.cell_value(row, col_description)
-                    if description == u'':
+                    if description == '':
                         description = ItemType.objects.get(pk=item_id).description
 
                     count += 1
@@ -88,7 +88,7 @@ def import_base_tables(book):
 
 def import_categories(book):
     sheet = book.sheet_by_name('Categories')
-    if sheet.row(0)[0].value.upper() == u'ID':
+    if sheet.row(0)[0].value.upper() == 'ID':
         for row in range(1, sheet.nrows):
             id = sheet.cell_value(row, 0)
             description = sheet.cell_value(row, 1)
@@ -96,7 +96,7 @@ def import_categories(book):
 
 def import_fees(book):
     sheet = book.sheet_by_name('Fees')
-    if sheet.row(0)[0].value.upper() == u'ID':
+    if sheet.row(0)[0].value.upper() == 'ID':
         for row in range(1, sheet.nrows):
             f = Fees()
             f.id = sheet.cell_value(row, 0)
@@ -109,7 +109,7 @@ def import_fees(book):
 
 def import_itemtypes(book):    
     sheet = book.sheet_by_name('ItemTypes')
-    if sheet.row(0)[0].value.upper() == u'ID':
+    if sheet.row(0)[0].value.upper() == 'ID':
         for row in range(1, sheet.nrows):
             i = ItemType()
             i.id = sheet.cell_value(row, 0)
@@ -130,7 +130,7 @@ def import_members_1(book, start, size):
             mem_dict[mem.description] = mem.id 
         
         sheet = book.sheet_by_name('Members')
-        if sheet.row(0)[0].value.upper() == u'ID':
+        if sheet.row(0)[0].value.upper() == 'ID':
             last_time = False
             if size > sheet.nrows - start:
                 size = sheet.nrows - start 
