@@ -7,7 +7,7 @@ env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
-    'djcelery_email'
+    'djcelery_email',
     'debug_toolbar',
 #    'django_nose',
 )
