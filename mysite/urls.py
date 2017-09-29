@@ -73,15 +73,6 @@ urlpatterns = [
         GroupAddListView.as_view(),
         name='group-add-list'),
 
-    url(r'^contact/$',
-        ContactView.as_view(),
-        name='contact'
-        ),
-    url(r'^contact/(?P<person_id>\d+)/$',
-        ContactView.as_view(),
-        name='contact-person'
-        ),
-
     #   MEMBERSHIP CATEGORIES
     url(r'^categories/list/$',
         MembershipTableView.as_view(),

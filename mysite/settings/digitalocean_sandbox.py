@@ -12,7 +12,7 @@ INSTALLED_APPS += (
 )
 DATABASES = {'default': env.db_url('DATABASE_URL_SANDBOX')}
 ALLOWED_HOSTS = ['sandbox.coombewoodltc.com']
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
 
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
