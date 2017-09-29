@@ -7,7 +7,8 @@ env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
-
+    'djcelery_email'
+    'debug_toolbar',
 #    'django_nose',
 )
 DATABASES = {'default': env.db_url('DATABASE_URL_SANDBOX')}
@@ -22,5 +23,7 @@ GO_CARDLESS = env.dict('GO_CARDLESS_SANDBOX')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
-EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
+EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+if DEBUG:
+   CELERY_EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
 ANYMAIL = env.dict('ANYMAIL')
