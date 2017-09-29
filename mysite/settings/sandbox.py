@@ -1,12 +1,13 @@
 import socket
 from .base import *
-DEBUG = 'DEBUG' in os.environ
+DEBUG = True # 'DEBUG' in os.environ
 SITE_NAME = "Sandbox"
 env_path = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], ".env")
 environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
     'debug_toolbar',
+    'djcelery_email'
 )
 
 MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
@@ -34,7 +35,9 @@ SECRET_KEY = os.environ['OPENSHIFT_SECRET_TOKEN']
 GO_CARDLESS = env.dict('GO_CARDLESS_SANDBOX')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
+
+EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
 if DEBUG:
-    EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
+   CELERY_EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
 
 ANYMAIL = env.dict('ANYMAIL')
