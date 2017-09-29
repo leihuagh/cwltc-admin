@@ -99,11 +99,11 @@ class InvoicePublicView(DetailView):
         if 'query' in request.POST:
             group = group_get_or_create("2017Query")
             invoice.person.groups.add(group)
-            return redirect(reverse('contact-person', kwargs={'person_id': invoice.person.id}))
+            return redirect(reverse('public-contact-person', kwargs={'person_id': invoice.person.id}))
         elif 'resign' in request.POST:
             group = group_get_or_create("2017Resign")
             invoice.person.groups.add(group)
-            return redirect(reverse('public-resigned', kwargs={'person_id': invoice.person.id}))
+            return redirect(reverse('public-resigned'))
 
 
 class ContactView(FormView):
