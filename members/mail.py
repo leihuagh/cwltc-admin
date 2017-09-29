@@ -21,7 +21,7 @@ def do_mail(request, invoice, option):
     signer = Signer()
     token = signer.sign(invoice.id)
     context['gc_bill_create'] = request.build_absolute_uri(reverse('invoice-public', args=(token,)))
-    context['resign'] = request.build_absolute_uri(reverse('resigned'))
+    context['resign'] = request.build_absolute_uri(reverse('public-resigned'))
     if invoice.email_count > 0:
         context['reminder'] = True
 
