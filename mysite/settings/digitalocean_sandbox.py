@@ -7,7 +7,7 @@ env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
-    'djcelery_email',
+#    'djcelery_email',
     'debug_toolbar',
 #    'django_nose',
 )
@@ -27,3 +27,5 @@ EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
 if DEBUG:
    CELERY_EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
 ANYMAIL = env.dict('ANYMAIL')
+
+CELERY_BROKER_URL = 'amqp://localhost

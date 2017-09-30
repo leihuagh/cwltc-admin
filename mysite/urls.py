@@ -2,7 +2,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django_mail_viewer import urls as django_mail_viewer_urls
-from mysite.views import index_view
+from mysite.views import *
 from members.views import *
 from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
 from public.views import *
@@ -17,6 +17,7 @@ router.register(r'groups', GroupViewSet)
 router.register(r'invoices', InvoiceViewSet)
 
 urlpatterns = [
+    url(r'^celery/$', test_celery_view(), name='celery'),
     url(r'^$', index_view, name='index'),
     url(r'^public/', include('public.urls')),
     url(r'^mv/', include(django_mail_viewer_urls)),

@@ -1,4 +1,5 @@
 from django.shortcuts import redirect
+from .tasks import addxy
 
 def index_view(request):
     if request.user.is_authenticated():
@@ -7,3 +8,6 @@ def index_view(request):
 
 
 
+def test_celery_view(request):
+    addxy.delay(10, 20)
+    return redirect('home')
