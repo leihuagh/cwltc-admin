@@ -28,4 +28,4 @@ if DEBUG:
    CELERY_EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
 ANYMAIL = env.dict('ANYMAIL')
 
-CELERY_BROKER_URL = 'amqp://localhost
+CELERY_BROKER_URL = 'amqp://localhost'
