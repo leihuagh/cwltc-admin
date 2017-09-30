@@ -17,7 +17,7 @@ router.register(r'groups', GroupViewSet)
 router.register(r'invoices', InvoiceViewSet)
 
 urlpatterns = [
-    url(r'^celery/$', test_celery_view(), name='celery'),
+    url(r'^celery/$', test_celery_view, name='celery'),
     url(r'^$', index_view, name='index'),
     url(r'^public/', include('public.urls')),
     url(r'^mv/', include(django_mail_viewer_urls)),
