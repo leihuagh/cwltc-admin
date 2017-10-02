@@ -40,7 +40,7 @@ INSTALLED_APPS = (
     'anymail',
     'django_mail_viewer',
     'django_tables2',
-    'djcelery_email'
+    'djcelery_email',
     'members',
     'gc_app',
     'pos',
