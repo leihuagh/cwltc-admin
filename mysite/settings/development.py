@@ -6,6 +6,7 @@ env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
+    'coverage',
 #   'debug_toolbar',
 #    'django_nose',
 )

@@ -1,4 +1,3 @@
-import socket
 from .base import *
 DEBUG = False
 SITE_NAME = ""
@@ -19,5 +18,6 @@ GO_CARDLESS = env.dict('GO_CARDLESS')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
-EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+CELERY_EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
 ANYMAIL = env.dict('ANYMAIL')

@@ -23,7 +23,6 @@ STATIC_URL = '/static/'
 # This is where the static files get served from
 STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
 
-
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,7 +40,7 @@ INSTALLED_APPS = (
     'anymail',
     'django_mail_viewer',
     'django_tables2',
-    'coverage',
+    'djcelery_email'
     'members',
     'gc_app',
     'pos',
@@ -162,13 +161,11 @@ LOGIN_URL = '/login/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-# DJANGO_WYSIWYG_FLAVOR = 'tinymce'
+# EMAIL_BACKEND is defined in site specific settings
 
-EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
 DEFAULT_FROM_EMAIL = 'Coombe Wood LTC <subs@coombewoodltc.co.uk>'
 SUBS_EMAIL = 'subs@coombewoodltc.co.uk'
 INFO_EMAIL = 'info@coombewoodltc.co.uk'
 TEST_EMAIL = 'is@ktconsultants.co.uk'
 
-# INTERNAL_IPS = ['127.0.0.1', '::1']
 
