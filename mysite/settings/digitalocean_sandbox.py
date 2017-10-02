@@ -1,7 +1,7 @@
 import socket
 from .base import *
 SITE_NAME = "Sandbox"
-DEBUG = True
+DEBUG = False
 # We could use the default path but make it explicit for clarity
 env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
