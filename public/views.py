@@ -255,6 +255,7 @@ def session_get_post(index, request):
             return posts[index]
     return None
 
+
 def session_delete_post(index, request):
     """
     Delete post data for index
@@ -386,10 +387,13 @@ class ApplyMain(TemplateView):
     def get(self, request, *args, **kwargs):
         posted = session_get_post(0, request)
         if posted:
-            self.name_form = NameForm(posted, adult=request.session['adult'])
+            self.name_form = NameForm(posted,
+                                      adult=request.session['adult'],
+                                      restricted_fields = True,
+                                      no_form_tag=True)
             self.address_form = AddressForm(posted)
         else:
-            self.name_form = NameForm(adult=request.session['adult'] )
+            self.name_form = NameForm(adult=request.session['adult'])
             self.address_form = AddressForm()
         return render(request, self.template_name, self.get_context_data(**kwargs))
 

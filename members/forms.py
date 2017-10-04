@@ -99,6 +99,7 @@ class PersonForm(ModelForm):
             self.fields['last_name'].initial = self.parent.last_name
             self.fields['mobile_phone'].initial = self.parent.mobile_phone
             self.fields['email'].initial = self.parent.email
+            self.fields['email'].required = False
         self.updating = False
         instance = getattr(self, 'instance', None)
         self.updating = instance and instance.id
@@ -114,17 +115,14 @@ class PersonForm(ModelForm):
             'post_code',
             'home_phone'
         ]
-        for field in no_complete:
+        for field in self.fields:
             self.fields[field].widget.attrs = {'autocomplete': "off"}
 
         self.fields['dob'].label = 'Date of birth'
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
         self.fields['dob'].widget.attrs = {'autocomplete': "off", 'placeholder': 'DD/MM/YYYY'}
-        self.fields['email'].widget.attrs = {'autocomplete': "off"}
-
-        if self.link:
-            self.fields['email'].required = False
+        # self.fields['email'].widget.attrs = {'autocomplete': "off"}
 
         self.helper = FormHelper(self)
 
@@ -153,28 +151,40 @@ class PersonForm(ModelForm):
             css_class="col col-sm-4"
         )
 
-        other_set = Div('Other information',
-                        'notes',
-                        'british_tennis',
-                        'pays_own_bill',
-                        'pays_family_bill',
-                        'state',
-                        css_class="well"
-                        )
+        other_set = Div(
+            Div('Other information',
+                'notes',
+                'british_tennis',
+                'pays_own_bill',
+                'pays_family_bill',
+                'state',
+                css_class="well"
+                ),
+            css_class="col col-sm-4"
+        )
 
-        self.helper.layout = Layout(name_set, address_set)
-
-        if not self.link and not self.updating:
-            self.helper.layout.append(address_set)
-        self.helper.form_tag = False
-        self.helper.disable_csrf = True
+        if self.link or self.updating:
+            self.helper.layout = Layout(Div(name_set, css_class="row"))
+        else:
+            self.helper.layout = Layout(Div(name_set, address_set, other_set, css_class="row"))
+        self.helper.layout.append(Div(
+            Div(
+                ButtonHolder(
+                    SubmitButton('submit', 'Save', css_class='btn-primary'),
+                    SubmitButton('cancel', 'Cancel', css_class='btn-default')
+                    ),
+                    css_class="col col-sm-4"
+                ),
+            css_class="row"
+            )
+        )
 
         # if not self.public:
-        #    self.helper.layout.append(other_set)
-        #    self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-        #    if not self.updating:
-        #        self.helper.add_input(SubmitButton('submit_sub', 'Save and add sub', css_class='btn-primary'))
-        #    self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
+        #     self.helper.layout.append(other_set)
+        # self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+        # if not self.updating:
+        #     self.helper.add_input(SubmitButton('submit_sub', 'Save and add sub', css_class='btn-primary'))
+        # self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
 
 
     def clean(self):

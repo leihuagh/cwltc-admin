@@ -19,11 +19,13 @@ from django.conf import settings
 from django.core.mail import send_mail
 from braces.views import StaffuserRequiredMixin, StaffuserRequiredMixin
 
+
 import xlrd
 import json
 from report_builder.models import Report
 from django_tables2 import SingleTableView, RequestConfig
 from pos.services import create_invoiceitems_from_transactions
+from public.forms import NameForm
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group, MailCampaign)
 from .services import *
@@ -241,9 +243,9 @@ class PersonCreateView(StaffuserRequiredMixin, PersonActionMixin, CreateView):
 
 class PersonUpdateView(StaffuserRequiredMixin, PersonActionMixin, UpdateView):
     model = Person
-    template_name = 'members/generic_crispy_form.html'
+    template_name = 'members/generic_crispy_form_well.html'
     success_msg = "Person updated"
-    form_class = PersonForm
+    form_class = NameForm
 
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['pk']})

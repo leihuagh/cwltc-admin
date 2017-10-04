@@ -165,12 +165,12 @@ class NameForm(ModelForm):
                 'last_name',
                 'gender',
                 'dob',
-                # 'state',
                 'email',
                 'mobile_phone',
-                # 'british_tennis',
-                # 'pays_own_bill',
-                # 'notes']
+                'british_tennis',
+                'pays_own_bill',
+                'notes',
+                'state'
                 ]
         widgets = {'dob': forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY'})}
     
@@ -178,15 +178,28 @@ class NameForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         adult = kwargs.pop('adult', True)
-        kwargs.pop('back', False)
-        kwargs.pop('next', False)
+        restricted_fields = kwargs.pop('all_fields', False)
+        no_form_tag = kwargs.pop('no_form_tag', False)
         super(NameForm, self).__init__(*args, **kwargs)
+        if restricted_fields:
+            del self.fields['state']
+            del self.fields['british_tennis']
+            del self.fields['pays_own_bill']
+            del self.fields['notes']
         if not adult:
             del self.fields['dob']
             del self.fields['gender']
         self.helper = FormHelper(self)
-        self.helper.form_tag = False
-        self.helper.disable_csrf = True
+        if no_form_tag:
+            self.helper.form_tag = False
+            self.helper.disable_csrf = True
+        else:
+            self.helper.layout.append(
+                ButtonHolder(
+                    Submit('submit', 'Submit', css_class='btn btn-success'),
+                    Submit('cancel', 'Cancel', css_class='btn btn-default', formnovalidate='formnovalidate')
+                )
+            )
 
 
 class AddressForm(ModelForm):
@@ -235,25 +248,25 @@ class AdultProfileForm(ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
             Div(
-                    Div(
-                        Div('form_type', 'membership_id',
-                            HTML("""{% load members_extras %}
-                            {% for mem in memberships %}
-                            <strong>{{ mem|index:0 }} membership</strong><br/>
-                            Annual fee: &pound{{ mem|index:1 }}
-                            {% if mem|index:2 %} + Joining fee: &pound{{ mem|index:2 }} {% endif %}<br/>
-                            {{ mem|index:3 }}<br/><br/>
-                            {% endfor%}"""),   
-                            'club',
-                            css_class="well"),    
-                        css_class="col-md-4"),  
-                    Div(
-                        Div('ability', HTML("<strong>Tick all activities that interest you:</strong>"),
-                            'singles', 'doubles', 'coaching1', 'coaching2', 'daytime',
-                            'family', 'social', 'competitions', 'teams',
-                            css_class="well"),
-                        css_class="col-md-4"),
-                    css_class="row"),
+                Div(
+                    Div('form_type', 'membership_id',
+                        HTML("""{% load members_extras %}
+                        {% for mem in memberships %}
+                        <strong>{{ mem|index:0 }} membership</strong><br/>
+                        Annual fee: &pound{{ mem|index:1 }}
+                        {% if mem|index:2 %} + Joining fee: &pound{{ mem|index:2 }} {% endif %}<br/>
+                        {{ mem|index:3 }}<br/><br/>
+                        {% endfor %}"""),
+                        'club',
+                        css_class="well"),
+                    css_class="col-md-4"),
+                Div(
+                    Div('ability', HTML("<strong>Tick all activities that interest you:</strong>"),
+                        'singles', 'doubles', 'coaching1', 'coaching2', 'daytime',
+                        'family', 'social', 'competitions', 'teams',
+                        css_class="well"),
+                    css_class="col-md-4"),
+                css_class="row"),
             Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
             Submit('next', 'Next >', css_class='btn btn-success')
             )
@@ -292,7 +305,9 @@ class ChildProfileForm(Form):
     membership_id = forms.CharField(required=False, widget=HiddenInput)
     notes = forms.CharField(max_length=100, required=False,
                             widget=forms.Textarea,
-                            label="Use the box below to describe any special care needs, dietary requirements, allergies or medical conditions:")
+                            label=("Use the box below to describe any special care needs, "
+                                   "dietary requirements, allergies or medical conditions:")
+                            )
     
     def __init__(self, *args, **kwargs):
         kwargs.pop('delete', False)
@@ -302,7 +317,9 @@ class ChildProfileForm(Form):
             Div(
                 Div(
                     Div('form_type', 'membership_id', 'notes',
-                        HTML("In the event of injury, illness or other medical need, all reasonable steps will be taken to contact you, and to deal with the situation appropriately."), css_class="well"),
+                        HTML("In the event of injury, illness or other medical need, "
+                             "all reasonable steps will be taken to contact you, "
+                             "and to deal with the situation appropriately."), css_class="well"),
                     css_class="col-md-6"),
                 css_class="row"),
             Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
