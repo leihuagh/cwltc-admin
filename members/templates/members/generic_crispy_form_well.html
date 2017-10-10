@@ -6,6 +6,10 @@
 {% if message %}
     <p>{{ message }}</p>
 {% endif %}
+{% if not form.helper.form_tag %}
+  <form action="{{ request.get_full_path }}" method="POST">
+  {% csrf_token %}
+{% endif %}
 <div class="row">
   <div class="col col-sm-6">
     <div class="well">
@@ -13,4 +17,19 @@
     </div>
   </div>
 </div>
+{% if not form.helper.form_tag %}
+  {% if buttons %}
+    {% for button in buttons %}
+      {% if button.0 == 'cancel' %}
+        <a href="{{ view.get_success_url }}" class="btn {{ button.2 }}">{{ button.1 }}</a>
+      {%  else %}
+        <input type="submit" name="{{ button.0 }}" value="{{ button.1 }}" class="btn {{ button.2 }} {{ button.3 }}">
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <input type="submit" name="save" value="Save" class="btn btn-success">
+    <a href="{{ view.get_success_url }}" class="btn btn-default">Cancel</a>
+  {% endif %}
+  </form>
+{% endif %}
 {% endblock content %}

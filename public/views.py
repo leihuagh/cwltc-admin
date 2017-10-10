@@ -389,8 +389,8 @@ class ApplyMain(TemplateView):
         if posted:
             self.name_form = NameForm(posted,
                                       adult=request.session['adult'],
-                                      restricted_fields = True,
-                                      no_form_tag=True)
+                                      restricted_fields=True
+                                      )
             self.address_form = AddressForm(posted)
         else:
             self.name_form = NameForm(adult=request.session['adult'])

@@ -178,8 +178,7 @@ class NameForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         adult = kwargs.pop('adult', True)
-        restricted_fields = kwargs.pop('all_fields', False)
-        no_form_tag = kwargs.pop('no_form_tag', False)
+        restricted_fields = kwargs.pop('restricted_fields', False)
         super(NameForm, self).__init__(*args, **kwargs)
         if restricted_fields:
             del self.fields['state']
@@ -190,16 +189,9 @@ class NameForm(ModelForm):
             del self.fields['dob']
             del self.fields['gender']
         self.helper = FormHelper(self)
-        if no_form_tag:
-            self.helper.form_tag = False
-            self.helper.disable_csrf = True
-        else:
-            self.helper.layout.append(
-                ButtonHolder(
-                    Submit('submit', 'Submit', css_class='btn btn-success'),
-                    Submit('cancel', 'Cancel', css_class='btn btn-default', formnovalidate='formnovalidate')
-                )
-            )
+        self.helper.form_class = 'form-horizontal'
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True
 
 
 class AddressForm(ModelForm):

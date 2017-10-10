@@ -217,39 +217,6 @@ class PersonForm(ModelForm):
         self.person.save()
 
 
-class AddressForm(ModelForm):
-    class Meta:
-        model = Address
-        fields = [
-            'address1',
-            'address2',
-            'town',
-            'post_code',
-            'home_phone'
-        ]
-
-    def __init__(self, *args, **kwargs):
-        super(AddressForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper(self)
-        # self.helper.form_class = 'form-horizontal'
-        # self.helper.label_class = 'col-lg-2'
-        # self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
-        self.helper.layout = Layout(
-            Fieldset("",
-                     'address1',
-                     'address2',
-                     'town',
-                     'post_code',
-                     'home_phone'
-                     ),
-            ButtonHolder(
-                SubmitButton('submit', 'Save', css_class='btn-primary'),
-                SubmitButton('cancel', 'Cancel', css_class='btn-default')
-            )
-        )
-
-
 class JuniorForm(ModelForm):
     class Meta:
         model = Person

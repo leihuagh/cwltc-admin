@@ -25,7 +25,7 @@ import json
 from report_builder.models import Report
 from django_tables2 import SingleTableView, RequestConfig
 from pos.services import create_invoiceitems_from_transactions
-from public.forms import NameForm
+from public.forms import NameForm, AddressForm
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group, MailCampaign)
 from .services import *
@@ -246,6 +246,14 @@ class PersonUpdateView(StaffuserRequiredMixin, PersonActionMixin, UpdateView):
     template_name = 'members/generic_crispy_form_well.html'
     success_msg = "Person updated"
     form_class = NameForm
+
+    def get_context_data(self, **kwargs):
+        context = super(PersonUpdateView, self).get_context_data(**kwargs)
+        # context['buttons'] = [
+        #     ('go', 'Go', 'btn-success'),
+        #     ('cancel', 'Cancel', 'btn-danger')
+        #     ]
+        return context
 
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk':self.kwargs['pk']})
