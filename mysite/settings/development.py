@@ -7,7 +7,7 @@ environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
     'coverage',
-    'django-nose',
+#    'django-nose',
 #    'debug_toolbar',
 )
 
@@ -28,4 +28,4 @@ EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
 ANYMAIL = env.dict('ANYMAIL')
 CARDLESS_ACCESS_TOKEN=env.str('CARDLESS_ACCESS_TOKEN')
 CARDLESS_ENVIRONMENT='sandbox'
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+# TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'

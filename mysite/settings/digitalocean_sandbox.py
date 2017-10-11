@@ -9,7 +9,7 @@ environ.Env.read_env(env_path)
 if DEBUG:
     INSTALLED_APPS += (
         'debug_toolbar',
-        'django-nose',
+#        'django-nose',
     )
 
 DATABASES = {'default': env.db_url('DATABASE_URL_SANDBOX')}
@@ -27,4 +27,4 @@ BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
 CELERY_EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
 ANYMAIL = env.dict('ANYMAIL')
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+# TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
