@@ -642,7 +642,7 @@ class MembersListForm(Form):
     # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
     categories = forms.ChoiceField()
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current().membership_year)
+                                         initial=Settings.current_year())
     paystate = forms.ChoiceField(choices=Payment.PAYCHOICES,
                                  initial=Payment.PAID)
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
@@ -659,7 +659,7 @@ class JuniorsListForm(Form):
     categories = forms.ChoiceField(choices=Membership.JUNIOR_CHOICES,
                                    initial=Membership.JUNIORS)
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current().membership_year)
+                                         initial=Settings.current_year())
     paystate = forms.ChoiceField(choices=Payment.PAYCHOICES,
                                  initial=Payment.PAID)
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
@@ -667,9 +667,9 @@ class JuniorsListForm(Form):
 
 class InvoiceFilterForm(Form):
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current().membership_year)
+                                         initial=Settings.current_year())
     start_datetime = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
-                                         initial=date(Settings.current().membership_year, 4, 1), required=False)
+                                         initial=date(Settings.current_year(), 4, 1), required=False)
     start_datetime.widget.format = settings.DATE_INPUT_FORMATS[0]
     end_datetime = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                        initial=date.today(), required=False)
@@ -932,9 +932,9 @@ class PaymentForm(ModelForm):
 
 class PaymentFilterForm(Form):
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current().membership_year, required=False)
+                                         initial=Settings.current_year(), required=False)
     start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
-                                     initial=date(Settings.current().membership_year, 4, 1), required=False)
+                                     initial=date(Settings.current_year(), 4, 1), required=False)
     start_date.widget.format = settings.DATE_INPUT_FORMATS[0]
     end_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                    initial=date.today(), required=False)

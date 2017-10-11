@@ -55,7 +55,7 @@ def send_multiple_mails(request, person_queryset, text, from_email,
     count_bad = 0
     count_dups = 0
     sent_list = []
-    year = Settings.current().membership_year
+    year = Settings.current_year()
     for person in person_queryset:
         result = send_template_mail(request=request,
                                     person=person,
@@ -84,7 +84,7 @@ def send_template_mail(request, person, text,
     if sent_list is None:
         sent_list = []
     if year == 0:
-        year = Settings.current().membership_year
+        year = Settings.current_year()
     recipient = person
     child = None
     if person.linked:

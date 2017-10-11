@@ -13,11 +13,6 @@ class MembersTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super(MembersTestCase, cls).setUpClass()
-        # django.setup()
-        # cls.discoverRunner = DiscoverRunner()
-        # cls.discoverRunner.setup_test_environment()
-        # cls.old_config = cls.discoverRunner.setup_databases()
-        # super(MembersTestCase, cls).setUpClass()
 
     @classmethod
     def tearDownClass(cls):

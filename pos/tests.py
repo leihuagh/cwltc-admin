@@ -64,14 +64,10 @@ class ItemFactory(factory.DjangoModelFactory):
 
 class PosTestCase(TestCase):
 
-    @classmethod
-    def setUpTestData(cls):
-        settings = Settings.objects.create(id=1, membership_year=2015)
-        pass
-       
-              
+
     def test_item_to_dict(self):
         item = ItemFactory.create()
+        dict = item.to_dict()
         dict = item.to_dict()
         self.assertEqual(dict['id'], item.id)
         self.assertEqual(dict['description'], item.description)

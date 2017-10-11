@@ -82,7 +82,7 @@ class SubsTableView(StaffuserRequiredMixin, SingleTableView):
         """
         Perform the query and do the filtering
         """
-        year = Settings.current().membership_year
+        year = Settings.current_year()
 
         
         if not self.filter_class:
@@ -160,7 +160,7 @@ class HomeView(StaffuserRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
         context['title'] = 'Home Page'
-        context['membership_year'] = Settings.current().membership_year
+        context['membership_year'] = Settings.current_year()
         context['db_name'] = settings.DATABASES['default']['NAME']
         return context
 
@@ -392,7 +392,7 @@ def add_membership_context(context):
 def set_person_context(context, person):
     context['can_delete'] = person_can_delete(person)
 
-    year = Settings.current().membership_year
+    year = Settings.current_year()
     years = []
     statements = []
     for year in range(year, year-3, -1):
@@ -918,7 +918,7 @@ class YearEndView(StaffuserRequiredMixin, FormView):
         return redirect('year-end')
 
     def get_unpaid_invoices(self):
-        year = Settings.current().membership_year
+        year = Settings.current_year()
         invs = Invoice.objects.filter(
             state=Invoice.UNPAID, membership_year=year, gocardless_bill_id='', total__gt=0)
         return invs
@@ -1108,7 +1108,7 @@ class InvoiceItemTableView(StaffuserRequiredMixin, PagedFilteredTableView):
         # set defaults for first time
         data = self.request.GET.copy()
         #if len(data) == 0:
-        #    data['membership_year'] = Settings.current().membership_year
+        #    data['membership_year'] = Settings.current_year()
         #    data['state'] = Invoice.PAID_IN_FULL
         self.filter = self.filter_class(data, qs, request=self.request)
         self.total = self.filter.qs.aggregate(total=Sum('amount'))['total']
@@ -1134,7 +1134,7 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
         # set defaults for first time
         data = self.request.GET.copy()
         if len(data) == 0:
-            data['membership_year'] = Settings.current().membership_year
+            data['membership_year'] = Settings.current_year()
             data['state'] = Invoice.PAID_IN_FULL
             data['lines'] = 20
         lines = int(data.get('lines', 0))
@@ -1237,7 +1237,7 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
 #     def get_queryset(self):
 #         form = self.form
 #         # default settings for initial get which does not use the form
-#         year = Settings.current().membership_year
+#         year = Settings.current_year()
 #         start_datetime = datetime(year, Subscription.START_MONTH-1,1)
 #         end_datetime = datetime.combine(date.today(), time(23, 59, 59))
 #         q_paid = Invoice.PAID_IN_FULL
@@ -1440,7 +1440,7 @@ class InvoiceMailBatchView(StaffuserRequiredMixin, View):
         return HttpResponse("Sent {} mails for {} invoices".format(count, invs.count()))
 
     def get_list(self):
-        year = Settings.current().membership_year
+        year = Settings.current_year()
         return Invoice.objects.filter(state=Invoice.UNPAID, membership_year=year)
 
 
@@ -1596,7 +1596,7 @@ class PaymentListView(StaffuserRequiredMixin, PagedFilteredTableView ):
         # set defaults for first time
         data = self.request.GET.copy()
         if len(data) == 0:
-            data['membership_year'] = Settings.current().membership_year
+            data['membership_year'] = Settings.current_year()
             data['lines'] = 20
         lines = data.get('lines', 0)
         if lines > 0:
@@ -1657,7 +1657,7 @@ class PaymentListViewX(StaffuserRequiredMixin, FormMixin, TemplateView):
 
     def get_queryset(self):
         form = self.form
-        year = Settings.current().membership_year    
+        year = Settings.current_year()    
         start_date = date(year,4,1)
         end_date = date.today()
         q_direct_debit = Payment.DIRECT_DEBIT
@@ -1703,7 +1703,7 @@ class PaymentListViewX(StaffuserRequiredMixin, FormMixin, TemplateView):
             ) 
         return self.queryset
         #if getattr(form, 'cleaned_data', None):
-        #    mem_year = Settings.current().membership_year
+        #    mem_year = Settings.current_year()
         #    if form.cleaned_data['membership_year']:
         #        mem_year = form.cleaned_data['membership_year']          
         #    if form.cleaned_data['start_date']:

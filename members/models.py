@@ -1,10 +1,10 @@
 from datetime import date, datetime, timedelta
 import os
 from django.db import models
-from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ObjectDoesNotExist
 from django.dispatch import receiver 
 from markdownx.models import MarkdownxField
 
@@ -118,7 +118,7 @@ class Person(models.Model):
         return None
 
     def current_sub(self):
-        year = Settings.current().membership_year
+        year = Settings.current_year()
         return active_sub(year)
     
     def invoices(self, state):
@@ -216,7 +216,7 @@ class Membership(models.Model):
             is_adult=True, cutoff_age=0, apply_online=True
             ).order_by('id')
         if description:
-            year = Settings.current().membership_year
+            year = Settings.current_year()
             result = []
             for record in qs:
                 fee=Fees.objects.filter(membership_id=record.id, sub_year=year)[0]
@@ -657,8 +657,12 @@ class Settings(models.Model):
     membership_year = models.SmallIntegerField(default=0)
 
     @classmethod
-    def current(cls):
-        return Settings.objects.get(pk=1)
+    def current_year(cls):
+        try:
+            record = Settings.objects.get(pk=1)
+            return record.membership_year
+        except ObjectDoesNotExist:
+            return 1900
 
 class BarTransaction(models.Model):
     id = models.IntegerField(primary_key=True)

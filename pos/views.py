@@ -111,7 +111,7 @@ class PosView(LoginRequiredMixin, TemplateView):
                     tot += item_dict['sale_price'] * item_dict['quantity']
                 context = {}
                 context['receipt'] = receipt
-                context['total'] = unichr(163) + ' {0:.2f}'.format(Decimal(tot)/100)
+                context['total'] = chr(163) + ' {0:.2f}'.format(Decimal(tot)/100)
                 context['request'] = request
                 context['enable_payment'] = tot > 0
                 return render_to_response("pos/receipt.html", context)
