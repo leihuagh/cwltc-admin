@@ -1,12 +1,6 @@
-"""
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
-
-Replace this with more appropriate tests for your application.
-"""
-
 import django
 from django.test import TestCase
+from members.models import Settings
 
 # TODO: Configure your database in settings.py and sync before running tests.
 
@@ -16,7 +10,8 @@ class SimpleTest(TestCase):
     # Django requires an explicit setup() when running tests in PTVS
     @classmethod
     def setUpClass(cls):
-        django.setup()
+        super(SimpleTest, cls).setUpClass()
+
 
     def test_basic_addition(self):
         """

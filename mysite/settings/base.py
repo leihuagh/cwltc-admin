@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'public',
     'club',
     'authentication',
+    'cardless',
 )
 
 MIDDLEWARE_CLASSES = (

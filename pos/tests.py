@@ -1,10 +1,9 @@
 from django.test import TestCase
 from pos.models import *
-from members.models import Person, ItemType
+from members.models import Person, ItemType, Settings
 from django.contrib.auth.models import User
 from .services import *
 import factory
-import pdb
 import logging
 
 logger = logging.getLogger('factory').setLevel(logging.WARNING)
@@ -67,6 +66,7 @@ class PosTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        settings = Settings.objects.create(id=1, membership_year=2015)
         pass
        
               

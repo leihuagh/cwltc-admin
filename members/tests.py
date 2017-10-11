@@ -2,9 +2,9 @@ from datetime import date, datetime
 import pdb
 import django
 from django.test import TestCase
-from members.models import (Person, Address, Membership, Subscription, Fees, Invoice, Payment,
-                            InvoiceItem, ItemType, CreditNote, Group)
-from members.models import bill_month, sub_start_date, sub_end_date
+# from members.models import (Person, Address, Membership, Subscription, Fees, Invoice, Payment,
+#                             InvoiceItem, ItemType, CreditNote, Group)
+# from members.models import bill_month, sub_start_date, sub_end_date
 from members.services import *
 # pdb.set_trace()
 
