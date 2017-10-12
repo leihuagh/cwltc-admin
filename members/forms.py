@@ -689,6 +689,15 @@ class InvoiceFilterForm(Form):
 
 
 class InvoiceItemForm(ModelForm):
+    # date = forms.DateField(
+    #     widget=DatePicker(
+    #         options={
+    #             "format": "dd/mm/yyyy",
+    #             "autoclose": True
+    #         }
+    #     )
+    # )
+
     def __init__(self, *args, **kwargs):
         super(InvoiceItemForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
@@ -709,6 +718,7 @@ class InvoiceItemForm(ModelForm):
         self.fields['item_date'].widget.format = '%d/%m/%Y'
         self.fields['item_date'].input_formats = settings.DATE_INPUT_FORMATS
 
+
     def clean(self):
         cleaned_data = super(InvoiceItemForm, self).clean()
         item_type = cleaned_data.get('item_type')
@@ -720,7 +730,7 @@ class InvoiceItemForm(ModelForm):
     class Meta:
         model = InvoiceItem
         fields = ['item_type', 'item_date', 'description', 'amount']
-        widgets = {'item_date': forms.DateInput(attrs={'class': 'datepicker'}), }
+        widgets = {'item_date': forms.DateInput(attrs={'class': 'input-group date'}), }
 
 
 class InvoiceSelectForm(Form):

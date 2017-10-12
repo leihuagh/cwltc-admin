@@ -1,6 +1,7 @@
 ﻿{% extends "members/layout.html" %}
 {% block content %}
 {% load crispy_forms_tags %}
+
 <h2>Invoice Item</h2>
 <p>
 {{ person.first_name }} {{ person.last_name}}
@@ -8,14 +9,13 @@
 {% crispy form %}
 {% endblock content %}
 {% block scripts %}
+
+
 <script type="text/javascript">
-  $(document).ready(function() {
-    // Checking support for <input type="date"> using Modernizr:
-    // http://modernizr.com/
-      var options = {
-        dateFormat: 'dd/mm/yy'
-      };
-      $('.datepicker').datepicker(options);
-  });
+    $(function () {
+        $('#id_item_date').datetimepicker({
+            format: "D/M/YYYY"
+        });
+    });
 </script>
 {% endblock %}
