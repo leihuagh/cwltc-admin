@@ -5,13 +5,12 @@ from datetime import date, datetime
 import json
 import logging
 import csv
+import io
 from django.views.generic import View, RedirectView, TemplateView, ListView, DetailView, FormView
-from django import http
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.conf import settings
-from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from braces.views import LoginRequiredMixin
@@ -48,7 +47,7 @@ def gc_create_bill_url(invoice):
         amount=invoice.total,
         state=invoice.id,
         name='Payment for Coombe Wood invoice',
-        description='Reference: '+ invoice.number(),
+        description='Reference: ' + invoice.number(),
         user={'email': email,
               'first_name': user.first_name,
               'last_name': user.last_name,
@@ -58,6 +57,7 @@ def gc_create_bill_url(invoice):
               'billing_postcode': user.address.post_code}
         )
     return url
+
 
 class GCConfirm(TemplateView):
     """
@@ -74,6 +74,7 @@ class GCConfirm(TemplateView):
         invoice.gocardless_action = "created"
         invoice.save()
         return super(GCConfirm, self).dispatch(request, *args, **kwargs)
+
 
 class GCWebhook(View):
     """
@@ -164,12 +165,13 @@ class GCWebhook(View):
 
         else:
             hook = WebHook(resource_type="Bad payload",
-                action="",
-                message=json_data,
-                processed=False,
-                error="Bad payload")
+                           action="",
+                           message=json_data,
+                           processed=False,
+                           error="Bad payload")
             hook.save()       
             return HttpResponse(status=403)
+
 
 class WebHookList(LoginRequiredMixin, ListView):
     model = WebHook 
@@ -179,6 +181,7 @@ class WebHookList(LoginRequiredMixin, ListView):
     def get_queryset(self):
         qset =  WebHook.objects.all().order_by('-creation_date')
         return qset
+
 
 class WebHookDetailView(LoginRequiredMixin, DetailView):
     model = WebHook 
@@ -206,7 +209,7 @@ class GcImportView(LoginRequiredMixin, FormView):
     def form_valid(self, form):
         result, errors = process_csvfile(self.request.FILES['upload_file'])
         if errors:
-            messages.error(self.request, errors)
+            messages.error(self.request, result + errors)
         else:
             messages.success(self.request, result)
         return super(GcImportView, self).form_valid(form)
@@ -219,48 +222,53 @@ def process_csvfile(f):
     '''
     Read a GoCardless export and update all invoices that are now paid out
     '''
-    reader = csv.DictReader(f)
+    decoded_file = f.read().decode('utf-8')
+    io_string = io.StringIO(decoded_file)
+    reader = csv.DictReader(io_string)
     record_count = 0
     paid_count = 0
+    no_meta_count = 0
     mismatches = []
-    notfounds = []
+    not_founds = []
     errors = ""
     result = ""
     try:
-        for row in reader:         
+        for row in reader:
             id = row['id']
             status= row['status']
             amount = Decimal(row['amount'])
             fee = Decimal(row['transaction_fee'])
             payout_date = unpack_date(row['payout_date'])
-            meta = row['metadata.description'].split(':')
-            ids = meta[1].split('/')
-            person_id = ids[0].strip()
-            invoice_id = ids[1].strip()
-
             record_count += 1
-            if status == 'paid_out':
-                try:
-                    invoice = Invoice.objects.get(pk=invoice_id)
-                    if invoice.gocardless_bill_id == id:
-                        if invoice.state != Invoice.PAID_IN_FULL:
-                            invoice_pay_by_gocardless(invoice, amount, fee, payout_date)
-                            paid_count += 1
-                    else:
-                        mismatches.append(invoice_id)
-                except Exception as ex:
-                    notfounds.append(invoice_id)
-        result = "{} records processed and {} invoices changed to paid state.".format(
-            record_count, paid_count)        
+            if len(row['metadata.description']) > 0:
+                meta = row['metadata.description'].split(':')
+                ids = meta[1].split('/')
+                person_id = ids[0].strip()
+                invoice_id = ids[1].strip()
+
+                if status == 'paid_out':
+                    try:
+                        invoice = Invoice.objects.get(pk=invoice_id)
+                        if invoice.gocardless_bill_id == id:
+                            if invoice.state != Invoice.PAID_IN_FULL:
+                                invoice_pay_by_gocardless(invoice, amount, fee, payout_date)
+                                paid_count += 1
+                        else:
+                            mismatches.append(invoice_id)
+                    except Exception as ex:
+                        not_founds.append(invoice_id)
+            else:
+                no_meta_count += 1
+        result = "{} records processed and {} invoices changed to paid state. {} with no meta data. ".format(
+            record_count, paid_count, no_meta_count)
         if len(mismatches) > 0:
             errors = "Mismatched invoice ids: " + ",".join(map(str, mismatches))
-        if len(notfounds) > 0:
-            errors += " Not found invoice ids: " + ",".join(map(str, notfounds))
-        
+        if len(not_founds) > 0:
+            errors += " Not found invoice ids: " + ",".join(map(str, not_founds))
     except KeyError:
-
         errors = "Invalid file format"
     return [result, errors]
+
 
 def unpack_date_helper(date_string):
     '''
@@ -274,8 +282,9 @@ def unpack_date_helper(date_string):
         return dateparts
     dateparts = date_string.split('/')      
     if len(dateparts) == 3:
-        return  [dateparts[2], dateparts[1], dateparts[0]]
+        return [dateparts[2], dateparts[1], dateparts[0]]
     raise ValueError("Cannot parse date", date_string)
+
 
 def unpack_date(date_string):
     '''
@@ -283,6 +292,7 @@ def unpack_date(date_string):
     '''
     dateparts = unpack_date_helper(date_string)
     return  date(int(dateparts[0]), int(dateparts[1]), int(dateparts[2]))
+
 
 def unpack_datetime(datetime_string):
     '''
