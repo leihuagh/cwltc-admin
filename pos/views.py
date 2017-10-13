@@ -3,7 +3,7 @@ from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonRes
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
 from django.views.generic.edit import FormView, FormMixin, ProcessFormView
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView

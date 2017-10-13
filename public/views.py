@@ -393,12 +393,17 @@ class ApplyMain(TemplateView):
                                       )
             self.address_form = AddressForm(posted)
         else:
-            self.name_form = NameForm(adult=request.session['adult'])
+            self.name_form = NameForm(adult=request.session['adult'],
+                                      restricted_fields=True
+                                      )
             self.address_form = AddressForm()
         return render(request, self.template_name, self.get_context_data(**kwargs))
 
     def post(self, request, *args, **kwargs):
-        self.name_form = NameForm(request.POST, adult=request.session['adult'])
+        self.name_form = NameForm(request.POST,
+                                  adult=request.session['adult'],
+                                  restricted_fields=True
+                                  )
         self.address_form = AddressForm(request.POST)
        
         if self.name_form.is_valid() and self.address_form.is_valid():
