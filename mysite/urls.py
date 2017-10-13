@@ -12,9 +12,9 @@ from rest_framework import routers
 admin.autodiscover()
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
-router.register(r'groups', GroupViewSet)
-router.register(r'invoices', InvoiceViewSet)
+router.register(r'Xusers', UserViewSet)
+router.register(r'Xgroups', GroupViewSet)
+router.register(r'Xinvoices', InvoiceViewSet)
 
 urlpatterns = [
     url(r'^celery/$', test_celery_view, name='celery'),
@@ -22,11 +22,12 @@ urlpatterns = [
     url(r'^public/', include('public.urls')),
     url(r'^mv/', include(django_mail_viewer_urls)),
     url(r'^api/', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+#    url(r'^rest/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
     url(r'^pos/', include('pos.urls')),
     url(r'^gocardless/', include('gc_app.urls')),
     url(r'^club/', include('club.urls')),
+    url(r'^cardless/', include('cardless.urls')),
 
     url(r'^home/',
         HomeView.as_view(),

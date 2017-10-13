@@ -9,7 +9,7 @@ INSTALLED_APPS += (
     'coverage',
 #    'django-nose',
 #    'debug_toolbar',
-)
+    )
 
 MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
 
@@ -26,6 +26,8 @@ BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
 EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
 ANYMAIL = env.dict('ANYMAIL')
-CARDLESS_ACCESS_TOKEN=env.str('CARDLESS_ACCESS_TOKEN')
-CARDLESS_ENVIRONMENT='sandbox'
+
+CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_ACCESS_TOKEN')
+CARDLESS_ENVIRONMENT = 'sandbox'
+CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
 # TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
