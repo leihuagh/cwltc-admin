@@ -659,7 +659,7 @@ def person_merge(person_from, person_to):
     '''
     Merge two people into one
     Move all related items from person_from to person_to
-    Then delete person_to and their address record
+    Then delete person_from and their address record
     '''
     person_reassign_records(person_from, person_to)
     for sub in person_from.subscription_set.all():
@@ -700,6 +700,7 @@ def person_link(child, parent):
     old_parent = child.linked
     old_address = child.address
     child.linked = parent
+    child.address = parent.address
     child.save()
     if (
         old_parent and
@@ -708,7 +709,7 @@ def person_link(child, parent):
         old_parent.first_name == 'Unknown'):
             old_parent.delete()
     if old_address.person_set.count() == 0:
-        address.delete()
+        old_address.delete()
 
 def group_get_or_create(slug):
     '''

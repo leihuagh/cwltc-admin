@@ -401,6 +401,7 @@ def set_person_context(context, person):
     context['years'] = years
     context['statements'] = statements      
     context['person'] = person
+    context['has_parent'] = person.linked != None
     context['state'] = Person.STATES[person.state][1]
     context['address'] = person.address
     context['subs'] = person.subscription_set.all().order_by('sub_year')

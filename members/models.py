@@ -98,11 +98,15 @@ class Person(models.Model):
         return reverse("person-detail", kwargs={"pk": self.pk})   
       
     def age(self, date):
-        ''' return the age in years on given date
         '''
+         return the age in years on given date
+         and 999 if no date of birth
+         '''
         if self.dob:
             return date.year - self.dob.year - ((date.month, date.day) < (self.dob.month, self.dob.day))
-    
+        else:
+            return 999
+
     def age_today(self):
         return self.age(date.today())
     
