@@ -30,4 +30,4 @@ ANYMAIL = env.dict('ANYMAIL')
 CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_ACCESS_TOKEN')
 CARDLESS_ENVIRONMENT = 'sandbox'
 CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
-# TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'

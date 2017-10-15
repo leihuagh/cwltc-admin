@@ -369,6 +369,7 @@ class Invoice(models.Model):
     # invoiceitem_set
     # creditnote_set
     # payment_set
+
     def __str__(self):
         return "Invoice {}, {} items, total = {}".format(
             Invoice.STATES[self.state][1],
@@ -499,6 +500,9 @@ class Payment(models.Model):
     state = models.SmallIntegerField(choices=STATES, default=NOT_MATCHED)
     banked = models.BooleanField(default=False)
     banked_date = models.DateField(null=True)
+    paid = models.BooleanField(default=False)
+    pending = models.BooleanField(default=False)
+    cardless_id = models.CharField(max_length=80, blank=True, null=True)
     fee = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
     invoice = models.ForeignKey(Invoice, blank=True, null=True)
 

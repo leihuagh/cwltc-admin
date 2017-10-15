@@ -1,36 +1,35 @@
 import os
 import unittest
-from django.conf import settings
-from django.test import TestCase
-from .views import redirect_flow
+from django.test import TestCase, RequestFactory, Client
+from django.urls import reverse
+from .views import RedirectFlowView
+from .services import cardless_client, create_mandate
 import gocardless_pro
 
 
-class Cardless(unittest.TestCase):
+class Cardless(TestCase):
 
 
     @classmethod
     def setUpTestData(cls):
         pass
 
-
-    def get_client(self):
-        self.client = gocardless_pro.Client(
-            access_token=getattr(settings, 'CARDLESS_ACCESS_TOKEN'),
-            environment=getattr(settings, 'CARDLESS_ENVIRONMENT')
-        )
-        return self.client
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.client = cardless_client()
 
 
-    def test_customers(self):
-        client = self.get_client()
-        self.assertNotEqual(client, None)
-        customers = client.customers.list().records
+    def test_client_exists(self):
+        self.assertNotEqual(self.client, None)
+
+    def test_no_customers(self):
+        customers = self.client.customers.list().records
         self.assertEqual(customers, [])
 
+    def test_bad_redirect_flow(self):
+        c = Client()
+        response = c.get(reverse('cardless-redirect-flow'))
+        # request = self.factory.get(reverse('cardless-redirect-flow'))
+        # response = RedirectFlowView.as_view()(request)
+        self.assertEqual(response.status_code, 400)
 
-    def test_redirect_flow(self):
-        client = self.get_client()
-        flow = redirect_flow()
-        self.assertNotEqual(flow.id, None)
-        self.assertNotEqual(flow.redirect_url, None)

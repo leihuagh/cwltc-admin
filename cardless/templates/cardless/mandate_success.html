@@ -1,0 +1,10 @@
+{% extends "public-base.html" %}
+{% load staticfiles %}
+{% block head %}
+  <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
+  <title>Direct debit success</title>
+{% endblock %}
+{% block content %}
+Your direct debit with Coombe Wood has been set up.
+  Payments will be identifed on your statement as GoCardless Ltd
+{% endblock %}

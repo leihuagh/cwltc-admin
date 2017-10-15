@@ -2,9 +2,18 @@ from django.db import models
 from members.models import Person
 # Go Cardless model
 
-class Cardless(models.Model):
+class Mandate(models.Model):
     mandate_id = models.CharField(max_length=50)
     customer_id = models.CharField(max_length=50)
+    event_id = models.CharField(max_length=50)
+    active = models.BooleanField(default=False)
+    person = models.ForeignKey(Person)
+
+class Payment_Event(models.Model):
+    date = models.DateTimeField
+    event_id = models.CharField(max_length=50)
+    description = models.CharField(max_length=30)
+    person = models.ForeignKey(Person)
 
 # class WebHook(models.Model):
 #     creation_date = models.DateTimeField(auto_now_add=True)
