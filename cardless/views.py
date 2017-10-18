@@ -103,6 +103,47 @@ class MandateSuccessView(TemplateView):
         return context
 
 
+class MandateListView(ListView):
+    """ All mandates for 1 person or all in our Go Cardless account"""
+    template_name = "cardless/mandate_list.html"
+    model = Mandate
+    context_object_name = 'mandates'
+
+    def get_context_data(self, **kwargs):
+        context = super(MandateListView, self).get_context_data(**kwargs)
+        person_id = self.kwargs.get('person_id', None)
+        if person_id:
+            context['person'] = person=Person.objects.get(id=person_id)
+        return context
+
+
+class MandateDetailView(TemplateView):
+    """ Detailed mandate data from Go Cardless """
+    template_name = "cardless/mandate_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(MandateDetailView, self).get_context_data(**kwargs)
+        return context
+
+
+class CustomerDetailView(TemplateView):
+    """ Detailed customer data from Go Cardless """
+    template_name = "cardless/customer_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(CustomerDetailView, self).get_context_data(**kwargs)
+        return context
+
+
+class EventDetailView(TemplateView):
+    """ Detailed event data from Go Cardless """
+    template_name = "cardless/event_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(EventDetailView, self).get_context_data(**kwargs)
+        return context
+
+
 class PaymentCreateView(TemplateView):
     template_name = "cardless/payment_create.html"
 
