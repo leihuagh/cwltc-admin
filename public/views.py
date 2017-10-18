@@ -81,7 +81,7 @@ class InvoicePublicView(DetailView):
         try:
             invoice_id = signer.unsign(self.kwargs['token'])
             self.invoice = Invoice.objects.get(pk = invoice_id)
-        except:
+        except Invoice.DoesNotExist:
             self.invoice = None
         return self.invoice
 
@@ -95,7 +95,12 @@ class InvoicePublicView(DetailView):
     def post(self, request, *args, **kwargs):
         invoice = self.get_object()
         if 'pay' in request.POST:
-            return redirect(gc_create_bill_url(invoice))
+            mandate = invoice.person.mandates.all()[0]
+            if mandate == None:
+                return redirect('cardless_mandate_create', kwargs['token'])
+            else:
+                return redirect('cardless_payment_create', kwargs['token'] )
+
         if 'query' in request.POST:
             group = group_get_or_create("2017Query")
             invoice.person.groups.add(group)

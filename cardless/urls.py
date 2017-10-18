@@ -3,9 +3,12 @@ from django.conf.urls import url
 from .views import *
 
 urlpatterns = [
-    url(r'^redirectflow/$', RedirectFlowView.as_view(), name='cardless-redirect-flow'),
-    url(r'^mandate/create/(?P<pk>\d+)/$', MandateCreateView.as_view(), name='cardless-mandate-create'),
-    url(r'^mandate/success/$', MandateSuccessView.as_view(), name='cardless-mandate-success'),
+    url(r'^redirectflow/$', RedirectFlowView.as_view(), name='cardless_redirect_flow'),
+    url(r'^mandate/create/(?P<invoice_token>.+)/$', MandateCreateView.as_view(), name='cardless_mandate_create'),
+    url(r'^mandate/create/(?P<person_token>.+)/$', MandateCreateView.as_view(), name='cardless_mandate_person_create'),
+    url(r'^mandate/success/(?P<invoice_token>.+)/$', MandateSuccessView.as_view(), name='cardless_mandate_success'),
+    url(r'^payment/create/(?P<token>.+)/$', PaymentCreateView.as_view(), name='cardless_payment_create'),
+    url(r'^payment/success/$', PaymentCreateView.as_view(), name='cardless_payment_success')
     # url(r'webhook/$',
     #     GCWebhook.as_view(),
     #     name='gc-webhook'

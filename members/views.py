@@ -2227,12 +2227,6 @@ def fixup_postgresql(request):
         cursor.execute("SELECT setval('members_membership_id_seq', (SELECT MAX(id) FROM members_membership)+1)")
 
 
-def testmailgun(request):
-    #send_simple_message()
-    mailgun_send()
-    return HttpResponse("sent")
-
-
 def bee_test(request):
     if request.is_ajax():
         if request.method =='GET':

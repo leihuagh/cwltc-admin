@@ -8,6 +8,7 @@
       {% else %}
           <form action="{% url 'invoice-public' token %}" method="post" class="form-inline" id="post-form">
           {% csrf_token %}
+          <input type="hidden" name="token" value="{{ token }}">
           Make a payment to Coombe Wood through GoCardless: <br />
           <input type="submit" name="pay" value="Pay in full" class="btn btn-primary"><br /><br />
           If you have a query about the bill or want to change your membership:<br />

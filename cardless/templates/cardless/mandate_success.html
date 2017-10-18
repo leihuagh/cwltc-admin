@@ -5,6 +5,21 @@
   <title>Direct debit success</title>
 {% endblock %}
 {% block content %}
-Your direct debit with Coombe Wood has been set up.
-  Payments will be identifed on your statement as GoCardless Ltd
+  <h2>Direct debit mandate created</h2>
+<p>
+  Your direct debit mandate with Coombe Wood LTC has been set up.
+  Payments will be identifed on your statement as 'GoCardless Ltd'
+</p>
+  {% if invoice %}
+      <form action="{% url 'cardless-payment' token %}" method="post" class="form-inline" id="post-form">
+      {% csrf_token %}
+      Click below to make a payment of {{ invoice.amount }} for invoice number {{ invoice }}.
+      <input type="submit" name="pay" value="Pay by direct debit" class="btn btn-primary"><br /><br />
+      If you have a query about the payment amount:<br />
+      <input type="submit" name="query" value="Query bill" class="btn btn-primary"><br /><br />
+    </form>
+  {% else %}
+    Click below to return to your account page
+    <a href="{% url 'club-account' %}" class="btn btn-primary">My account</a>
+  {% endif %}
 {% endblock %}

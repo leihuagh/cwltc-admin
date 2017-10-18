@@ -70,6 +70,19 @@ def invoice_item_pay(invoice_item, payment):
         invoice_item.subscription.paid = True
         invoice_item.subscription.save()
 
+def invoice_unpay(invoice):
+    '''
+    Used for go cardless cancellation
+    :param invoice: Invoice
+    :return:
+    '''
+    invoice.state = Invoice.UNPAID
+    for item in invoice.invoiceitem_set.all():
+        item.payment = None
+        item.save()
+        if item.subscription:
+            item.subscription.paid = False
+
 def invoice_create_batch(exclude_slug='', size=10000):
     '''
     Generate a batch of invoices of specified size

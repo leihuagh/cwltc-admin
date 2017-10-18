@@ -4,28 +4,42 @@ import hmac
 import hashlib
 import os
 import secrets
-import gocardless_pro
+from django.core.signing import Signer
 from django.views.generic import View, RedirectView, TemplateView, ListView, DetailView, FormView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
-from members.models import Person, Payment
+from members.models import Person, Invoice, Payment
 from .models import Mandate
-from .services import cardless_client
+from .services import cardless_client, process_payment_event, process_mandate_event
+
 
 class MandateCreateView(View):
-
+    """
+    Starts the mandate creation through a Go Cardless page
+    Can be initiated with an invoice token or person token
+    """
     def get(self, request, *args, **kwargs):
-        person = get_object_or_404(Person, pk=self.kwargs['pk'])
-        description = "CWLTC"
-        token = secrets.token_urlsafe(20)
+        invoice_token = kwargs.pop('invoice_token', None)
+        person_token = kwargs.pop('person_token', None)
+        signer = Signer()
+        if invoice_token:
+            invoice_id = signer.unsign(self.kwargs['invoice_token'])
+            invoice = get_object_or_404(Invoice, pk=invoice_id)
+            person = invoice.person
+        elif person_token:
+            person_id = signer.unsign(self.kwargs['person_token'])
+            person = get_object_or_404(Person, pk=person_id)
+
+        description = "CWLTC Mandate"
+        session_token = secrets.token_urlsafe(20)
         url = request.build_absolute_uri(reverse('cardless-redirect-flow'))
         flow = cardless_client().redirect_flows.create(
             params={
                 "description": description,
-                "session_token": token,
+                "session_token": session_token,
                 "success_redirect_url": url,
                 "prefilled_customer": {
                     "given_name": person.first_name,
@@ -39,22 +53,27 @@ class MandateCreateView(View):
             }
         )
         request.session['flow'] = flow
-        request.session['token'] = token
+        request.session['session_token'] = session_token
         request.session['person_id'] = person.id
+        request.session['invoice_token'] = invoice_token
         return redirect(flow.redirect_url)
 
 
 class RedirectFlowView(View):
-
+    """
+    Come here after mandate details have been entered on Go Cardless
+    Confirm the mandate creation, create a mandate object linked to person and redirect to success
+    """
     def get(self, request, *args, **kwargs):
         flow = request.session.get('flow', None)
-        token = request.session.get('token', None)
+        session_token = request.session.get('session_token', None)
         person_id = request.session.get('person_id', None)
-        if flow and token and person_id:
+        invoice_token = request.session('invoice_token', '0')
+        if flow and session_token and person_id:
             new_flow = cardless_client().redirect_flows.complete(
                 identity=flow.id,
                 params={
-                    "session_token": token
+                    "session_token": session_token
                 })
             person = Person.objects.get(id=person_id)
             mandate = Mandate.objects.create(
@@ -64,14 +83,32 @@ class RedirectFlowView(View):
                 active=False
             )
             del request.session['flow']
-            del request.session['token']
+            del request.session['session_token']
             del request.session['person_id']
-            return redirect('cardless-mandate-success')
+            del request.session['invoice_token']
+            return redirect('cardless_mandate_success', invoice_token=invoice_token)
         else:
             return HttpResponseBadRequest()
 
+
 class MandateSuccessView(TemplateView):
     template_name = "cardless/mandate_success.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(MandateSuccessView, self).get_context_data(**kwargs)
+        invoice_token = kwargs['invoice_token']
+        if invoice_token != '0':
+            invoice_id = Signer().unsign(invoice_token)
+            context['invoice'] = Invoice.objects.get(pk=invoice_id)
+        return context
+
+
+class PaymentCreateView(TemplateView):
+    template_name = "cardless/payment_create.html"
+
+
+class PaymentSuccessView(TemplateView):
+    template_name = "cardless/payment_success.html"
 
 
 class Webhook(View):
@@ -101,9 +138,9 @@ class Webhook(View):
     def process(self, event, response):
         response.write("Processing event {}\n".format(event['id']))
         if event['resource_type'] == 'payments':
-            return self.process_payments(event, response)
+            process_payment_event(event)
         if event['resource_type'] == 'mandates':
-            return self.process_mandates(event, response)
+            process_mandate_event(event)
         if event['resource_type'] == 'payouts':
             return self.process_payouts(event, response)
         if event['resource_type'] == 'refunds':
@@ -115,56 +152,8 @@ class Webhook(View):
                 resource_type {}\n".format(event['resource_type']))
             return response
 
-    def process_payments(selfself, event, response):
-        payment = Payment.objects.filter(payment_id = event['links']['payment'])
-        action = event['action']
-        if action == 'created':
-            pass
-        elif action == 'customer_approval_granted':
-            pass
-        elif action == 'customer_approval_denied':
-            pass
-        elif action == 'submitted':
-            pass
-        elif action == 'confirmed':
-            pass
-        elif action == 'cancelled':
-            pass
-        elif action == 'failed':
-            pass
-        elif action == 'charged_back':
-            pass
-        elif action == 'chargeback_cancelled':
-            pass
-        elif action == 'paid_out':
-            pass
-        elif action == 'late_failure_settled':
-            pass
-        elif action == 'chargeback_settled':
-            pass
-        elif action == 'resubmission_requested':
-            pass
-        return response
 
-    def process_mandates(self, event, response):
-        mandate = Mandate.objects.filter(mandate_id = event['links']['mandate'])
-        action = event['action']
-
-        if action == 'active' or action == 'reinstated':
-            mandate.active = True
-            mandate.save()
-
-        elif action == 'failed' or action == 'expired':
-            mandate.active=False
-            mandate.save()
-
-        elif action == 'cancelled' or action == 'transferred' or action ==' replaced':
-            mandate.delete()
-
-        return response
-
-    def process_payouts(selfself, event, response):
-        payment = Payment.objects.filter(payment_id = event['links']['payment'])
+    def process_payouts(self, event, response):
         action = event['action']
 
         if action == 'paid':
@@ -173,7 +162,6 @@ class Webhook(View):
         return response
 
     def process_refunds(selfself, event, response):
-        payment = Payment.objects.filter(payment_id = event['links']['payment'])
         action = event['action']
         # TODO refunds
         pass

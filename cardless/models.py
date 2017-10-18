@@ -1,5 +1,5 @@
 from django.db import models
-from members.models import Person
+from members.models import Person, Payment
 # Go Cardless model
 
 class Mandate(models.Model):
@@ -7,13 +7,13 @@ class Mandate(models.Model):
     customer_id = models.CharField(max_length=50)
     event_id = models.CharField(max_length=50)
     active = models.BooleanField(default=False)
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='mandates')
 
 class Payment_Event(models.Model):
     date = models.DateTimeField
     event_id = models.CharField(max_length=50)
-    description = models.CharField(max_length=30)
-    person = models.ForeignKey(Person)
+    action = models.CharField(max_length=30)
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='events')
 
 # class WebHook(models.Model):
 #     creation_date = models.DateTimeField(auto_now_add=True)
