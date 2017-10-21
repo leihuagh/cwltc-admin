@@ -138,6 +138,10 @@
                 {% else %}
                   No subscription
                 {% endif %}
+                {% if person.mandates %}
+                  <br />
+                  <a href="{% url "cardless_mandate_person_list" person_id=person.id %}">GoCardless Mandates</a>
+                {% endif %}
               </div>
               <div class="panel-footer">
                 {% if sub %}

@@ -23,15 +23,14 @@ def invoice_pay_by_gocardless(invoice, amount, fee, date):
     '''
     if invoice.state == Invoice.PAID_IN_FULL:
         raise ServicesError("Already paid in full")
-        return
     payment = Payment(type=Payment.DIRECT_DEBIT,
-                        person=invoice.person,
-                        amount=amount,
-                        fee=fee,
-                        membership_year=invoice.membership_year,
-                        banked=True,
-                        banked_date=date
-                        )
+                      person=invoice.person,
+                      amount=amount,
+                      fee=fee,
+                      membership_year=invoice.membership_year,
+                      banked=True,
+                      banked_date=date
+                      )
     payment.save()
     invoice_pay(invoice, payment)
 

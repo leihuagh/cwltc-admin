@@ -928,7 +928,7 @@ class SubInvoiceCancel(StaffuserRequiredMixin, View):
     """ Deletes unpaid items and invoices associated with a sub """
     
     def get(self, request, *args, **kwargs):
-        sub = get_object_or_404(Subscription, pk = self.kwargs['pk'])
+        sub = get_object_or_404(Subscription, pk=self.kwargs['pk'])
         for item in sub.invoiceitem_set.all():
             if item.invoice and item.invoice.state == Invoice.UNPAID:
                 invoice_cancel(item.invoice)

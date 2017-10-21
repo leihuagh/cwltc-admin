@@ -1,3 +1,5 @@
+from django.db import models
+from django.core.signing import Signer
 from django.conf import settings
 import gocardless_pro
 from members.models import Person, Invoice, Payment
@@ -11,16 +13,33 @@ def cardless_client():
         environment=getattr(settings, 'CARDLESS_ENVIRONMENT')
     )
 
+def active_mandate(person: Person):
+    """
+    Return the gc id of first active mandate linked to the person
+    """
+    mandates = person.Mandates.filter(active=True)
+    if mandates:
+        mandate = mandates[0]
+        gc_mandate = cardless_client().mandates.get(mandate.mandate_id)
+        if gc_mandate.status in ['active', 'submitted', 'pending_submission']:
+            return gc_mandate
+        else:
+            mandate.active = False
+            mandate.save()
+            return None
+    else:
+        return None
 
-def pay_invoice(invoice: Invoice):
-    person = invoice.person
-    mandate = person.mandates.all()[0]
+def pay_invoice(invoice: Invoice, mandate_id: str):
+    if invoice.state == Invoice.PAID_IN_FULL:
+        raise ServicesError("Already paid in full")
+
     gc_payment = cardless_client().payments.create(
         params={
             'amount': invoice.total,
             'currency': 'GBP',
             'links': {
-                'mandate': mandate.mandate_id
+                'mandate': mandate_id
             },
             'metadata': {
                 'invoice_id': invoice.id
@@ -29,6 +48,18 @@ def pay_invoice(invoice: Invoice):
             'Idempotency-Key': invoice.id
         }
     )
+    payment = Payment(type=Payment.DIRECT_DEBIT,
+                      person=invoice.person,
+                      amount=invoice.total,
+                      fee=fee,
+                      membership_year=invoice.membership_year,
+                      banked=True,
+                      banked_date=date
+                      )
+    payment.save()
+    invoice_pay(invoice, payment)
+
+
     invoice.state = Invoice.PENDING_GC
 
 
@@ -123,5 +154,14 @@ def process_mandate_event(event):
 
     elif action == 'cancelled' or action == 'transferred' or action == ' replaced':
         mandate.delete()
+
+
+def detokenise(token, model_class):
+    """ Decode an invoice or person token """
+    id = Signer().unsign(token)
+    try:
+        return model_class.objects.get(pk=id)
+    except model_class.DoesNotExist:
+        return None
 
 

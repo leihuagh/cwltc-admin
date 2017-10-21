@@ -1,10 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends "public-base.html" %}
+{% load staticfiles %}
+{% block head %}
+  <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
+  <title>CWLTC payment</title>
+{% endblock %}
+{% block content %}
+  <h2>Make payment through GoCardless</h2>
+  <h2>Account holder: {{ person.first_name }} {{ person.last_name }}</h2>
+<p>
+  You have a direct debit mandate set up with Coombe Wood LTC.
+  Payments will be identified on your bank statement as 'GoCardless Ltd'
+</p>
+  {% if invoice %}
+      <form action="{% url 'cardless-payment' token %}" method="post" class="form-inline" id="post-form">
+      {% csrf_token %}
+      Click below to confirm a payment of {{ invoice.amount }} for invoice number {{ invoice }}.
+      <input type="submit" name="pay" value="Pay by direct debit" class="btn btn-primary"><br /><br />
+      If you have a query about the payment amount:<br />
+      <input type="submit" name="query" value="Query invoice" class="btn btn-primary"><br /><br />
+    </form>
+  {% else %}
+    Click below to return to your account page
+    <a href="{% url 'club-account' %}" class="btn btn-primary">My account</a>
+  {% endif %}
+{% endblock %}

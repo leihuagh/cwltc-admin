@@ -199,6 +199,10 @@ class Membership(models.Model):
 
     @classmethod
     def create(cls, id, description):
+        """
+
+        :rtype:
+        """
         mem = cls(id = id, description = description)
         mem.save()
         return mem
@@ -454,6 +458,7 @@ class Invoice(models.Model):
             context['unknown'] = "Please supply your full name"  
         context['addressee'] = addressee
 
+
 class Payment(models.Model):
     CHEQUE = 0
     CASH = 1
@@ -502,7 +507,7 @@ class Payment(models.Model):
     banked_date = models.DateField(null=True)
     paid = models.BooleanField(default=False)
     pending = models.BooleanField(default=False)
-    cardless_id = models.CharField(max_length=80, blank=True, null=True)
+    cardless_id = models.CharField(max_length=50, blank=True, null=True)
     fee = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
     invoice = models.ForeignKey(Invoice, blank=True, null=True)
 
@@ -514,6 +519,7 @@ class Payment(models.Model):
             Payment.STATES[self.state][1]
             )
 
+
 class CreditNote(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -523,7 +529,8 @@ class CreditNote(models.Model):
     amount = models.DecimalField(max_digits=7, decimal_places=2, null=False)
     reference = models.CharField(max_length=80, blank=True, null=True)
     detail = models.CharField(max_length=1000, blank=True, null=True)
-     
+
+
 class ItemType(models.Model):
     SUBSCRIPTION = 1
     JOINING = 2
