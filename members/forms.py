@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta, time
 from django import forms
 from django.forms import Form, ModelForm, ModelMultipleChoiceField, HiddenInput, inlineformset_factory
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
+from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
