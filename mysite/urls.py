@@ -234,10 +234,10 @@ urlpatterns = [
     url(r'^people/applied/$', AppliedTableView.as_view(),
         name='applied-list'),
 
-    url(r'^list/$',
-        PersonList.as_view(),
-        name='person-list'
-        ),
+    # url(r'^list/$',
+    #     PersonList.as_view(),
+    #     name='person-list'
+    #     ),
     url(r'^(?P<pk>\d+)/$',
         PersonDetailView.as_view(),
         name='person-detail'
@@ -391,10 +391,10 @@ urlpatterns = [
         ImportExcelView.as_view(),
         name='import'
         ),
-    url(r'^import1/(?P<pass>\d+)/(?P<start>\d+)/(?P<size>\d+)/$',
-        ImportExcelMore.as_view(),
-        name='import_more'
-        ),
+    # url(r'^import1/(?P<pass>\d+)/(?P<start>\d+)/(?P<size>\d+)/$',
+    #     ImportExcelMore.as_view(),
+    #     name='import_more'
+    #     ),
     url(r'^select/sheets$',
         SelectSheets.as_view(),
         name='select-sheets'
@@ -407,10 +407,6 @@ urlpatterns = [
     url(r'^export/(?P<option>\w+)/$',
         PersonExportView.as_view(),
         name='export-option'
-        ),
-    url(r'^import_backup$',
-        import_backup,
-        name='import-backup'
         ),
     url(r'^reports/$',
         reports,

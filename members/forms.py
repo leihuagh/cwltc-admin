@@ -639,31 +639,31 @@ class YearConfirmForm(Form):
         year = cleaned_data.get('sub_year')
 
 
-class MembersListForm(Form):
-    # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
-    categories = forms.ChoiceField()
-    membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current_year())
-    paystate = forms.ChoiceField(choices=Payment.PAYCHOICES,
-                                 initial=Payment.PAID)
-    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(MembersListForm, self).__init__(*args, **kwargs)
-        self.fields['categories'].choices = Membership.FILTER_CHOICES + [
-            (x.id, x.description) for x in Membership.objects.all()
-        ]
-
-
-class JuniorsListForm(Form):
-    # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
-    categories = forms.ChoiceField(choices=Membership.JUNIOR_CHOICES,
-                                   initial=Membership.JUNIORS)
-    membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current_year())
-    paystate = forms.ChoiceField(choices=Payment.PAYCHOICES,
-                                 initial=Payment.PAID)
-    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
+# class MembersListForm(Form):
+#     # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
+#     categories = forms.ChoiceField()
+#     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
+#                                          initial=Settings.current_year())
+#     paystate = forms.ChoiceField(choices=Payment.STATE.choices(),
+#                                  initial=Payment.STATE.PAID.value)
+#     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
+#
+#     def __init__(self, *args, **kwargs):
+#         super(MembersListForm, self).__init__(*args, **kwargs)
+#         self.fields['categories'].choices = Membership.FILTER_CHOICES + [
+#             (x.id, x.description) for x in Membership.objects.all()
+#         ]
+#
+#
+# class JuniorsListForm(Form):
+#     # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
+#     categories = forms.ChoiceField(choices=Membership.JUNIOR_CHOICES,
+#                                    initial=Membership.JUNIORS)
+#     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
+#                                          initial=Settings.current_year())
+#     paystate = forms.ChoiceField(choices=Payment.STATE.choices(),
+#                                  initial=Payment.STATE.PAID.value)
+#     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
 
 
 class InvoiceFilterForm(Form):

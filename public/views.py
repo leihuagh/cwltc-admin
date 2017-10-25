@@ -16,6 +16,7 @@ from gc_app.views import gc_create_bill_url
 #from .forms import ContactForm, AdultApplicationFormHelper, RegisterForm, RegisterTokenForm
 from .forms import *
 from members.services import membership_from_dob
+from cardless.services import detokenise, invoice_payments_list, active_mandate
 
 
 # ================= Public Views accessed through a token
@@ -77,12 +78,7 @@ class InvoicePublicView(DetailView):
     template_name = 'public/invoice_public.html'
 
     def get_object(self, queryset=None):
-        signer = Signer()
-        try:
-            invoice_id = signer.unsign(self.kwargs['token'])
-            self.invoice = Invoice.objects.get(pk = invoice_id)
-        except Invoice.DoesNotExist:
-            self.invoice = None
+        self.invoice = detokenise(self.kwargs['token'], Invoice)
         return self.invoice
 
     def get_context_data(self, **kwargs):
@@ -90,25 +86,22 @@ class InvoicePublicView(DetailView):
         if self.invoice:
             self.invoice.add_context(context)
             context['token'] = self.kwargs['token']
+            context['payments_pending'] = invoice_payments_list(self.invoice, pending=True)
+            context['payments_paid'] = invoice_payments_list(self.invoice, paid=True)
         return context
 
     def post(self, request, *args, **kwargs):
         invoice = self.get_object()
         if 'pay' in request.POST:
-            mandate = invoice.person.mandates.all()[0]
-            if mandate == None:
-                return redirect('cardless_mandate_create', kwargs['token'])
-            else:
-                return redirect('cardless_payment_create', kwargs['token'] )
-
+            return redirect('cardless_payment_create', kwargs['token'])
         if 'query' in request.POST:
             group = group_get_or_create("2017Query")
             invoice.person.groups.add(group)
-            return redirect(reverse('public-contact-person', kwargs={'person_id': invoice.person.id}))
+            return redirect('public-contact-person', person_id=invoice.person.id)
         elif 'resign' in request.POST:
             group = group_get_or_create("2017Resign")
             invoice.person.groups.add(group)
-            return redirect(reverse('public-resigned'))
+            return redirect('public-resigned')
 
 
 class ContactView(FormView):

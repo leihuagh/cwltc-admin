@@ -6,7 +6,8 @@
 <a href="{% url "person-detail"  payment.person_id %}">{{ payment.person.first_name }} {{ payment.person.last_name }}</a>
 </h4>
  <form action="." method="post" class="form-inline" id="post-form">
-<table width="300">
+     {% csrf_token %}
+    <table width="300">
     <tr>
         <td>Number:</td><td>{{ payment.id }}</td>       
     </tr>
@@ -31,7 +32,8 @@
     <tr>
         <td>State:</td><td>{{ payment_states|get_option:payment.state }}</td>      
     </tr>
-</table>
+  </table>
+
 <h4>Matched invoice items</h4>
 <table id="invoiceitem" class="table table-condensed">
 {% for item in payment.invoiceitem_set.all %}
@@ -44,9 +46,11 @@
     </tr>
 {% endfor %}
 </table>
-</form>
-{% if user.is_active %}
-<a href= "{% url 'payment-update' payment.id %}" class="btn btn-danger btn-sm">Update</a>
 
+{% if user.is_active %}
+
+   <a href= "{% url 'payment-update' payment.id %}" class="btn btn-danger btn-sm">Update</a>
+   <input type="submit" name="delete" value="Delete" class="btn btn-danger btn-sm">
+</form>
 {% endif %}
 {% endblock content %}

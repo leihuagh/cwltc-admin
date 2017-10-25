@@ -1,10 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends "public/base.html" %}
+{% load staticfiles %}
+{% block head %}
+  <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
+  <title>Thank you</title>
+{% endblock %}
+{% block content %}
+  <h2>Thank you</h2>
+<p>
+  A payment of £{{ invoice.total }} will be taken from your account shortly. <br/>
+  It may take several days to appear on your statement.<br/>
+  The payment will be identified on your statement as 'GoCardless Ltd'<br/>
+</p>
+  Click below to return to your account page.<br/>
+  <a href="{% url 'club-account' %}" class="btn btn-primary">My account</a>
+{% endblock %}

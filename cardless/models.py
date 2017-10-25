@@ -13,7 +13,7 @@ class Payment_Event(models.Model):
     date = models.DateTimeField
     event_id = models.CharField(max_length=50)
     action = models.CharField(max_length=30)
-    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='events')
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='events', null=True)
 
 # class WebHook(models.Model):
 #     creation_date = models.DateTimeField(auto_now_add=True)

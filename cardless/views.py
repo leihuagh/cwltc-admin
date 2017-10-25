@@ -1,19 +1,18 @@
-import os
 import json
 import hmac
 import hashlib
 import os
 import secrets
-from django.core.signing import Signer
-from django.views.generic import View, RedirectView, TemplateView, ListView, DetailView, FormView
+from django.views.generic import View, TemplateView, ListView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
-from django.shortcuts import redirect, get_object_or_404, render
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import redirect
 from django.urls import reverse
-from members.models import Person, Invoice, Payment
+from members.models import Person, Invoice
 from .models import Mandate
-from .services import cardless_client, process_payment_event, process_mandate_event, detokenise, active_mandate
+from .services import cardless_client, process_payment_event, process_mandate_event, detokenise, active_mandate, \
+    create_cardless_payment, invoice_payments_list
 
 
 class PaymentCreateView(TemplateView):
@@ -24,23 +23,37 @@ class PaymentCreateView(TemplateView):
     template_name = "cardless/payment_create.html"
 
     def get(self, request, *args, **kwargs):
-        invoice = detokenise(kwargs['invoice_token'])
-        if active_mandate(invoice.person):
+        invoice = detokenise(kwargs['invoice_token'], Invoice)
+        payments = invoice_payments_list(invoice, pending=True, paid=True)
+        if payments:
+            return redirect('public-home')
+        mandate = active_mandate(invoice.person)
+        if mandate:
             context = self.get_context_data(**kwargs)
+            context['invoice_token'] = kwargs['invoice_token']
             context['invoice'] = invoice
             context['person'] = invoice.person
             return self.render_to_response(context)
         else:
-            return redirect('cardless_create_mandate', invoice_token=kwargs['invoice_token'])
+            return redirect('cardless_mandate_create_i', invoice_token=kwargs['invoice_token'])
 
-    # def post(self, request, *args, **kwargs):
-    #     if 'pay' in request.POST:
-    #         pay_invoice(decode_invoice(kwargs['invoice_token']))
-    #         return redirect(kwargs['next'])
-    #     if 'query' in request.POST:
+    def post(self, request, *args, **kwargs):
+        invoice = detokenise(kwargs['invoice_token'], Invoice)
+        mandate = active_mandate(invoice.person)
+        if 'pay' in request.POST:
+            create_cardless_payment(invoice, mandate)
+            return redirect('cardless_payment_success', invoice_token=kwargs['invoice_token'])
+        return redirect('invoice-public', token=kwargs['invoice_token'])
+
 
 class PaymentSuccessView(TemplateView):
     template_name = "cardless/payment_success.html"
+
+    def get_context_data(self, **kwargs):
+        context= super(PaymentSuccessView, self).get_context_data(**kwargs)
+        context['invoice'] = detokenise(kwargs['invoice_token'], Invoice)
+        return context
+
 
 class MandateCreateView(View):
     """
@@ -51,13 +64,13 @@ class MandateCreateView(View):
         invoice_token = kwargs.pop('invoice_token', None)
         person_token = kwargs.pop('person_token', None)
         if invoice_token:
-            invoice = detokenise(invoice_token)
+            invoice = detokenise(invoice_token, Invoice)
             person = invoice.person
         else:
-            person = detokenise(person_token)
+            person = detokenise(person_token, Person)
         description = "CWLTC Mandate"
         session_token = secrets.token_urlsafe(20)
-        url = request.build_absolute_uri(reverse('cardless-redirect-flow'))
+        url = request.build_absolute_uri(reverse('cardless_redirect_flow'))
         flow = cardless_client().redirect_flows.create(
             params={
                 "description": description,
@@ -85,46 +98,43 @@ class MandateCreateView(View):
 class RedirectFlowView(View):
     """
     Come here after mandate details have been entered on Go Cardless
-    Confirm the mandate creation, create a mandate object linked to person and redirect to success
+    Confirm the mandate creation, create a mandate object linked to person
+    redirect to create a payment if it was initiated by an invoice
     """
     def get(self, request, *args, **kwargs):
         flow = request.session.get('flow', None)
         session_token = request.session.get('session_token', None)
         person_id = request.session.get('person_id', None)
-        invoice_token = request.session('invoice_token', None)
+        invoice_token = request.session.get('invoice_token', None)
         if flow and session_token and person_id:
-            new_flow = cardless_client().redirect_flows.complete(
-                identity=flow.id,
-                params={
-                    "session_token": session_token
-                })
+            try:
+                new_flow = cardless_client().redirect_flows.complete(
+                    identity=flow.id,
+                    params={
+                        "session_token": session_token
+                    })
+            except Exception as ex:
+                return HttpResponseBadRequest()
+
             person = Person.objects.get(id=person_id)
-            Mandate.objects.create(
+            mandate = Mandate.objects.create(
                 mandate_id=new_flow.links.mandate,
                 customer_id=new_flow.links.customer,
                 person=person,
-                active=False
             )
             del request.session['flow']
             del request.session['session_token']
             del request.session['person_id']
             del request.session['invoice_token']
             if invoice_token:
-                pay_invoice(detokenise(invoice_token))
-            return redirect('cardless_mandate_success', invoice_token=invoice_token)
+                redirect('cardless_payment_create', invoice_token=invoice_token)
+            return redirect('cardless_mandate_success')
         else:
             return HttpResponseBadRequest()
 
 
 class MandateSuccessView(TemplateView):
     template_name = "cardless/mandate_success.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(MandateSuccessView, self).get_context_data(**kwargs)
-        invoice_token = kwargs['invoice_token']
-        if invoice_token != '0':
-            context['invoice'] = detokenise(invoice_token, Invoice)
-        return context
 
 
 class MandateListView(ListView):
@@ -202,9 +212,6 @@ class EventDetailView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(EventDetailView, self).get_context_data(**kwargs)
         return context
-
-
-
 
 
 class Webhook(View):
