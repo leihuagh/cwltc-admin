@@ -922,8 +922,8 @@ class PaymentForm(ModelForm):
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-InvoiceItemForm'
         self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
+        self.helper.label_class = 'col-md-2'
+        self.helper.field_class = 'col-md-4'
         self.helper.form_method = 'post'
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
@@ -935,7 +935,7 @@ class PaymentForm(ModelForm):
 
     class Meta:
         model = Payment
-        fields = ['membership_year', 'type', 'reference', 'amount', 'banked_date']
+        fields = ['membership_year', 'type', 'reference', 'amount', 'state', 'banked_date']
         widgets = {'banked_date': forms.DateInput(attrs={'class': 'datepicker'}),
                    'membership_year': forms.Select(choices=year_choices())
                    }

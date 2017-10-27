@@ -7,32 +7,26 @@
 </h4>
  <form action="." method="post" class="form-inline" id="post-form">
      {% csrf_token %}
-    <table width="300">
-    <tr>
-        <td>Number:</td><td>{{ payment.id }}</td>       
-    </tr>
-    <tr>
-        <td>Membership year:</td><td>{{ payment.membership_year }}</td>      
-    </tr>
-    <tr>
-        <td>Date:</td><td>{{ payment.creation_date|date }}</td>      
-    </tr>
-    <tr>
-        <td>Type:</td><td>{{ payment_types|get_option:payment.type }}</td>      
-    </tr>
-    <tr>
-        <td>Reference:</td><td>{{ payment.reference }}</td>      
-    </tr>
-    <tr>
-        <td>Amount:</td><td>£ {{ payment.amount }}</td>      
-    </tr>
-    <tr>
-        <td>Matched amount:</td><td>£ {{ payment.credited }}</td>      
-    </tr>
-    <tr>
-        <td>State:</td><td>{{ payment_states|get_option:payment.state }}</td>      
-    </tr>
+    <table width="400">
+      <tr><td>Number:</td><td>{{ payment.id }}</td></tr>
+      <tr><td>Membership year:</td><td>{{ payment.membership_year }}</td></tr>
+      <tr><td>Date:</td><td>{{ payment.creation_date|date }}</td></tr>
+      <tr><td>Type:</td><td>{{ payment_types|get_option:payment.type }}</td></tr>
+      <tr><td>Reference:</td><td>{{ payment.reference }}</td></tr>
+      <tr><td>Amount:</td><td>£ {{ payment.amount }}</td></tr>
+      <tr><td>State:</td><td>{{ payment_states|get_option:payment.state }}</td></tr>
+      <tr><td>Banked:</td><td>{%  if payment.banked %}{{ payment.banked_date }}{% endif %}</td></tr>
+      <tr><td>Cardless Id</td><td>{{ payment.cardless_id }}</td></tr>
   </table>
+
+ <h4>Events</h4>
+ <table class="table">
+   {% for event in events %}
+     <tr><td>{{ event.id }}</td><td>{{ event.created_at }}</td><td>{{ event.action }}<td></tr>
+   {% endfor %}
+ </table>
+
+
 
 <h4>Matched invoice items</h4>
 <table id="invoiceitem" class="table table-condensed">

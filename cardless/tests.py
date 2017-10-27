@@ -3,7 +3,7 @@ import unittest
 from django.test import TestCase, RequestFactory, Client
 from django.urls import reverse
 from .views import RedirectFlowView
-from .services import cardless_client, create_mandate
+from .services import cardless_client
 import gocardless_pro
 
 

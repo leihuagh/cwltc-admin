@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'club',
     'authentication',
     'cardless',
+    'raven.contrib.django.raven_compat',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -168,5 +169,7 @@ DEFAULT_FROM_EMAIL = 'Coombe Wood LTC <subs@coombewoodltc.co.uk>'
 SUBS_EMAIL = 'subs@coombewoodltc.co.uk'
 INFO_EMAIL = 'info@coombewoodltc.co.uk'
 TEST_EMAIL = 'is@ktconsultants.co.uk'
+ADMINS = (('membership_secretary', 'membership@coombewoodltc.co.uk'))
+MANAGERS = ADMINS
 
 

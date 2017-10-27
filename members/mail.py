@@ -113,7 +113,7 @@ def send_template_mail(request, person, text,
     if recipient.email not in sent_list:
         sent_list.append(recipient.email)
         signer = Signer()
-        unpaid_invoices = recipient.invoices(state=Invoice.UNPAID)
+        unpaid_invoices = recipient.invoices(state=Invoice.STATE.UNPAID)
         total_unpaid = 0
         invoice_urls = []
         if unpaid_invoices:

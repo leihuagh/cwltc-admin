@@ -250,7 +250,7 @@ def process_csvfile(f):
                     try:
                         invoice = Invoice.objects.get(pk=invoice_id)
                         if invoice.gocardless_bill_id == id:
-                            if invoice.state != Invoice.PAID_IN_FULL:
+                            if invoice.state != Invoice.STATE.PAID:
                                 invoice_pay_by_gocardless(invoice, amount, fee, payout_date)
                                 paid_count += 1
                         else:

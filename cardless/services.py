@@ -1,10 +1,13 @@
-from decimal import Decimal
+import datetime
+import logging
 from django.core.signing import Signer
 from django.conf import settings
 import gocardless_pro
 from members.models import Person, Invoice, Payment
-from members.services import invoice_pay, invoice_unpay
+from members.services import invoice_pay, payment_update_state, invoice_update_state
 from .models import Mandate, Payment_Event
+
+stdlogger = logging.getLogger(__name__)
 
 
 def cardless_client():
@@ -12,6 +15,10 @@ def cardless_client():
         access_token=getattr(settings, 'CARDLESS_ACCESS_TOKEN'),
         environment=getattr(settings, 'CARDLESS_ENVIRONMENT')
     )
+
+
+def webhook_secret():
+    return getattr(settings, 'CARDLESS_WEBHOOK_SECRET')
 
 
 def active_mandate(person: Person):
@@ -39,38 +46,45 @@ def create_cardless_payment(invoice: Invoice, mandate: Mandate):
     """
     Create a cardless payment and an associated Payment object linked to the invoice
     """
+    stdlogger.debug('creating payment')
     unpaid = invoice.unpaid_amount
     fee = calculate_fee(unpaid)
     amount = str(int(unpaid * 100))
     if invoice.state == Invoice.STATE.PAID.value:
         return
-    gc_payment = cardless_client().payments.create(
-        params={
-            'amount': str(amount),
-            'currency': 'GBP',
-            'links': {
-                'mandate': mandate.mandate_id
-            },
-            'metadata': {
-                'invoice_id': str(invoice.id)
+
+    try:
+        gc_payment = cardless_client().payments.create(
+            params={
+                'amount': str(amount),
+                'currency': 'GBP',
+                'links': {
+                    'mandate': mandate.mandate_id
+                },
+                'metadata': {
+                    'invoice_id': str(invoice.id)
+                }
+            }, headers={
+                'Idempotency-Key': str(invoice.id)
             }
-        }, headers={
-            'Idempotency-Key': str(invoice.id)
-        }
-    )
-    # Check that we have not already got this payment attached to the invoice
+        )
+    except Exception as e:
+        return False
+
+    # Check that we have not already got this payment id attached to the invoice
     # It should not happen if all is working properly
     for payment in invoice_payments_list(invoice):
         if payment.cardless_id == gc_payment.id:
             return False
-    payment = Payment(type=Payment.DIRECT_DEBIT,
-                      person=invoice.person,
-                      amount=unpaid,
-                      fee=fee,
-                      membership_year=invoice.membership_year,
-                      cardless_id=gc_payment.id
-                      )
-    invoice.add_payment(payment)
+
+    payment = Payment.objects.create(type=Payment.DIRECT_DEBIT,
+                                     person=invoice.person,
+                                     amount=unpaid,
+                                     fee=fee,
+                                     membership_year=invoice.membership_year,
+                                     cardless_id=gc_payment.id,
+                                     )
+    invoice_pay(invoice, payment)
     return True
 
 
@@ -78,23 +92,21 @@ def process_payment_event(event):
     """
     https://developer.gocardless.com/api-reference/#events-payment-actions
     """
-    payment = Payment.objects.filter(payment_id=event['links']['payment'])
-    if not payment:
+    try:
+        payment = Payment.objects.get(cardless_id=event['links']['payment'])
+    except Payment.DoesNotExist:
         return False
 
     # if event exists we have already processed this
-    old_event = payment.events_set.filter(event_id=event['id'])
+    old_event = payment.events.filter(event_id=event['id'])
     if old_event:
         return False
     Payment_Event.objects.create(
         event_id=event['id'],
         action=event['action'],
-        date=event['created_at'],
+        created_at=event['created_at'],
         payment=payment
     )
-
-    # clear pending and banked flags, but not paid flag because we need to test if its been paid already
-
     payment.banked = False
     action = event['action']
     if action in ('created', 'customer_approval_granted', 'submitted', 'resubmission_requested'):
@@ -107,37 +119,26 @@ def process_payment_event(event):
     elif action in ('paid_out', 'chargeback_cancelled'):
         payment.state = Payment.STATE.PAID.value
         payment.banked = True
-    else:
-        return False
-    payment.invoice.update_state()
-    return True
-
-
-def payment_update_state(payment, gc_status):
-    """ Update the payment state from the corresponding go cardless status """
-    payment.banked = False
-    if gc_status in ('pending_approval_granted', 'pending_submission', 'submitted'):
-        payment.state = Payment.STATE.PENDING.value
-    elif gc_status == 'confirmed':
-        payment.state = Payment.STATE.PAID.value
-    elif gc_status in ('cancelled', 'failed', 'customer_approval_denied', 'charged_back'):
-        payment.state = Payment.STATE.FAILED.value
-    elif gc_status == 'paid_out':
-        payment.state = Payment.STATE.PAID.value
-        payment.banked = True
+        if not payment.banked_date:
+            payment.banked_date = datetime.datetime.now()
     else:
         return False
     payment.save()
+    invoice_update_state(payment.invoice)
     return True
-    
+
 
 def process_mandate_event(event):
     """
     https://developer.gocardless.com/api-reference/#events-mandate-actions
     """
-    mandate = Mandate.objects.filter(mandate_id=event['links']['mandate'])
-    action = event['action']
+    try:
+        mandate = Mandate.objects.get(mandate_id=event['links']['mandate'])
+    except Mandate.DoesNotExist:
+        stdlogger.warning('Webhook for mandate that does not exist: {}'.format(event))
+        return False
 
+    action = event['action']
     if action == 'active' or action == 'reinstated':
         mandate.active = True
         mandate.save()

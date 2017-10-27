@@ -3,6 +3,7 @@ db.sqlite3
 .project
 .pydevproject
 vpython27
+.idea
 .sln
 /.vs
 /bin
@@ -14,8 +15,6 @@ vpython27
 /admin.pyproj.user
 /go.bat
 /ptvs_virtualenv_proxy.py
-/sandbox.pyproj.user
-/sandbox.v12.suo
 /web.config
 /web.debug.config
 /admin.v12.suo

@@ -36,54 +36,68 @@ def invoice_pay_by_gocardless(invoice, amount, fee, banked_date):
     invoice_pay(invoice, payment)
 
 
+def invoice_update_state(invoice: Invoice):
+    """
+    Calculate the invoice state from the state of its linked payments
+    Update the linked items state and any sub that is connected
+    """
+    total = Decimal(0)
+    for payment in invoice.payment_set.all():
+        if payment.state == Payment.STATE.PENDING:
+            invoice.pending = True
+        elif payment.state == Payment.STATE.PAID:
+            total += payment.amount
+
+    if invoice.state != Invoice.STATE.CANCELLED:
+        if total == invoice.total:
+            invoice.state = Invoice.STATE.PAID
+        elif total > 0 and total < invoice.total:
+            invoice.state = Invoice.STATE.UNDERPAID
+        elif total > invoice.total:
+            invoice.state = Invoice.STATE.OVERPAID
+        else:
+            invoice.state=Invoice.STATE.UNPAID
+    invoice.save()
+    # Update linked items and any sub that is connected
+    paid = invoice.state == Invoice.STATE.PAID
+    for invoice_item in invoice.invoice_items.all():
+        invoice_item.paid = paid
+        invoice_item.save()
+        if invoice_item.subscription:
+            invoice_item.subscription.paid = paid
+            invoice_item.subscription.save()
+
+
+def payment_update_state(payment, gc_status):
+    """ Update the payment state from the corresponding go cardless status """
+    payment.banked = False
+    if gc_status in ('pending_approval_granted', 'pending_submission', 'submitted'):
+        payment.state = Payment.STATE.PENDING.value
+    elif gc_status == 'confirmed':
+        payment.state = Payment.STATE.PAID.value
+    elif gc_status in ('cancelled', 'failed', 'customer_approval_denied', 'charged_back'):
+        payment.state = Payment.STATE.FAILED.value
+    elif gc_status == 'paid_out':
+        payment.state = Payment.STATE.PAID.value
+        payment.banked = True
+        if not payment.banked_date:
+            payment.banked_date = datetime.datetime.now()
+    else:
+        return False
+    payment.save()
+    invoice_update_state(payment.invoice)
+    return True
+
+
 def invoice_pay(invoice, payment):
     """
     Pay invoice with payment
     """
-    if invoice.state == Invoice.STATE.PAID_IN_FULL.value:
+    if invoice.state == Invoice.STATE.PAID:
         raise ServicesError("Already paid in full")
-
-    if invoice.total == payment.amount:
-        items = invoice.invoiceitem_set.all()
-        for item in items:
-            invoice_item_pay(item, payment)
-        invoice.state = Invoice.STATE.PAID_IN_FULL.value
-        payment.state = Payment.FULLY_MATCHED
-        payment.invoice = invoice
-        payment.credited = payment.amount       
-    else:
-        payment.invoice = invoice
-        invoice.state = Invoice.STATE.PART_PAID.value
-        payment.state = Payment.PARTLY_MATCHED  
+    payment.invoice = invoice
     payment.save()
-    invoice.save()
-
-
-def invoice_item_pay(invoice_item, payment):
-    """
-    Mark invoice item as paid by payment.
-    If it is for a subscription, mark the sub as paid
-    """
-    invoice_item.payment = payment
-    invoice_item.paid = True
-    invoice_item.save()
-    if invoice_item.subscription:
-        invoice_item.subscription.paid = True
-        invoice_item.subscription.save()
-
-
-def invoice_unpay(invoice):
-    """
-    Used for go cardless cancellation
-    :param invoice: Invoice
-    :return:
-    """
-    invoice.state = Invoice.STATE.UNPAID.value
-    for item in invoice.invoiceitem_set.all():
-        item.payment = None
-        item.save()
-        if item.subscription:
-            item.subscription.paid = False
+    invoice_update_state(invoice)
 
 
 def invoice_create_batch(exclude_slug='', size=10000):
@@ -213,7 +227,7 @@ def invoice_create_from_items(person, year):
                 item.invoice = invoice
                 invoice.total += item.amount
                 item.save()
-        if invoice.invoiceitem_set.count() > 0:
+        if invoice.invoice_items.count() > 0:
             invoice.save()
             return invoice
         else:
@@ -235,7 +249,7 @@ def invoice_cancel(invoice, with_credit_note=True, superuser=False):
 
     amount = 0
     description = u''
-    for item in invoice.invoiceitem_set.all():
+    for item in invoice.invoice_items.all():
         amount += item.amount
         description = description + 'Item: {0} {1}{2}'.format(
             item.item_type.description,

@@ -6,7 +6,8 @@
       <th></th>
       <th>Date</th>
       <th>Type</th>
-      <th>Number</th>
+      <th>No.</th>
+      <th>Invoice No.</th>
       <th>Detail</th>
       <th class="text-right">Credit</th>
       <th class="text-right">Debit</th>
@@ -18,9 +19,12 @@
       {% with entry|classname as modelclass %}
         {% if modelclass == 'Invoice' %}
           <tr>
-            <td><a href="{% url "invoice-detail" entry.id %}" class="btn btn-primary btn-xs">View</a></td>
+            <td><a href="{% url "invoice-detail" entry.id %}" class="btn
+            {% if entry.state == 0 %}btn-danger
+            {% else %}btn-default {%  endif %} btn-xs">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Invoice</td>
+            <td></td>
             <td>{{ entry.id }}</td>
             <td>{{ state_list|get_option:entry.state }}</td>
             <td></td>
@@ -29,10 +33,11 @@
           </tr>
         {% elif modelclass == 'Payment' %}
           <tr>
-            <td><a href="{% url "payment-detail" entry.id %}" class="btn btn-primary btn-xs">View</a></td>
+            <td><a href="{% url "payment-detail" entry.id %}" class="btn btn-success btn-xs">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Payment</td>
-            <td>{{ entry.id }}</td>
+            <td>{{ entry.id }} Re invoice </td>
+            <td>{{ entry.invoice.id }}</td>
             <td>{{ payment_states|get_option:entry.type }}</td>
             <td class="text-right">£{{ entry.amount }}</td>
             <td></td>
@@ -40,10 +45,11 @@
           </tr>
         {% elif modelclass == 'CreditNote' %}
           <tr>
-            <td><a href="{% url "creditnote-update" entry.id %}" class="btn btn-primary btn-xs">View</a></td>
+            <td><a href="{% url "creditnote-update" entry.id %}" class="btn btn-warning btn-xs">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Credit note</td>
             <td>{{ entry.id }}</td>
+            <td>{{ entry.invoice.id }}</td>
             <td>{{ entry.reference }}</td>
             <td class="text-right">£{{ entry.amount }}</td>
             <td></td>

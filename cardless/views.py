@@ -1,7 +1,7 @@
 import json
 import hmac
 import hashlib
-import os
+import logging
 import secrets
 from django.views.generic import View, TemplateView, ListView
 from django.views.decorators.csrf import csrf_exempt
@@ -12,8 +12,9 @@ from django.urls import reverse
 from members.models import Person, Invoice
 from .models import Mandate
 from .services import cardless_client, process_payment_event, process_mandate_event, detokenise, active_mandate, \
-    create_cardless_payment, invoice_payments_list
+    create_cardless_payment, invoice_payments_list, webhook_secret
 
+logger = logging.getLogger(__name__)
 
 class PaymentCreateView(TemplateView):
     """
@@ -41,8 +42,10 @@ class PaymentCreateView(TemplateView):
         invoice = detokenise(kwargs['invoice_token'], Invoice)
         mandate = active_mandate(invoice.person)
         if 'pay' in request.POST:
-            create_cardless_payment(invoice, mandate)
-            return redirect('cardless_payment_success', invoice_token=kwargs['invoice_token'])
+            if create_cardless_payment(invoice, mandate):
+                return redirect('cardless_payment_success', invoice_token=kwargs['invoice_token'])
+            else:
+                return redirect('cardless_payment_failure', invoice_token=kwargs['invoice_token'])
         return redirect('invoice-public', token=kwargs['invoice_token'])
 
 
@@ -51,6 +54,15 @@ class PaymentSuccessView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context= super(PaymentSuccessView, self).get_context_data(**kwargs)
+        context['invoice'] = detokenise(kwargs['invoice_token'], Invoice)
+        return context
+
+
+class PaymentFailureView(TemplateView):
+    template_name = "cardless/payment_failure.html"
+
+    def get_context_data(self, **kwargs):
+        context= super(PaymentFailureView, self).get_context_data(**kwargs)
         context['invoice'] = detokenise(kwargs['invoice_token'], Invoice)
         return context
 
@@ -221,7 +233,7 @@ class Webhook(View):
         return super(Webhook, self).dispatch(*args, **kwargs)
 
     def is_valid_signature(self, request):
-        secret = bytes(os.environ['GC_WEBHOOK_SECRET'], 'utf-8')
+        secret = bytes(webhook_secret(), 'utf-8')
         computed_signature = hmac.new(
             secret, request.body, hashlib.sha256).hexdigest()
         provided_signature = request.META["HTTP_WEBHOOK_SIGNATURE"]
@@ -229,49 +241,43 @@ class Webhook(View):
 
     def post(self, request, *args, **kwargs):
         if self.is_valid_signature(request):
-            response = HttpResponse()
+
             payload = json.loads(request.body.decode('utf-8'))
             # Each webhook may contain multiple events to handle, batched together.
             for event in payload['events']:
-                self.process(event, response)
-            return response
+                logger.info("Webhook {}".format(event))
+                self.process(event)
+            return HttpResponse(status=204)
         else:
-            return HttpResponse(498)
+            return HttpResponse(status=498)
 
-    def process(self, event, response):
-        response.write("Processing event {}\n".format(event['id']))
+    def process(self, event):
         if event['resource_type'] == 'payments':
             process_payment_event(event)
-        if event['resource_type'] == 'mandates':
+        elif event['resource_type'] == 'mandates':
             process_mandate_event(event)
-        if event['resource_type'] == 'payouts':
-            return self.process_payouts(event, response)
-        if event['resource_type'] == 'refunds':
-            return self.process_refunds(event, response)
-        if event['resource_type'] == 'subscriptions':
-            return self.process_subscriptions(event, response)
+        elif event['resource_type'] == 'payouts':
+            self.process_payouts(event)
+        elif event['resource_type'] == 'refunds':
+            self.process_refunds(event)
+        elif event['resource_type'] == 'subscriptions':
+            self.process_subscriptions(event)
         else:
-            response.write("Don't know how to process an event with \
-                resource_type {}\n".format(event['resource_type']))
-            return response
+            pass
 
 
-    def process_payouts(self, event, response):
+    def process_payouts(self, event):
         action = event['action']
 
         if action == 'paid':
             pass
 
-        return response
-
-    def process_refunds(selfself, event, response):
+    def process_refunds(selfself, event):
         action = event['action']
         # TODO refunds
         pass
 
-        return response
-
-    def process_subscriptions(selfself, event, response):
+    def process_subscriptions(self, event):
         # TODO subscription actions
         action = event['action']
 
@@ -292,5 +298,3 @@ class Webhook(View):
 
         elif action == 'finished':
             pass
-
-        return response

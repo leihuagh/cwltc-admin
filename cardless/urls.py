@@ -16,11 +16,9 @@ urlpatterns = [
     url(r'^customer/detail/(?P<customer_id>.+)/$', CustomerDetailView.as_view(), name='cardless_customer_detail'),
     url(r'^event/detail/(?P<event_id>.+)/$', EventDetailView.as_view(), name='cardless_event_detail'),
     url(r'^payment/create/(?P<invoice_token>.+)/$', PaymentCreateView.as_view(), name='cardless_payment_create'),
-    url(r'^payment/success/(?P<invoice_token>.+)/$', PaymentSuccessView.as_view(), name='cardless_payment_success')
-    # url(r'webhook/$',
-    #     GCWebhook.as_view(),
-    #     name='gc-webhook'
-    # ),
+    url(r'^payment/success/(?P<invoice_token>.+)/$', PaymentSuccessView.as_view(), name='cardless_payment_success'),
+    url(r'^payment/failure/(?P<invoice_token>.+)/$', PaymentFailureView.as_view(), name='cardless_payment_failure'),
+    url(r'webhook/$',Webhook.as_view(), name='cardless-webhook')
     # url(r'hook/list/$',
     #     WebHookList.as_view(),
     #     name='gc-hook-list'

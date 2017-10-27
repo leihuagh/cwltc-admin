@@ -228,7 +228,8 @@ class Membership(models.Model):
             return result
         else:
             return list(qs.values_list('id', 'description'))
-    
+
+
 class AdultApplication(models.Model):
     '''
     Additional data captured during application
@@ -284,7 +285,7 @@ class AdultApplication(models.Model):
     source = models.SmallIntegerField('How did you hear about us?',
                                       choices = SOURCES, default = WEB,)
     person = models.ForeignKey(Person, blank=True, null=True)
-      
+
 class Fees(models.Model):
     membership = models.ForeignKey('Membership')
     sub_year = models.SmallIntegerField()
@@ -337,11 +338,13 @@ class Fees(models.Model):
                amount = months * self.monthly_sub  
         return amount
 
+
 class ModelEnum(IntEnum):
 
     @classmethod
     def choices(cls):
         return tuple((x.value, x.name.lower().capitalize()) for x in cls)
+
 
 class Invoice(models.Model):
 
@@ -381,51 +384,13 @@ class Invoice(models.Model):
             self.total
         )
 
-    def add_payment(self, payment):
-        if self.state != Invoice.STATE.CANCELLED.value:
-            payment.invoice = self
-            payment.save()
-            self.update_state()
-
-    def update_state(self):
-        """
-        Calculate the state from the state of linked payments
-        Update linked items state
-        And sub stats
-        """
-        total = Decimal(0)
-        for payment in self.payment_set.all():
-            if payment.state == Payment.STATE.PENDING.value:
-                self.pending = True
-            elif payment.state == Payment.STATE.PAID.value:
-                total += payment.amount
-
-        if self.state != Invoice.STATE.CANCELLED.value:
-            if total == self.total:
-                self.state = Invoice.STATE.PAID.value
-            elif total > 0 and total < self.total:
-                self.state = Invoice.STATE.UNDERPAID.value
-            elif total > self.total:
-                self.state = Invoice.STATE.OVERPAID.value
-            else:
-                self.state=Invoice.STATE.UNPAID.value
-        self.save()
-        # Update linked item and any sub that is connected
-        paid = self.state == Invoice.STATE.PAID.value
-        for invoice_item in self.invoice_items.all():
-            invoice_item.paid = paid
-            invoice_item.save()
-            if invoice_item.subscription:
-                invoice_item.subscription.paid = paid
-                invoice_item.subscription.save()
-
     @property
     def paid_amount(self):
         total = Decimal(0)
         for payment in self.payment_set.all():
             if payment.state == Payment.STATE.PAID.value:
                 total += payment.amount
-        for credit_note in self.credit_notes.all():
+        for credit_note in self.creditnote_set.all():
             total -= credit_note.amount
         return total
 
@@ -462,8 +427,8 @@ class Invoice(models.Model):
         context['can_delete'] = (self.email_count == 0 and self.postal_count == 0 and self.state == Invoice.STATE.UNPAID.value)
 
         c_note = None
-        if self.credit_notes.count() > 0:
-            c_note = self.credit_notes.all()[0]
+        if self.creditnote_set.count() > 0:
+            c_note = self.creditnote_set.all()[0]
         context['credit_note'] = c_note
         addressee = self.person.fullname
         if self.person.first_name == 'Unknown':
@@ -540,7 +505,7 @@ class CreditNote(models.Model):
     update_date = models.DateTimeField(auto_now=True)
     membership_year = models.SmallIntegerField(default=0)
     person = models.ForeignKey(Person)
-    invoice = models.ForeignKey(Invoice, blank=True, null=True, related_name='credit_notes')
+    invoice = models.ForeignKey(Invoice, blank=True, null=True)
     amount = models.DecimalField(max_digits=7, decimal_places=2, null=False)
     reference = models.CharField(max_length=80, blank=True, null=True)
     detail = models.CharField(max_length=1000, blank=True, null=True)

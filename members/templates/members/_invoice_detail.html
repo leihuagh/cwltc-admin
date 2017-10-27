@@ -31,10 +31,7 @@ Date: {{ invoice.date }}
     </td>
     <td align="right">£ {{ item.amount }}</td>
     {% if show_buttons %}
-        <td>
-        {% if item.paid %}
-          &nbsp; <a href="{% url "payment-detail"  item.payment_id %}" class="btn btn-default btn-xs">Paid</a>
-        {% else %} Unpaid {% endif %}</td>
+        <td>{% if item.paid %} Paid {% else %} Unpaid {% endif %}</td>
     {% endif %}
 </tr>
 {% endfor %}

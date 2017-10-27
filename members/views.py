@@ -1,3 +1,5 @@
+import json
+import logging
 from django.http import HttpResponseRedirect, JsonResponse, Http404
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
@@ -7,7 +9,7 @@ from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from braces.views import StaffuserRequiredMixin
 
-import json
+
 from report_builder.models import Report
 from django_tables2 import SingleTableView
 from pos.services import create_invoiceitems_from_transactions
@@ -22,6 +24,7 @@ from .excel import *
 from .filters import JuniorFilter, SubsFilter, InvoiceFilter, InvoiceItemFilter, PaymentFilter
 from .tables import InvoiceTable, InvoiceItemTable, PaymentTable, ApplicantTable, MembershipTable
 
+stdlogger = logging.getLogger(__name__)
 
 def permission_denied(view, request):
     """
@@ -1311,7 +1314,7 @@ class InvoiceDetailView(StaffuserRequiredMixin, DetailView):
 
 class InvoiceGenerateView(StaffuserRequiredMixin, View):
 
-    def get(self, request):
+    def get(self, request, **kwargs):
         person = Person.objects.get(pk=self.kwargs['pk'])
         year = Settings.objects.all()[0].membership_year
         invoice = invoice_create_from_items(person, year)
@@ -1524,6 +1527,7 @@ class PaymentCreateView(StaffuserRequiredMixin, CreateView):
         form.instance.person = invoice.person
         # save new object before handling many to many relationship
         payment = form.save()
+        payment.state=Payment.STATE.PAID
         invoice_pay(invoice, payment)
         return super(PaymentCreateView, self).form_valid(form)
 
@@ -1559,6 +1563,7 @@ class PaymentDetailView(StaffuserRequiredMixin, DetailView):
         context = super(PaymentDetailView, self).get_context_data(**kwargs)
         context['payment_types'] = Payment.TYPES
         context['payment_states'] = Payment.STATE.choices()
+        context['events'] = self.object.events.all()
         context['user'] = self.request.user
         return context
 

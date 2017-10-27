@@ -11,11 +11,11 @@ INSTALLED_APPS += (
 #    'debug_toolbar',
     )
 
-MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
+# MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
 
 DATABASES = {'default': env.db_url('DATABASE_URL')}
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['55015a7c.ngrok.io', 'localhost']
 
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
@@ -31,3 +31,32 @@ CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_ACCESS_TOKEN')
 CARDLESS_ENVIRONMENT = 'sandbox'
 CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+
+# http://cheat.readthedocs.io/en/latest/django/logging.html
+# https://www.webforefront.com/django/setupdjangologging.html
+RAVEN_CONFIG = {
+    'dsn': env.str('RAVEN'),
+}
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {  # Log to stdout
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            },
+    },
+    'root': {  # For dev, show errors + some info in the console
+        'handlers': ['console'],
+        'level': 'ERROR',
+        },
+    'loggers': {
+        'django.request': {  # debug logging of things that break requests
+            'handlers': [],
+            'level': 'INFO',
+            'propagate': True,
+            }
+        }
+    }
