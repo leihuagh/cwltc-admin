@@ -3,18 +3,24 @@ import hmac
 import hashlib
 import logging
 import secrets
-from django.views.generic import View, TemplateView, ListView
+from django.views.generic import View, TemplateView, ListView, FormView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.contrib import messages
+from braces.views import LoginRequiredMixin
 from members.models import Person, Invoice
 from .models import Mandate
 from .services import cardless_client, process_payment_event, process_mandate_event, detokenise, active_mandate, \
     create_cardless_payment, invoice_payments_list, webhook_secret
+from .forms import UploadCSVForm
+from .importcsv import process_csvfile
+
 
 logger = logging.getLogger(__name__)
+
 
 class PaymentCreateView(TemplateView):
     """
@@ -23,7 +29,7 @@ class PaymentCreateView(TemplateView):
     """
     template_name = "cardless/payment_create.html"
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, **kwargs):
         invoice = detokenise(kwargs['invoice_token'], Invoice)
         payments = invoice_payments_list(invoice, pending=True, paid=True)
         if payments:
@@ -38,7 +44,7 @@ class PaymentCreateView(TemplateView):
         else:
             return redirect('cardless_mandate_create_i', invoice_token=kwargs['invoice_token'])
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, **kwargs):
         invoice = detokenise(kwargs['invoice_token'], Invoice)
         mandate = active_mandate(invoice.person)
         if 'pay' in request.POST:
@@ -72,7 +78,7 @@ class MandateCreateView(View):
     Starts the mandate creation through a Go Cardless page
     Can be initiated with an invoice token or person token
     """
-    def get(self, request, *args, **kwargs):
+    def get(self, request, **kwargs):
         invoice_token = kwargs.pop('invoice_token', None)
         person_token = kwargs.pop('person_token', None)
         if invoice_token:
@@ -149,7 +155,7 @@ class MandateSuccessView(TemplateView):
     template_name = "cardless/mandate_success.html"
 
 
-class MandateListView(ListView):
+class MandateListView(LoginRequiredMixin, ListView):
     """ All mandates for 1 person or all in our Go Cardless account"""
     template_name = "cardless/mandate_list.html"
     model = Mandate
@@ -163,7 +169,7 @@ class MandateListView(ListView):
         return context
 
 
-class MandateGcListView(TemplateView):
+class MandateGcListView(LoginRequiredMixin, TemplateView):
     """ Fetches list from GoCardless site """
     template_name = "cardless/mandate_gc_list.html"
 
@@ -173,7 +179,7 @@ class MandateGcListView(TemplateView):
         return context
 
 
-class MandateDetailView(TemplateView):
+class MandateDetailView(LoginRequiredMixin, TemplateView):
     """ Detailed mandate data from Go Cardless """
     template_name = "cardless/mandate_detail.html"
 
@@ -192,7 +198,7 @@ class MandateDetailView(TemplateView):
             context['cancel'] = True
         return context
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, **kwargs):
         mandate = Mandate.objects.filter(mandate_id=kwargs['mandate_id'])
         if 'remove' in request.POST:
             mandate.delete()
@@ -202,7 +208,7 @@ class MandateDetailView(TemplateView):
         return redirect('cardless_mandate_list')
 
 
-class CustomerDetailView(TemplateView):
+class CustomerDetailView(LoginRequiredMixin, TemplateView):
     """ Detailed customer data from Go Cardless """
     template_name = "cardless/customer_detail.html"
 
@@ -217,7 +223,7 @@ class CustomerDetailView(TemplateView):
         return context
 
 
-class EventDetailView(TemplateView):
+class EventDetailView(LoginRequiredMixin, TemplateView):
     """ Detailed event data from Go Cardless """
     template_name = "cardless/event_detail.html"
 
@@ -239,7 +245,7 @@ class Webhook(View):
         provided_signature = request.META["HTTP_WEBHOOK_SIGNATURE"]
         return hmac.compare_digest(provided_signature, computed_signature)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         if self.is_valid_signature(request):
 
             payload = json.loads(request.body.decode('utf-8'))
@@ -298,3 +304,27 @@ class Webhook(View):
 
         elif action == 'finished':
             pass
+
+
+class CardlessImportView(LoginRequiredMixin, FormView):
+    '''
+    Import a GoCardless csv file
+    '''
+    form_class = UploadCSVForm
+    template_name = 'members/file_select.html'
+
+    def get_context_data(self, **kwargs):
+        context =  super(CardlessImportView, self).get_context_data(**kwargs)
+        context['title'] = "Import GoCardless csv file of payments"
+        return context
+
+    def form_valid(self, form):
+        result, errors = process_csvfile(self.request.FILES['upload_file'])
+        if errors:
+            messages.error(self.request, result + errors)
+        else:
+            messages.success(self.request, result)
+        return super(CardlessImportView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('gc-import')

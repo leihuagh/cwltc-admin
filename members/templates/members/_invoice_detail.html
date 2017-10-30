@@ -31,7 +31,7 @@ Date: {{ invoice.date }}
     </td>
     <td align="right">£ {{ item.amount }}</td>
     {% if show_buttons %}
-        <td>{% if item.paid %} Paid {% else %} Unpaid {% endif %}</td>
+        <td>{% if item.paid %}&nbsp; Paid {% else %}&nbsp; Unpaid {% endif %}</td>
     {% endif %}
 </tr>
 {% endfor %}

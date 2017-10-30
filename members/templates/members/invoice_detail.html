@@ -31,14 +31,16 @@
 {% endif %}
 {% if payments %}
   <table class="table">
-    <tr><th>Date</th><th>Amount</th><th>GoCardless Id</th><th>Charge date</th><th>Status</th></tr>
+    <tr><th>Payments</th><th>Type</th><th>Created</th><th>Amount</th><th>State</th><th>Banked</th><th>GoCardless Id</th></tr>
     {% for payment in payments %}
       <tr>
-      <td><a href="{% url 'payment-detail' pk=payment.id %}">{{ payment.creation_date }}</a></td>
-      <td>{{ payment.amount }}</td>
-      <td>{{ payment.cardless_id }}</td>
-      <td>{{ payment.charge_date }}</td>
-      <td>{{ payment.status }}</td>
+        <td><a href="{% url 'payment-detail' pk=payment.id %}" class="btn btn-default btn-xs">View</a></td>
+        <td>{{ payment.TYPES|get_option:payment.type }}</td>
+        <td>{{ payment.creation_date }}</td>
+        <td>£{{ payment.amount }}</td>
+        <td>{{ payment.STATES|get_option:payment.state }}</td>
+        <td>{{ payment.banked }}</td>
+        <td>{{ payment.cardless_id }}</td>
       </tr>
     {% endfor %}
   </table>

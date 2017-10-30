@@ -1,7 +1,7 @@
 from operator import attrgetter
 from nose.tools import nottest
 from members.models import *
-
+from datetime import datetime
 
 class Error(Exception):
     """
@@ -18,19 +18,34 @@ class ServicesError(Error):
         self.message = message
 
 
-def invoice_pay_by_gocardless(invoice, amount, fee, banked_date):
+def calculate_fee(amount):
+    fee = amount / 100
+    if fee > 2:
+        fee = 2
+    return fee
+
+
+def invoice_pay_by_gocardless(invoice,
+                              amount,
+                              cardless_id,
+                              payment_number=1,
+                              banked=False,
+                              banked_date=None):
     """
-    Create a gocardless payment record and pay an invoice
+    Create a go cardless payment record and update invoice
     """
-    if invoice.state == Invoice.STATE.PAID_IN_FULL.value:
+    if invoice.state == Invoice.STATE.PAID:
         raise ServicesError("Already paid in full")
+
     payment = Payment(type=Payment.DIRECT_DEBIT,
                       person=invoice.person,
                       amount=amount,
-                      fee=fee,
+                      fee=calculate_fee(amount),
                       membership_year=invoice.membership_year,
-                      banked=True,
-                      banked_date=banked_date
+                      banked=banked,
+                      banked_date=banked_date,
+                      cardless_id=cardless_id,
+                      payment_number=payment_number
                       )
     payment.save()
     invoice_pay(invoice, payment)
@@ -45,14 +60,14 @@ def invoice_update_state(invoice: Invoice):
     for payment in invoice.payment_set.all():
         if payment.state == Payment.STATE.PENDING:
             invoice.pending = True
-        elif payment.state == Payment.STATE.PAID:
+        elif payment.state == Payment.STATE.CONFIRMED:
             total += payment.amount
 
     if invoice.state != Invoice.STATE.CANCELLED:
         if total == invoice.total:
             invoice.state = Invoice.STATE.PAID
         elif total > 0 and total < invoice.total:
-            invoice.state = Invoice.STATE.UNDERPAID
+            invoice.state = Invoice.STATE.PART_PAID
         elif total > invoice.total:
             invoice.state = Invoice.STATE.OVERPAID
         else:
@@ -68,25 +83,38 @@ def invoice_update_state(invoice: Invoice):
             invoice_item.subscription.save()
 
 
-def payment_update_state(payment, gc_status):
-    """ Update the payment state from the corresponding go cardless status """
-    payment.banked = False
+def payment_state(gc_status):
+    banked = False
     if gc_status in ('pending_approval_granted', 'pending_submission', 'submitted'):
-        payment.state = Payment.STATE.PENDING.value
+        new_state = Payment.STATE.PENDING
     elif gc_status == 'confirmed':
-        payment.state = Payment.STATE.PAID.value
+        new_state = Payment.STATE.CONFIRMED
     elif gc_status in ('cancelled', 'failed', 'customer_approval_denied', 'charged_back'):
-        payment.state = Payment.STATE.FAILED.value
+        new_state = Payment.STATE.FAILED
     elif gc_status == 'paid_out':
-        payment.state = Payment.STATE.PAID.value
-        payment.banked = True
-        if not payment.banked_date:
-            payment.banked_date = datetime.datetime.now()
+        new_state = Payment.STATE.CONFIRMED
+        banked = True
     else:
-        return False
-    payment.save()
-    invoice_update_state(payment.invoice)
-    return True
+        return None, False
+    return new_state, banked
+
+
+def payment_update_state(payment, gc_status):
+    """
+    Update the payment state from the corresponding go cardless status
+    Return True if state changed
+    """
+    new_state, banked = payment_state(gc_status)
+    if new_state:
+        if payment.state != new_state or payment.banked != banked:
+            payment.state = new_state
+            payment.banked = banked
+            if banked and not payment.banked_date:
+                payment.banked_date = datetime.now().date()
+            payment.save()
+            invoice_update_state(payment.invoice)
+            return True
+    return False
 
 
 def invoice_pay(invoice, payment):
@@ -153,7 +181,7 @@ def invoice_create_from_items(person, year):
     else:
         invoice = Invoice.objects.create(
             person=person,
-            state=Invoice.STATE.UNPAID.value,
+            state=Invoice.STATE.UNPAID,
             date=datetime.now(),
             membership_year=year
             )
@@ -262,7 +290,7 @@ def invoice_cancel(invoice, with_credit_note=True, superuser=False):
             item.save()
     
     if with_credit_note:
-        invoice.state = Invoice.STATE.CANCELLED.value
+        invoice.state = Invoice.STATE.CANCELLED
         invoice.save()
         c_note = CreditNote(invoice=invoice,
                             person=invoice.person,
@@ -523,7 +551,7 @@ def subscription_delete_invoiceitems(sub):
     """
     for item in sub.invoiceitem_set.all():
         if item.invoice:
-            if item.invoice.state == Invoice.STATE.UNPAID.value:
+            if item.invoice.state == Invoice.STATE.UNPAID:
                 invoice_cancel(item.invoice)
                 item.delete()
         else:
@@ -576,7 +604,7 @@ def person_resign(person):
 def person_testfor_delete(person):
     """
     Return [] if person can be deleted
-    else return alist of reasons why not
+    else return a list of reasons why not
     We don't test for subs so hon life paid subs can be deleted
     """
     messages = []

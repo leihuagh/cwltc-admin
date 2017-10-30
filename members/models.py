@@ -343,17 +343,17 @@ class ModelEnum(IntEnum):
 
     @classmethod
     def choices(cls):
-        return tuple((x.value, x.name.lower().capitalize()) for x in cls)
+        return tuple((x.value, x.name.lower().capitalize().replace("_"," ")) for x in cls)
 
 
 class Invoice(models.Model):
 
     class STATE(ModelEnum):
         UNPAID = 0
+        PART_PAID = 1
         PAID = 2
         CANCELLED = 3
-        UNDERPAID = 4
-        OVERPAID = 5
+        OVERPAID = 4
 
     STATES = STATE.choices()
 
@@ -362,11 +362,12 @@ class Invoice(models.Model):
     date = models.DateField()
     membership_year = models.SmallIntegerField(default=0)
     reference = models.CharField(max_length=80)
-    state = models.SmallIntegerField(choices=STATE.choices(), default=STATE.UNPAID.value)
+    state = models.SmallIntegerField(choices=STATE.choices(), default=0)
     pending = models.BooleanField(default=False)
     person = models.ForeignKey(Person)
     email_count = models.SmallIntegerField(default=0)
     total = models.DecimalField(max_digits=7, decimal_places=2, default=0, null=False)
+    payments_expected = models.SmallIntegerField(default=1)
     # deprecated
     gocardless_action = models.CharField(max_length=10, blank=True)
     gocardless_bill_id = models.CharField(max_length=255, blank=True)
@@ -470,9 +471,14 @@ class Payment(models.Model):
 
     class STATE(ModelEnum):
         PENDING = 0
-        PAID = 1
+        CONFIRMED = 1
         FAILED = 2
         CANCELLED = 3
+
+    STATES = STATE.choices()
+
+    SINGLE_PAYMENT = "Single payment"
+    SUBSCRIPTION_PAYMENT = "Subscription payment"
 
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -485,7 +491,7 @@ class Payment(models.Model):
     match_state = models.SmallIntegerField(choices=MATCH_STATES, default=NOT_MATCHED)
     fee = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
     invoice = models.ForeignKey(Invoice, blank=True, null=True)
-    # GoCardless state
+    payment_number = models.SmallIntegerField(default=1)
     state = models.SmallIntegerField(choices=STATE.choices(), default=STATE.PENDING.value)
     cardless_id = models.CharField(max_length=50, blank=True, null=True)
     banked = models.BooleanField(default=False)
