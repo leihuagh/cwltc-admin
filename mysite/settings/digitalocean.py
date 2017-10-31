@@ -14,7 +14,7 @@ TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static_files/')
 SECRET_KEY = env.str('SECRET_KEY')
-GO_CARDLESS = env.dict('GO_CARDLESS')
+# GO_CARDLESS = env.dict('GO_CARDLESS')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 

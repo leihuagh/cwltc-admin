@@ -25,7 +25,7 @@ urlpatterns = [
 #    url(r'^rest/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
     url(r'^pos/', include('pos.urls')),
-    url(r'^gocardless/', include('gc_app.urls')),
+    # url(r'^gocardless/', include('gc_app.urls')),
     url(r'^club/', include('club.urls')),
     url(r'^cardless/', include('cardless.urls')),
 

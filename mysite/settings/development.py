@@ -21,7 +21,7 @@ ALLOWED_HOSTS = ['55015a7c.ngrok.io', 'localhost']
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
 SECRET_KEY = env.str('SECRET_KEY')
-GO_CARDLESS = env.dict('GO_CARDLESS_SANDBOX')
+# GO_CARDLESS = env.dict('GO_CARDLESS_SANDBOX')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 

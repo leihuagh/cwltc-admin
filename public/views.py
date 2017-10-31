@@ -12,7 +12,6 @@ from members.models import Group, Invoice, Person, MailType, AdultApplication, S
 from members import mail
 from members.services import group_get_or_create
 from members.forms import JuniorForm, PersonForm
-from gc_app.views import gc_create_bill_url
 #from .forms import ContactForm, AdultApplicationFormHelper, RegisterForm, RegisterTokenForm
 from .forms import *
 from members.services import membership_from_dob
