@@ -6,6 +6,7 @@ env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
 
 INSTALLED_APPS += (
+    'raven.contrib.django.raven_compat',
     'coverage',
 #    'django-nose',
 #    'debug_toolbar',
@@ -36,9 +37,9 @@ LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 # http://cheat.readthedocs.io/en/latest/django/logging.html
 # https://www.webforefront.com/django/setupdjangologging.html
-# RAVEN_CONFIG = {
-#     'dsn': env.str('RAVEN'),
-# }
+RAVEN_CONFIG = {
+    'dsn': env.str('RAVEN'),
+}
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

@@ -48,7 +48,6 @@ INSTALLED_APPS = (
     'club',
     'authentication',
     'cardless',
-    'raven.contrib.django.raven_compat',
 )
 
 MIDDLEWARE_CLASSES = (
