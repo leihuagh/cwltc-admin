@@ -420,7 +420,6 @@ class Invoice(models.Model):
         context['address'] = self.person.address
         context['reference'] = self.number
         context['items'] = self.invoice_items.all().order_by('creation_date')
-        context['hooks'] = self.webhook_set.all().order_by('-creation_date')
         context['state_list'] = Invoice.STATES
         context['types'] = Payment.TYPES
         context['payment_states'] = Payment.STATE.choices()
