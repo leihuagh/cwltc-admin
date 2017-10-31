@@ -1,0 +1,28 @@
+{% extends "members/layout.html" %}
+{% block content %}
+  <h2 xmlns="http://www.w3.org/1999/html">Mandate Detail</h2>
+  {% if not mandate %}
+    <h2>This mandate does not exist in the CWLTC database</h2>
+  {% endif %}
+  <div class="row">
+    <div class="col col-md-6">
+      <table class="table" width="200px">
+        <tr><td>Id</td><td>{{ gc_mandate.id }}</td></tr>
+        <tr><td>Created at</td><td>{{ gc_mandate.created_at }}</td></tr>
+        <tr><td>Next possible charge date</td><td>{{ gc_mandate.next_possible_charge_date }}</td></tr>
+        <tr><td>Payments_require_approval</td><td>{{ gc_mandate.payments_require_approval }}</td></tr>
+        <tr><td>Status</td><td>{{ gc_mandate.status }}</td></tr>
+      </table>
+
+      <form action="{% url 'cardless_mandate_detail' mandate_id=gc_mandate.id %}" method="post">
+        {% csrf_token %}
+        {% if remove %}
+          <button type="submit" class="btn btn-danger" name="remove">Remove</button>
+         {% endif %}
+         {% if cancel %}
+          <button type="submit" class="btn btn-danger" name="cancel">Cancel</button>
+         {% endif %}
+      </form>
+    </div>
+  </div>
+{% endblock %}

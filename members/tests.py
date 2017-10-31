@@ -2,9 +2,9 @@ from datetime import date, datetime
 import pdb
 import django
 from django.test import TestCase
-from members.models import (Person, Address, Membership, Subscription, Fees, Invoice, Payment,
-                            InvoiceItem, ItemType, CreditNote, Group)
-from members.models import bill_month, sub_start_date, sub_end_date
+# from members.models import (Person, Address, Membership, Subscription, Fees, Invoice, Payment,
+#                             InvoiceItem, ItemType, CreditNote, Group)
+# from members.models import bill_month, sub_start_date, sub_end_date
 from members.services import *
 # pdb.set_trace()
 
@@ -13,11 +13,6 @@ class MembersTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super(MembersTestCase, cls).setUpClass()
-        # django.setup()
-        # cls.discoverRunner = DiscoverRunner()
-        # cls.discoverRunner.setup_test_environment()
-        # cls.old_config = cls.discoverRunner.setup_databases()
-        # super(MembersTestCase, cls).setUpClass()
 
     @classmethod
     def tearDownClass(cls):
@@ -437,12 +432,12 @@ class MembersTestCase(TestCase):
         self.assertEqual(Invoice.objects.all().count(), 1, 'actual is: %d' % Invoice.objects.all().count())
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.total, 240, 'Wrong total: {}'.format(inv.total))
-        self.assertEqual(inv.invoiceitem_set.count(), 1)
+        self.assertEqual(inv.invoice_items.count(), 1)
         
         # test cancellation whole invoice
         invoice_cancel(inv)
         inv = Invoice.objects.all()[0]
-        self.assertEqual(inv.invoiceitem_set.count(), 0)
+        self.assertEqual(inv.invoice_items.count(), 0)
         cnote = CreditNote.objects.all()[0]
         self.assertEqual(cnote.amount, 240)
         item = InvoiceItem.objects.all()[0]
@@ -565,13 +560,13 @@ class MembersTestCase(TestCase):
         self.assertEqual(Invoice.objects.all().count(), 1)
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.person,adult)
-        self.assertEqual(inv.state, Invoice.UNPAID)
-        self.assertEqual(inv.invoiceitem_set.count(), 6)
+        self.assertEqual(inv.state, Invoice.STATE.UNPAID)
+        self.assertEqual(inv.invoice_items.count(), 6)
         substotal = 240 + 240 + 75 + 35
         discount = substotal/10
         total = substotal - discount + 100
         self.assertEqual(inv.total, total)
-        items = inv.invoiceitem_set.filter(paid=True).count()
+        items = inv.invoice_items.filter(paid=True).count()
         self.assertEqual(items, 0)
 
         # check the active subs are unpaid
@@ -580,28 +575,35 @@ class MembersTestCase(TestCase):
             if person.sub:
                 self.assertFalse(person.sub.paid, "Sub wrongly marked as paid")
         
-        # create a payment by gocardless
-        fee = total/100
-        if fee > 2:
-            fee = 2
-        invoice_pay_by_gocardless(inv, total, fee, datetime.now())
+        # create a payment
+        payment = Payment.objects.create(type=Payment.BACS,
+                                         person=inv.person,
+                                         amount=total,
+                                         membership_year=inv.membership_year,
+                                         state=Payment.STATE.PAID,
+                                         banked=True,
+                                         banked_date= datetime.now()
+                                         )
+        invoice_pay(inv, payment)
         self.assertEqual(Payment.objects.count(), 1)
-        payment = Payment.objects.all()[0]
-        self.assertEqual(payment.state, Payment.FULLY_MATCHED)  
-        self.assertEqual(payment.membership_year, 2015) 
-        
-       
+
         # check the invoice and items are paid
         inv = Invoice.objects.all()[0]
-        self.assertEqual(inv.state, Invoice.PAID_IN_FULL)  
-        items = inv.invoiceitem_set.filter(paid=True).count()
+        self.assertEqual(inv.state, Invoice.STATE.PAID)
+        items = inv.invoice_items.filter(paid=True).count()
         self.assertEqual(items, 6)
 
         # check a second payment call fails
         with self.assertRaises(Exception) as context:
-            invoice_pay_by_gocardless(inv, total, fee, datetime.now())
+            payment = Payment.objects.create(type=Payment.BACS,
+                                             person=inv.person,
+                                             amount=total,
+                                             membership_year=inv.membership_year,
+                                             banked=True,
+                                             banked_date=datetime.now()
+                                             )
+            invoice_pay(inv, payment)
         self.assertTrue("Already paid in full" in context.exception.message)
-        self.assertEqual(Payment.objects.count(), 1)
 
         # check the active subs are not paid because they are for 2014    
         for person in Person.objects.all():
@@ -628,8 +630,8 @@ class MembersTestCase(TestCase):
         self.assertEqual(Invoice.objects.all().count(), 1)
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.person, adult)
-        self.assertEqual(inv.state, Invoice.UNPAID)
-        self.assertEqual(inv.invoiceitem_set.count(), 6)
+        self.assertEqual(inv.state, Invoice.STATE.UNPAID)
+        self.assertEqual(inv.invoice_items.count(), 6)
         self.assertEqual(inv.unpaid_items_count(), 6)
         self.assertEqual(inv.paid_items_count(), 0)
         substotal = 240 + 240 + 75 + 35
@@ -642,15 +644,15 @@ class MembersTestCase(TestCase):
         self.assertEqual(CreditNote.objects.all().count(), 1)
         cnote = CreditNote.objects.all()[0]
         inv1 = Invoice.objects.all()[0]
-        self.assertEqual(inv1.state, Invoice.CANCELLED)
-        self.assertEqual(inv1.invoiceitem_set.count(),0)
+        self.assertEqual(inv1.state, Invoice.STATE.CANCELLED)
+        self.assertEqual(inv1.invoice_items.count(),0)
         self.assertEqual(cnote.amount, inv.total)
         self.assertEqual(cnote.membership_year, inv.membership_year)
 
         # create new invoice and test cancel without credit_note
         invoice_create_from_items(adult, 2015)   
         self.assertEqual(Invoice.objects.all().count(), 2)
-        inv2 = Invoice.objects.filter(state=Invoice.UNPAID)[0]     
+        inv2 = Invoice.objects.filter(state=Invoice.STATE.UNPAID)[0]
         invoice_cancel(inv2, with_credit_note=False)
         self.assertEqual(Invoice.objects.all().count(), 1)
         self.assertEqual(CreditNote.objects.all().count(), 1)

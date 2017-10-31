@@ -3,7 +3,7 @@ from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonRes
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
 from django.views.generic.edit import FormView, FormMixin, ProcessFormView
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
@@ -111,7 +111,7 @@ class PosView(LoginRequiredMixin, TemplateView):
                     tot += item_dict['sale_price'] * item_dict['quantity']
                 context = {}
                 context['receipt'] = receipt
-                context['total'] = unichr(163) + ' {0:.2f}'.format(Decimal(tot)/100)
+                context['total'] = chr(163) + ' {0:.2f}'.format(Decimal(tot)/100)
                 context['request'] = request
                 context['enable_payment'] = tot > 0
                 return render_to_response("pos/receipt.html", context)

@@ -1,89 +1,150 @@
-from datetime import date, datetime, timedelta
 from operator import attrgetter
 from nose.tools import nottest
 from members.models import *
-import pdb
+from datetime import datetime
 
 class Error(Exception):
-    '''
+    """
     Base class for exceptions in this module
-    '''
+    """
     pass
 
+
 class ServicesError(Error):
-    '''
+    """
     Error while processing payment
-    '''
+    """
     def __init__(self, message):
         self.message = message
 
-def invoice_pay_by_gocardless(invoice, amount, fee, date):
-    '''
-    Create a gocardless payment record and pay an invoice
-    '''
-    if invoice.state == Invoice.PAID_IN_FULL:
+
+def calculate_fee(amount):
+    fee = amount / 100
+    if fee > 2:
+        fee = 2
+    return fee
+
+
+def invoice_pay_by_gocardless(invoice,
+                              amount,
+                              cardless_id,
+                              payment_number=1,
+                              state=Payment.STATE.PENDING,
+                              banked=False,
+                              banked_date=None):
+    """
+    Create a go cardless payment record and update invoice
+    """
+    if invoice.state == Invoice.STATE.PAID:
         raise ServicesError("Already paid in full")
-        return
+
     payment = Payment(type=Payment.DIRECT_DEBIT,
-                        person=invoice.person,
-                        amount=amount,
-                        fee=fee,
-                        membership_year=invoice.membership_year,
-                        banked=True,
-                        banked_date=date
-                        )
+                      person=invoice.person,
+                      amount=amount,
+                      fee=calculate_fee(amount),
+                      membership_year=invoice.membership_year,
+                      state=state,
+                      banked=banked,
+                      banked_date=banked_date,
+                      cardless_id=cardless_id,
+                      payment_number=payment_number
+                      )
     payment.save()
     invoice_pay(invoice, payment)
 
-def invoice_pay(invoice, payment):
-    '''
-    Pay invoice with payment
-    '''
-    if invoice.state == Invoice.PAID_IN_FULL:
-        raise ServicesError("Already paid in full")
-        return
 
-    if invoice.total == payment.amount:
-        items = invoice.invoiceitem_set.all()
-        for item in items:
-            invoice_item_pay(item, payment)
-        invoice.state = Invoice.PAID_IN_FULL
-        payment.state = Payment.FULLY_MATCHED
-        payment.invoice = invoice
-        payment.credited = payment.amount       
-    else:
-        payment.invoice = invoice
-        invoice.state = Invoice.PART_PAID
-        payment.state = Payment.PARTLY_MATCHED  
-    payment.save()
+def invoice_update_state(invoice: Invoice):
+    """
+    Calculate the invoice state from the state of its linked payments
+    Update the linked items state and any sub that is connected
+    """
+    total = Decimal(0)
+    for payment in invoice.payment_set.all():
+        if payment.state == Payment.STATE.PENDING:
+            invoice.pending = True
+        elif payment.state == Payment.STATE.CONFIRMED:
+            total += payment.amount
+
+    if invoice.state != Invoice.STATE.CANCELLED:
+        if total == invoice.total:
+            invoice.state = Invoice.STATE.PAID
+        elif total > 0 and total < invoice.total:
+            invoice.state = Invoice.STATE.PART_PAID
+        elif total > invoice.total:
+            invoice.state = Invoice.STATE.OVERPAID
+        else:
+            invoice.state=Invoice.STATE.UNPAID
     invoice.save()
+    # Update linked items and any sub that is connected
+    paid = invoice.state == Invoice.STATE.PAID
+    for invoice_item in invoice.invoice_items.all():
+        invoice_item.paid = paid
+        invoice_item.save()
+        if invoice_item.subscription:
+            invoice_item.subscription.paid = paid
+            invoice_item.subscription.save()
 
-def invoice_item_pay(invoice_item, payment):
-    '''
-    Mark invoice item as paid by payment.
-    If it is for a subscription, mark the sub as paid
-    '''
-    invoice_item.payment = payment
-    invoice_item.paid = True
-    invoice_item.save()
-    if invoice_item.subscription:
-        invoice_item.subscription.paid = True
-        invoice_item.subscription.save()
+
+def payment_state(gc_status):
+    """
+    return the payment state corresponding to the go cardless status
+    """
+    new_banked = False
+    if gc_status in ('pending_approval_granted', 'pending_submission', 'submitted'):
+        new_state = Payment.STATE.PENDING
+    elif gc_status == 'confirmed':
+        new_state = Payment.STATE.CONFIRMED
+    elif gc_status in ('cancelled', 'failed', 'customer_approval_denied', 'charged_back'):
+        new_state = Payment.STATE.FAILED
+    elif gc_status == 'paid_out':
+        new_state = Payment.STATE.CONFIRMED
+        new_banked = True
+    else:
+        return None, False
+    return new_state, new_banked
+
+
+def payment_update_state(payment, gc_status):
+    """
+    Update the payment state from the corresponding go cardless payment
+    Return True if state changed and new_banked state
+    """
+    new_state, new_banked = payment_state(gc_status)
+    if new_state:
+        if payment.state != new_state or payment.banked != new_banked:
+            payment.state = new_state
+            payment.banked = new_banked
+            payment.save()
+            invoice_update_state(payment.invoice)
+            return True
+    return False
+
+
+def invoice_pay(invoice, payment):
+    """
+    Pay invoice with payment
+    """
+    if invoice.state == Invoice.STATE.PAID:
+        raise ServicesError("Already paid in full")
+    payment.invoice = invoice
+    payment.save()
+    invoice_update_state(invoice)
+
 
 def invoice_create_batch(exclude_slug='', size=10000):
-    '''
+    """
     Generate a batch of invoices of specified size
     Returns the number of people still remaining with uninvoiced items
     Note: because of family invoices the count returned may not seem correct
     if size = 0 just return the number of people with uninvoiced items
-    '''
+    """
     # get a list of all people ids from uninvoiced items
     people_ids = InvoiceItem.objects.filter(invoice=None).values_list('person_id', flat=True)
     people = Person.objects.filter(id__in=people_ids)
     total = people.count()
     year = Settings.objects.all()[0].membership_year
     done = 0
-    if size > 0 :
+    if size > 0:
         for person in people:
             if exclude_slug != '':
                 include = not person.groups.filter(slug=exclude_slug).exists()
@@ -94,14 +155,15 @@ def invoice_create_batch(exclude_slug='', size=10000):
                 done += 1
                 if done == size:
                     break
-    return (total, done)
+    return total, done
+
 
 def invoices_create_from_list(id_list, year):
-    '''
+    """
     Generate invoices for all people in the list of ids
     And return a count of how many generated
     This may be less than number of people because of families
-    '''
+    """
     people = Person.objects.filter(id__in=id_list)
     count = 0
     for person in people:
@@ -110,20 +172,21 @@ def invoices_create_from_list(id_list, year):
             count += 1
     return count
 
+
 def invoice_create_from_items(person, year):
-    '''
+    """
     If there are open invoice items link them to a new invoice
     process all family members who don't pay own bill
     Return invoice or False if there are no items
-    '''  
+    """  
     if person.linked and not person.pays_own_bill:
         return invoice_create_from_items(person.linked, year)
     else:
         invoice = Invoice.objects.create(
-            person = person,
-            state = Invoice.UNPAID,
-            date = datetime.now(),
-            membership_year = year
+            person=person,
+            state=Invoice.STATE.UNPAID,
+            date=datetime.now(),
+            membership_year=year
             )
         # include all own items
         subs_total = 0
@@ -159,7 +222,6 @@ def invoice_create_from_items(person, year):
                 item.save()
 
             for item in fam_member.invoiceitem_set.filter(invoice=None):
-                is_fam_member = True
                 item.invoice = invoice
                 invoice.total += item.amount
                 item.save()
@@ -169,10 +231,10 @@ def invoice_create_from_items(person, year):
             disc_item = InvoiceItem.objects.create(
                 person=person,
                 invoice=invoice,
-                item_type_id = ItemType.FAMILY_DISCOUNT,
-                item_date = datetime.today(),
-                description = 'Family discount 10%',
-                amount= -subs_total / 10
+                item_type_id=ItemType.FAMILY_DISCOUNT,
+                item_date=datetime.today(),
+                description='Family discount 10%',
+                amount=-subs_total / 10
                 )
             invoice.total += disc_item.amount
 
@@ -196,20 +258,21 @@ def invoice_create_from_items(person, year):
                 item.invoice = invoice
                 invoice.total += item.amount
                 item.save()
-        if invoice.invoiceitem_set.count() > 0:
+        if invoice.invoice_items.count() > 0:
             invoice.save()
             return invoice
         else:
             invoice.delete()
             return None
 
+
 def invoice_cancel(invoice, with_credit_note=True, superuser=False):
-    ''' 
+    """
     Disconnect all items from an invoice
     Delete Family discount items, the others remain
     If with credit_note, mark invoice as cancelled and create a credit note
     Else delete the invoice but not any attached credit note
-    '''
+    """
     # no item can be paid
     if not superuser:
         if invoice.paid_items_count():
@@ -217,7 +280,7 @@ def invoice_cancel(invoice, with_credit_note=True, superuser=False):
 
     amount = 0
     description = u''
-    for item in invoice.invoiceitem_set.all():
+    for item in invoice.invoice_items.all():
         amount += item.amount
         description = description + 'Item: {0} {1}{2}'.format(
             item.item_type.description,
@@ -230,7 +293,7 @@ def invoice_cancel(invoice, with_credit_note=True, superuser=False):
             item.save()
     
     if with_credit_note:
-        invoice.state = Invoice.CANCELLED
+        invoice.state = Invoice.STATE.CANCELLED
         invoice.save()
         c_note = CreditNote(invoice=invoice,
                             person=invoice.person,
@@ -249,87 +312,37 @@ def invoice_cancel(invoice, with_credit_note=True, superuser=False):
         invoice.delete()
     return True
 
-    #def pay_invoice_part(self, inv):
-    #    ''' THIS CODE NOT FINISHED '''
-    #    new_paid = 0
-    #    old_paid = 0
-    #    pay_amount = self.amount - self.credited
-    #    items = inv.invoiceitem_set.order_('-amount')
-    #    discount = 0
-    #    for item in items:
-    #        if item.amount < 0:
-    #            discount += item.amount
-    #    discount = - discount
-    #    for item in items:
-    #        if item.amount >= 0:
-    #            if not item.paid:
-    #                due = item.amount
-    #                if due >= discount:
-    #                    due -= discount
-    #                    discount = 0
-    #                else:
-    #                    discount -= due
-    #                    due = 0
-                      
-    #                if pay_amount >= due:
-    #                    item.pay(self)
-    #                    new_paid += due
-    #                    pay_amount -= due
-    #            else:
-    #                old_paid += item.amount
-        
-    #                total = old_paid + new_paid
-    #    # Update invoice state
-    #    if total == inv.total:
-    #        inv.state = Invoice.PAID_IN_FULL
-    #    elif total > inv.total:
-    #        inv.state = Invoice.ERROR
-    #    elif total > 0:
-    #        inv.state = Invoice.PART_PAID
-    #    inv.save()
-    #    # Update our state
-    #    self.credited = self.credited + new_paid
-    #    if self.amount > 0:
-    #        if self.credited == 0:
-    #            self.state = Payment.NOT_MATCHED
-    #        elif self.amount == self.credited:
-    #            self.state = Payment.FULLY_MATCHED
-    #        elif self.amount > self.credited:
-    #            self.state = Payment.PARTLY_MATCHED
-    #        else:
-    #            self.state = Payment.ERROR
-    #    else:
-    #        self.state = Payment.FULLY_MATCHED
-    #    self.save()
 
 def subscriptions_change_year(year):
     
     for person in Person.objects.all():      
         subs = person.subscription_set.filter(sub_year=year, active=True)
         if subs.count() == 1:
-            person.sub=subs[0]
+            person.sub = subs[0]
             person.save()
 
 
 def create_age_list():
-    '''
+    """
     Return a list of (age, membership_id) pairs
-    '''
+    """
     return list(Membership.objects.exclude(
         cutoff_age=0
         ).order_by('cutoff_age')
                 )         
 
 
-def membership_from_dob(dob, sub_year=Settings.current().membership_year, age_list=None):
-    '''
+def membership_from_dob(dob, sub_year=0, age_list=None):
+    """
     Return membership id for a date of birth
     Defaults to adult full
-    '''
+    """
+    if sub_year == 0:
+        sub_year = Settings.current_year()
     membership = Membership.objects.get(id=1)
     if dob:
-        date = datetime(sub_year, Subscription.START_MONTH, 1)
-        age = date.year - dob.year - ((date.month, date.day) < (dob.month, dob.day))
+        now_date = datetime(sub_year, Subscription.START_MONTH, 1)
+        age = now_date.year - dob.year - ((now_date.month, now_date.day) < (dob.month, dob.day))
 
         if not age_list:
             age_list = create_age_list()
@@ -348,9 +361,9 @@ def subscription_create(person,
                         period=Subscription.ANNUAL,
                         new_member=False,
                         age_list=None):
-    '''
+    """
     Create a new subscription and link it to a person but do not activate it.
-    '''
+    """
     sub = Subscription()
     sub.person_member = person
     sub.sub_year = sub_year
@@ -372,11 +385,12 @@ def subscription_create(person,
     sub.save()
     return sub
 
+
 def subscription_activate(sub, activate=True):
-    '''
+    """
     Activate this subscription and clear all others that have the same year
     Update person.sub only if its for the same year
-    '''
+    """
     for subold in sub.person_member.subscription_set.filter(sub_year=sub.sub_year):
         if subold.active:
             subold.active = False
@@ -388,12 +402,13 @@ def subscription_activate(sub, activate=True):
         sub.person_member.sub = sub
         sub.person_member.save()
 
+
 def subscription_delete(sub):
-    '''
+    """
     Delete the current sub
     If there is another sub for that year, set person_sub to that one
     else person_sub will be 0
-    '''
+    """
     person = sub.person_member
     person.sub = None
     person.save()
@@ -407,9 +422,9 @@ def subscription_delete(sub):
 
   
 def subscription_renew(sub, sub_year, sub_month, generate_item=False, activate=True, age_list=None):
-    '''
+    """
     Generate a new sub if current sub active and expired
-    '''
+    """
     if not age_list:
         age_list = create_age_list()
     new_start = datetime(sub_year, sub_month, 1).date()
@@ -432,11 +447,11 @@ def subscription_renew(sub, sub_year, sub_month, generate_item=False, activate=T
 
 
 def subscription_renew_list(sub_year, sub_month, id_list):
-    '''
+    """
     Renew the current subscription for every person in the list of ids
     Make it active and generate an invoice item for it
     Return the number of subs generated
-    '''
+    """
     plist = Person.objects.filter(pk__in=id_list)
     age_list = create_age_list()
     count = 0
@@ -452,15 +467,16 @@ def subscription_renew_list(sub_year, sub_month, id_list):
             count += 1
     return count
 
-def subscription_renew_batch(sub_year, sub_month, size = 100000):
-    '''
+
+def subscription_renew_batch(sub_year, sub_month, size=100000):
+    """
     Renew a batch of subscriptions.
     Size determines how many to renew.
     Invoice items are automatically generated for each subscription
     But person.sub is not changed
     If size = 0 just return the count
     Else return the number remaining
-    '''
+    """
     expiry_date = datetime(sub_year, sub_month, 1)
     expired_subs = Subscription.objects.filter(
         active=True
@@ -470,24 +486,25 @@ def subscription_renew_batch(sub_year, sub_month, size = 100000):
         end_date__lt=expiry_date)
     remaining = expired_subs.count()
     count = 0
-    if size > 0 :
+    if size > 0:
         for sub in expired_subs:
-            new_sub = subscription_renew(sub,
-                                         sub_year,
-                                         sub_month,
-                                         generate_item=True,
-                                         activate=False,
-                                         age_list=create_age_list())
+            subscription_renew(sub,
+                               sub_year,
+                               sub_month,
+                               generate_item=True,
+                               activate=False,
+                               age_list=create_age_list())
             count += 1
             if count == size:
                 break
     return remaining - count
 
+
 def subscription_create_invoiceitems(sub, month):
-    '''
+    """
     Generate invoice item for the active subscription record
     For new members also generate a joining fee record if appropriate
-    '''
+    """
     if sub.active:
         current = bill_month(month)
         start = bill_month(sub.start_date.month)
@@ -497,9 +514,9 @@ def subscription_create_invoiceitems(sub, month):
             if fee.annual_sub > 0:
                 if sub.new_member and fee.joining_fee > 0 and sub.invoiced_month == 0:
                     InvoiceItem.create(sub.person_member,
-                                        ItemType.JOINING,
-                                        u"Joining fee",
-                                        fee.joining_fee)  
+                                       ItemType.JOINING,
+                                       "Joining fee",
+                                       fee.joining_fee)
                 
                 if sub.period == Subscription.ANNUAL:
                     subscription_create_invoiceitem(sub, start, end, fee)
@@ -508,15 +525,15 @@ def subscription_create_invoiceitems(sub, month):
                 elif sub.period == Subscription.QUARTERLY:
                     bill_months = [1, 4, 7, 10, 12]
                     if current in bill_months or sub.invoiced_month == 0: 
-                        if sub.invoiced_month  > start:
+                        if sub.invoiced_month > start:
                             start = sub.invoiced_month + 1
                         end = (current + 2) // 3 * 3             
                         subscription_create_invoiceitem(sub, start, end, fee)
-                        sub.invoiced_month  = end
+                        sub.invoiced_month = end
 
                 elif sub.period == Subscription.MONTHLY:
-                    if sub.invoiced_month  > start:
-                        start = sub.invoiced_month +1
+                    if sub.invoiced_month > start:
+                        start = sub.invoiced_month + 1
                     end = current                              
                     subscription_create_invoiceitem(sub, start, end, fee)
                     sub.invoiced_month = end
@@ -528,25 +545,27 @@ def subscription_create_invoiceitems(sub, month):
                 sub.paid = True
             sub.save()
 
+
 def subscription_delete_invoiceitems(sub):
-    ''' 
+    """ 
     Delete invoice items attached to sub
     If item is linked to an unpaid invoice, 
     cancel the invoice and delete the item
-    '''
+    """
     for item in sub.invoiceitem_set.all():
         if item.invoice:
-            if item.invoice.state == Invoice.UNPAID:
+            if item.invoice.state == Invoice.STATE.UNPAID:
                 invoice_cancel(item.invoice)
                 item.delete()
         else:
             item.delete()
 
+
 def subscription_create_invoiceitem(sub, start_absmonth, end_absmonth, fee):
-    '''
+    """
     Create a subscription invoice item 
     link it to the subscription
-    '''
+    """
     item = InvoiceItem.objects.create(
         person=sub.person_member,
         item_type_id=ItemType.SUBSCRIPTION,
@@ -563,11 +582,11 @@ def subscription_create_invoiceitem(sub, start_absmonth, end_absmonth, fee):
 
 
 def person_resign(person):
-    '''
+    """
     Resign a person
     If there is an unpaid sub, cancel the invoice and delete the sub
     If there is a paid sub, make it inactive
-    '''
+    """
     if person.sub:
         if not person.sub.paid:
             items = person.sub.invoiceitem_set.all()
@@ -582,21 +601,22 @@ def person_resign(person):
         person.sub.save()       
         person.state = Person.RESIGNED
         person.save()
-                    
+
+
 @nottest
 def person_testfor_delete(person):
-    '''
+    """
     Return [] if person can be deleted
-    else return alist of reasons why not
+    else return a list of reasons why not
     We don't test for subs so hon life paid subs can be deleted
-    '''
+    """
     messages = []
     if person.person_set.count() > 0:
-       messages.append("Person has family records")
+        messages.append("Person has family records")
     if person.invoice_set.count() > 0:
         messages.append("Person has invoice records")
     if person.payment_set.count() > 0:
-       messages.append("Person has payment records") 
+        messages.append("Person has payment records")
     if person.creditnote_set.count() > 0:
         messages.append("Person has credit notes")
     if person.invoiceitem_set.count() > 0:
@@ -605,19 +625,19 @@ def person_testfor_delete(person):
 
 
 def person_can_delete(person):
-    '''
+    """
     True if person can be deleted
-    '''
+    """
     return person_testfor_delete(person) == []
 
 
 def person_delete(person):
-    ''' 
+    """ 
     Delete a person if they have no linked records
     Also deletes the address if no one else linked to it
-    '''
+    """
     messages = person_testfor_delete(person)
-    if messages == []:
+    if not messages:
         if person.address:
             if person.address.person_set.count() == 1:
                 person.address.delete()
@@ -626,10 +646,10 @@ def person_delete(person):
 
 
 def person_statement(person, year):
-    '''
+    """
     Returns a sorted list of invoice, payments and credit notes
     for a person for the specified year
-    '''
+    """
     entries = []
     invoices = person.invoice_set.filter(membership_year=year)
     for i in invoices:
@@ -656,11 +676,11 @@ def person_statement(person, year):
 
 
 def person_merge(person_from, person_to):
-    '''
+    """
     Merge two people into one
     Move all related items from person_from to person_to
-    Then delete person_from and their address record
-    '''
+    Then delete person_to and their address record
+    """
     person_reassign_records(person_from, person_to)
     for sub in person_from.subscription_set.all():
         sub.person_member = person_to
@@ -672,9 +692,9 @@ def person_merge(person_from, person_to):
 
 
 def person_reassign_records(person_from, person_to):
-    '''
+    """
     Reassign all family and finance records to a parent person
-    '''
+    """
     for child in person_from.person_set.all():
         child.linked = person_to
         child.address = person_to.address
@@ -691,31 +711,30 @@ def person_reassign_records(person_from, person_to):
 
 
 def person_link(child, parent):
-    ''' 
+    """ 
     Link child to parent
     If parent = None, just unlink
     Delete any unknown parents without children
-    '''
+    """
     person_reassign_records(child, parent)
     old_parent = child.linked
     old_address = child.address
     child.linked = parent
-    child.address = parent.address
     child.save()
-    if (
-        old_parent and
-        old_parent.membership == Membership.NON_MEMBER and
-        old_parent.person_set.count() == 0 and
-        old_parent.first_name == 'Unknown'):
-            old_parent.delete()
+    if (old_parent and
+            old_parent.membership == Membership.NON_MEMBER and
+            old_parent.person_set.count() == 0 and
+            old_parent.first_name == 'Unknown'):
+                old_parent.delete()
     if old_address.person_set.count() == 0:
         old_address.delete()
 
+
 def group_get_or_create(slug):
-    '''
+    """
     Returns the group with given slug if it exists
     Otherwise it creates it
-    '''
+    """
     qset = Group.objects.filter(slug=slug)
     if qset.count() == 0:
         group = Group(slug=slug)
@@ -725,12 +744,12 @@ def group_get_or_create(slug):
     else:
         raise ServicesError("{} groups matches slug {}".format(qset.count(), slug))
     return group
- 
+
+
 def group_add_list(group, id_list):
-    '''
+    """
     Adds a list of ids to a group
-    '''
-    group_ids = Group.objects.all
+    """
     plist = Person.objects.filter(pk__in=id_list)
     for person in plist:
         person.groups.add(group)
@@ -760,17 +779,17 @@ def consolidate(year):
         if balance != 0:
             if balance > 0:
                 desc = 'Unpaid amount carried forward from ' + str(year)
-                type = ItemType.UNPAID
+                item_type = ItemType.UNPAID
                 unpaid_count += 1
                 person.groups.add(group)
             else:
                 desc = 'Credit amount carried forward from ' + str(year)
-                type = ItemType.OTHER_CREDIT
-                credit_count  += 1
+                item_type = ItemType.OTHER_CREDIT
+                credit_count += 1
             item = InvoiceItem(item_date=date(year + 1, 4, 1),
                                amount=balance,
                                description=desc,
-                               item_type_id=type,
+                               item_type_id=item_type,
                                person_id=person.id)
             item.save()
     return people.count(), unpaid_count, credit_count 

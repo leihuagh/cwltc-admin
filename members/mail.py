@@ -55,7 +55,7 @@ def send_multiple_mails(request, person_queryset, text, from_email,
     count_bad = 0
     count_dups = 0
     sent_list = []
-    year = Settings.current().membership_year
+    year = Settings.current_year()
     for person in person_queryset:
         result = send_template_mail(request=request,
                                     person=person,
@@ -84,7 +84,7 @@ def send_template_mail(request, person, text,
     if sent_list is None:
         sent_list = []
     if year == 0:
-        year = Settings.current().membership_year
+        year = Settings.current_year()
     recipient = person
     child = None
     if person.linked:
@@ -113,7 +113,7 @@ def send_template_mail(request, person, text,
     if recipient.email not in sent_list:
         sent_list.append(recipient.email)
         signer = Signer()
-        unpaid_invoices = recipient.invoices(state=Invoice.UNPAID)
+        unpaid_invoices = recipient.invoices(state=Invoice.STATE.UNPAID)
         total_unpaid = 0
         invoice_urls = []
         if unpaid_invoices:
@@ -166,22 +166,3 @@ def send_htmlmail(from_email, to, cc=None, bcc=None, subject="", html_body=""):
                                 body=text_plain)
     msg.attach_alternative(html_body, "text/html")
     msg.send()
-
-def send_simple_message():
-    return requests.post(
-        "https://api.mailgun.net/v3/sandbox5a84048e8637412db9d84372e91751d9.mailgun.org/messages",
-        auth=("api", "key-44e941ede1264ea215021bb0b3634eb4"),
-        data={"from": "Mailgun Sandbox <postmaster@sandbox5a84048e8637412db9d84372e91751d9.mailgun.org>",
-              "to": "Heather <heathermca@hotmail.com>",
-              "subject": "Hello Ian Stewart",
-              "text": "Congratulations Ian Stewart, you just sent an email with Mailgun!  You are truly awesome!  You can see a record of this email in your logs: https://mailgun.com/cp/log .  You can send up to 300 emails/day from this sandbox server.  Next, you should add your own domain so you can send 10,000 emails/month for free."})
-
-def mailgun_send():
-    xx = requests.post(
-        mailgun_api_url + '/messages',
-        auth=("api", mailgun_api_key),
-        data={"from": "info@coombewoodltc.co.uk",
-              "to": "Ian Stewart <is@ktconsultants.co.uk>",
-              "subject": "Hello Ian Stewart",
-              "text": "Sent by the real thing"})
-    return xx  

@@ -3,7 +3,7 @@ from django.shortcuts import render, render_to_response, redirect
 from django.views.generic import DetailView, TemplateView, CreateView, View
 from django.core.signing import Signer
 from django.core.mail import send_mail
-from django.urls import reverse
+from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.http import HttpResponse
 from django.views.generic.edit import FormView
@@ -16,6 +16,7 @@ from gc_app.views import gc_create_bill_url
 #from .forms import ContactForm, AdultApplicationFormHelper, RegisterForm, RegisterTokenForm
 from .forms import *
 from members.services import membership_from_dob
+from cardless.services import detokenise, invoice_payments_list, active_mandate
 
 
 # ================= Public Views accessed through a token
@@ -77,12 +78,7 @@ class InvoicePublicView(DetailView):
     template_name = 'public/invoice_public.html'
 
     def get_object(self, queryset=None):
-        signer = Signer()
-        try:
-            invoice_id = signer.unsign(self.kwargs['token'])
-            self.invoice = Invoice.objects.get(pk = invoice_id)
-        except:
-            self.invoice = None
+        self.invoice = detokenise(self.kwargs['token'], Invoice)
         return self.invoice
 
     def get_context_data(self, **kwargs):
@@ -90,20 +86,22 @@ class InvoicePublicView(DetailView):
         if self.invoice:
             self.invoice.add_context(context)
             context['token'] = self.kwargs['token']
+            context['payments_pending'] = invoice_payments_list(self.invoice, pending=True)
+            context['payments_paid'] = invoice_payments_list(self.invoice, paid=True)
         return context
 
     def post(self, request, *args, **kwargs):
         invoice = self.get_object()
         if 'pay' in request.POST:
-            return redirect(gc_create_bill_url(invoice))
+            return redirect('cardless_payment_create', kwargs['token'])
         if 'query' in request.POST:
             group = group_get_or_create("2017Query")
             invoice.person.groups.add(group)
-            return redirect(reverse('public-contact-person', kwargs={'person_id': invoice.person.id}))
+            return redirect('public-contact-person', person_id=invoice.person.id)
         elif 'resign' in request.POST:
             group = group_get_or_create("2017Resign")
             invoice.person.groups.add(group)
-            return redirect(reverse('public-resigned'))
+            return redirect('public-resigned')
 
 
 class ContactView(FormView):
@@ -202,7 +200,7 @@ class RegisterTokenView(FormView):
                                                    first_name=person.first_name,
                                                    last_name=person.last_name)
             person.save()
-        except DoesNotExist:
+        except Person.DoesNotExist:
             messages.error('Invalid token')
         return redirect('public-home')
 
@@ -389,7 +387,7 @@ class ApplyMain(TemplateView):
         if posted:
             self.name_form = NameForm(posted,
                                       adult=request.session['adult'],
-
+                                      restricted_fields=True
                                       )
             self.address_form = AddressForm(posted)
         else:
@@ -400,7 +398,8 @@ class ApplyMain(TemplateView):
         return render(request, self.template_name, self.get_context_data(**kwargs))
 
     def post(self, request, *args, **kwargs):
-        self.name_form = NameForm(request.POST, adult=request.session['adult'],
+        self.name_form = NameForm(request.POST,
+                                  adult=request.session['adult'],
                                   restricted_fields=True
                                   )
         self.address_form = AddressForm(request.POST)

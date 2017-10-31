@@ -85,92 +85,93 @@ class GCWebhook(View):
         return super(GCWebhook, self).dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        json_data = json.loads(request.body)
-        if gocardless.client.validate_webhook(json_data['payload']):
-            data = json_data['payload']
-            resource_type = data['resource_type']
-            action = data['action']
-
-            # First save the hook to the database
-            # we update it later after it is parsed
-            hook = WebHook(resource_type=resource_type,
-                           action=action,
-                           message=request.body,
-                           processed=False,
-                           error="")
-            hook.save()
-
-            if resource_type == 'bill':
-                for bill in data['bills']:
-                    try:
-                        invoice = Invoice.objects.get(gocardless_bill_id=bill['id'])
-                        invoice.gocardless_action = action
-                        hook.invoice = invoice
-                        hook.save()
-                        invoice.save()
-                    except:                                      
-                        hook.error = "Invoice {} not found".format(bill_id)
-                        hook.save()
-                        continue
-
-                    # fake the sandbox webhooks to match the invoice total
-                    if gocardless.environment == 'sandbox':
-                        amount = invoice.total
-                        fee = amount / 100
-                        if amount > 2:
-                            fee = 2
-                    else:
-                        amount = Decimal(bill['amount'])
-                        fee = amount - Decimal(bill['amount_minus_fees'])
-
-                    if action == 'paid':
-                        try:
-                            invoice_pay_by_gocardless(invoice, amount, fee, datetime.now())
-                            hook.processed = True
-                        except Exception as ex:                                      
-                            hook.error = ex.message
-                           
-                    elif action == 'created':
-                        pass
-                    elif action == 'withdrawn':
-                        pass
-                    elif action == 'failed':
-                        pass
-                    elif action == 'cancelled':
-                        pass
-                    elif action == 'refunded':
-                        pass
-                    elif action == 'chargeback':
-                        pass
-                    elif action == 'retried':
-                        pass                
-                    else:
-                        hook.error= "Unknown action" 
-                    hook.save()                        
-                return HttpResponse(status=200)
-
-            elif resource_type == 'subscription':
-                if action == 'cancelled':
-                    for subscription in data['subscriptions']:
-                        # Lookup the subscription using subscription['resource_id']
-                        # Perform logic to cancel the subscription
-                        # Any time-consuming jobs should be performed asynchronously
-                        print("Subscription {0} cancelled".format(subscription['id']))
-                elif action== 'expired':
-                    pass
-                return HttpResponse(status=200)
-
-            elif resource_type == 'pre_authorization':
-                return HttpResponse(status=200)
-
-        else:
-            hook = WebHook(resource_type="Bad payload",
-                           action="",
-                           message=json_data,
-                           processed=False,
-                           error="Bad payload")
-            hook.save()       
-            return HttpResponse(status=403)
+        return HttpResponse(status=200)
+        # json_data = json.loads(request.body)
+        # if gocardless.client.validate_webhook(json_data['payload']):
+        #     data = json_data['payload']
+        #     resource_type = data['resource_type']
+        #     action = data['action']
+        #
+        #     # First save the hook to the database
+        #     # we update it later after it is parsed
+        #     hook = WebHook(resource_type=resource_type,
+        #                    action=action,
+        #                    message=request.body,
+        #                    processed=False,
+        #                    error="")
+        #     hook.save()
+        #
+        #     if resource_type == 'bill':
+        #         for bill in data['bills']:
+        #             try:
+        #                 invoice = Invoice.objects.get(gocardless_bill_id=bill['id'])
+        #                 invoice.gocardless_action = action
+        #                 hook.invoice = invoice
+        #                 hook.save()
+        #                 invoice.save()
+        #             except:
+        #                 hook.error = "Invoice {} not found".format(bill_id)
+        #                 hook.save()
+        #                 continue
+        #
+        #             # fake the sandbox webhooks to match the invoice total
+        #             if gocardless.environment == 'sandbox':
+        #                 amount = invoice.total
+        #                 fee = amount / 100
+        #                 if amount > 2:
+        #                     fee = 2
+        #             else:
+        #                 amount = Decimal(bill['amount'])
+        #                 fee = amount - Decimal(bill['amount_minus_fees'])
+        #
+        #             if action == 'paid':
+        #                 try:
+        #                     invoice_pay_by_gocardless(invoice, amount, datetime.now())
+        #                     hook.processed = True
+        #                 except Exception as ex:
+        #                     hook.error = ex.message
+        #
+        #             elif action == 'created':
+        #                 pass
+        #             elif action == 'withdrawn':
+        #                 pass
+        #             elif action == 'failed':
+        #                 pass
+        #             elif action == 'cancelled':
+        #                 pass
+        #             elif action == 'refunded':
+        #                 pass
+        #             elif action == 'chargeback':
+        #                 pass
+        #             elif action == 'retried':
+        #                 pass
+        #             else:
+        #                 hook.error= "Unknown action"
+        #             hook.save()
+        #         return HttpResponse(status=200)
+        #
+        #     elif resource_type == 'subscription':
+        #         if action == 'cancelled':
+        #             for subscription in data['subscriptions']:
+        #                 # Lookup the subscription using subscription['resource_id']
+        #                 # Perform logic to cancel the subscription
+        #                 # Any time-consuming jobs should be performed asynchronously
+        #                 print("Subscription {0} cancelled".format(subscription['id']))
+        #         elif action== 'expired':
+        #             pass
+        #         return HttpResponse(status=200)
+        #
+        #     elif resource_type == 'pre_authorization':
+        #         return HttpResponse(status=200)
+        #
+        # else:
+        #     hook = WebHook(resource_type="Bad payload",
+        #                    action="",
+        #                    message=json_data,
+        #                    processed=False,
+        #                    error="Bad payload")
+        #     hook.save()
+        #     return HttpResponse(status=403)
 
 
 class WebHookList(LoginRequiredMixin, ListView):
@@ -250,7 +251,7 @@ def process_csvfile(f):
                     try:
                         invoice = Invoice.objects.get(pk=invoice_id)
                         if invoice.gocardless_bill_id == id:
-                            if invoice.state != Invoice.PAID_IN_FULL:
+                            if invoice.state != Invoice.STATE.PAID:
                                 invoice_pay_by_gocardless(invoice, amount, fee, payout_date)
                                 paid_count += 1
                         else:

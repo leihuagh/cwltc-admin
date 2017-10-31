@@ -1,0 +1,23 @@
+{% extends "members/layout.html" %}
+{% load members_extras %}
+{% block content %}
+  <h2>All GoCardless Mandates</h2>
+  <table id="mandates" class="table table-condensed" >
+  <thead>
+    <tr>
+      <th>Mandate Id</th>
+      <th>Created</th>
+      <th>Customer Id</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  {% for mandate in mandates %}
+    <tr>
+      <td> <a href="{% url "cardless_mandate_detail" mandate_id=mandate.id %}">{{ mandate.id }}</a></td>
+      <td> {{ mandate.created_at }}</td>
+      <td> <a href="{% url "cardless_customer_detail" customer_id=mandate.links.customer %}">{{ mandate.links.customer }}</a></td>
+      <td>{{ mandate.status }}</td>
+    </tr>
+  {% endfor sub %}
+  </table>
+{% endblock %}

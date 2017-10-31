@@ -7,7 +7,7 @@ def year_choices(withNone = False):
     choices = []
     if withNone:
         choices.append([0, "Not invoiced"])
-    year = Settings.current().membership_year
+    year = Settings.current_year()
     for y in range(year, year-5, -1):
         choices.append([y, str(y)])
     return choices
@@ -89,13 +89,7 @@ class InvoiceFilter(django_filters.FilterSet):
         model = Invoice
         fields = ['membership_year','state']
 
-    STATE_CHOICES = (
-        (Invoice.NOT_CANCELLED, 'All not cancelled'),
-        (Invoice.UNPAID, 'Unpaid'),
-        (Invoice.PENDING_GC, 'Pending'),
-        (Invoice.PAID_IN_FULL, 'Paid'),
-        (Invoice.CANCELLED, 'Cancelled')
-        )
+    STATE_CHOICES = Invoice.STATE.choices()
 
     membership_year = django_filters.ChoiceFilter(name='membership_year',
                                                   label='Year',
@@ -109,15 +103,15 @@ class InvoiceFilter(django_filters.FilterSet):
                                         empty_label=None)
 
     def state_filter(self, queryset, name, value):
-        if value == str(Invoice.NOT_CANCELLED):
-            return queryset.filter(~Q(state=Invoice.CANCELLED))  
-        elif value == str(Invoice.PENDING_GC):
-            return queryset.filter(Q(state=Invoice.UNPAID) & ~Q(gocardless_bill_id=""))     
-        elif value == str(Invoice.UNPAID):
-            return queryset.filter(Q(state=Invoice.UNPAID) & Q(gocardless_bill_id=""))
-        else:
-            return queryset.filter(state=value)
-
+        # if value == str(Invoice.STATE.NOT_CANCELLED):
+        #     return queryset.filter(~Q(state=Invoice.STATE.CANCELLED.value))
+        # elif value == str(Invoice.PENDING_GC):
+        #     return queryset.filter(Q(state=Invoice.STATE.UNPAID.value) & ~Q(gocardless_bill_id=""))
+        # elif value == str(Invoice.UNPAID):
+        #     return queryset.filter(Q(state=Invoice.STATE.UNPAID.value) & Q(gocardless_bill_id=""))
+        # else:
+        #     return queryset.filter(state=value)
+        return queryset.filter(state=value)
 
 class InvoiceItemFilter(django_filters.FilterSet):
     class Meta:

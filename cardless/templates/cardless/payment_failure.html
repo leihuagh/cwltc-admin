@@ -1,0 +1,19 @@
+{% extends "public/base.html" %}
+{% load staticfiles %}
+{% block head %}
+  <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
+  <title>Payment failure</title>
+{% endblock %}
+{% block content %}
+  <div class="row">
+    <div class="col-sm-12">
+      <img class="img-responsive" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />
+    </div>
+  </div>
+  <h2>Payment failure</h2>
+<p>
+  The attempt to pay £{{ invoice.total }} failed. <br/>
+  The error has been logged.<br/>
+  Please contact membership@coombewoodltc.co.uk<br/>
+</p>
+{% endblock %}

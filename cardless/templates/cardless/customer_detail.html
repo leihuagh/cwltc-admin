@@ -1,0 +1,24 @@
+{% extends "members/layout.html" %}
+{% block content %}
+  <h2>GoCardless Customer Detail</h2>
+  {% if person %}
+  <h4><a href="{% url "person-detail" person.id %}">{{ person.first_name }} {{ person.last_name }}</a></h4>
+  {% else %}
+  <h4>Person not in CWLTC system</h4>
+  {% endif %}
+  <div class="row">
+    <div class="col col-md-6">
+      <table class="table">
+        <tr><th>Field</th><th>GoCardless data</th><th>CWLTC data</th></tr>
+        <tr><td>Id:</td><td>{{ customer.id }}</td><td>{{ person.id }}</td></tr>
+        <tr><td>First name:</td><td>{{ customer.given_name }}</td><td>{{ person.first_name }}</td></tr>
+        <tr><td>Last name:</td><td>{{ customer.family_name }}</td><td>{{ person.last_name }}</td></tr>
+        <tr><td>Address 1:</td><td>{{ customer.address_line1 }}</td><td>{{ address.address1 }}</td></tr>
+        <tr><td>Address 2:</td><td>{{ customer.address_line2 }}</td><td>{{ address.address2 }}</td></tr>
+        <tr><td>Town:</td><td>{{ customer.city }}</td><td>{{ address.town }}</td></tr>
+        <tr><td>Post code:</td><td>{{ customer.postal_code }}</td><td>{{ address.post_code }}</td></tr>
+        <tr><td>Email:</td><td>{{ customer.email }}</td><td>{{ person.email }}</td></tr>
+      </table>
+    </div>
+  </div>
+{% endblock %}

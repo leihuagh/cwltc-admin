@@ -1,14 +1,14 @@
 from datetime import date, datetime, timedelta
 import os
+from decimal import *
+from enum import IntEnum
 from django.db import models
-from django.db.models import Q
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ObjectDoesNotExist
 from django.dispatch import receiver 
 from markdownx.models import MarkdownxField
-
-#import pdb; pdb.set_trace()
+# from cardless.services import invoice_payments_list
 
 def formatted_date(d):
     return u'{}/{}/{}'.format(d.day, d.month, d.year)
@@ -76,7 +76,7 @@ class Person(models.Model):
     #
     membership = models.ForeignKey('Membership', blank=True, null=True)
     linked = models.ForeignKey('self', blank=True, null=True)
-    address = models.ForeignKey('address', blank=True, null=True)
+    address = models.ForeignKey('Address', blank=True, null=True)
     groups = models.ManyToManyField(Group)
     unsubscribed = models.ManyToManyField('MailType')
     sub = models.ForeignKey('Subscription', blank=True, null=True)
@@ -122,9 +122,9 @@ class Person(models.Model):
         return None
 
     def current_sub(self):
-        year = Settings.current().membership_year
-        return active_sub(year)
-    
+        year = Settings.current_year()
+        return self.active_sub(year)
+
     def invoices(self, state):
         return self.invoice_set.filter(state=state).order_by('update_date')                           
 
@@ -203,6 +203,10 @@ class Membership(models.Model):
 
     @classmethod
     def create(cls, id, description):
+        """
+
+        :rtype:
+        """
         mem = cls(id = id, description = description)
         mem.save()
         return mem
@@ -220,7 +224,7 @@ class Membership(models.Model):
             is_adult=True, cutoff_age=0, apply_online=True
             ).order_by('id')
         if description:
-            year = Settings.current().membership_year
+            year = Settings.current_year()
             result = []
             for record in qs:
                 fee=Fees.objects.filter(membership_id=record.id, sub_year=year)[0]
@@ -228,7 +232,8 @@ class Membership(models.Model):
             return result
         else:
             return list(qs.values_list('id', 'description'))
-    
+
+
 class AdultApplication(models.Model):
     '''
     Additional data captured during application
@@ -284,7 +289,7 @@ class AdultApplication(models.Model):
     source = models.SmallIntegerField('How did you hear about us?',
                                       choices = SOURCES, default = WEB,)
     person = models.ForeignKey(Person, blank=True, null=True)
-      
+
 class Fees(models.Model):
     membership = models.ForeignKey('Membership')
     sub_year = models.SmallIntegerField()
@@ -337,86 +342,67 @@ class Fees(models.Model):
                amount = months * self.monthly_sub  
         return amount
 
-class Invoice(models.Model):
-    UNPAID = 0
-    PART_PAID = 1
-    PAID_IN_FULL = 2
-    CANCELLED = 3
-    PART_CREDIT_NOTE = 4
-    ERROR = 5
-    PENDING_GC = 6
-    # For filtering
-    NOT_CANCELLED = 7
 
-    STATES = (
-        (UNPAID, "Unpaid"),
-        (PART_PAID, "Part paid"),
-        (PAID_IN_FULL, "Paid"),
-        (CANCELLED, "Cancelled"),
-        (PART_CREDIT_NOTE, "Part paid & credit note"),
-        (ERROR, "Error - overpaid"),
-        (PENDING_GC, "Pending GoCardless"),       
-        )
+class ModelEnum(IntEnum):
+
+    @classmethod
+    def choices(cls):
+        return tuple((x.value, x.name.lower().capitalize().replace("_"," ")) for x in cls)
+
+
+class Invoice(models.Model):
+
+    class STATE(ModelEnum):
+        UNPAID = 0
+        PART_PAID = 1
+        PAID = 2
+        CANCELLED = 3
+        OVERPAID = 4
+
+    STATES = STATE.choices()
+
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     date = models.DateField()
     membership_year = models.SmallIntegerField(default=0)
     reference = models.CharField(max_length=80)
-    state = models.SmallIntegerField(choices = STATES, default = UNPAID)
-    gocardless_action = models.CharField(max_length=10, blank=True)
-    gocardless_bill_id = models.CharField(max_length=255, blank=True)
+    state = models.SmallIntegerField(choices=STATE.choices(), default=0)
+    pending = models.BooleanField(default=False)
     person = models.ForeignKey(Person)
     email_count = models.SmallIntegerField(default=0)
-    postal_count = models.SmallIntegerField(default=0)
     total = models.DecimalField(max_digits=7, decimal_places=2, default=0, null=False)
+    payments_expected = models.SmallIntegerField(default=1)
+    # deprecated
+    gocardless_action = models.CharField(max_length=10, blank=True)
+    gocardless_bill_id = models.CharField(max_length=255, blank=True)
+    postal_count = models.SmallIntegerField(default=0)
+
     # -- Navigation --
     # invoiceitem_set
     # creditnote_set
     # payment_set
+
     def __str__(self):
         return "Invoice {}, {} items, total = {}".format(
             Invoice.STATES[self.state][1],
-            self.invoiceitem_set.count(),
+            self.invoice_items.count(),
             self.total
-            )
+        )
 
     @property
-    def payment_state(self):
-        '''
-        Pending Go Cardless payments do not update invoice state automatically
-        So this property deals with that case
-        '''
-        if self.state == Invoice.PAID_IN_FULL:
-            return Invoice.STATES[self.state][1]
-        elif self.gocardless_bill_id != "":
-            return Invoice.STATES[Invoice.PENDING_GC][1]
-        else:
-            return Invoice.STATES[self.state][1]
+    def paid_amount(self):
+        total = Decimal(0)
+        for payment in self.payment_set.all():
+            if payment.state == Payment.STATE.PAID.value:
+                total += payment.amount
+        for credit_note in self.creditnote_set.all():
+            total -= credit_note.amount
+        return total
 
-    def as_dict(self):
-        return {
-            "id": self.id,
-            "state": self.STATES[self.state][1],
-            "creation_date": self.creation_date.strftime(settings.DATE_INPUT_FORMATS[0]),
-            "update_date": self.update_date.strftime(settings.DATE_INPUT_FORMATS[0]),
-            "person": self.person.fullname,
-            "items": self.invoiceitem_set.count(),
-            "email_count": self.email_count,
-            "total": '{0:.2f}'.format(self.total)
-            }
-    def as_array(self):
-        return [
-            self.id,
-            self.STATES[self.state][1],
-            self.creation_date.strftime(settings.DATE_INPUT_FORMATS[0]),
-            self.update_date.strftime(settings.DATE_INPUT_FORMATS[0]),
-            self.person.first_name,
-            self.person.last_name,
-            self.invoiceitem_set.count(),
-            self.email_count,
-            '{0:.2f}'.format(self.total)
-            ]
-   
+    @property
+    def unpaid_amount(self):
+        return self.total - self.paid_amount
+
     def number(self):
         return '{}/{}'.format(self.person.id, self.id)
 
@@ -424,25 +410,27 @@ class Invoice(models.Model):
         return reverse("invoice-detail", kwargs={"pk": self.pk})
 
     def paid_items_count(self):
-        return self.invoiceitem_set.filter(paid=True).count()
+        return self.invoice_items.filter(paid=True).count()
 
     def unpaid_items_count(self):
-        return self.invoiceitem_set.filter(paid=False).count()
+        return self.invoice_items.filter(paid=False).count()
 
     def add_context(self, context):
-        ''' set up the context for invoice & payment templates '''
+        """
+        Set up the context for invoice & payment templates '''
+        """
         context['invoice'] = self
         context['person'] = self.person
         context['address'] = self.person.address
         context['reference'] = self.number
-        context['items'] = self.invoiceitem_set.all().order_by('creation_date')
+        context['items'] = self.invoice_items.all().order_by('creation_date')
         context['hooks'] = self.webhook_set.all().order_by('-creation_date')
         context['state_list'] = Invoice.STATES
         context['types'] = Payment.TYPES
-        context['payment_states'] = Payment.STATES
-        context['full_payment_button'] = self.state == Invoice.UNPAID
-        context['can_delete'] = (self.email_count == 0 and self.postal_count == 0 and self.state == Invoice.UNPAID)
-         
+        context['payment_states'] = Payment.STATE.choices()
+        context['full_payment_button'] = self.state == Invoice.STATE.UNPAID.value
+        context['can_delete'] = (self.email_count == 0 and self.postal_count == 0 and self.state == Invoice.STATE.UNPAID.value)
+
         c_note = None
         if self.creditnote_set.count() > 0:
             c_note = self.creditnote_set.all()[0]
@@ -452,10 +440,11 @@ class Invoice(models.Model):
             if self.person.person_set.count() > 0:
                 addressee = 'Parent or guardian of '
                 for person in self.person.person_set.all():
-                    addressee += person.first_name +' ' + person.last_name + ', '
+                    addressee += person.first_name + ' ' + person.last_name + ', '
                 addressee = addressee[:-2]
-            context['unknown'] = "Please supply your full name"  
+            context['unknown'] = "Please supply your full name"
         context['addressee'] = addressee
+
 
 class Payment(models.Model):
     CHEQUE = 0
@@ -471,26 +460,29 @@ class Payment(models.Model):
         (DIRECT_DEBIT, "Direct debit"),
         (PAYPAL, "Paypal"),
         (OTHER, "Other")
-        )
+    )
 
     NOT_MATCHED = 0
     PARTLY_MATCHED = 1
     FULLY_MATCHED = 2
     ERROR = 3
-    STATES = (
+    MATCH_STATES = (
         (NOT_MATCHED, "Not matched"),
         (PARTLY_MATCHED, "Partly matched"),
         (FULLY_MATCHED, "Fully matched"),
         (ERROR, "Error - overpaid"),
-        )
+    )
 
-    PAID = 0
-    UNPAID = 1
-    ALL = 2
-    PAYCHOICES = [
-        (PAID,'Paid'),
-        (UNPAID,'Unpaid'),
-        (ALL,'All')]
+    class STATE(ModelEnum):
+        PENDING = 0
+        CONFIRMED = 1
+        FAILED = 2
+        CANCELLED = 3
+
+    STATES = STATE.choices()
+
+    SINGLE_PAYMENT = "Single payment"
+    SUBSCRIPTION_PAYMENT = "Subscription payment"
 
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -500,19 +492,23 @@ class Payment(models.Model):
     reference = models.CharField(max_length=80, blank=True, null=True)
     amount = models.DecimalField(max_digits=7, decimal_places=2, null=False)
     credited = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
-    state = models.SmallIntegerField(choices=STATES, default=NOT_MATCHED)
-    banked = models.BooleanField(default=False)
-    banked_date = models.DateField(null=True)
+    match_state = models.SmallIntegerField(choices=MATCH_STATES, default=NOT_MATCHED)
     fee = models.DecimalField(max_digits=7, decimal_places=2, null=False, default=0)
     invoice = models.ForeignKey(Invoice, blank=True, null=True)
+    payment_number = models.SmallIntegerField(default=1)
+    state = models.SmallIntegerField(choices=STATE.choices(), default=STATE.PENDING.value)
+    cardless_id = models.CharField(max_length=50, blank=True, null=True)
+    banked = models.BooleanField(default=False)
+    banked_date = models.DateField(null=True)
 
     def __str__(self):
         return "Payment:{} amount:{} credited:{} state:{}".format(
             Payment.TYPES[self.type][1],
             self.amount,
             self.credited,
-            Payment.STATES[self.state][1]
-            )
+            Payment.STATE.choices()[self.state][1]
+        )
+
 
 class CreditNote(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
@@ -523,7 +519,8 @@ class CreditNote(models.Model):
     amount = models.DecimalField(max_digits=7, decimal_places=2, null=False)
     reference = models.CharField(max_length=80, blank=True, null=True)
     detail = models.CharField(max_length=1000, blank=True, null=True)
-     
+
+
 class ItemType(models.Model):
     SUBSCRIPTION = 1
     JOINING = 2
@@ -559,7 +556,7 @@ class InvoiceItem(models.Model):
     #
     item_type = models.ForeignKey(ItemType, default=ItemType.SUBSCRIPTION)
     person = models.ForeignKey(Person, blank=True, null=True)
-    invoice = models.ForeignKey(Invoice, blank=True, null=True)
+    invoice = models.ForeignKey(Invoice, blank=True, null=True, related_name='invoice_items')
     payment = models.ForeignKey(Payment, blank=True, null=True)
     subscription = models.ForeignKey('Subscription', blank=True, null=True)
     
@@ -568,7 +565,7 @@ class InvoiceItem(models.Model):
 
     @property
     def is_invoiced(self):
-        return invoice is not None
+        return self.invoice is not None
 
     def pay(self, payment):
         self.payment = payment
@@ -634,18 +631,16 @@ class Subscription(models.Model):
 
     def has_unpaid_invoice(self):
         for item in self.invoiceitem_set.all():
-            if item.invoice and item.invoice.state == Invoice.UNPAID:
+            if item.invoice and item.invoice.state == Invoice.STATE.UNPAID.value:
                 return True
         return False
 
     def has_paid_invoice(self):
         for item in self.invoiceitem_set.all():
-            if item.invoice and item.invoice.state == Invoice.PAID_IN_FULL:
+            if item.invoice and item.invoice.state == Invoice.STATE.PAID.value:
                 return True
         return False
     
-    def is_invoiced(self):
-        return self.invoice_item is not None
 
     @property
     def membership_fulldescription(self):
@@ -661,8 +656,12 @@ class Settings(models.Model):
     membership_year = models.SmallIntegerField(default=0)
 
     @classmethod
-    def current(cls):
-        return Settings.objects.get(pk=1)
+    def current_year(cls):
+        try:
+            record = Settings.objects.get(pk=1)
+            return record.membership_year
+        except ObjectDoesNotExist:
+            return 1900
 
 class BarTransaction(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -676,7 +675,7 @@ class BarTransaction(models.Model):
     total = models.DecimalField(max_digits=7, decimal_places = 2)
 
     def __str__(self):
-        return self.id + " " + description + total
+        return str(self.id) + " " + self.description + self.total
 
 
 class Editor(models.Model):

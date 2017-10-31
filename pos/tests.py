@@ -1,10 +1,9 @@
 from django.test import TestCase
 from pos.models import *
-from members.models import Person, ItemType
+from members.models import Person, ItemType, Settings
 from django.contrib.auth.models import User
 from .services import *
 import factory
-import pdb
 import logging
 
 logger = logging.getLogger('factory').setLevel(logging.WARNING)
@@ -65,13 +64,10 @@ class ItemFactory(factory.DjangoModelFactory):
 
 class PosTestCase(TestCase):
 
-    @classmethod
-    def setUpTestData(cls):
-        pass
-       
-              
+
     def test_item_to_dict(self):
         item = ItemFactory.create()
+        dict = item.to_dict()
         dict = item.to_dict()
         self.assertEqual(dict['id'], item.id)
         self.assertEqual(dict['description'], item.description)

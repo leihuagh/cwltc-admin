@@ -639,38 +639,38 @@ class YearConfirmForm(Form):
         year = cleaned_data.get('sub_year')
 
 
-class MembersListForm(Form):
-    # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
-    categories = forms.ChoiceField()
-    membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current().membership_year)
-    paystate = forms.ChoiceField(choices=Payment.PAYCHOICES,
-                                 initial=Payment.PAID)
-    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(MembersListForm, self).__init__(*args, **kwargs)
-        self.fields['categories'].choices = Membership.FILTER_CHOICES + [
-            (x.id, x.description) for x in Membership.objects.all()
-        ]
-
-
-class JuniorsListForm(Form):
-    # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
-    categories = forms.ChoiceField(choices=Membership.JUNIOR_CHOICES,
-                                   initial=Membership.JUNIORS)
-    membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current().membership_year)
-    paystate = forms.ChoiceField(choices=Payment.PAYCHOICES,
-                                 initial=Payment.PAID)
-    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
+# class MembersListForm(Form):
+#     # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
+#     categories = forms.ChoiceField()
+#     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
+#                                          initial=Settings.current_year())
+#     paystate = forms.ChoiceField(choices=Payment.STATE.choices(),
+#                                  initial=Payment.STATE.PAID.value)
+#     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
+#
+#     def __init__(self, *args, **kwargs):
+#         super(MembersListForm, self).__init__(*args, **kwargs)
+#         self.fields['categories'].choices = Membership.FILTER_CHOICES + [
+#             (x.id, x.description) for x in Membership.objects.all()
+#         ]
+#
+#
+# class JuniorsListForm(Form):
+#     # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
+#     categories = forms.ChoiceField(choices=Membership.JUNIOR_CHOICES,
+#                                    initial=Membership.JUNIORS)
+#     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
+#                                          initial=Settings.current_year())
+#     paystate = forms.ChoiceField(choices=Payment.STATE.choices(),
+#                                  initial=Payment.STATE.PAID.value)
+#     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
 
 
 class InvoiceFilterForm(Form):
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current().membership_year)
+                                         initial=Settings.current_year())
     start_datetime = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
-                                         initial=date(Settings.current().membership_year, 4, 1), required=False)
+                                         initial=date(Settings.current_year(), 4, 1), required=False)
     start_datetime.widget.format = settings.DATE_INPUT_FORMATS[0]
     end_datetime = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                        initial=date.today(), required=False)
@@ -690,6 +690,15 @@ class InvoiceFilterForm(Form):
 
 
 class InvoiceItemForm(ModelForm):
+    # date = forms.DateField(
+    #     widget=DatePicker(
+    #         options={
+    #             "format": "dd/mm/yyyy",
+    #             "autoclose": True
+    #         }
+    #     )
+    # )
+
     def __init__(self, *args, **kwargs):
         super(InvoiceItemForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
@@ -710,6 +719,7 @@ class InvoiceItemForm(ModelForm):
         self.fields['item_date'].widget.format = '%d/%m/%Y'
         self.fields['item_date'].input_formats = settings.DATE_INPUT_FORMATS
 
+
     def clean(self):
         cleaned_data = super(InvoiceItemForm, self).clean()
         item_type = cleaned_data.get('item_type')
@@ -721,7 +731,7 @@ class InvoiceItemForm(ModelForm):
     class Meta:
         model = InvoiceItem
         fields = ['item_type', 'item_date', 'description', 'amount']
-        widgets = {'item_date': forms.DateInput(attrs={'class': 'datepicker'}), }
+        widgets = {'item_date': forms.DateInput(attrs={'class': 'input-group date'}), }
 
 
 class InvoiceSelectForm(Form):
@@ -912,8 +922,8 @@ class PaymentForm(ModelForm):
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-InvoiceItemForm'
         self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
+        self.helper.label_class = 'col-md-2'
+        self.helper.field_class = 'col-md-4'
         self.helper.form_method = 'post'
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
@@ -925,7 +935,7 @@ class PaymentForm(ModelForm):
 
     class Meta:
         model = Payment
-        fields = ['membership_year', 'type', 'reference', 'amount', 'banked_date']
+        fields = ['membership_year', 'type', 'reference', 'amount', 'state', 'banked_date']
         widgets = {'banked_date': forms.DateInput(attrs={'class': 'datepicker'}),
                    'membership_year': forms.Select(choices=year_choices())
                    }
@@ -933,9 +943,9 @@ class PaymentForm(ModelForm):
 
 class PaymentFilterForm(Form):
     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-                                         initial=Settings.current().membership_year, required=False)
+                                         initial=Settings.current_year(), required=False)
     start_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
-                                     initial=date(Settings.current().membership_year, 4, 1), required=False)
+                                     initial=date(Settings.current_year(), 4, 1), required=False)
     start_date.widget.format = settings.DATE_INPUT_FORMATS[0]
     end_date = forms.DateTimeField(input_formats=settings.DATE_INPUT_FORMATS,
                                    initial=date.today(), required=False)

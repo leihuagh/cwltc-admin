@@ -16,7 +16,7 @@ class SimpleTest(TestCase):
     # Django requires an explicit setup() when running tests in PTVS
     @classmethod
     def setUpClass(cls):
-        django.setup()
+        super(SimpleTest, cls).setUpClass()
 
     def test_basic_addition(self):
         """
