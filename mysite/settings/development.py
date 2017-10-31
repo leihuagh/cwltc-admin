@@ -13,7 +13,7 @@ INSTALLED_APPS += (
 
 # MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
 
-DATABASES = {'default': env.db_url('DATABASE_URL')}
+DATABASES = {'default': env.db_url('DATABASE_URL_DEV')}
 
 ALLOWED_HOSTS = ['55015a7c.ngrok.io', 'localhost']
 
@@ -27,8 +27,8 @@ BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
 ANYMAIL = env.dict('ANYMAIL')
 
-CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_ACCESS_TOKEN')
-CARDLESS_ENVIRONMENT = 'sandbox'
+CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_PRODUCTION_TOKEN')
+CARDLESS_ENVIRONMENT = 'live'
 CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
@@ -36,9 +36,9 @@ LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 # http://cheat.readthedocs.io/en/latest/django/logging.html
 # https://www.webforefront.com/django/setupdjangologging.html
-RAVEN_CONFIG = {
-    'dsn': env.str('RAVEN'),
-}
+# RAVEN_CONFIG = {
+#     'dsn': env.str('RAVEN'),
+# }
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -50,7 +50,7 @@ LOGGING = {
     },
     'root': {  # For dev, show errors + some info in the console
         'handlers': ['console'],
-        'level': 'ERROR',
+        'level': 'INFO',
         },
     'loggers': {
         'django.request': {  # debug logging of things that break requests

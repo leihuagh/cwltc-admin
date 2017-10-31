@@ -16,7 +16,7 @@ from pos.services import create_invoiceitems_from_transactions
 from public.forms import NameForm, AddressForm
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group, MailCampaign)
-from cardless.services import invoice_payments_list
+from cardless.services import invoice_payments_list, get_payment, update_payment
 from .services import *
 from .forms import *
 from .mail import *
@@ -1561,9 +1561,13 @@ class PaymentDetailView(StaffuserRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(PaymentDetailView, self).get_context_data(**kwargs)
-        context['payment_types'] = Payment.TYPES
-        context['payment_states'] = Payment.STATE.choices()
-        context['events'] = self.object.events.all()
+        payment = self.object
+        if payment.cardless_id:
+            gc_payment = get_payment(payment.cardless_id)
+            context['gc_payment'] = gc_payment
+            update_payment(payment, gc_payment)
+        context['events'] = payment.events.all()
+        context['invoice'] = payment.invoice
         context['user'] = self.request.user
         return context
 
@@ -1978,7 +1982,6 @@ class EmailView(StaffuserRequiredMixin, FormView):
                 return JsonResponse({'error': 'Bad AJAX request'})
         else:
             return super(EmailView, self).get(request, *args, **kwargs)
-
 
     def form_invalid(self, form):
         return super(EmailView, self).form_invalid(form)

@@ -29,6 +29,7 @@ def invoice_pay_by_gocardless(invoice,
                               amount,
                               cardless_id,
                               payment_number=1,
+                              state=Payment.STATE.PENDING,
                               banked=False,
                               banked_date=None):
     """
@@ -42,6 +43,7 @@ def invoice_pay_by_gocardless(invoice,
                       amount=amount,
                       fee=calculate_fee(amount),
                       membership_year=invoice.membership_year,
+                      state=state,
                       banked=banked,
                       banked_date=banked_date,
                       cardless_id=cardless_id,
@@ -84,7 +86,10 @@ def invoice_update_state(invoice: Invoice):
 
 
 def payment_state(gc_status):
-    banked = False
+    """
+    return the payment state corresponding to the go cardless status
+    """
+    new_banked = False
     if gc_status in ('pending_approval_granted', 'pending_submission', 'submitted'):
         new_state = Payment.STATE.PENDING
     elif gc_status == 'confirmed':
@@ -93,24 +98,22 @@ def payment_state(gc_status):
         new_state = Payment.STATE.FAILED
     elif gc_status == 'paid_out':
         new_state = Payment.STATE.CONFIRMED
-        banked = True
+        new_banked = True
     else:
         return None, False
-    return new_state, banked
+    return new_state, new_banked
 
 
 def payment_update_state(payment, gc_status):
     """
-    Update the payment state from the corresponding go cardless status
-    Return True if state changed
+    Update the payment state from the corresponding go cardless payment
+    Return True if state changed and new_banked state
     """
-    new_state, banked = payment_state(gc_status)
+    new_state, new_banked = payment_state(gc_status)
     if new_state:
-        if payment.state != new_state or payment.banked != banked:
+        if payment.state != new_state or payment.banked != new_banked:
             payment.state = new_state
-            payment.banked = banked
-            if banked and not payment.banked_date:
-                payment.banked_date = datetime.now().date()
+            payment.banked = new_banked
             payment.save()
             invoice_update_state(payment.invoice)
             return True

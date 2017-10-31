@@ -1,0 +1,42 @@
+{% extends "members/layout.html" %}
+{% load members_extras %}
+{% block content %}
+  <h2>GoCardless Payments</h2>
+
+  <table id="payments" class="table table-condensed" >
+  <thead>
+    <tr>
+      <th>Payment Id</th>
+      <th>Created</th>
+      <th>Amount</th>
+      <th>Reference</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  {% for payment in payments %}
+    <tr>
+      <td>{{ payment.id }}</td>
+      <td>{{ payment.created_at }}</td>
+      <td>{{ payment.amount }}</td>
+      <td>{{ payment.metadata }}</td>
+      <td>{{ payment.status }}</td>
+    </tr>
+  {% endfor sub %}
+  </table>
+  <h3>Updated invoices:</h3>
+  {% for inv in updated %}
+    <li>{{ inv }}</li>
+  {% endfor %}
+  {% if not_founds %}
+    <h3>Missing invoices:</h3>
+    {% for inv in not_founds %}
+      <li>{{ inv }}</li>
+    {% endfor %}
+  {%  endif %}
+  {% if created %}
+    <h3>Payments created for invoices:</h3>
+    {% for inv in created %}
+      <li>{{ inv }}</li>
+    {% endfor %}
+  {% endif %}
+{% endblock %}

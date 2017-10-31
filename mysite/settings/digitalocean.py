@@ -22,6 +22,10 @@ EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
 CELERY_EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
 ANYMAIL = env.dict('ANYMAIL')
 
+CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_PRODUCTION_TOKEN')
+CARDLESS_ENVIRONMENT = 'live'
+CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
+
 RAVEN_CONFIG = {
     'dsn': env.str('RAVEN'),
 }

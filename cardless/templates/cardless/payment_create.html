@@ -5,15 +5,31 @@
   <title>CWLTC payment</title>
 {% endblock %}
 {% block content %}
+  <div class="row">
+    <div class="col-sm-12">
+      <img class="img-responsive" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />
+    </div>
+  </div>
   <h2>Make payment through GoCardless</h2>
   <h4>Account holder: {{ person.first_name }} {{ person.last_name }}</h4>
-  <p>You have a direct debit mandate set up with Coombe Wood LTC. </p>
-  <p>Payments will be identified on your bank statement as 'GoCardless Ltd'</p>
+  <br/>
   <form action="{% url 'cardless_payment_create' invoice_token %}" method="post" class="form-inline" id="post-form">
     {% csrf_token %}
-    Click below to confirm a payment of £{{ invoice.total }} for invoice number {{ invoice.number }}.
-    <br/>
-    <input type="submit" name="pay" value="Pay by direct debit" class="btn btn-primary"><br /><br />
-    <input type="submit" name="invoice" value="Show invoice" class="btn btn-primary"><br /><br />
+    <div class="row">
+      <div class = "col col-md-6">
+        <div class="well">
+          <p>You are about to make a payment of <strong>£{{ invoice.total }}</strong> for invoice number {{ invoice.number }}.</p>
+
+        <p>You have an existing direct debit mandate with Coombe Wood LTC. </p>
+        <p>The payment will be identified on your bank statement as 'GoCardless Ltd' with a reference that starts 'COOMBEWOOD'.</p>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class = "col col-md-6">
+        <input type="submit" name="pay" value="Pay by direct debit" class="btn btn-success">
+        <input type="submit" name="invoice" value="Back" class="btn btn-default"><br /><br />
+      </div>
+    </div>
   </form>
 {% endblock %}

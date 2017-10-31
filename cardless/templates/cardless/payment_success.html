@@ -5,12 +5,21 @@
   <title>Thank you</title>
 {% endblock %}
 {% block content %}
+  <div class="row">
+    <div class="col-sm-12">
+      <img class="img-responsive" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />
+    </div>
+  </div>
   <h2>Thank you</h2>
 <p>
   A payment of £{{ invoice.total }} will be taken from your account shortly. <br/>
   It may take several days to appear on your statement.<br/>
   The payment will be identified on your statement as 'GoCardless Ltd'<br/>
 </p>
-  Click below to return to your account page.<br/>
-  <a href="{% url 'club-account' %}" class="btn btn-primary">My account</a>
+  {%  if user.is_authenticated %}
+    Click below to return to your account page.<br/>
+    <a href="{% url 'club-account' %}" class="btn btn-success">My account</a>
+  {% else %}
+    <a href="{% url 'public-home' %}" class="btn btn-success">My account</a>
+  {% endif %}
 {% endblock %}

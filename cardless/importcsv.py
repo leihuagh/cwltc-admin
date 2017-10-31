@@ -1,9 +1,76 @@
 import csv
 import io
+import logging
 from decimal import Decimal
-from datetime import date, datetime
-from members.services import payment_update_state, invoice_pay_by_gocardless, payment_state
+from datetime import date, datetime, timedelta
+from members.services import payment_update_state, invoice_pay_by_gocardless, payment_state, ServicesError
 from members.models import Invoice
+from .services import cardless_client, payments_list, unpack_date, get_payout, update_payment
+
+logger = logging.getLogger(__name__)
+
+
+def process_recent_payments(days):
+    start_date = datetime.now() - timedelta(days=days)
+    gc_payments = payments_list(start_date)
+    return process_payments_list(gc_payments)
+
+
+def process_payments_list(gc_payments):
+    '''
+    Process a list of payments
+    Update the invoices and payments in the database
+    '''
+    updated_invoices = []
+    invoice_not_founds = []
+    payments_created = []
+    for gc_payment in gc_payments:
+        description = gc_payment.metadata.get('description', None)
+        invoice_id = gc_payment.metadata.get('invoice_id', None)
+        if description and "/" in description:
+            # legacy api data
+            meta = description.split(':')
+            ids = meta[1].split('/')
+            invoice_id = ids[1].strip()
+        if invoice_id:
+            try:
+                invoice = Invoice.objects.get(pk=invoice_id)
+                # if payment exists, update it
+                for payment in invoice.payment_set.all():
+                    if payment.cardless_id == gc_payment.id:
+                        update_payment(payment, gc_payment)
+                        break
+                else:
+                    # This will only happen if we create a manual payment on Go Cardless
+                    # when there will not be a payment record
+                    # create a new payment
+                    new_state, banked = payment_state(gc_payment.status)
+                    payout_date = None
+                    if banked:
+                        try:
+                            payout = get_payout(gc_payment.links['payout'])
+                            payout_date = unpack_date(payout.arrival_date)
+                        except Exception:
+                            logger.warning("Could not get payout date creating payment for invoice {0}".format(invoice.id))
+                    payment_number = invoice.payment_set.count() + 1
+                    try:
+                        invoice_pay_by_gocardless(invoice,
+                                                  Decimal(gc_payment.amount)/100,
+                                                  gc_payment.id,
+                                                  payment_number,
+                                                  state=new_state,
+                                                  banked=banked,
+                                                  banked_date=payout_date
+                                                  )
+                        payments_created.append(invoice.id)
+                    except ServicesError as err:
+                        logger.warning(err.message + 'processing invoice {}'.format(invoice.id))
+            except Invoice.DoesNotExist:
+                invoice_not_founds.append(invoice_id)
+        else:
+            logger.warning("Bad metadata {} processing payment ".format(gc_payment.id))
+    return updated_invoices, invoice_not_founds, payments_created
+
 
 def process_csvfile(f):
     '''
@@ -41,21 +108,23 @@ def process_csvfile(f):
                     # if payment exists, update it
                     for payment in invoice.payment_set.all():
                         if payment.cardless_id == gc_payment_id:
-                            if payment_update_state(payment, status):
+                            updated = payment_update_state(payment, status)
+                            if updated:
                                 paid_count += 1
                             break
                     else:
-                        # create a new payment
+                        # create a new payment to match the cardless payment
                         state, banked = payment_state(status)
                         if not banked:
                             payout_date = None
-                        payment_number = 1
+                        payment_number = invoice.payment_set.count() + 1
                         invoice_pay_by_gocardless(invoice,
                                                   amount,
                                                   gc_payment_id,
                                                   payment_number,
-                                                  banked,
-                                                  payout_date
+                                                  state=state,
+                                                  banked=banked,
+                                                  banked_date=payout_date
                                                   )
                         payments_created.append(invoice.id)
                 except Invoice.DoesNotExist:
@@ -73,39 +142,3 @@ def process_csvfile(f):
     return [result, errors]
 
 
-def unpack_date_helper(date_string):
-    '''
-    Unpack a date string separated by - or / into parts
-    original gocardless file uses yyyy-mm-dd
-    If its been through Excel it will be dd/mm/yyyy
-    always return list [yyyy, mm, dd]
-    '''
-    date_parts = date_string.split('-')
-    if len(date_parts) == 3:
-        return date_parts
-    date_parts = date_string.split('/')
-    if len(date_parts) == 3:
-        return [date_parts[2], date_parts[1], date_parts[0]]
-    raise ValueError("Cannot parse date", date_string)
-
-
-def unpack_date(date_string):
-    '''
-    Unpack a date string separated by - or / to a date
-    '''
-    date_parts = unpack_date_helper(date_string)
-    return  date(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))
-
-
-def unpack_datetime(datetime_string):
-    '''
-    Unpack a datetime string separated by - or / to a datetime
-    '''
-    parts = datetime_string.split(' ')
-    if len(parts) == 2:
-        date_parts = unpack_date_helper(parts[0])
-        time_parts = parts[1].split(':')
-        if len(time_parts) == 3:
-            return datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]),
-                            int(time_parts[0]), int(time_parts[1]), int(time_parts[2]))
-    raise ValueError("Cannot parse time from ", datetime_string)

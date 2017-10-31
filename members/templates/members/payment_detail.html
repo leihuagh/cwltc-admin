@@ -1,48 +1,57 @@
 ﻿{% extends "members/layout.html" %}
 {% block content %}
 {% load members_extras %}
-<h2>Payment</h2>
+<h2>Payment detail</h2>
 <h4>
 <a href="{% url "person-detail"  payment.person_id %}">{{ payment.person.first_name }} {{ payment.person.last_name }}</a>
 </h4>
- <form action="." method="post" class="form-inline" id="post-form">
-     {% csrf_token %}
-    <table width="400">
-      <tr><td>Number:</td><td>{{ payment.id }}</td></tr>
-      <tr><td>Membership year:</td><td>{{ payment.membership_year }}</td></tr>
-      <tr><td>Date:</td><td>{{ payment.creation_date|date }}</td></tr>
-      <tr><td>Type:</td><td>{{ payment_types|get_option:payment.type }}</td></tr>
-      <tr><td>Reference:</td><td>{{ payment.reference }}</td></tr>
-      <tr><td>Amount:</td><td>£ {{ payment.amount }}</td></tr>
-      <tr><td>State:</td><td>{{ payment_states|get_option:payment.state }}</td></tr>
-      <tr><td>Banked:</td><td>{%  if payment.banked %}{{ payment.banked_date }}{% endif %}</td></tr>
-      <tr><td>Cardless Id</td><td>{{ payment.cardless_id }}</td></tr>
-  </table>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="panel panel-default">
+        <table class="table table-condensed table-detail">
+          <tr><td>Number:</td><td>{{ payment.id }}</td></tr>
+          <tr><td>Membership year:</td><td>{{ payment.membership_year }}</td></tr>
+          <tr><td>Creation date:</td><td>{{ payment.creation_date|date }}</td></tr>
+          <tr><td>Type:</td><td>{{ payment.TYPES|get_option:payment.type }}</td></tr>
+          <tr><td>Reference:</td><td>{% if payment.reference %}{{ payment.reference }}{% endif %}</td></tr>
+          <tr><td>Amount:</td><td>£ {{ payment.amount }}</td></tr>
+          <tr><td>State:</td><td>{{ payment.STATES|get_option:payment.state }}</td></tr>
+          <tr><td>Banked:</td><td>{{ payment.banked }}</td></tr>
+          <tr><td>Banked date:</td><td>{%  if payment.banked_date %}{{ payment.banked_date }}{%  endif %}</td></tr>
 
- <h4>Events</h4>
- <table class="table">
-   {% for event in events %}
-     <tr><td>{{ event.id }}</td><td>{{ event.created_at }}</td><td>{{ event.action }}<td></tr>
-   {% endfor %}
- </table>
-
-
-
-<h4>Matched invoice items</h4>
+        </table>
+      </div>
+    </div>
+    {% if gc_payment %}
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <table class="table table-condensed table-detail">
+            <tr><td>GoCardless Id:</td><td>{{ gc_payment.id }}</td></tr>
+            <tr><td>GoCardless charge date:</td><td>{{ gc_payment.charge_date }}</td></tr>
+            <tr><td>GoCardless status:</td><td>{{ gc_payment.status }}</td></tr>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h4><a href = {% url 'invoice-detail' pk=invoice.id %}>Related Invoice</a></h4>
+      <div class="panel panel-default">
+        <table class="table table-condensed table-detail">
+          <tr><td>Invoice number:</td><td>{{ invoice.id }}</td></tr>
+          <tr><td>Creation date:</td><td>{{ invoice.creation_date }}</td></tr>
+          <tr><td>State:</td><td>{{ invoice.STATES|get_option:invoice.state }}</td></tr
+          <tr><td>Total:</td><td>£{{ invoice.total }}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
 <table id="invoiceitem" class="table table-condensed">
-{% for item in payment.invoiceitem_set.all %}
-    <tr>       
-        <td>{{ item.item_date }}</td>
-        <td>{{ item.item_type.description}}</td> 
-        <td>{{ item.description}}</td>
-        <td class = "text-right">£{{ item.amount }}</td> 
-        <td><a href="{% url "item-detail" item.id %}" class="btn btn-primary btn-xs">View</a></td>
-    </tr>
-{% endfor %}
-</table>
 
 {% if user.is_active %}
-
+<form action="." method="post" class="form-inline" id="post-form">
+  {% csrf_token %}
    <a href= "{% url 'payment-update' payment.id %}" class="btn btn-danger btn-sm">Update</a>
    <input type="submit" name="delete" value="Delete" class="btn btn-danger btn-sm">
 </form>

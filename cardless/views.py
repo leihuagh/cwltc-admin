@@ -3,20 +3,22 @@ import hmac
 import hashlib
 import logging
 import secrets
+from datetime import datetime, timedelta
 from django.views.generic import View, TemplateView, ListView, FormView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import HttpResponse, HttpResponseBadRequest
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib import messages
 from braces.views import LoginRequiredMixin
 from members.models import Person, Invoice
 from .models import Mandate
 from .services import cardless_client, process_payment_event, process_mandate_event, detokenise, active_mandate, \
-    create_cardless_payment, invoice_payments_list, webhook_secret
-from .forms import UploadCSVForm
-from .importcsv import process_csvfile
+    create_cardless_payment, invoice_payments_list, webhook_secret, \
+    payments_list
+from .forms import UploadCSVForm, ProcessPaymentsForm
+from .importcsv import process_csvfile, process_payments_list
 
 
 logger = logging.getLogger(__name__)
@@ -73,12 +75,35 @@ class PaymentFailureView(TemplateView):
         return context
 
 
+class PaymentProcessView(LoginRequiredMixin, FormView):
+    template_name = 'members/generic_crispy_form.html'
+    form_class = ProcessPaymentsForm
+
+    def get_context_data(self, **kwargs):
+        context = super(PaymentProcessView, self).get_context_data()
+        context['title'] = 'Process recent GoCardless payments'
+        return context
+
+    def form_valid(self, form):
+        days = form.cleaned_data['days']
+        start_date = datetime.now() - timedelta(days=days)
+        gc_payments = payments_list(start_date)
+        updated, not_found, created = process_payments_list(gc_payments)
+        context = {}
+        context['payments'] = gc_payments
+        context['updated'] = updated
+        context['not_found'] = not_found
+        context['created'] = created
+        return render(self.request, 'cardless/payment_process.html', context)
+
+
 class MandateCreateView(View):
     """
     Starts the mandate creation through a Go Cardless page
     Can be initiated with an invoice token or person token
     """
     def get(self, request, **kwargs):
+
         invoice_token = kwargs.pop('invoice_token', None)
         person_token = kwargs.pop('person_token', None)
         if invoice_token:
@@ -145,7 +170,7 @@ class RedirectFlowView(View):
             del request.session['person_id']
             del request.session['invoice_token']
             if invoice_token:
-                redirect('cardless_payment_create', invoice_token=invoice_token)
+                return redirect('cardless_payment_create', invoice_token=invoice_token)
             return redirect('cardless_mandate_success')
         else:
             return HttpResponseBadRequest()
@@ -157,7 +182,7 @@ class MandateSuccessView(TemplateView):
 
 class MandateListView(LoginRequiredMixin, ListView):
     """ All mandates for 1 person or all in our Go Cardless account"""
-    template_name = "cardless/mandate_list.html"
+    template_name = 'cardless/mandate_list.html'
     model = Mandate
     context_object_name = 'mandates'
 

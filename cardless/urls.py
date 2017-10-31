@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^payment/create/(?P<invoice_token>.+)/$', PaymentCreateView.as_view(), name='cardless_payment_create'),
     url(r'^payment/success/(?P<invoice_token>.+)/$', PaymentSuccessView.as_view(), name='cardless_payment_success'),
     url(r'^payment/failure/(?P<invoice_token>.+)/$', PaymentFailureView.as_view(), name='cardless_payment_failure'),
+    url(r'^payment/process/$', PaymentProcessView.as_view(), name='cardless_payment_process'),
     url(r'^import/$', CardlessImportView.as_view(), name='cardless_import'),
     url(r'webhook/$',Webhook.as_view(), name='cardless-webhook')
     # url(r'hook/list/$',

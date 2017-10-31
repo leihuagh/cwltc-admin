@@ -72,7 +72,7 @@ def create_cardless_payment(invoice: Invoice, mandate: Mandate):
         if payment.cardless_id == gc_payment.id:
             return False, "Payment already processed"
 
-    invoice_pay_by_gocardless(invoice, amount, gc_payment.id, payment_number)
+    invoice_pay_by_gocardless(invoice, unpaid, gc_payment.id, payment_number)
     return True, ""
 
 
@@ -153,8 +153,7 @@ def invoice_payments_list(invoice: Invoice, pending=False, paid=False):
                 gc_payment = cardless_client().payments.get(payment.cardless_id)
                 payment.charge_date = gc_payment.charge_date
                 payment.status = gc_payment.status
-                # payment.state should be correct due to web hooks, but update it to be sure
-                payment_update_state(payment, gc_payment.status)
+                update_payment(payment, gc_payment)
             except Exception:
                 logger.warning("Payment {} for invoice {} not found in GoCardless".format(
                     payment.cardless_id, payment.invoice.id)
@@ -167,6 +166,39 @@ def invoice_payments_list(invoice: Invoice, pending=False, paid=False):
     return result
 
 
+def payments_list(start_date=None, end_date=None):
+    """
+    Return a list of cardless payments optionally between inclusive dates
+    """
+    params = {}
+    if start_date:
+        params['created_at[gte]'] = iso_date(start_date)
+    if end_date:
+        params['created_at[lte]'] = iso_date(end_date)
+    payments = cardless_client().payments.list(params)
+    return payments.records
+
+
+def update_payment(payment: Payment, gc_payment):
+    """
+    Update our payment from a goCardless payment
+    """
+    updated = payment_update_state(payment, gc_payment.status)
+    if payment.banked and not payment.banked_date:
+        payment.banked_date = datetime.datetime.now()
+        payment.save()
+        updated = True
+    return updated
+
+
+def get_payment(id):
+    return cardless_client().payments.get(id)
+
+
+def get_payout(id):
+    return cardless_client().payouts.get(id)
+
+
 def detokenise(token, model_class):
     """ Decode an invoice or person token """
     pk = Signer().unsign(token)
@@ -176,3 +208,43 @@ def detokenise(token, model_class):
         return None
 
 
+def iso_date(in_date):
+    return in_date.isoformat().split('T')[0] + 'T00:00:00Z'
+
+
+def unpack_date_helper(date_string):
+    '''
+    Unpack a date string separated by - or / into parts
+    original gocardless file uses yyyy-mm-dd
+    If its been through Excel it will be dd/mm/yyyy
+    always return list [yyyy, mm, dd]
+    '''
+    date_parts = date_string.split('-')
+    if len(date_parts) == 3:
+        return date_parts
+    date_parts = date_string.split('/')
+    if len(date_parts) == 3:
+        return [date_parts[2], date_parts[1], date_parts[0]]
+    raise ValueError("Cannot parse date", date_string)
+
+
+def unpack_date(date_string):
+    '''
+    Unpack a date string separated by - or / to a date
+    '''
+    date_parts = unpack_date_helper(date_string)
+    return  date(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))
+
+
+def unpack_datetime(datetime_string):
+    '''
+    Unpack a datetime string separated by - or / to a datetime
+    '''
+    parts = datetime_string.split(' ')
+    if len(parts) == 2:
+        date_parts = unpack_date_helper(parts[0])
+        time_parts = parts[1].split(':')
+        if len(time_parts) == 3:
+            return datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]),
+                            int(time_parts[0]), int(time_parts[1]), int(time_parts[2]))
+    raise ValueError("Cannot parse time from ", datetime_string)
