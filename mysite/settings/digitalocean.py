@@ -7,7 +7,7 @@ environ.Env.read_env(env_path)
 
 DATABASES = {'default': env.db_url('DATABASE_URL')}
 
-ALLOWED_HOSTS = ['www.coombewoodltc.com']
+ALLOWED_HOSTS = ['www.coombewoodltc.com', '46.101.49.99']
 SECURE_SSL_REDIRECT = True
 
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
@@ -49,7 +49,7 @@ LOGGING = {
     'loggers': {
         'django.request': {  # debug logging of things that break requests
             'handlers': ['sentry'],
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'propagate': True,
             }
         }
