@@ -1,4 +1,6 @@
 from .base import *
+import logging
+
 SITE_NAME = "Development"
 DEBUG = True
 # We could use the default path but make it explicit for clarity
@@ -35,10 +37,8 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 
-# http://cheat.readthedocs.io/en/latest/django/logging.html
-# https://www.webforefront.com/django/setupdjangologging.html
 RAVEN_CONFIG = {
-    'dsn': env.str('RAVEN'),
+    'dsn': None,
 }
 LOGGING = {
     'version': 1,
@@ -61,3 +61,5 @@ LOGGING = {
             }
         }
     }
+
+logging.getLogger('raven').setLevel(logging.WARNING)

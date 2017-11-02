@@ -1,8 +1,10 @@
+import logging
 from datetime import datetime
 from django.shortcuts import render, render_to_response, redirect
 from django.views.generic import DetailView, TemplateView, CreateView, View
 from django.core.signing import Signer
 from django.core.mail import send_mail
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.http import HttpResponse
@@ -17,6 +19,7 @@ from .forms import *
 from members.services import membership_from_dob
 from cardless.services import detokenise, invoice_payments_list, active_mandate
 
+logger = logging.getLogger(__name__)
 
 # ================= Public Views accessed through a token
 
@@ -658,10 +661,23 @@ class ApplySubmitView(TemplateView):
                 else:
                     i += 1
             clear_session(self.request)
+            from_mail = getattr(settings, "INFO_EMAIL", None)
+            admins = getattr(settings, "ADMINS", None)
+            if admins:
+                to_list = []
+                for admin in admins:
+                    to_list.append(admin[1])
+                send_mail("New application received",
+                          "Someone has applied to join the club.",
+                          from_mail,
+                          to_list,
+                          )
             return redirect('public-apply-thankyou')
 
         except ValueError as error:
-            return HttpResponse("Sorry, an error occurred " + error)
+            message = "Sorry, an error occurred while processing the form."
+            logger.error((message + "{0}").format(error))
+            return HttpResponse(message)
             
     def get_context_data(self, **kwargs):
         kwargs['family'] = build_family(self.request)

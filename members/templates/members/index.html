@@ -2,13 +2,7 @@
 {% load staticfiles %}
 {% block content %}
 
-{% if site_name == "OpenShift" %}
-  <div class="jumbotron">
-  <img src="{% static "images/CWLTC logo small.png" %}"/>
-  <h2> This site is now closed!</h2>
-  The CWLTC membership administration site is now live <a href="https://www.coombewoodltc.com/home">here</a>
-  </div>
-{%  else %}
+
   <div class="jumbotron">
   <img src="{% static "images/CWLTC logo small.png" %}"/>
       <h2>Coombe Wood Lawn Tennis Club</h2>
@@ -22,27 +16,33 @@
       <p>
       Membership year: {{ membership_year }}
       </p>
-      <p><a href={% url 'members-list' %} class="btn btn-primary btn-large">Members list &raquo;</a></p>
-      <p><a href="/select" class="btn btn-primary btn-large">Go to person or invoice &raquo;</a></p>
   </div>
 
   <div class="row">
       <div class="col-md-4">
+        <div class="well">
           <h2>News</h2>
-          <p>This site has been moved</p>
-          <p>The members site is coming soon</p>
+          <p>This site has been moved.</p>
+          <p>GoCardless functionality has been updated.</p>
+          <p>The members site is coming soon.</p>
+        </div>
       </div>
       <div class="col-md-4">
+        <div class="well">
           <h2>Juniors</h2>
-          <a class="btn btn-default" href="{% url 'junior-create' %}">Add junior &raquo;</a>
-          <a class="btn btn-default" href="{% url 'juniors-list' %}">List juniors &raquo;</a>
+          Membership applications can now be done online.
+          <br/><br/>
+          <a class="btn btn-primary" href="{% url 'public-apply-child' %}">Online application form</a>
+        </div>
       </div>
       <div class="col-md-4">
+        <div class="well">
           <h2>Admin (restricted)</h2>
-          <p><a href="/admin/" class="btn btn-default">Admin &raquo;</a></p>
+         <br/><br/>
+        <p><a href="/admin/" class="btn btn-primary">Administration</a></p>
+      </div>
       </div>
 
   </div>
-{% endif %}
 {% endblock %}
  
