@@ -7,7 +7,7 @@ environ.Env.read_env(env_path)
 
 DATABASES = {'default': env.db_url('DATABASE_URL')}
 
-ALLOWED_HOSTS = ['www.coombewoodltc.com', '46.101.49.99']
+ALLOWED_HOSTS = ['www.coombewoodltc.com', 'coombewoodltc.com', '46.101.49.99']
 SECURE_SSL_REDIRECT = True
 
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG

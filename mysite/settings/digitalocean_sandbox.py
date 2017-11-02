@@ -13,7 +13,7 @@ if DEBUG:
     )
 
 DATABASES = {'default': env.db_url('DATABASE_URL_SANDBOX')}
-ALLOWED_HOSTS = ['sandbox.coombewoodltc.com', '46.101.49.99']
+ALLOWED_HOSTS = ['sandbox.coombewoodltc.com', 'coombewoodltc.com', '46.101.49.99']
 SECURE_SSL_REDIRECT = False
 
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
