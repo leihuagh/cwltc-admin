@@ -3,15 +3,17 @@ from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonRes
 from django.template import RequestContext
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
 from django.views.generic.edit import FormView, FormMixin, ProcessFormView
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
 from decimal import *
 from .models import *
 from .tables import *
+from .forms import ItemForm
 from .services import *
 from .filters import TransactionFilter
+
 
 class StartView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/start.html'
@@ -26,6 +28,7 @@ class StartView(LoginRequiredMixin, TemplateView):
         request.session['layout_id'] = layout.id
         return HttpResponseRedirect(reverse('get-user'))
 
+
 class MemberMenuView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/member_menu.html'
 
@@ -33,6 +36,7 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
         context = super(MemberMenuView, self).get_context_data(**kwargs)
         context['person']= Person.objects.get(pk=self.request.session['person_id'])
         return context
+
 
 class PosView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/pos.html'
@@ -117,6 +121,7 @@ class PosView(LoginRequiredMixin, TemplateView):
                 return render_to_response("pos/receipt.html", context)
             return HttpResponse("Error - wrong id",content_type='application/xhtml+xml')
 
+
 class TransactionListView(SingleTableView):
     '''
     List transactions with filtering
@@ -148,6 +153,7 @@ class TransactionListView(SingleTableView):
             context['person'] = Person.objects.get(pk=person_id)
         return context
 
+
 class LineItemListView(SingleTableView):
     '''
     If trans_id kwarg passed show items for that transaction
@@ -174,6 +180,7 @@ class LineItemListView(SingleTableView):
             context['transaction'] = None
         return context
 
+
 class TransactionDetailView(DetailView):
     model = Transaction
     template_name = 'pos/transaction_detail.html'
@@ -184,6 +191,7 @@ class TransactionDetailView(DetailView):
         context['items'] =trans.lineitem_set.all().order_by('id')
         return context
 
+
 class GetUserView(TemplateView):
     template_name = 'pos/getuser.html'
 
@@ -192,3 +200,53 @@ class GetUserView(TemplateView):
             request.session['person_id'] = request.POST['person_id']
             return redirect('member-menu')
         return redirect('home')
+
+
+class ItemListView(LoginRequiredMixin, SingleTableView):
+    model = Item
+    table_class = ItemTable
+    template_name = 'pos/item_list.html'
+
+    def post(self, request):
+        if 'new' in request.POST:
+            return redirect('pos_item_create')
+        return redirect('pos_item_list')
+
+class ItemUpdateView(LoginRequiredMixin, UpdateView):
+    model = Item
+    form_class = ItemForm
+    success_url = reverse_lazy('pos_item_list')
+
+    def get_form_kwargs(self):
+        kwargs = super(ItemUpdateView, self).get_form_kwargs()
+        kwargs['delete'] = True
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        elif 'delete' in request.POST:
+            item = self.get_object()
+            item.delete()
+            return redirect(self.success_url)
+        return super(ItemUpdateView, self).post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ItemUpdateView, self).get_context_data()
+        context['title'] = 'Edit POS item'
+        return context
+
+class ItemCreateView(LoginRequiredMixin, CreateView):
+    model = Item
+    form_class = ItemForm
+    success_url = reverse_lazy('pos_item_list')
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super(ItemCreateView, self).post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ItemCreateView, self).get_context_data()
+        context['title'] = 'Create new POS item'
+        return context

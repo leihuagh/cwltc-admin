@@ -14,5 +14,8 @@ urlpatterns = [
     url(r'lineitems/$', LineItemListView.as_view(), name='lineitems'),
     url(r'lineitems/(?P<trans_id>\d+)/$', LineItemListView.as_view(), name='lineitems'),
     url(r'getuser/$', GetUserView.as_view(), name='get-user'),
-    url(r'menu/$', MemberMenuView.as_view(), name='member-menu')
+    url(r'menu/$', MemberMenuView.as_view(), name='member-menu'),
+    url(r'item/list/$', ItemListView.as_view(), name='pos_item_list'),
+    url(r'item/(?P<pk>\d+)/$', ItemUpdateView.as_view(), name='pos_item_update'),
+    url(r'item/create/$', ItemCreateView.as_view(), name='pos_item_create'),
     ]

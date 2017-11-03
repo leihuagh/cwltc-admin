@@ -18,6 +18,7 @@ class TransactionTable(tables.Table):
 
     detail = tables.LinkColumn('transaction-detail', text='Detail', args=[A('pk')], orderable=False)
 
+
 class LineItemTable(tables.Table):
     
     class Meta:
@@ -27,3 +28,14 @@ class LineItemTable(tables.Table):
 
 
     transaction_id = tables.LinkColumn('transactions', text='Transaction', args=[A('transaction_id')], orderable=False)
+
+
+class ItemTable(tables.Table):
+
+    class Meta:
+        model = LineItem
+        fields = ('id', 'description', 'button_text', 'sale_price', 'cost_price')
+        attrs = {'class': 'table table-condensed'}
+
+    id = tables.LinkColumn('pos_item_update', text='Edit', args=[A('pk')], orderable=True)
+
