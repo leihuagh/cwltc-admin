@@ -18,4 +18,7 @@ urlpatterns = [
     url(r'item/list/$', ItemListView.as_view(), name='pos_item_list'),
     url(r'item/(?P<pk>\d+)/$', ItemUpdateView.as_view(), name='pos_item_update'),
     url(r'item/create/$', ItemCreateView.as_view(), name='pos_item_create'),
+    url(r'layout/list/$', LayoutListView.as_view(), name='pos_layout_list'),
+    url(r'layout/(?P<pk>\d+)/$', LayoutUpdateView.as_view(), name='pos_layout_update'),
+    url(r'layout/create/$', LayoutCreateView.as_view(), name='pos_layout_create'),
     ]

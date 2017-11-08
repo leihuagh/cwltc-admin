@@ -1,0 +1,56 @@
+{% extends 'pos/base.html' %}
+{% load staticfiles %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
+{% endblock %}
+{% block content %}
+
+<!-- Include meta tag to ensure proper rendering and touch zooming -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="container">
+    <div class="row">
+      <div class="col col-md-10">
+        {% for row in rows %}
+          <div class="row">
+            {% for loc in row %}
+              <input name="id:{{ loc.0 }}:{{ loc.1 }}" type="text" value="{{ loc.2 }}"
+                     id="id:{{ loc.0 }}:{{ loc.1 }}" readonly="readonly"
+                     {% if loc.2 %}
+                     class="btn btn-sq btn-success"
+                     draggable="true"
+                     {% else %}
+                     class="btn btn-sq btn-default"
+                     {%  endif %}
+                     ondragstart="drag(event)"
+                     ondrop="drop(event)" ondragover="allowDrop(event)">
+            {% endfor %}
+          </div>
+          <br />
+        {% endfor %}
+      </div>
+      <div class="col col-md-2">
+        <div class="well" id="well">
+          <h4>Available items</h4>
+          {% for item in items %}
+          <div id="item:{{ item.button_text }}" ondragstart="drag(event)"
+               class="btn btn-block btn-sm {% if item.used %}btn-default"
+               {% else %}btn-success" draggable="true" {% endif %}>
+          {{ item.button_text }}
+          </div>
+          {%  endfor %}
+          <p id="bin" ondrop="drop(event)" ondragover="allowDrop(event)">Drag an item here to return it to the list</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="submit" class="btn btn-primary"  name="submit", value="Submit">
+</form>
+{% endblock %}
+{% block scripts %}
+  <script src="{% static 'pos/js/layout_form.js' %}"></script>
+{% endblock %}
+

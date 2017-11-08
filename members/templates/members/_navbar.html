@@ -62,6 +62,13 @@
                 <li><a href="{% url 'categories-list' %}">Membership categories</a></li>
                 <li><a href="{% url 'fees-list' %}">Fees</a></li>
                 <li class="divider"></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                        aria-expanded="false">POS</a>
+                    <ul class="dropdown-menu">
+                      <li><a href="{% url 'pos-start' %}">Start POS</a></li>
+                    </ul>
+                </li>
                 <li><a href="{% url 'pos-start' %}">Start POS</a></li>
                 <li><a href="{% url 'transactions-main' %}">List POS transactions</a></li>
                 <li class="divider"></li>

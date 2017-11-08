@@ -1,8 +1,7 @@
-from __future__ import unicode_literals
-
 from django.db import models
 from django.contrib.auth.models import User
 from members.models import Person, ItemType
+
 
 class Item(models.Model):
     description = models.CharField(max_length=50)
@@ -27,13 +26,19 @@ class Item(models.Model):
         item_dict['total'] = chr(163) + " " + str(self.sale_price)
         return item_dict 
 
+
 class Layout(models.Model):
     name = models.CharField(max_length=25)
     invoice_itemtype = models.ForeignKey(ItemType, null=True)
+
     def __str__(self):
         return self.name
 
+
 class Location(models.Model):
+
+    ROW_MAX = 5
+    COL_MAX = 6
     row = models.IntegerField()
     col = models.IntegerField()
     visible = models.BooleanField()
@@ -46,6 +51,7 @@ class Location(models.Model):
         if self.item:
             name += self.item.description
         return name
+
 
 class Transaction(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
@@ -60,6 +66,7 @@ class Transaction(models.Model):
                                     str(self.person.first_name),
                                     str(self.person.last_name),
                                     str(self.total)) 
+
 
 class LineItem(models.Model):
     item = models.ForeignKey(Item)

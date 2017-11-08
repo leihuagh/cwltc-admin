@@ -39,3 +39,12 @@ class ItemTable(tables.Table):
 
     id = tables.LinkColumn('pos_item_update', text='Edit', args=[A('pk')], orderable=True)
 
+
+class LayoutTable(tables.Table):
+
+    class Meta:
+        model = Layout
+        fields = ('id', 'name')
+        attrs = {'class': 'table table-condensed'}
+
+    id = tables.LinkColumn('pos_layout_update', text='Edit', args=[A('pk')], orderable=True)

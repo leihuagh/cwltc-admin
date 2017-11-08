@@ -9,10 +9,10 @@
     background-color: white;
 }
 
-.well {
-    background: forestgreen;
-    border: none;
-}
+/*.well {*/
+    /*background: forestgreen;*/
+    /*border: none;*/
+/*}*/
 
 .button-area {
 	width: 70%;
@@ -60,4 +60,35 @@
     background-color: #3e8e41;
     box-shadow: 0 2px #1b3408;
     transform: translateY(1px);
+}
+
+.btn-sq-lg {
+  width: 150px !important;
+  height: 150px !important;
+  font-size: 20px;
+}
+
+.btn-sq {
+  white-space: normal;
+  width: 100px !important;
+  height: 100px !important;
+  text-align: center;
+  font-size: 15px;
+}
+span {
+  display: inline-block;
+  vertical-align: center;
+  text-align: center;
+}
+
+.btn-sq-sm {
+  width: 50px !important;
+  height: 50px !important;
+  font-size: 10px;
+}
+
+.btn-sq-xs {
+  width: 25px !important;
+  height: 25px !important;
+  padding:2px;
 }
