@@ -289,7 +289,6 @@ class LayoutUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super(LayoutUpdateView, self).get_context_data(**kwargs)
         layout = self.get_object()
-
         locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col')
         items = Item.objects.all().order_by('button_text')
         rows = []
@@ -301,33 +300,23 @@ class LayoutUpdateView(LoginRequiredMixin, UpdateView):
         for loc in locations:
             rows[loc.row - 1][loc.col -1].append(loc.item)
             item = [item for item in items if item.button_text == loc.item.button_text]
-            # em = self.item_list_find(items, loc.item.button_text)
             if item:
                 item[0].used=True
         context['rows'] = rows
         context['items'] = items
-
         return context
 
-    def item_list_find(self, items, text):
-        return [item for item in items if item.button_text == text]
-
-
     def post(self, request, *args, **kwargs):
-        layout = self.get_object()
-        dict = {}
-        for loc in Location.objects.filter(layout_id=layout.id):
-            dict[loc.item.button_text] = loc.item
-        Location.objects.filter(layout_id=layout.id).delete()
-        for key, value in request.POST.items():
-            parts = key.split(":")
-            if len(parts) == 3:
-                item = dict.get(value, None)
-                if item:
+        if 'save' in request.POST:
+            layout = self.get_object()
+            Location.objects.filter(layout_id=layout.id).delete()
+            for key, value in request.POST.items():
+                parts = key.split(":")
+                if len(parts) == 3 and value:
+                    item = Item.objects.get(button_text=value)
                     Location.objects.create(layout=layout,
                                             row=int(parts[1]),
                                             col=int(parts[2]),
                                             item=item,
                                             visible=True)
-
-        super(LayoutUpdateView, self).post(request, *args, **kwargs)
+        return redirect('pos_layout_list')

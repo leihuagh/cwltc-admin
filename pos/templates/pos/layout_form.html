@@ -8,10 +8,11 @@
 <!-- Include meta tag to ensure proper rendering and touch zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<form method="post">
-  {% csrf_token %}
 
-  <div class="container">
+
+<div class="container">
+  <form method="post">
+    {% csrf_token %}
     <div class="row">
       <div class="col col-md-10">
         {% for row in rows %}
@@ -36,19 +37,20 @@
         <div class="well" id="well">
           <h4>Available items</h4>
           {% for item in items %}
-          <div id="item:{{ item.button_text }}" ondragstart="drag(event)"
-               class="btn btn-block btn-sm {% if item.used %}btn-default"
-               {% else %}btn-success" draggable="true" {% endif %}>
-          {{ item.button_text }}
-          </div>
+            <div id="item:{{ item.button_text }}" ondragstart="drag(event)"
+                 class="btn btn-block btn-sm {% if item.used %}btn-default"
+                 {% else %}btn-success" draggable="true" {% endif %}>
+            {{ item.button_text }}
+            </div>
           {%  endfor %}
           <p id="bin" ondrop="drop(event)" ondragover="allowDrop(event)">Drag an item here to return it to the list</p>
         </div>
       </div>
     </div>
-  </div>
-  <input type="submit" class="btn btn-primary"  name="submit", value="Submit">
-</form>
+    <input type="submit" class="btn btn-primary"  name="submit", value="Save layout">
+    <input type="submit" class="btn btn-default"  name="cancel", value="Cancel">
+  </form>
+</div>
 {% endblock %}
 {% block scripts %}
   <script src="{% static 'pos/js/layout_form.js' %}"></script>

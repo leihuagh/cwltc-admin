@@ -10,7 +10,7 @@ class Item(models.Model):
     cost_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
      
     def __str__(self):
-        return self.description 
+        return self.button_text
     
     def to_dict(self):
         '''

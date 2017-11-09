@@ -24,7 +24,7 @@ function drop(ev) {
             enable(item_button);
             from_button.value = "";
             disable(from_button);
-        }else {
+        }else{
             // drag button to button if different button and empty
             if (ev.target.id !== id && ev.target.value ===""){
                 ev.target.value = from_button.value;
@@ -51,4 +51,5 @@ function disable(button){
     button.classList.remove('btn-success');
     button.classList.add('btn-default');
     button.draggable=false;
+    button.blur();
 }
