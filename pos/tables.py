@@ -44,7 +44,10 @@ class LayoutTable(tables.Table):
 
     class Meta:
         model = Layout
-        fields = ('id', 'name')
-        attrs = {'class': 'table table-condensed'}
+        fields = ('edit', 'name')
+        attrs = {'class': 'table'}
 
-    id = tables.LinkColumn('pos_layout_update', text='Edit', args=[A('pk')], orderable=True)
+    edit = tables.TemplateColumn('<a href="{% url "pos_layout_update" record.id %}" class="btn btn-primary btn-xs">Edit</a>', verbose_name = u'Edit',)
+
+
+

@@ -307,16 +307,32 @@ class LayoutUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        if 'save' in request.POST:
-            layout = self.get_object()
-            Location.objects.filter(layout_id=layout.id).delete()
-            for key, value in request.POST.items():
-                parts = key.split(":")
-                if len(parts) == 3 and value:
-                    item = Item.objects.get(button_text=value)
-                    Location.objects.create(layout=layout,
-                                            row=int(parts[1]),
-                                            col=int(parts[2]),
-                                            item=item,
-                                            visible=True)
+        layout = self.get_object()
+        if 'cancel' in request.POST:
+            return redirect('pos_layout_list')
+        if 'delete' in request.POST:
+            layout.delete()
+            return redirect('pos_layout_list')
+        elif request.POST['save_as']:
+            file_name=request.POST['filename']
+            if file_name:
+                new_layout = Layout.objects.create(
+                    name=file_name,
+                    invoice_itemtype=layout.invoice_itemtype
+                )
+                layout=new_layout
+            else:
+                pass
+        # save or save as
+        Location.objects.filter(layout_id=layout.id).delete()
+        for key, value in request.POST.items():
+            parts = key.split(":")
+            if len(parts) == 3 and value:
+                item = Item.objects.get(button_text=value)
+                Location.objects.create(layout=layout,
+                                        row=int(parts[1]),
+                                        col=int(parts[2]),
+                                        item=item,
+                                        visible=True)
+
         return redirect('pos_layout_list')
