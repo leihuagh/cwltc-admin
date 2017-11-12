@@ -16,7 +16,7 @@ class TransactionTable(tables.Table):
             }
         )
 
-    detail = tables.LinkColumn('transaction-detail', text='Detail', args=[A('pk')], orderable=False)
+    detail = tables.LinkColumn('pos_transaction_detail', text='Detail', args=[A('pk')], orderable=False)
 
 
 class LineItemTable(tables.Table):
@@ -27,7 +27,7 @@ class LineItemTable(tables.Table):
         attrs = {'class': 'table table-condensed'} 
 
 
-    transaction_id = tables.LinkColumn('transactions', text='Transaction', args=[A('transaction_id')], orderable=False)
+    transaction_id = tables.LinkColumn('pos_transactions', text='Transaction', args=[A('transaction_id')], orderable=False)
 
 
 class ItemTable(tables.Table):

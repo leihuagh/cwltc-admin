@@ -26,7 +26,7 @@ class StartView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         layout = Layout.objects.filter(name=request.POST['layout'])[0]
         request.session['layout_id'] = layout.id
-        return HttpResponseRedirect(reverse('get-user'))
+        return HttpResponseRedirect(reverse('pos_user'))
 
 
 class MemberMenuView(LoginRequiredMixin, TemplateView):
@@ -198,7 +198,7 @@ class GetUserView(TemplateView):
     def post(self, request, *args, **kwargs):
         if request.POST['login']:
             request.session['person_id'] = request.POST['person_id']
-            return redirect('member-menu')
+            return redirect('pos_member_menu')
         return redirect('home')
 
 
@@ -261,14 +261,14 @@ class LayoutListView(LoginRequiredMixin, SingleTableView):
 
     def post(self, request):
         if 'new' in request.POST:
-            return redirect('pos_Layout_create')
-        return redirect('pos_Layout_list')
+            return redirect('pos_layout_create')
+        return redirect('pos_layout_list')
 
 
 class LayoutCreateView(LoginRequiredMixin, CreateView):
     model = Layout
     form_class = LayoutForm
-    success_url = reverse_lazy('pos_Layout_list')
+    success_url = reverse_lazy('pos_layout_list')
 
     def post(self, request, *args, **kwargs):
         if 'cancel' in request.POST:

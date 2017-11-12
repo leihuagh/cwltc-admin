@@ -8,13 +8,13 @@ class Item(models.Model):
     button_text = models.CharField(max_length=25)
     sale_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     cost_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
-     
+
     def __str__(self):
         return self.button_text
     
     def to_dict(self):
         '''
-        Create a dictionary item used while transaction is being created
+        Create a dictionary item used while trashownsaction is being created
         Decimal fields are converted to integers so they can be saved in json format
         '''
         item_dict = {}

@@ -2,7 +2,7 @@ from django import forms
 from django.forms import Form, ModelForm, HiddenInput, RadioSelect
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Fieldset, ButtonHolder
+from crispy_forms.layout import Layout as CrispyLayout, Div
 from crispy_forms.bootstrap import FormActions
 from .models import *
 from members.forms import SubmitButton
@@ -21,7 +21,7 @@ class ItemForm(ModelForm):
         delete = kwargs.pop('delete', None)
         super(ItemForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.layout = Layout(
+        self.helper.layout = CrispyLayout(
             Div(
             'description',
             'button_text',
