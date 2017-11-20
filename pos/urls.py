@@ -4,12 +4,13 @@ from pos.views import *
 # POS App URLs
 
 urlpatterns = [
-    url(r'^$', StartView.as_view(), name='pos_start'),
+    url(r'^$', LoadView.as_view(), name='pos_load'),
+    url(r'start/$', StartView.as_view(), name='pos_start'),
     url(r'run/$', PosView.as_view(), name='pos_run'),
     url(r'transactions/$', TransactionListView.as_view(), name='pos_transactions'),
     url(r'transactions/main/$', TransactionListView.as_view(main_menu=True), name='pos_transactions_main'),
     url(r'transactions/person/(?P<person_id>\d+)/$', TransactionListView.as_view(),
-        name='transactions_person'),
+        name='pos_transactions_person'),
     url(r'transaction/(?P<pk>\d+)/$', TransactionDetailView.as_view(), name='pos_transaction_detail'),
     url(r'lineitems/$', LineItemListView.as_view(), name='pos_lineitems'),
     url(r'lineitems/(?P<trans_id>\d+)/$', LineItemListView.as_view(), name='pos_lineitems'),

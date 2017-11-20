@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from django.db.models import Sum
 from django.forms.models import model_to_dict
-from .models import Transaction, LineItem, Layout
+from .models import Transaction, LineItem, Layout, Item
 from members.models import InvoiceItem, ItemType
 
 

@@ -59,6 +59,7 @@ def invoice_update_state(invoice: Invoice):
     Update the linked items state and any sub that is connected
     """
     total = Decimal(0)
+    invoice.pending = False
     for payment in invoice.payment_set.all():
         if payment.state == Payment.STATE.PENDING:
             invoice.pending = True

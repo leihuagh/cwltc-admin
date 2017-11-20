@@ -158,6 +158,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/club/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 

@@ -1,6 +1,5 @@
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django_mail_viewer import urls as django_mail_viewer_urls
 from mysite.views import *
 from members.views import *
@@ -17,15 +16,15 @@ router.register(r'Xgroups', GroupViewSet)
 router.register(r'Xinvoices', InvoiceViewSet)
 
 urlpatterns = [
-    url(r'^celery/$', test_celery_view, name='celery'),
     url(r'^$', index_view, name='index'),
+    url(r'^', include('authentication.urls')),
+    url(r'^celery/$', test_celery_view, name='celery'),
     url(r'^public/', include('public.urls')),
     url(r'^mv/', include(django_mail_viewer_urls)),
     url(r'^api/', include(router.urls)),
 #    url(r'^rest/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^report_builder/', include('report_builder.urls')),
     url(r'^pos/', include('pos.urls')),
-    # url(r'^gocardless/', include('gc_app.urls')),
     url(r'^club/', include('club.urls')),
     url(r'^cardless/', include('cardless.urls')),
 
@@ -272,6 +271,11 @@ urlpatterns = [
         name='person-export'
         ),
 
+    url(r'^person/profile/(?P<pk>\d+)$',
+        AdultProfileView.as_view(),
+        name='person-profile'
+        ),
+
     #   ADDRESSES
     url(r'^person/address/(?P<person_id>\d+)/$',
         AddressUpdateView.as_view(),
@@ -417,31 +421,7 @@ urlpatterns = [
         name='bee'
         ),
 
-    url(r'^login/$', auth_views.LoginView.as_view(
-        template_name='authentication/login.html'),
-        name='login'),
-    url(r'^logout$', auth_views.LogoutView.as_view(
-        next_page='/public/'),
-        name='logout'),
-    url(r'^password_change/$', auth_views.PasswordChangeView.as_view(
-        template_name='authentication/password_change_form.html'),
-        name='password_change'),
-    url(r'^password_change/done/$', auth_views.PasswordChangeDoneView.as_view(
-        template_name='authentication/password_change_done.html'),
-        name='password_change_done'),
-    url(r'^password_reset/$', auth_views.PasswordResetView.as_view(
-        template_name='authentication/password_reset_form.html'),
-        name='password_reset'),
-    url(r'^password_reset/done/$', auth_views.PasswordResetDoneView.as_view(
-        template_name='authentication/password_reset_done.html'),
-        name='password_reset_done'),
-    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        auth_views.PasswordResetConfirmView.as_view(
-            template_name='authentication/password_reset_confirm.html'),
-        name='password_reset_confirm'),
-    url(r'^reset/done/$', auth_views.PasswordResetCompleteView.as_view(
-        template_name='authentication/password_reset_complete.html'),
-        name='password_reset_complete'),
+
 
     url(r'^admin/',
         include(admin.site.urls)

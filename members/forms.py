@@ -935,7 +935,7 @@ class PaymentForm(ModelForm):
 
     class Meta:
         model = Payment
-        fields = ['membership_year', 'type', 'reference', 'amount', 'state', 'banked_date']
+        fields = ['membership_year', 'type', 'reference', 'amount', 'banked', 'banked_date']
         widgets = {'banked_date': forms.DateInput(attrs={'class': 'datepicker'}),
                    'membership_year': forms.Select(choices=year_choices())
                    }

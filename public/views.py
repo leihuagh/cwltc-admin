@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from django.shortcuts import render, render_to_response, redirect
-from django.views.generic import DetailView, TemplateView, CreateView, View
+from django.views.generic import DetailView, TemplateView, CreateView, View, UpdateView
 from django.core.signing import Signer
 from django.core.mail import send_mail
 from django.conf import settings
@@ -171,17 +171,28 @@ class RegisterView(FormView):
     template_name = 'public/crispy_form.html'
     form_class = RegisterForm
 
+    def get_context_data(self, **kwargs):
+        context = super(RegisterView, self).get_context_data(**kwargs)
+        context['class'] = 'col-md-4 col-md-push-4'
+        context['title'] = 'Register for the club website and bar system'
+        return context
+
     def form_valid(self, form):
         person = form.cleaned_data['person']
         if person.auth_id:
             user = User.objects.filter(pk=person.auth_id)
             if len(user) == 1:
-                messages.error(self.request, 'You area already registered wwth username {}'.format(user[0].username))
-                return redirect('public-login')
+                messages.error(self.request, 'You are already registered with username {}'.format(user[0].username))
+                if self.kwargs['next'][:2] == 'pos':
+                    return redirect('pos_user')
+            return redirect('login')
         signer = Signer()
         token = signer.sign(person.id)
-        return redirect('public-register2', token=token)
+        return redirect('public_register2', next=self.kwargs['next'], token=token)
    
+    def get_success_url(self, **kwargs):
+        return reverse(kwargs['next'])
+
 
 class RegisterTokenView(FormView):
     """
@@ -190,6 +201,12 @@ class RegisterTokenView(FormView):
     """
     template_name = 'public/crispy_form.html'
     form_class = RegisterTokenForm
+
+    def get_context_data(self, **kwargs):
+        context = super(RegisterTokenView, self).get_context_data(**kwargs)
+        context['class'] = 'col-md-4 col-md-push-4'
+        context['title'] = 'Choose your username and password'
+        return context
 
     def form_valid(self, form):
         username = form.cleaned_data['username']
@@ -205,6 +222,9 @@ class RegisterTokenView(FormView):
         except Person.DoesNotExist:
             messages.error('Invalid token')
         return redirect('public-home')
+
+    def get_success_url(self, **kwargs):
+        return reverse(kwargs['next'])
 
 
 class LoginView(FormView):
@@ -692,3 +712,22 @@ class ApplyThankYouView(TemplateView):
 
 class PrivacyPolicyView(TemplateView):
     template_name = 'public/privacy_policy.html'
+
+
+class AdultProfileView(UpdateView):
+    template_name = 'public/crispy_form.html'
+    form_class = AdultProfileForm
+
+    def get_form_kwargs(self):
+        kwargs = super(AdultProfileView, self).get_form_kwargs()
+        kwargs['buttons'] = False
+        return kwargs
+
+
+    def get_object(self, queryset=None):
+        return AdultApplication.objects.get(person_id=self.kwargs['pk'])
+
+    def get_context_data(self, **kwargs):
+        kwargs['title'] = "Adult profile"
+        kwargs['buttons'] = False
+        return super(AdultProfileView, self).get_context_data(**kwargs)

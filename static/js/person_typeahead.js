@@ -98,7 +98,7 @@ function bind_typeahead(typeahead_id, person_id, submit_id) {
         datumTokenizer: Bloodhound.tokenizers.whitespace,
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
-            url: '/ajax/people/?term=%QUERY',
+            url: '/ajax/people/?term=%QUERY&pos=true',
             wildcard: '%QUERY'
         }
     });

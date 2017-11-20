@@ -29,7 +29,19 @@ class SubsBaseFilter(django_filters.FilterSet):
                                        empty_label=None,
                                        choices=year_choices()
                                       )
-    
+
+    paid = django_filters.ChoiceFilter(name='paid',
+                                       label='Subscription',
+                                       choices=PAID_CHOICES,
+                                       empty_label='Paid & unpaid'
+                                      )
+
+    membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.filter(),
+                                                  required=None,
+                                                  label="Membership",
+                                                  to_field_name="description",
+                                                  empty_label="No filter"
+                                                 )
     first_name = django_filters.CharFilter(name='person_member__first_name',
                                            lookup_expr='istartswith',
                                            label = 'First name starts'
@@ -39,17 +51,8 @@ class SubsBaseFilter(django_filters.FilterSet):
                                           label='Last name starts'
                                          )
 
-    membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.filter(),
-                                                  required=None,
-                                                  label="Membership",
-                                                  to_field_name="description",
-                                                  empty_label="No filter"
-                                                 )
-    paid = django_filters.ChoiceFilter(name='paid',
-                                       label = 'Subscription',
-                                       choices=PAID_CHOICES,
-                                       empty_label='Paid & unpaid'
-                                      )
+
+
 
                                      
 class JuniorFilter(SubsBaseFilter):
@@ -112,6 +115,7 @@ class InvoiceFilter(django_filters.FilterSet):
         # else:
         #     return queryset.filter(state=value)
         return queryset.filter(state=value)
+
 
 class InvoiceItemFilter(django_filters.FilterSet):
     class Meta:

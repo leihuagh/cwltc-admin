@@ -1,0 +1,22 @@
+{% extends "public/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %} 
+{% block content %}
+  <div class="row">
+    <div class="col-md-6 col-md-push-3">
+      <form action="." method="post">
+        <div class="well" >
+          <h3 class="text-center">Reset password</h3>
+Enter your email address and we will mail instructions to reset your password
+          <br/>
+          {% crispy form %}
+        </div>
+        <input type="hidden" name="next" value="/club/" />
+        <div class="form-actions">
+          <button type="submit" class="btn btn-success">Reset password</button>
+          &nbsp<a href="{% url "public-home" %}" class="btn btn-default">Back</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock content %}

@@ -6,8 +6,7 @@ class TransactionTable(tables.Table):
     
     class Meta:
         model = Transaction
-        fields = ('creation_date', 'id', 'person.first_name','person.last_name', 'total',
-                  'layout.invoice_itemtype.description', 'billed')                 
+        fields = ('creation_date', 'id', 'person.first_name','person.last_name', 'total', 'billed')
         attrs = {'class': 'table table-condensed'}
          
     total = tables.Column(
@@ -23,22 +22,26 @@ class LineItemTable(tables.Table):
     
     class Meta:
         model = LineItem
-        fields = ('transaction.creation_date', 'transaction_id', 'item.description', 'quantity', 'sale_price')
-        attrs = {'class': 'table table-condensed'} 
+        fields = ('transaction.creation_date', 'item.description', 'quantity', 'sale_price', 'item.item_type.description',
+                  'transaction.person.first_name', 'transaction.person.last_name', 'transaction_id' )
+        attrs = {'class': 'table table-condensed'}
 
 
-    transaction_id = tables.LinkColumn('pos_transactions', text='Transaction', args=[A('transaction_id')], orderable=False)
+    transaction_id = tables.LinkColumn('pos_transaction_detail', text='view', args=[A('transaction.id')], orderable=False)
 
 
 class ItemTable(tables.Table):
 
     class Meta:
         model = LineItem
-        fields = ('id', 'description', 'button_text', 'sale_price', 'cost_price')
+        fields = ('id', 'button_text', 'description', 'sale_price', 'cost_price', 'item_type')
         attrs = {'class': 'table table-condensed'}
 
     id = tables.LinkColumn('pos_item_update', text='Edit', args=[A('pk')], orderable=True)
-
+    item_type = tables.Column(accessor='item_type.description',
+                                verbose_name='Charge to',
+                                order_by='item_type.description',
+                                orderable=True)
 
 class LayoutTable(tables.Table):
 

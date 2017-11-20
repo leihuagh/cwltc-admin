@@ -3,7 +3,8 @@ from django import forms
 from django.forms import Form, ModelForm, HiddenInput, RadioSelect
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Fieldset, ButtonHolder 
+from crispy_forms.layout import Layout, Div, Submit, HTML, Fieldset
+from crispy_forms.bootstrap import FormActions
 from members.forms import SubmitButton
 from members.models import AdultApplication, Person, Address, Membership
 
@@ -29,25 +30,22 @@ class RegisterForm(Form):
     """
     first_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
-    email = forms.EmailField(max_length=75)
+    email = forms.EmailField(max_length=75, help_text="This must be the email you registered with the club")
     post_code = forms.CharField(max_length=10)
 
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)    
         self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-sm-2'
-        self.helper.field_class = 'col-sm-4 '
+        self.helper.form_class = 'form'
+        self.helper.help_text_inline = True
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
-            Fieldset('Enter the following information to identify yourself',
-                     'first_name', 'last_name', 'email', 'post_code'),
-            Div(
-                ButtonHolder(
-                    SubmitButton('submit', 'Next', css_class='btn-success'),
-                    HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>')
-                    ),
-                css_class='col-sm-offset-2')
+            HTML("<p>You must already be a club member to use this form.</p>"),
+            Div('first_name', 'last_name', 'email', 'post_code', css_class="well"),
+            FormActions(
+                SubmitButton('submit', 'Next', css_class='btn-success'),
+                HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>')
+                )
             )
         self.person = None
 
@@ -57,9 +55,9 @@ class RegisterForm(Form):
         last_name = cleaned_data.get('last_name')
         email = cleaned_data.get('email')
         post_code = cleaned_data.get('post_code').replace(' ', '').lower()
-        people = Person.objects.filter(first_name=first_name,
-                                       last_name=last_name,
-                                       email=email)
+        people = Person.objects.filter(first_name__iexact=first_name,
+                                       last_name__iexact=last_name,
+                                       email__iexact=email)
         if len(people) == 0:
             raise forms.ValidationError("No matching person")
         if len(people) == 1:
@@ -81,7 +79,7 @@ class RegisterForm(Form):
             raise forms.ValidationError('You must be an active member to register', code='invalid')
         sub = self.person.sub
         if not sub:
-            raise forms.ValidationError('You must be a subscribed member to register', code='invalid')
+            raise forms.ValidationError('You must have a membership subscription to register', code='invalid')
         if not sub.paid:
             raise forms.ValidationError('You must have a current paid subscription to register', code='invalid')
         if not sub.membership.is_adult:
@@ -94,24 +92,24 @@ class RegisterTokenForm(Form):
     """
     Stage 2 - user defines a username and password
     """
-    username = forms.CharField(max_length=30)
-    password = forms.CharField(max_length=30, widget=forms.PasswordInput)
+    username = forms.CharField(max_length=30,
+                               help_text="Your user name must contain at least 8 characters.")
+    password = forms.CharField(max_length=30, widget=forms.PasswordInput,
+                               help_text="Your password must be 8 characters or more and contain at least 1 number.")
     password_again = forms.CharField(max_length=30, widget=forms.PasswordInput)
-    pin = forms.CharField(max_length=8, widget=forms.NumberInput, required=False)
+    pin = forms.CharField(max_length=8, widget=forms.NumberInput, required=False, label="PIN",
+                          help_text="The PIN is optional and is 4 to 8 digits long. It is used for fast log in to the bar system.")
 
     def __init__(self, *args, **kwargs):
         super(RegisterTokenForm, self).__init__(*args, **kwargs)    
         self.helper = FormHelper()
         self.helper.form_method = 'post'
+        self.helper.help_text_inline = True
         self.helper.layout = Layout(
-            Fieldset('Choose a username and password',
-                     'username', 'password', 'password_again',
-                     HTML('The PIN is optional - it will give you fast access to the bar system')
-                     ),
-            'pin',
-            ButtonHolder(
-                SubmitButton('submit', 'Register', css_class='btn-primary'),
-                HTML('<a href="{% url "public-home" %}" class="btn btn-primary">Cancel</a>')
+            Div('username', 'password', 'password_again', 'pin', css_class="well"),
+            FormActions(
+                SubmitButton('submit', 'Register', css_class='btn-success'),
+                HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>')
                 )
             )
 
@@ -234,6 +232,7 @@ class AdultProfileForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop('choices', Membership.adult_choices())
+        buttons = kwargs.pop('buttons', True)
         kwargs.pop('delete', False)
         super(AdultProfileForm, self).__init__(*args, **kwargs)
         self.fields['membership_id'].choices = choices
@@ -258,9 +257,14 @@ class AdultProfileForm(ModelForm):
                         'family', 'social', 'competitions', 'teams',
                         css_class="well"),
                     css_class="col-md-4"),
-                css_class="row"),
-            Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
-            Submit('next', 'Next >', css_class='btn btn-success')
+                css_class="row")
+        )
+        if buttons:
+            self.helper.layout.append(
+                FormActions(
+                    Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
+                    Submit('next', 'Next >', css_class='btn btn-success')
+                )
             )
  
 

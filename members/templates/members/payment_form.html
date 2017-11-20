@@ -1,12 +1,12 @@
 ﻿{% extends "members/layout.html" %}
 {% block content %}
 {% load crispy_forms_tags %}
-<h4>
+<h3>
 <a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
-</h4>
-<hr />
-{% include "members/_invoice_detail.html" %}
-<hr />
+</h3>
+<div class="well">
+  {% include "members/_invoice_detail.html" %}
+</div>
 <h4>Payment</h4>
 Go Cardless link: {{ gc_bill_create }}
 {% crispy form %}

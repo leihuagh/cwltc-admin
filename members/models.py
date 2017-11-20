@@ -286,6 +286,7 @@ class AdultApplication(models.Model):
                                       choices = SOURCES, default = WEB,)
     person = models.ForeignKey(Person, blank=True, null=True)
 
+
 class Fees(models.Model):
     membership = models.ForeignKey('Membership')
     sub_year = models.SmallIntegerField()
@@ -537,7 +538,7 @@ class ItemType(models.Model):
     id = models.IntegerField(primary_key=True)
     description = models.CharField(max_length=30)
     credit = models.BooleanField(default=False)
-
+    pos = models.BooleanField(default=False)
 
     def __str__(self):
         return self.description

@@ -2,25 +2,15 @@
 {% block content %}
 
 <div class="container">
-  <div class="jumbotron">
-  <h1>Point Of Sale Administration</h1>
-    <p>Welcome to the Coombe Wood Point of Sale application.</p>
+  <div class="jumbotron text-center">
+  <h1>Bar System</h1>
+    <p>Welcome to the Coombe Wood Bar System.</p>
+    <br/><br/>
+    <a href="{% url 'pos_user' %}" class="btn btn-lg btn-success">Member log in</a>
+    {% if attended %}
+      <br/><br/><br/>
+      <a href="{% url 'pos_user' %}" class="btn btn-lg btn-success">Attended mode</a>
+    {% endif %}
   </div>
-  <div class="well">
-    <h3>Choose a layout to start on this screen</h3><br/>
-    <form method="post">
-      <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
-      {% for layout in layouts %}
-        <input class="btn btn-success" type="submit" name="layout" value="{{ layout.name }}"\>
-      {% endfor %}
-    </form>  
-  </div>
-  <div class="well">
-    <h3>Management menu</h3><br/>
-    <a href="{% url 'pos_item_list' %}" class="btn btn-info">Manage POS items</a>
-    <a href="{% url 'pos_layout_list' %}" class="btn btn-info">Manage POS layouts</a>
-    <a href="{% url 'pos_transactions_main' %}" class="btn btn-info">Review POS transactions</a>
-    <a href="{% url 'home' %}" class="btn btn-info">Exit</a>
-  </div>
-</div>
+
 {% endblock %}

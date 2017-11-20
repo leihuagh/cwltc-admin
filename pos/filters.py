@@ -1,20 +1,23 @@
-from .models import Transaction, Layout
+from members.models import ItemType
+from .models import LineItem
 import django_filters
 
-def trans_type_choices():
+def item_type_choices():
     choices = []
-    layouts = Layout.objects.all()
-    for layout in layouts:
-        choices.append([layout.invoice_itemtype.id, layout.invoice_itemtype.description])
+    item_types = ItemType.objects.filter(pos=True)
+    for it in item_types:
+        choices.append([it.id, it.description])
     return choices
 
-class TransactionFilter(django_filters.FilterSet):
+class LineItemFilter(django_filters.FilterSet):
+
+
+
+    item_type_id = django_filters.ChoiceFilter(name='item__item_type_id',
+                                            label='Item type',
+                                            choices=item_type_choices(),
+                                            empty_label="All"
+                                            )
     class Meta:
-        model = Transaction
-        fields = {'layout__invoice_itemtype_id'}
-    
-    trans_type = django_filters.ChoiceFilter(name='layout__invoice_itemtype_id',
-                                             label='Transaction type',
-                                             choices=trans_type_choices(),
-                                             empty_label="All"
-                                             )
+        model = LineItem
+        fields = ['transaction__creation_date']

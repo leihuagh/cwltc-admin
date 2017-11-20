@@ -1527,7 +1527,7 @@ class PaymentCreateView(StaffuserRequiredMixin, CreateView):
         form.instance.person = invoice.person
         # save new object before handling many to many relationship
         payment = form.save()
-        payment.state=Payment.STATE.PAID
+        payment.state = Payment.STATE.CONFIRMED
         invoice_pay(invoice, payment)
         return super(PaymentCreateView, self).form_valid(form)
 
@@ -1548,6 +1548,13 @@ class PaymentUpdateView(StaffuserRequiredMixin, UpdateView):
         context = super(PaymentUpdateView, self).get_context_data(**kwargs)    
         self.get_object().invoice.add_context(context)
         return context
+
+
+    def form_valid(self, form):
+        payment = form.save()
+        invoice = payment.invoice
+        invoice_update_state(invoice)
+        return super(PaymentUpdateView, self).form_valid(form)
 
     def get_success_url(self):
         invoice_id = self.get_object().invoice.id
@@ -1575,8 +1582,11 @@ class PaymentDetailView(StaffuserRequiredMixin, DetailView):
         payment = self.get_object(queryset=None)
         invoice = payment.invoice
         if "delete" in request.POST:
+            if invoice:
+                invoice_update_state(invoice)
             payment.delete()
         return redirect('invoice-detail', pk=invoice.id)
+
 
 class PaymentListView(StaffuserRequiredMixin, PagedFilteredTableView):
     model = Payment

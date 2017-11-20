@@ -16,11 +16,11 @@ urlpatterns = [
         name='public-apply-addchild'),
     url(r'^apply/submit/$', ApplySubmitView.as_view(), name='public-apply-submit'),
     url(r'^apply/thankyou/$', ApplyThankYouView.as_view(), name='public-apply-thankyou'),
-    url(r'^register/$', RegisterView.as_view(), name='public-register'),
-    url(r'^register/person/(?P<token>.+)/$', RegisterTokenView.as_view(), name='public-register2'),
+    url(r'^register/(?P<next>[\w\-]+)/$', RegisterView.as_view(), name='public_register'),
+    url(r'^register/person/(?P<next>[\w\-])+/(?P<token>.+)/$', RegisterTokenView.as_view(), name='public_register2'),
     url(r'^contact/$', ContactView.as_view(), name='public-contact'),
     url(r'^contact/(?P<person_id>\d+)/$', ContactView.as_view(), name='public-contact-person'),
     url(r'^thankyou/$', ThankyouView.as_view(), name='public-thankyou'),
     url(r'^resigned/$', ResignedView.as_view(), name='public-resigned'),
-    url(r'^privacy_policy', PrivacyPolicyView.as_view(), name='privacy-policy')
+    url(r'^privacy_policy/$', PrivacyPolicyView.as_view(), name='privacy-policy')
     ]

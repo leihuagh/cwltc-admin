@@ -8,16 +8,13 @@
 <!-- Include meta tag to ensure proper rendering and touch zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<form id="defaults">
-  <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
-</form>
 <div class="container">
   <div class="row">
     <div class="col-md-4">
     </div>
     <div class="col-md-4"><h2>{{ person.first_name }} {{ person.last_name}}</h2>
-    </div>
   </div>
+</div>
 
   <!--
   {% for row in rows %}
@@ -27,27 +24,28 @@
   {% endfor %}
   -->
 
-  <div class="flex-container">
-    <div class="button-area">
-      {% for row in rows %}
-        <div class="well">
-	        {% for loc in row %}
-            <button ic-include="#defaults" ic-post-to={{ request.path }} ic-target="#receipt_table"
-                    ic-trigger-on="tap"
-                class="posbutton ui-btn timed" id="itm_{{ loc.item.id }}">{{ loc.item.button_text }}
-            </button>
-          {% endfor %}
-        </div>
+  <form id="defaults">
+    <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
+    <div class="flex-container">
+      <div class="button-area">
+        {% for row in rows %}
+          <div class="well">
+            {% for loc in row %}
+              <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
+                      ic-trigger-on="tap"
+                  class="posbutton ui-btn timed" id="itm_{{ loc.item.id }}">{{ loc.item.button_text }}
+              </button>
+            {% endfor %}
+          </div>
 
-      {% endfor %}
+        {% endfor %}
+      </div>
+      <div class="receipt-area" id="receipt_table">
+              <!-- Receipt table & buttons inserted here-->
+         {% include "pos/receipt.html" with receipt="" total="£0.00" enable_payment=0 %}
+      </div>
     </div>
-    <div class="receipt-area" id="receipt_table">
-            <!-- Receipt table & buttons inserted here-->
-       {% include "pos/receipt.html" with receipt="" total="£0.00" enable_payment=0 %}
-    </div>      
-  </div>
-</div>
-
+  </form>
 
 <!-- Modal -->
 <div id="pay_modal" class="modal fade" role="dialog">
@@ -77,29 +75,35 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-{% endblock %}  
 {% block scripts %}
-<script type="text/javascript">
+  <script>
+  //Reset timer when class .timed is used
+  // call {{ timeout_url }} when it expires
+  // Timeout value in {{ timeout }}
+
   $(document).ready(function () {
-    function abort(){
-      //alert("Too slow!");
-    }
-    var timerId = 0
-    $(".timed").tap(function () {
-      if (timerId != 0){
-        clearTimeout(timerId);
+      function abort(){
+          window.location.replace("{{ timeout_url }}")
       }
-      timerId = setTimeout(abort, 5000);
-    });
+
+      var timer = setTimeout(abort, {{ timeout }});
+      $(".timed").tap(function () {
+          if (timer === 0){
+              clearTimeout(timerId);
+              }
+          timer = setTimeout(abort, {{ timeout }});
+      });
   });
 
   $(document).bind("mobileinit", function () {
-    // Stop jQuery Mobile messing with our links
-    $.mobile.linkBindingEnabled = false;
+      // Stop jQuery Mobile messing with our links
+      $.mobile.linkBindingEnabled = false;
   });
-</script>
+  </script>
+  <script src="{% static 'pos/js/timeout.js' %}"></script>
 
 <!-- Include the jQuery Mobile  library-->
-<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+  <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
 {% endblock %}  

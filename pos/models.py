@@ -8,6 +8,7 @@ class Item(models.Model):
     button_text = models.CharField(max_length=25)
     sale_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     cost_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
+    item_type = models.ForeignKey(ItemType, default=4, null=False)
 
     def __str__(self):
         return self.button_text
@@ -29,7 +30,7 @@ class Item(models.Model):
 
 class Layout(models.Model):
     name = models.CharField(max_length=25)
-    invoice_itemtype = models.ForeignKey(ItemType, null=True)
+
 
     def __str__(self):
         return self.name
