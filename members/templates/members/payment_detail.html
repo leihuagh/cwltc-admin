@@ -49,11 +49,12 @@
   </div>
 <table id="invoiceitem" class="table table-condensed">
 
-{% if user.is_active %}
+
 <form action="." method="post" class="form-inline" id="post-form">
   {% csrf_token %}
-   <a href= "{% url 'payment-update' payment.id %}" class="btn btn-danger btn-sm">Update</a>
-   <input type="submit" name="delete" value="Delete" class="btn btn-danger btn-sm">
+  <div class="form-actions">
+   <a href= "{% url 'payment-update' payment.id %}" class="btn btn-primary">Update</a>
+   <input type="submit" name="delete" value="Delete" class="btn btn-danger">
+    </div>
 </form>
-{% endif %}
 {% endblock content %}

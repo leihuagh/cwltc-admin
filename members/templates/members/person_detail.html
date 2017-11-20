@@ -8,30 +8,30 @@
       <div class="row">
           <div class="col-md-4">
               <div class="panel panel-default">
-                  <div class="panel-heading">
-                  Person detail
-                  </div>  
-                                                        
+                  <div class="panel-heading">Person detail</div>
                   <table class="table table-condensed table-detail">
-                      
-                      <tr><td>Id:</td><td>{{ person.id }} </td></tr>
-                      <tr><td>State:</td><td>{{ state }} </td></tr>
-                      <tr>
-                          <td>Date of birth:</td>
-                          <td>
-                              {% if person.dob %}{{ person.dob|date }}
-                              {% else %}Unknown{% endif %}
-                          </td>
-                      </tr>
-                      <tr><td>British tennis:</td><td>{{ person.british_tennis}}</td></tr>
-                      <tr><td>Joined date:</td><td>{{ person.date_joined|date}}</td></tr>
-                      <tr>
-                          <td>Mobile:</td>
-                          <td>
-                              {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}
-                          </td>
-                      </tr>
+                    <tr><td>Id:</td><td>{{ person.id }} </td></tr>
+                    <tr><td>State:</td><td>{{ state }} </td></tr>
+                    <tr>
+                        <td>Date of birth:</td>
+                        <td>
+                            {% if person.dob %}{{ person.dob|date }}
+                            {% else %}Unknown{% endif %}
+                        </td>
+                    </tr>
+                    <tr><td>British tennis:</td><td>{{ person.british_tennis}}</td></tr>
+                    <tr><td>Joined date:</td><td>{{ person.date_joined|date}}</td></tr>
+                    <tr>
+                        <td>Mobile:</td>
+                        <td>
+                            {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}
+                        </td>
+                    </tr>
                     <tr><td>Email:</td><td>{{ person.email }} </td></tr>
+                    <tr><td>Registered:</td><td>{% if person.auth_id %}Yes{% else %}No{% endif %}</td></tr>
+                    <tr><td>Profile:</td><td>{% if person.adultapplication_set %}
+                      <a href="{% url 'person-profile' pk=person.id %}">View</a>
+                    {% else %}No profile{% endif %}</td></tr>
                   </table>
    
                   <div class="panel-footer">
