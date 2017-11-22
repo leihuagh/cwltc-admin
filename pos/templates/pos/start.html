@@ -14,3 +14,11 @@
   </div>
 
 {% endblock %}
+{% block scripts %}
+<script>
+  $(document).bind("mobileinit", function () {
+      // Stop jQuery Mobile messing with our links
+      $.mobile.linkBindingEnabled = false;
+  });
+  </script>
+{% endblock %}

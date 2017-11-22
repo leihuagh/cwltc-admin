@@ -1,21 +1,36 @@
 ﻿{% extends "members/layout.html" %}
-{% block content %}
+{% include staticfiles %}
 {% load crispy_forms_tags %}
-
-<h2>Invoice Item</h2>
-<p>
+{% block content %}
+<h3>
 {{ person.first_name }} {{ person.last_name}}
-</p>
-{% crispy form %}
-{% endblock content %}
-{% block scripts %}
+</h3>
+<h2>Invoice Item</h2>
 
+<div class="row">
+  <div class="col col-md-4">
+    <div class="well">
+      <{% crispy form %}
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script src="{% static "js/bootstrap-datepicker.js" %}"></script>
 
 <script type="text/javascript">
     $(function () {
-        $('#id_item_date').datetimepicker({
+        $('#id_item_date.datepicker({
             format: "D/M/YYYY"
         });
     });
+$(document).ready(function() {
+    $('.dateinput').datepicker({ format: "yyyy/mm/dd" });
+});
+
+
 </script>
 {% endblock %}
+
+

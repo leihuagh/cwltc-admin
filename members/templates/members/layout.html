@@ -1,17 +1,15 @@
 ﻿{% extends "base.html" %}
 {% load staticfiles %}
 {% block navbar %}
-  {% if site_name != "OpenShift" %}
-    {% include "members/_navbar.html" %}
-    {% include "members/_messages.html" %}
-  {% endif %}
+  {% include "members/_navbar.html" %}
+  {% include "members/_messages.html" %}
 {% endblock %}
 {% block typeahead %}
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
   <script src="{% static 'js/person_typeahead.js' %}"></script>
   <script>
-  $(document).ready(function () {
-    bind_typeahead('#search_nav', '#person_nav','#submit_nav')
-  });
+    $(document).ready(function () {
+      bind_typeahead('#search_nav', '#person_nav','#submit_nav')
+    });
   </script>
 {% endblock %} 

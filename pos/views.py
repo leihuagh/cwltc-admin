@@ -39,6 +39,22 @@ class StartView(LoginRequiredMixin, TemplateView):
         return context
 
 
+class GetUserView(TemplateView):
+    template_name = 'pos/getuser.html'
+
+    def post(self, request, *args, **kwargs):
+        if request.POST['login']:
+            request.session['person_id'] = request.POST['person_id']
+            return redirect('pos_member_menu')
+        return redirect('home')
+
+    def get_context_data(self, **kwargs):
+        context = super(GetUserView, self).get_context_data(**kwargs)
+        context['timeout_url'] = reverse('pos_start')
+        context['timeout'] = 5000
+        return context
+
+
 class MemberMenuView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/member_menu.html'
 
@@ -76,7 +92,7 @@ class PosView(LoginRequiredMixin, TemplateView):
         self.request.session['pos_items'] = []
         context['person']= Person.objects.get(pk=self.request.session['person_id'])
         context['enable_payment'] = False
-        context['timeout_url'] = reverse('start')
+        context['timeout_url'] = reverse('pos_start')
         context['timeout'] = 5000
         return context
 
@@ -214,16 +230,6 @@ class TransactionDetailView(DetailView):
         trans = self.get_object()
         context['items'] =trans.lineitem_set.all().order_by('id')
         return context
-
-
-class GetUserView(TemplateView):
-    template_name = 'pos/getuser.html'
-
-    def post(self, request, *args, **kwargs):
-        if request.POST['login']:
-            request.session['person_id'] = request.POST['person_id']
-            return redirect('pos_member_menu')
-        return redirect('home')
 
 
 class ItemListView(LoginRequiredMixin, SingleTableView):

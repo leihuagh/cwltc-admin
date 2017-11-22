@@ -1,6 +1,11 @@
 ﻿{% extends "members/layout.html" %}
-{% block content %}
+{% load staticfiles %}
 {% load crispy_forms_tags %}
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/datepicker.css' %}">
+{% endblock %}
+{% block content %}
+
 <h3>
 <a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
 </h3>
@@ -9,16 +14,22 @@
 </div>
 <h4>Payment</h4>
 Go Cardless link: {{ gc_bill_create }}
-{% crispy form %}
+  <div class="row"><div class="col col-md-4">
+  <div class="well"> {% crispy form %}</div>
+  </div></div>
 
-{% endblock content %} 
+{% endblock content %}
 {% block scripts %}
-<script>
-    $(function () {
-        $('#id_banked_date').datetimepicker({
-            format: "D/M/YYYY"
-        });
+<script src="{% static "js/bootstrap-datepicker.js" %}"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $('.dateinput').datepicker({ format: "dd/mm/yyyy" });
+    $('#id_banked').change(function() {
+        $('#id_banked_date').attr('disabled',!this.checked);
+        $('#id_banked_date').val('');
     });
+});
 </script>
 
 {% endblock %}

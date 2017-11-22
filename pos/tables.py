@@ -35,7 +35,7 @@ class ItemTable(tables.Table):
     class Meta:
         model = LineItem
         fields = ('id', 'button_text', 'description', 'sale_price', 'cost_price', 'item_type')
-        attrs = {'class': 'table table-condensed'}
+        attrs = {'class': 'table'}
 
     id = tables.LinkColumn('pos_item_update', text='Edit', args=[A('pk')], orderable=True)
     item_type = tables.Column(accessor='item_type.description',

@@ -690,14 +690,6 @@ class InvoiceFilterForm(Form):
 
 
 class InvoiceItemForm(ModelForm):
-    # date = forms.DateField(
-    #     widget=DatePicker(
-    #         options={
-    #             "format": "dd/mm/yyyy",
-    #             "autoclose": True
-    #         }
-    #     )
-    # )
 
     def __init__(self, *args, **kwargs):
         super(InvoiceItemForm, self).__init__(*args, **kwargs)
@@ -705,11 +697,6 @@ class InvoiceItemForm(ModelForm):
         # If you pass FormHelper constructor a form instance
         # It builds a default layout with all its fields
         self.helper = FormHelper(self)
-        self.helper.form_id = 'id-InvoiceItemForm'
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
         self.helper.error_text_inline = True
@@ -718,7 +705,6 @@ class InvoiceItemForm(ModelForm):
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         self.fields['item_date'].widget.format = '%d/%m/%Y'
         self.fields['item_date'].input_formats = settings.DATE_INPUT_FORMATS
-
 
     def clean(self):
         cleaned_data = super(InvoiceItemForm, self).clean()
@@ -921,9 +907,7 @@ class PaymentForm(ModelForm):
             self.fields['amount'].initial = amount
         self.helper = FormHelper(self)
         self.helper.form_id = 'id-InvoiceItemForm'
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-md-2'
-        self.helper.field_class = 'col-md-4'
+
         self.helper.form_method = 'post'
         self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'

@@ -1,6 +1,6 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 {% load staticfiles %}
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html>
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -24,6 +24,14 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
   <script src="http://cdn.intercoolerjs.org/intercooler-1.2.0.min.js"></script>
+{#  <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>#}
+  <script src="{% static 'pos/js/timeout.js' %}"></script>
+<script>
+  $(document).bind("mobileinit", function () {
+      // Stop jQuery Mobile messing with our links
+      $.mobile.linkBindingEnabled = false;
+  });
+  </script>
   {% block scripts %}
   {% endblock %}
 </body>

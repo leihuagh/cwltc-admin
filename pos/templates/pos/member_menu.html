@@ -2,23 +2,31 @@
 {% load staticfiles %}
 {% block content %}
 <div class="container">
-    <div class="jumbotron">
-
-  <div class="row">
-    <div class="col-md-4"><img src="{% static "images/CWLTC logo small.png" %}"/>
-    </div>
-    <div class="col-md-4">
-      <h2 class="text-center">{{ person.first_name }} {{ person.last_name}}</h2>
-      <br/>
-      <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block timed">Bar system</a></p>
-      <p><a href="{% url 'pos_transactions_person' person_id=person.id %}" class="btn btn-success btn-lg btn-block timed">View my transactions</a></p>
-      <p><a href="{% url 'pos_user' %}" class="btn btn-btn-success btn-lg btn-block timed">Back</a></p>
+  <div class="jumbotron">
+    <div class="row">
+      <div class="col-md-4"><img src="{% static "images/CWLTC logo small.png" %}"/>
+      </div>
+      <div class="col-md-4">
+        <h2 class="text-center">{{ person.first_name }} {{ person.last_name}}</h2>
+        <br/>
+        <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block timed">Bar system</a></p>
+        <p><a href="{% url 'pos_transactions_person' person_id=person.id %}" class="btn btn-success btn-lg btn-block timed">View my transactions</a></p>
+        <p><a href="{% url 'pos_user' %}" class="btn btn-btn-success btn-lg btn-block timed">Back</a></p>
+      </div>
     </div>
   </div>
 </div>
-  </div>
 {% endblock %}
 
 {% block scripts %}
-  <script src="{% static 'pos/js/timeout.js' %}"></script>
-{%  endblock %}
+
+  <script>
+  $(document).ready(function () {
+      startTimer({{ timeout }}, "{{ timeout_url }}");
+  });
+  $(document).bind("mobileinit", function () {
+      // Stop jQuery Mobile messing with our links
+      $.mobile.linkBindingEnabled = false;
+  });
+  </script>
+{% endblock %}

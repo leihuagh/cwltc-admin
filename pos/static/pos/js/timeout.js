@@ -1,23 +1,31 @@
 //Reset timer when class .timed is used
 // call {{ timeout_url }} when it expires
 // Timeout value in {{ timeout }}
-console.log("I'm here");
+// console.log("I'm here");
 
-$(document).ready(function () {
-    function abort(){
-        window.location.replace("{{ timeout_url }}")
-    }
+var timer = 0;
+var timeout = 1000
+var timeoutUrl = "";
 
-    var timer = setTimeout(abort, {{ timeout }});
-    $(".timed").tap(function () {
-        if (timer === 0){
-            clearTimeout(timerId);
-            }
-        timer = setTimeout(abort, {{ timeout }});
-    });
+function abort(){
+    window.location.replace(timeoutUrl);
+}
+
+function stopTimer(){
+    clearTimeout(timer);
+}
+
+function startTimer(t, url){
+    timeout = t;
+    timeoutUrl = url;
+    timer = setTimeout(abort, timeout);
+}
+
+$(".timed").click(function () {
+    timer = setTimeout(abort, timeout);
 });
 
-$(document).bind("mobileinit", function () {
-    // Stop jQuery Mobile messing with our links
-    $.mobile.linkBindingEnabled = false;
+$('.timed').on('keyup', function(){
+    stopTimer();
+    timer = setTimeout(abort, timeout);
 });
