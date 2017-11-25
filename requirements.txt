@@ -11,6 +11,7 @@ Django==1.11.7
 django-annoying==0.10.3
 django-anymail==0.4.2
 django-appconf==1.0.2
+django-bootstrap3-datetimepicker-2==2.5.0
 django-braces==1.8.1
 django-celery-email==2.0.0
 django-crispy-forms==1.6.1
