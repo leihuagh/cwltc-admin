@@ -78,32 +78,13 @@
 {% endblock %}
 
 {% block scripts %}
+  <script src="http://cdn.intercoolerjs.org/intercooler-1.2.0.min.js"></script>
+  <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
   <script>
-  //Reset timer when class .timed is used
-  // call {{ timeout_url }} when it expires
-  // Timeout value in {{ timeout }}
-
-  $(document).ready(function () {
-      function abort(){
-          window.location.replace("{{ timeout_url }}")
-      }
-
-      var timer = setTimeout(abort, {{ timeout }});
-      $(".timed").tap(function () {
-          if (timer === 0){
-              clearTimeout(timerId);
-              }
-          timer = setTimeout(abort, {{ timeout }});
-      });
-  });
-
-  $(document).bind("mobileinit", function () {
+    $(document).bind("mobileinit", function () {
       // Stop jQuery Mobile messing with our links
       $.mobile.linkBindingEnabled = false;
+      startTimer(10000, '/home');
   });
   </script>
-  <script src="{% static 'pos/js/timeout.js' %}"></script>
-
-<!-- Include the jQuery Mobile  library-->
-
-{% endblock %}  
+{% endblock %}

@@ -119,10 +119,10 @@ class RegisterTokenForm(Form):
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError('Sorry, that user name is already taken', code='invalid_user')
         if len(username) < 8:
-            raise forms.ValidationError('User name must be at least 8 characters long', code='invalid_user')
+            raise forms.ValidationError('Your user name must be at least 8 characters long', code='invalid_user')
         password = cleaned_data.get('password')       
         if len(password) < 8:
-            raise forms.ValidationError("Password must be at least 8 characters long", code='invalid_password')
+            raise forms.ValidationError("Your password must be at least 8 characters long", code='invalid_password')
         if password != cleaned_data.get('password_again'):
             raise forms.ValidationError('Passwords do not match', code='invalid_password')
        

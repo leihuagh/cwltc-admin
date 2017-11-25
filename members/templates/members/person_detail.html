@@ -43,8 +43,12 @@
                         {% if can_delete %}
                           {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete person" confirm_yes="Delete" confirm_submit="delete" %}
                           <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger btn-sm">Delete</a>
-                        {% endif %}  
-                    {% endif %}
+                        {% endif %}
+                        {% if person.auth %}
+                          {% include "members/_confirm.html" with confirm_id="confDeregister" confirm_title="Deregister person" confirm_yes="Deregister" confirm_submit="deregister" %}
+                          <a href="#" data-toggle="modal" data-target="#confDeregister" class="btn btn-danger btn-sm">Deregister</a>
+                        {% endif %}
+                      {% endif %}
                   </div>
               </div>
           </div>

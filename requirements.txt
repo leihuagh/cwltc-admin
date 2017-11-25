@@ -7,7 +7,7 @@ chardet==3.0.4
 colorama==0.3.7
 coverage==4.3.4
 diff-match-patch==20121119
-Django==1.11.5
+Django==1.11.7
 django-annoying==0.10.3
 django-anymail==0.4.2
 django-appconf==1.0.2
@@ -25,7 +25,7 @@ django-markdownx==2.0.21
 django-nose==1.4.5
 django-report-builder==3.6.0
 django-report-utils==0.3.15
-django-tables2==1.6.1
+django-tables2==1.14.2
 django-widget-tweaks==1.4.1
 djangorestframework==3.6.4
 dnspython==1.15.0
@@ -51,10 +51,11 @@ pipdeptree==0.10.1
 psycopg2==2.6.2
 pylint==1.5.5
 python-dateutil==2.6.1
-pytz==2017.2
+pytz==2017.3
 PyYAML==3.12
 raven==6.2.1
 requests==2.9.1
+selenium==3.7.0
 six==1.10.0
 smtpapi==0.2.0
 sqlparse==0.2.1

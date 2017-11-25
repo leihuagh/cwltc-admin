@@ -4,7 +4,7 @@
 // console.log("I'm here");
 
 var timer = 0;
-var timeout = 1000
+var timeout = 1000;
 var timeoutUrl = "";
 
 function abort(){
@@ -20,12 +20,16 @@ function startTimer(t, url){
     timeoutUrl = url;
     timer = setTimeout(abort, timeout);
 }
+//
+// $(".timed").click(function () {
+//     timer = setTimeout(abort, timeout);
+// });
 
-$(".timed").click(function () {
+$('.timed').on('keyup click', function(){
+    stopTimer();
     timer = setTimeout(abort, timeout);
 });
 
-$('.timed').on('keyup', function(){
+$('.stopTimer').click(function () {
     stopTimer();
-    timer = setTimeout(abort, timeout);
 });

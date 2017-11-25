@@ -70,7 +70,7 @@ class Person(models.Model):
     pays_own_bill = models.BooleanField(default = False)
     state = models.SmallIntegerField(choices=STATES, default=ACTIVE)
     date_joined = models.DateField(null=True, blank=True)
-    hex_key = models.CharField(max_length=50, null=True, blank=True)
+    pin = models.CharField(max_length=128, null=True, blank=True)
     allow_phone = models.BooleanField(default=True)
     allow_email = models.BooleanField(default=True)
     #
@@ -551,7 +551,7 @@ class InvoiceItem(models.Model):
     amount = models.DecimalField(max_digits=7, decimal_places=2)
     paid = models.BooleanField(default=False)
     #
-    item_type = models.ForeignKey(ItemType, default=ItemType.SUBSCRIPTION)
+    item_type = models.ForeignKey(ItemType)
     person = models.ForeignKey(Person, blank=True, null=True)
     invoice = models.ForeignKey(Invoice, blank=True, null=True, related_name='invoice_items')
     payment = models.ForeignKey(Payment, blank=True, null=True)

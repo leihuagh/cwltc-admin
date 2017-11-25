@@ -7,6 +7,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse
 from django.views.generic.edit import FormView
 
@@ -186,9 +187,12 @@ class RegisterView(FormView):
                 if self.kwargs['next'][:2] == 'pos':
                     return redirect('pos_user')
             return redirect('login')
-        signer = Signer()
-        token = signer.sign(person.id)
-        return redirect('public_register2', next=self.kwargs['next'], token=token)
+        if person.membership and person.membership.is_adult:
+            signer = Signer()
+            token = signer.sign(person.id)
+            return redirect('public_register2', next=self.kwargs['next'], token=token)
+        messages.error(self.request, 'Sorry, only adult members can register on the site')
+        return redirect('public-home')
    
     def get_success_url(self, **kwargs):
         return reverse(kwargs['next'])
@@ -218,6 +222,7 @@ class RegisterTokenView(FormView):
             person.auth = User.objects.create_user(username, person.email, password,
                                                    first_name=person.first_name,
                                                    last_name=person.last_name)
+            person.pin = make_password(form.cleaned_data['pin'])
             person.save()
         except Person.DoesNotExist:
             messages.error('Invalid token')

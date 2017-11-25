@@ -40,18 +40,43 @@ class StartView(LoginRequiredMixin, TemplateView):
 
 
 class GetUserView(TemplateView):
-    template_name = 'pos/getuser.html'
+    template_name = 'pos/get_user.html'
 
     def post(self, request, *args, **kwargs):
-        if request.POST['login']:
+        if request.POST['person_id']:
             request.session['person_id'] = request.POST['person_id']
-            return redirect('pos_member_menu')
+            person = Person.objects.get(pk=request.POST['person_id'])
+            if person.auth_id:
+                return redirect('pos_password')
+            return redirect('public_register')
         return redirect('home')
 
     def get_context_data(self, **kwargs):
         context = super(GetUserView, self).get_context_data(**kwargs)
         context['timeout_url'] = reverse('pos_start')
-        context['timeout'] = 5000
+        context['timeout'] = 10000
+        return context
+
+
+class GetPasswordView(TemplateView):
+    template_name = 'pos/get_password.html'
+
+    def post(self, request, *args, **kwargs):
+        if request.POST['submit']:
+            person = Person.objects.get(pk=request.session['person_id'])
+            user = User.objects.get(pk=person.auth_id)
+            if user.check_password(request.POST['password']):
+                return redirect('pos_member_menu')
+            else:
+                pass
+        return redirect('home')
+
+    def get_context_data(self, **kwargs):
+        context = super(GetPasswordView, self).get_context_data(**kwargs)
+        person = Person.objects.get(pk=self.request.session['person_id'])
+        context['full_name'] = person.fullname
+        context['timeout_url'] = reverse('pos_start')
+        context['timeout'] = 10000
         return context
 
 
@@ -62,7 +87,7 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
         context = super(MemberMenuView, self).get_context_data(**kwargs)
         context['person']= Person.objects.get(pk=self.request.session['person_id'])
         context['timeout_url'] = reverse('pos_start')
-        context['timeout'] = 5000
+        context['timeout'] = 10000
         return context
 
 
@@ -93,7 +118,7 @@ class PosView(LoginRequiredMixin, TemplateView):
         context['person']= Person.objects.get(pk=self.request.session['person_id'])
         context['enable_payment'] = False
         context['timeout_url'] = reverse('pos_start')
-        context['timeout'] = 5000
+        context['timeout'] = 10000
         return context
 
     def post(self, request, *args, **kwargs):

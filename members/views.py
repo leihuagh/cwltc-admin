@@ -353,7 +353,14 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
             # renew subscription
             self.request.session['selected_people_ids'] = [person.id]
             return redirect(reverse('sub-renew-list'))
-        
+
+        elif 'deregister' in request.POST:
+            user = person.auth
+            user.delete()
+            person.auth = None
+            person.pin = None
+            person.save()
+
         return redirect(person)
 
 

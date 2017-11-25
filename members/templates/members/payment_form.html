@@ -2,7 +2,6 @@
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 {% block head %}
-  <link rel="stylesheet" href="{% static 'css/datepicker.css' %}">
 {% endblock %}
 {% block content %}
 
@@ -20,11 +19,10 @@ Go Cardless link: {{ gc_bill_create }}
 
 {% endblock content %}
 {% block scripts %}
-<script src="{% static "js/bootstrap-datepicker.js" %}"></script>
+
 
 <script type="text/javascript">
 $(document).ready(function() {
-    $('.dateinput').datepicker({ format: "dd/mm/yyyy" });
     $('#id_banked').change(function() {
         $('#id_banked_date').attr('disabled',!this.checked);
         $('#id_banked_date').val('');

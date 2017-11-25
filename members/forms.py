@@ -8,6 +8,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 from django.template.defaultfilters import slugify
+from bootstrap3_datetime.widgets import DateTimePicker
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder, BaseInput
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
@@ -694,17 +695,14 @@ class InvoiceItemForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(InvoiceItemForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
-        # If you pass FormHelper constructor a form instance
-        # It builds a default layout with all its fields
         self.helper = FormHelper(self)
-        self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
-        self.helper.error_text_inline = True
         if instance and instance.id:
             self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-        self.fields['item_date'].widget.format = '%d/%m/%Y'
-        self.fields['item_date'].input_formats = settings.DATE_INPUT_FORMATS
+        # self.fields['item_date'].widget.format = '%d/%m/%Y'
+        # self.fields['item_date'].input_formats = settings.DATE_INPUT_FORMATS
+
 
     def clean(self):
         cleaned_data = super(InvoiceItemForm, self).clean()
@@ -717,7 +715,8 @@ class InvoiceItemForm(ModelForm):
     class Meta:
         model = InvoiceItem
         fields = ['item_type', 'item_date', 'description', 'amount']
-        widgets = {'item_date': forms.DateInput(attrs={'class': 'input-group date'}), }
+        widgets = {'item_date': DateTimePicker(options={'format': 'DD/MM/YYYY',
+                                                        'allowInputToggle': True})}
 
 
 class InvoiceSelectForm(Form):
@@ -899,6 +898,7 @@ class MailTypeForm(ModelForm):
 
 
 class PaymentForm(ModelForm):
+
     def __init__(self, *args, **kwargs):
         """ optional kwarg amount sets the default amount """
         amount = kwargs.pop('amount', None)
@@ -914,15 +914,17 @@ class PaymentForm(ModelForm):
         self.helper.error_text_inline = True
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
 
-        self.fields['banked_date'].widget.format = '%d/%m/%Y'
+        # self.fields['banked_date'].widget.format = '%d/%m/%Y'
         self.fields['banked_date'].input_formats = settings.DATE_INPUT_FORMATS
 
     class Meta:
         model = Payment
         fields = ['membership_year', 'type', 'reference', 'amount', 'banked', 'banked_date']
-        widgets = {'banked_date': forms.DateInput(attrs={'class': 'datepicker'}),
+        widgets = {'banked_date': DateTimePicker(options={'format': 'DD/MM/YYYY',
+                                                          'allowInputToggle': True}
+                                                 ),
                    'membership_year': forms.Select(choices=year_choices())
-                   }
+        }
 
 
 class PaymentFilterForm(Form):
