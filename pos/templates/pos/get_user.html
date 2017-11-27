@@ -1,4 +1,4 @@
-﻿{% extends 'pos/base.html' %}
+﻿{% extends 'base.html' %}
 {% load staticfiles %}
 {% block content %}
 
@@ -37,18 +37,20 @@
 </div>
 {% endblock content %}
 {% block scripts %}
-<script src="{% static 'js/person_typeahead.js' %}"></script>
-<script>
-  $(document).ready(function () {
-    bind_typeahead('#search_id', '#person_id','#submit_id');
-    startTimer({{ timeout }}, "{{ timeout_url }}");
-  });
+  <script src= {% static 'js/typeahead.bundle.js' %}></script>
+  <script src="{% static 'pos/js/timeout.js' %}"></script>
+  <script src="{% static 'js/person_typeahead.js' %}"></script>
+  <script>
+    $(document).ready(function () {
+      bind_typeahead('#search_id', '#person_id','#submit_id');
+      startTimer({{ timeout }}, "{{ timeout_url }}");
+    });
 
-  $(document).bind("mobileinit", function () {
-      // Stop jQuery Mobile messing with our links
-      $.mobile.linkBindingEnabled = false;
-  });
-</script>
+    $(document).bind("mobileinit", function () {
+        // Stop jQuery Mobile messing with our links
+        $.mobile.linkBindingEnabled = false;
+    });
+  </script>
 {% endblock %}
 
 

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+{% block content %}
+  <h3 {% if class %}class="text-center"{% endif %}>{{ title }}</h3>
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
+  <div class="row">
+    <div class="col-md-4 col-md-push-4">
+      <h4>Please confirm your email and post code</h4>
+      <div >
+        {% crispy form %}
+      </div>
+    </div>
+
+  </div>
+{% endblock content %}
+{% block scripts %}
+  <script src="{% static 'pos/js/timeout.js' %}"></script>
+  <script>
+    $(document).ready(function () {
+      startTimer({{ timeout }}, "{{ timeout_url }}");
+    });
+  </script>
+{% endblock %}

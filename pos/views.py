@@ -5,10 +5,10 @@ from django.views.generic import View, ListView, DetailView, CreateView, UpdateV
 from django.views.generic.edit import FormView, FormMixin, ProcessFormView
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.hashers import check_password
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
-from decimal import *
-from .models import *
+from public.views import RegisterView, RegisterTokenView
 from .tables import *
 from .forms import ItemForm, LayoutForm
 from .services import *
@@ -48,8 +48,8 @@ class GetUserView(TemplateView):
             person = Person.objects.get(pk=request.POST['person_id'])
             if person.auth_id:
                 return redirect('pos_password')
-            return redirect('public_register')
-        return redirect('home')
+            return redirect('pos_register', next='pos_menu')
+        return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
         context = super(GetUserView, self).get_context_data(**kwargs)
@@ -64,19 +64,47 @@ class GetPasswordView(TemplateView):
     def post(self, request, *args, **kwargs):
         if request.POST['submit']:
             person = Person.objects.get(pk=request.session['person_id'])
+            if check_password(request.POST['password'], person.pin):
+                return redirect('pos_member_menu')
             user = User.objects.get(pk=person.auth_id)
             if user.check_password(request.POST['password']):
                 return redirect('pos_member_menu')
-            else:
-                pass
-        return redirect('home')
+        return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
         context = super(GetPasswordView, self).get_context_data(**kwargs)
         person = Person.objects.get(pk=self.request.session['person_id'])
         context['full_name'] = person.fullname
         context['timeout_url'] = reverse('pos_start')
-        context['timeout'] = 10000
+        context['timeout'] = 1200000
+        return context
+
+
+class PosRegisterView(RegisterView):
+    template_name = 'pos/register.html'
+
+    # def post(self, request, *args, **kwargs):
+    #     if request.POST['submit']:
+    #         person = Person.objects.get(pk=request.session['person_id'])
+    #         user = User.objects.get(pk=person.auth_id)
+    #         if user.check_password(request.POST['password']):
+    #             return redirect('pos_member_menu')
+    #         else:
+    #             pass
+    #     return redirect('home')
+
+    def get_initial(self):
+        initial = super(PosRegisterView, self).get_initial()
+        person = Person.objects.get(pk=self.request.session['person_id'])
+        initial['first_name'] = person.first_name
+        initial['last_name'] = person.last_name
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super(RegisterView, self).get_context_data(**kwargs)
+        context['title'] = 'Register'
+        context['timeout_url'] = reverse('pos_start')
+        context['timeout'] = 1200000
         return context
 
 

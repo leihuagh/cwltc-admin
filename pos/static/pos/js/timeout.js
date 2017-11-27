@@ -30,6 +30,6 @@ $('.timed').on('keyup click', function(){
     timer = setTimeout(abort, timeout);
 });
 
-$('.stopTimer').click(function () {
+$('.stop-timer').click(function () {
     stopTimer();
 });

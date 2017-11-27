@@ -184,8 +184,6 @@ class RegisterView(FormView):
             user = User.objects.filter(pk=person.auth_id)
             if len(user) == 1:
                 messages.error(self.request, 'You are already registered with username {}'.format(user[0].username))
-                if self.kwargs['next'][:2] == 'pos':
-                    return redirect('pos_user')
             return redirect('login')
         if person.membership and person.membership.is_adult:
             signer = Signer()
