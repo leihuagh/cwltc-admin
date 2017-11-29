@@ -16,31 +16,31 @@
   </div>
 </div>
 
-  <!--
-  {% for row in rows %}
-      {% for loc in row %}
-          {{ loc.row }} {{ loc.col }} {{ loc.item.description }}
-      {% endfor %}
-  {% endfor %}
-  -->
-
   <form id="defaults">
-    <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
+    {% csrf_token %}
     <div class="flex-container">
-      <div class="button-area">
+      <div class="well col-md-8">
         {% for row in rows %}
-          <div class="well">
+          <div class="row">
             {% for loc in row %}
-              <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
-                      ic-trigger-on="tap"
-                  class="posbutton ui-btn timed" id="itm_{{ loc.item.id }}">{{ loc.item.button_text }}
-              </button>
-            {% endfor %}
-          </div>
+              <div class="col col-md-2">
+                {% if loc.2 %}
+                  <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
+                          ic-trigger-on="tap"
+                      class="btn btn-sq btn-block btn-success timed" id="itm_{{ loc.2.id }}">{{ loc.2.button_text }}
+                  </button>
+              {% endif %}
+              </div>
 
+
+
+            {% endfor %}
+
+          </div>
+<br/>
         {% endfor %}
       </div>
-      <div class="receipt-area" id="receipt_table">
+      <div class="well col-md-4" id="receipt_table">
               <!-- Receipt table & buttons inserted here-->
          {% include "pos/receipt.html" with receipt="" total="£0.00" enable_payment=0 %}
       </div>

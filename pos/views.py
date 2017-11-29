@@ -120,33 +120,18 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
 
 
 class PosView(LoginRequiredMixin, TemplateView):
-    template_name = 'pos/pos.html'
+    template_name = 'pos/pos1.html'
 
     def get_context_data(self, **kwargs):
         context = super(PosView, self).get_context_data(**kwargs)
         layout_id = self.request.session['layout_id']
-        layout = Layout.objects.get(pk=layout_id)
         locations = Location.objects.filter(layout_id=layout_id).order_by('row', 'col')
-        rows = []
-        current_row = 1
-        cols = []
-        for loc in locations:
-            if loc.row == current_row:
-                cols.append(loc)
-            else:
-                rows.append(cols)
-                for row in range(current_row, loc.row - 1):
-                    rows.append([])
-                current_row = loc.row
-                cols=[]
-                cols.append(loc)
-        rows.append(cols)
-        context['rows'] = rows
+        context['rows'] = pos_layout_context(layout_id, locations)
         self.request.session['pos_items'] = []
         context['person']= Person.objects.get(pk=self.request.session['person_id'])
         context['enable_payment'] = False
         context['timeout_url'] = reverse('pos_start')
-        context['timeout'] = 10000
+        context['timeout'] = 1000000
         return context
 
     def post(self, request, *args, **kwargs):
@@ -374,19 +359,7 @@ class LayoutUpdateView(LoginRequiredMixin, UpdateView):
         layout = self.get_object()
         locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col')
         items = Item.objects.all().order_by('button_text')
-        rows = []
-        for r in range(1, Location.ROW_MAX + 1):
-            cols = []
-            for c in range(1, Location.COL_MAX + 1):
-                cols.append([r, c])
-            rows.append(cols)
-        for loc in locations:
-            rows[loc.row - 1][loc.col -1].append(loc.item)
-            item = [item for item in items if item.button_text == loc.item.button_text]
-            if item:
-                item[0].used=True
-        context['rows'] = rows
-        context['items'] = items
+        context['rows'], context['items'] = pos_layout_context(layout.id, locations, items)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -419,3 +392,21 @@ class LayoutUpdateView(LoginRequiredMixin, UpdateView):
                                         visible=True)
 
         return redirect('pos_layout_list')
+
+
+def pos_layout_context(layout_id, locations, items=None):
+    rows = []
+    for r in range(1, Location.ROW_MAX + 1):
+        cols = []
+        for c in range(1, Location.COL_MAX + 1):
+            cols.append([r, c])
+        rows.append(cols)
+    for loc in locations:
+        rows[loc.row - 1][loc.col - 1].append(loc.item)
+        if items:
+            item = [item for item in items if item.button_text == loc.item.button_text]
+            if item:
+                item[0].used = True
+    if items:
+        return rows, items
+    return rows
