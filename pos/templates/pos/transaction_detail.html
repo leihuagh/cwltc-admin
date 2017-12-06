@@ -3,20 +3,32 @@
 <div class="container">
   <div class="row">
     <div class="col-md-4">
-      <h2>POS Transaction</h2>
+      <h2>POS Transaction detail</h2>
       <h3>{{ transaction.person.first_name }} {{ transaction.person.last_name }} </h3>
       <h4>{{ transaction.creation_date }}</h4>
       <h4>{{ transaction.layout.invoice_itemtype.description }}</h4>
-      <table class="table table-condensed">
+      <table class="table">
         {% for lineitem in items %}
-          <tr><td>{{ lineitem.item.description }}</td><td>{{ lineitem.quantity }}</td><td>{{ lineitem.sale_price }}</td></tr>
+          <tr><td>{{ lineitem.quantity }}</td><td>{{ lineitem.item.description }}</td><td>£ {{ lineitem.sale_price }}</td></tr>
         {% endfor %}
-        <tr><td></td><td>Total:</td><td>{{ transaction.total }}</td></tr>
+        <tr><td></td><td><strong>Total:</strong></td><td><strong>£ {{ transaction.total }}</strong></td></tr>
       </table>
+    {% if payments %}
+    <h4>Split payments</h4>
+      <table class="table">
+        {% for payment in payments %}
+          <tr><td>{{ payment.person.fullname }}</td><td>£ {{ payment.amount }}</td></tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+    </div>
+  </div>
+    <div class="row">
+      This transaction has {% if not payment.0.billed %}not yet{% endif %} been charged to your account.
     </div>
   </div>
     <button id="back" class="btn btn-primary ">Back</button>
-</div>
+
 {% endblock %}
 {% block scripts %}
 <script>

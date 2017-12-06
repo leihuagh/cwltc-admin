@@ -9,9 +9,9 @@
       <div class="col-md-4">
         <h2 class="text-center">{{ person.first_name }} {{ person.last_name}}</h2>
         <br/>
-        <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block stop-timer">Bar system</a></p>
+        <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block stop-timer">Purchase items from bar</a></p>
         <p><a href="{% url 'pos_transactions_person' person_id=person.id %}" class="btn btn-success btn-lg btn-block stop-timer">View my transactions</a></p>
-        <p><a href="{% url 'pos_user' %}" class="btn btn-btn-success btn-lg btn-block stop-timer">Back</a></p>
+        <p><a href="{% url 'pos_user' %}" class="btn btn-success btn-lg btn-block stop-timer">Back</a></p>
       </div>
     </div>
   </div>

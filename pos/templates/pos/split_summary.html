@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block content %}
+
+<div class="well col-md-6 col-md-offset-3">
+  {% include 'pos/_split_table.html' %}
+</div>
+
+  <div class="col-md-6 col-md-offset-3">
+
+    <form method="POST">
+      {% csrf_token %}
+      <div class="col-md-4">
+      <input type="submit" class="btn btn-primary btn-lg btn-block" name="add" value="Add a member">
+      </div>
+      <div class="col-md-5">
+      <input type="submit" class="btn btn-success btn-lg btn-block" name="pay" value="Complete payment">
+      </div>
+      <div class="col-md-3">
+        <input type="submit" class="btn btn-danger btn-lg btn-block" name="back" value="Back"></div>
+    </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

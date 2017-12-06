@@ -1,10 +1,11 @@
 ﻿
 <div class="receipt">
-  <table class ="table table-condensed">
+  <table class="table table-condensed">
       {% for item in receipt %}
       <tr>
-      <td>{{ item.quantity }} x {{ item.description }} @ {{ item.sale_price }}</td>     
-      <td>{{ item.total }}</td>
+{#      <td>{{ item.quantity }} x {{ item.description }} @ {{ item.sale_price }}</td>     #}
+      <td><strong>{{ item.description }}</strong></td>
+        <td>{{ item.total }}</td>
       <td> <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
                       class="btn btn-sm btn-danger timed" id="del_{{ forloop.counter0 }}">
               <span class="glyphicon glyphicon-remove"></span>
@@ -15,29 +16,35 @@
       <tr><td><strong>Total</strong></td><td id="id_total">{{ total }}</td></tr>
   </table>
 
-  <div class="pay-area row">
+  <div class="pay-area ">
+
+  </div>
+</div>
+<div class="payment-area">
 
     {% if enable_payment %}
+      <h4>TOTAL: {{ total }}</h4>
       <div class="col-md-6">
-      <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
-        class="btn btn-primary btn-block timed" id="pay_">Payment
-        <span class="glyphicon glyphicon-ok"></span>&nbsp;
-      </button>
+        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
+          class="btn btn-success btn-lg btn-block timed" id="pay_">Payment
+          <span class="glyphicon glyphicon-ok"></span>&nbsp;
+        </button>
       </div>
       <div class="col-md-6">
-      <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
-        class="btn btn-danger btn-block timed" id="can_">
-          Cancel all
-        <span class="glyphicon glyphicon-trash"></span>&nbsp;
-      </button>
+        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
+          class="btn btn-danger btn-lg btn-block timed" id="can_">
+            Cancel all
+          <span class="glyphicon glyphicon-trash"></span>&nbsp;
+        </button>
       </div>
     {% else %}
-
-      <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
-        class="btn btn-lg btn-block btn-primary" id="end_">&nbsp;&nbsp;&nbsp;Exit&nbsp;&nbsp;&nbsp;
-      </button>
+      <div class="col-md-12">
+        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
+          class="btn btn-lg btn-block btn-primary" id="end_">&nbsp;&nbsp;&nbsp;Exit&nbsp;&nbsp;&nbsp;
+        </button>
+      </div>
     {% endif %}
-  </div>
+
 </div>
 
 

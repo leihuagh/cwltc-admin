@@ -1,0 +1,41 @@
+﻿{% extends 'base.html' %}
+{% load staticfiles %}
+{% block content %}
+
+<div class="well col-md-6 col-md-offset-3">
+  {% include 'pos/_split_table.html' %}
+</div>
+<form id="form_member" role="form" method="POST" >{% csrf_token %}
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="col-md-9">
+        <div class="input-group input-group-lg">
+          <span class="input-group-addon" id="sizing-addon1">Add member</span>
+          <input type="text" class="form-control typeahead tt-query timed"
+                 id = "search_id" aria-describedby="sizing-addon1"
+                 autocomplete="on" spellcheck="false">
+        </div>
+        <input name="person_id" id="person_id" type="hidden" value="">
+        <input type="submit" class="button" id ="submit_id"
+               style="display: none" name="login" value="">
+      </div>
+      <div class="col-md-3">
+        <input type="submit" class="btn btn-danger btn-lg btn-block" name="back" value="Back">
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock content %}
+{% block scripts %}
+  <script src= {% static 'js/typeahead.bundle.js' %}></script>
+  <script src="{% static 'pos/js/timeout.js' %}"></script>
+  <script src="{% static 'js/person_typeahead.js' %}"></script>
+  <script>
+    $(document).ready(function () {
+      bind_typeahead('#search_id', '#person_id','#submit_id');
+      startTimer({{ timeout }}, "{{ timeout_url }}");
+    });
+  </script>
+{% endblock %}
+
+

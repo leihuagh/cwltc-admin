@@ -12,8 +12,7 @@
       <div class="col-md-2">
         <a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block">Back</a>
       </div>
-      <div class="col-md-1"></div>
-      <div class="col-md-4">
+      <div class="col-md-6">
         <form id="form_member" role="form" method="POST" >{% csrf_token %}
           <div class="input-group input-group-lg">
             <span class="input-group-addon" id="sizing-addon1">Member login</span>
@@ -21,16 +20,16 @@
                    id = "search_id" aria-describedby="sizing-addon1"
                    autocomplete="on" spellcheck="false">
           </div>
-          <input name="person_id" id="person_id" type="hidden" value="" />
+          <input name="person_id" id="person_id" type="hidden" value="">
           <input type="submit" class="button" id ="submit_id"
                  style="display: none" name="login" value="">
         </form>
       </div>
-      <div class="col-md-5">
+      <div class="col-md-4">
         Enter 1 or more characters of your first name, space, then a few characters of your last name.
         Case does not matter.<br/>
+        Tap your name in the list that appears.<br/>
         E.g. <strong>j smi</strong> would select <strong>John Smith</strong>.<br/>
-        If there is more than one match, tap your name in the list that appears.
       </div>
     </div>
   </div>
@@ -38,17 +37,12 @@
 {% endblock content %}
 {% block scripts %}
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
-  <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script src="{% static 'js/person_typeahead.js' %}"></script>
+    <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script>
     $(document).ready(function () {
       bind_typeahead('#search_id', '#person_id','#submit_id');
       startTimer({{ timeout }}, "{{ timeout_url }}");
-    });
-
-    $(document).bind("mobileinit", function () {
-        // Stop jQuery Mobile messing with our links
-        $.mobile.linkBindingEnabled = false;
     });
   </script>
 {% endblock %}

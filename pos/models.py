@@ -15,7 +15,7 @@ class Item(models.Model):
     
     def to_dict(self):
         '''
-        Create a dictionary item used while trashownsaction is being created
+        Create a dictionary item used while transaction is being created
         Decimal fields are converted to integers so they can be saved in json format
         '''
         item_dict = {}
@@ -61,6 +61,7 @@ class Transaction(models.Model):
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     billed = models.BooleanField()
     layout = models.ForeignKey(Layout, blank=True, null=True)
+    split = models.BooleanField(default=False)
     
     def __str__(self):
         return "{} {} {} {}".format(str(self.id),
@@ -78,3 +79,10 @@ class LineItem(models.Model):
     
     def __str__(self):
         return "{} {}".format(self.item.description, self.transaction_id)
+
+
+class PosPayment(models.Model):
+    transaction = models.ForeignKey(Transaction, blank=True, null=True)
+    person = models.ForeignKey(Person)
+    billed = models.BooleanField()
+    amount = models.DecimalField(max_digits=5, decimal_places=2, null=False)

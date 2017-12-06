@@ -1,0 +1,7 @@
+
+    <h3 class="text-center">Split payment between members</h3>
+     <table class="table table-condensed">
+      {% for person in people %}
+        <tr><td><h4>{{ person.fullname }}</h4></td><td><h4>£ {{ person.pos_charge }}</h4></td></tr>
+      {% endfor %}
+    </table>
