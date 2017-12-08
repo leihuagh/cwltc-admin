@@ -1,11 +1,20 @@
-﻿{% extends 'pos/base.html' %}
-{% load i18n %}
+﻿<!--- Base for all POS templates -->
+<!DOCTYPE html>
 {% load staticfiles %}
-{% block head %}
-<link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
-{% endblock %}
-{% block content %}
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CWLTC POS</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
+
+</head>
+<body>
 <!-- Include meta tag to ensure proper rendering and touch zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
@@ -75,14 +84,27 @@
   </div>
 
 </form>
-{% endblock %}
 
-{% block scripts %}
+  <!-- Could not get mobile and intercooler to work together with jquery version 3 -->
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   <script src="http://cdn.intercoolerjs.org/intercooler-1.2.0.min.js"></script>
-  <script>
-    $(document).ready(function () {
+<script src="{% static 'pos/js/timeout.js' %}"></script>
+
+<script>
+  $(document).bind("mobileinit", function () {
+      // Stop jQuery Mobile messing with our link buttons
+      $.mobile.linkBindingEnabled = false;
+      // Hide the loading message at bottom of screen
+
+  });
+      $(document).ready(function () {
+      $(".ui-loader").hide();
       startTimer({{ timeout }}, "{{ timeout_url }}");
       $('#dum_').click();
     });
+
   </script>
-{% endblock %}
+</body>
+</html>
