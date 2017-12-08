@@ -22,13 +22,13 @@
 
     {% if enable_payment %}
       <div class="col-md-6">
-        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
+        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"
           class="btn btn-success btn-lg btn-block timed" id="pay_">Payment
           <span class="glyphicon glyphicon-ok"></span>&nbsp;
         </button>
       </div>
       <div class="col-md-6">
-        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
+        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"
           class="btn btn-danger btn-lg btn-block timed" id="can_">
             Cancel all
           <span class="glyphicon glyphicon-trash"></span>&nbsp;
@@ -36,7 +36,7 @@
       </div>
     {% else %}
       <div class="col-md-12">
-        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
+        <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"
           class="btn btn-lg btn-block btn-primary" id="end_">&nbsp;&nbsp;&nbsp;Exit&nbsp;&nbsp;&nbsp;
         </button>
       </div>

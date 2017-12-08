@@ -9,7 +9,8 @@
 .flex-left {
     width: 70%;
     height: 100vh;
-    background-color: palegreen;
+    padding: 10px;
+    background-color: #008800;
 }
 
 .flex-right {
