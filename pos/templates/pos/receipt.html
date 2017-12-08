@@ -13,17 +13,14 @@
       </td>
       </tr>
       {% endfor %}
-      <tr><td><strong>Total</strong></td><td id="id_total">{{ total }}</td></tr>
+
   </table>
 
-  <div class="pay-area ">
-
-  </div>
 </div>
+<div class="name-area"><h4>TOTAL: {{ total }}</h4></div>
 <div class="payment-area">
 
     {% if enable_payment %}
-      <h4>TOTAL: {{ total }}</h4>
       <div class="col-md-6">
         <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
           class="btn btn-success btn-lg btn-block timed" id="pay_">Payment

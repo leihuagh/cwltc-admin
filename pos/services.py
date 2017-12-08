@@ -31,7 +31,7 @@ def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt):
         total += line_item.quantity * line_item.sale_price
     trans.total = total
     trans.save()
-    first_amount, split_amount = get_split_amounts(total, count)
+    first_amount, split_amount = get_split_amounts(total * 100, count)
     i = 0
     for person_id in people_ids:
         amount = first_amount if i==0 else split_amount
@@ -39,7 +39,7 @@ def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt):
             transaction=trans,
             person_id=person_id,
             billed=False,
-            amount=amount
+            amount=Decimal(amount/100)
         )
         pos_payment.save()
         i += 1
@@ -111,5 +111,5 @@ def get_split_amounts(total, count):
     first_amount = split_amount
     split_total = split_amount * count
     if split_total != total:
-        first_amount += Decimal(0.01)
+        first_amount += 1
     return first_amount, split_amount

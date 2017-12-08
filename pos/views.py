@@ -117,7 +117,7 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
 
 
 class PosView(LoginRequiredMixin, TemplateView):
-    template_name = 'pos/pos1.html'
+    template_name = 'pos/pos.html'
 
     def get_context_data(self, **kwargs):
         context = super(PosView, self).get_context_data(**kwargs)
@@ -242,13 +242,13 @@ def make_split_context(request, context):
     for item_dict in receipt:
         total += item_dict['sale_price'] * item_dict['quantity']
 
-    first_amount, split_amount = get_split_amounts(Decimal(total/100), len(people))
+    first_amount, split_amount = get_split_amounts(total, len(people))
 
     for i in range(0, len(people)):
         if i == 0:
-            people[i].pos_charge = Decimal("{0:.2f}".format(first_amount))
+            people[i].pos_charge = Decimal("{0:.2f}".format(first_amount/100))
         else:
-            people[i].pos_charge = Decimal("{0:.2f}".format(split_amount))
+            people[i].pos_charge = Decimal("{0:.2f}".format(split_amount/100))
 
     context['people'] = people
     context['timeout_url'] = reverse('pos_start')

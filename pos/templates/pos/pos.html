@@ -1,4 +1,5 @@
-﻿{% extends 'pos\base.html' %}
+﻿{% extends 'pos/base.html' %}
+{% load i18n %}
 {% load staticfiles %}
 {% block head %}
 <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
@@ -8,86 +9,80 @@
 <!-- Include meta tag to ensure proper rendering and touch zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<div class="container">
-  <div class="row">
-    <div class="col-md-4">
-    </div>
-    <div class="col-md-4"><h2>{{ person.first_name }} {{ person.last_name}}</h2>
-  </div>
-</div>
-
-  <!--
-  {% for row in rows %}
-      {% for loc in row %}
-          {{ loc.row }} {{ loc.col }} {{ loc.item.description }}
+<form id="defaults">
+  {% csrf_token %}
+  <div class="flex-container">
+    <div class="flex-left">
+      {% for row in rows %}
+        <div class="row">
+          {% for loc in row %}
+            <div class="col col-md-2">
+              {% if loc.2 %}
+                <button class="btn btn-success btn-sq timed" id="itm_{{ loc.2.id }}"
+                        ic-include="#defaults" ic-post-to="{{ request.path }}"
+                        ic-target="#intercooler_area" ic-trigger-on="tap">
+                  <span>{{ loc.2.button_text }}</span>
+                </button>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <br/>
       {% endfor %}
-  {% endfor %}
-  -->
-
-  <form id="defaults">
-    <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
-    <div class="flex-container">
-      <div class="button-area">
-        {% for row in rows %}
-          <div class="well">
-            {% for loc in row %}
-              <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"
-                      ic-trigger-on="tap"
-                  class="posbutton ui-btn timed" id="itm_{{ loc.item.id }}">{{ loc.item.button_text }}
-              </button>
-            {% endfor %}
-          </div>
-
-        {% endfor %}
-      </div>
-      <div class="receipt-area" id="receipt_table">
-              <!-- Receipt table & buttons inserted here-->
-         {% include "pos/receipt.html" with receipt="" total="£0.00" enable_payment=0 %}
-      </div>
     </div>
-  </form>
 
-<!-- Modal -->
-<div id="pay_modal" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-    <!-- Modal content-->
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Charge to account</h4>
-      </div> 
-      <div class="modal-body">
-        <h4>Confirm charge of <span id="id_confirm"></span> to {{ person.first_name }} {{ person.last_name}}</h4>
+    <div class="flex-right">
+      <div class="name-area"><h2 class="text-center">{{ person.fullname }}</h2></div>
+      <div class="intercooler-area" id="intercooler_area">
+        <!-- Receipt table & buttons inserted here-->
       </div>
-      <div class="modal-footer">
 
-          <button class="btn btn-primary" id="yes_" data-dismiss="modal"
-            ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table"     >
+    </div >
+      <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"
+              ic-trigger-on="click" id="dum_" style="display: none"></button>
+  </div>
+
+  <!-- Modal -->
+  <div id="pay_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h3 class="modal-title">Charge to account</h3>
+        </div>
+        <div class="modal-body">
+          <h4>Confirm charge of <span id="id_confirm"></span> to {{ person.first_name }} {{ person.last_name}}</h4>
+        </div>
+        <div class="modal-footer">
+
+          <button class="btn btn-lg btn-success" id="charge" data-dismiss="modal"
+            ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"     >
             Charge to account
             <span class="glyphicon glyphicon-ok"></span>&nbsp;
           </button>
-
-        <button class="btn btn-danger" data-dismiss="modal" id="bak_"
-          ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#receipt_table">
-          Back       
-        </button>
+          <button class="btn btn-lg btn-success" id="split" data-dismiss="modal"
+            ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"     >
+            Split account
+            <span class="glyphicon glyphicon-ok"></span>&nbsp;
+          </button>
+          <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back"
+            ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area">
+            Back
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+
+</form>
 {% endblock %}
 
 {% block scripts %}
   <script src="http://cdn.intercoolerjs.org/intercooler-1.2.0.min.js"></script>
-
-  <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script>
-{#    $(document).bind("mobileinit", function () {#}
-{#      // Stop jQuery Mobile messing with our links#}
-{#      $.mobile.linkBindingEnabled = false;#}
-{#    });#}
     $(document).ready(function () {
       startTimer({{ timeout }}, "{{ timeout_url }}");
+      $('#dum_').click();
     });
   </script>
 {% endblock %}
