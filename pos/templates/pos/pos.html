@@ -11,7 +11,6 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/site.css' %}">
 <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
 
 </head>
@@ -133,10 +132,7 @@
               </button>
             </div>
             <div class="col-md-3">
-              <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back1"
-                ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area">
-                Back
-              </button>
+              <button class="btn btn-lg btn-danger" data-dismiss="modal">Back</button>
             </div>
           </div>
 

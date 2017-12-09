@@ -6,7 +6,7 @@
 {#      <td>{{ item.quantity }} x {{ item.description }} @ {{ item.sale_price }}</td>     #}
       <td><strong>{{ item.description }}</strong></td>
         <td>{{ item.total }}</td>
-      <td> <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler-area"
+      <td> <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"
                       class="btn btn-sm btn-danger timed" id="del_{{ forloop.counter0 }}">
               <span class="glyphicon glyphicon-remove"></span>
           </button>
