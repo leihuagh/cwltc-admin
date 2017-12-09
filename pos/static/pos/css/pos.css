@@ -2,7 +2,7 @@
 .flex-container {
     display: flex;
     width: 100%;
-    height: 85vu;
+    height: 100vh;
     background-color: #ccffcc;
 }
 
@@ -51,7 +51,8 @@
 }
 
 .receipt {
-  height: 70vh;
+  height: 74vh;
+  width: 97%;
   overflow-y: auto;
   padding: 5px;
   flex-direction: column;
@@ -104,8 +105,8 @@
 .btn-sq-lg {
   white-space: normal;
   width: 110px !important;
-  height: 110px !important;
-  font-size: 22px;
+  height: 107px !important;
+  font-size: 20px;
 }
 
 .btn-sq {
@@ -247,3 +248,5 @@ span.twitter-typeahead {
   font-size: 24px;
   line-height: 24px;
 }
+
+/*https://gist.github.com/jwo/17134370f78ede7482b0
