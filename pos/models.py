@@ -57,8 +57,10 @@ class Location(models.Model):
 class Transaction(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     creator = models.ForeignKey(User)
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(Person, blank=True, null=True)
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
+    complementary = models.BooleanField(default=False)
+    cash = models.BooleanField(default=False)
     billed = models.BooleanField()
     layout = models.ForeignKey(Layout, blank=True, null=True)
     split = models.BooleanField(default=False)

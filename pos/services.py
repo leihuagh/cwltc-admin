@@ -6,16 +6,23 @@ from .models import Transaction, LineItem, Layout, PosPayment
 from members.models import InvoiceItem, ItemType
 
 
-def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt):
+def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt,
+                                    cash=False, complementary=False):
     """ Create Transaction, LineItem and PosPayment records in the database """
     total = Decimal(0)
     count = len(people_ids)
+    if count > 0:
+        person_id = people_ids[0]
+    else:
+        person_id=None
     trans = Transaction(
         creator_id=creator_id,
-        person_id=people_ids[0],
+        person_id=person_id,
         layout_id=layout_id,
         total=total,
         billed=False,
+        cash=cash,
+        complementary=complementary,
         split=count > 1
         )
     trans.save()
@@ -31,19 +38,19 @@ def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt):
         total += line_item.quantity * line_item.sale_price
     trans.total = total
     trans.save()
-    first_amount, split_amount = get_split_amounts(total * 100, count)
-    i = 0
-    for person_id in people_ids:
-        amount = first_amount if i==0 else split_amount
-        pos_payment = PosPayment(
-            transaction=trans,
-            person_id=person_id,
-            billed=False,
-            amount=Decimal(amount/100)
-        )
-        pos_payment.save()
-        i += 1
-    return trans
+    if count > 0:
+        first_amount, split_amount = get_split_amounts(total * 100, count)
+        i = 0
+        for person_id in people_ids:
+            amount = first_amount if i==0 else split_amount
+            pos_payment = PosPayment(
+                transaction=trans,
+                person_id=person_id,
+                billed=False,
+                amount=Decimal(amount/100)
+            )
+            pos_payment.save()
+            i += 1
 
 
 def create_invoiceitems_from_transactions():

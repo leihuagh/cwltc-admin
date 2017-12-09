@@ -39,6 +39,7 @@ class StartView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(StartView, self).get_context_data(**kwargs)
         context['attended'] = self.request.session['attended']
+        self.request.session['receipt'] = []
         self.request.session['person_id'] = None
         return context
 
@@ -124,8 +125,10 @@ class PosView(LoginRequiredMixin, TemplateView):
         layout_id = self.request.session['layout_id']
         locations = Location.objects.filter(layout_id=layout_id).order_by('row', 'col')
         context['rows'] = pos_layout_context(layout_id, locations)
-        context['person']= Person.objects.get(pk=self.request.session['person_id'])
+        if not self.request.session['attended']:
+            context['person']= Person.objects.get(pk=self.request.session['person_id'])
         context['enable_payment'] = len(self.request.session['receipt']) > 0
+        context['attended'] = True
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
@@ -146,12 +149,25 @@ class PosView(LoginRequiredMixin, TemplateView):
                 response['X-IC-Redirect'] = reverse('pos_split_summary')
                 return response
 
-            if key == 'pay':
-                response['X-IC-Script'] = "$('#id_confirm').text($('#id_total').text());$('#pay_modal').modal('show')"
+            elif key == 'submit_id':
+                create_transaction_from_receipt(request.user.id,
+                                                [request.POST['person_id']],
+                                                request.session['layout_id'],
+                                                receipt)
+                response['X-IC-Redirect'] = reverse('pos_start')
+                return response
+
+            elif key == 'pay':
+                #response['X-IC-Script'] = "$('#id_confirm').text($('#id_total').text());$('#pay_modal').modal('show')"
+                response['X-IC-Script'] = "preparePay()"
                 return response
 
             elif key == 'back':
                 response['X-IC-Script'] = "$('#pay_modal').modal('hide')"
+                return response
+
+            elif key == 'account':
+                response['X-IC-Script'] = "chargeMember()"
                 return response
 
             elif key == 'charge':
@@ -159,11 +175,21 @@ class PosView(LoginRequiredMixin, TemplateView):
                                                 [request.session['person_id']],
                                                 request.session['layout_id'],
                                                 receipt)
-
-            if key == 'end' or key =='charge':
-                request.session['receipt'] = []
-                response = HttpResponse()
                 response['X-IC-Redirect'] = reverse('pos_start')
+                return response
+
+            elif key == 'cash':
+                create_transaction_from_receipt(request.user.id,
+                                                [],
+                                                request.session['layout_id'],
+                                                receipt,
+                                                cash=True)
+                response['X-IC-Redirect'] = reverse('pos_start')
+                return response
+
+            elif key == 'exit':
+                url = 'pos_start' if request.session['attended'] else 'pos_menu'
+                response['X-IC-Redirect'] = reverse(url)
                 return response
 
             # Subsequent keys update and refresh the receipt
@@ -191,8 +217,8 @@ class PosView(LoginRequiredMixin, TemplateView):
             context['enable_payment'] = tot > 0
             return render_to_response("pos/receipt.html", context)
 
-
         return HttpResponse("Error - wrong id", content_type='application/xhtml+xml')
+
 
 
 class SplitSummaryView(TemplateView):

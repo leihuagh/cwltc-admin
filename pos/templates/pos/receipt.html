@@ -1,6 +1,6 @@
 ﻿
 <div class="receipt">
-  <table class="table table-condensed">
+  <table class="table ">
       {% for item in receipt %}
       <tr>
 {#      <td>{{ item.quantity }} x {{ item.description }} @ {{ item.sale_price }}</td>     #}
@@ -17,7 +17,7 @@
   </table>
 
 </div>
-<div class="name-area"><h4>TOTAL: {{ total }}</h4></div>
+<div class="name-area"><h3 class="text-center">Total: <span id="id_total">{{ total }}</span> </h3></div>
 <div class="payment-area">
 
     {% if enable_payment %}
@@ -37,7 +37,7 @@
     {% else %}
       <div class="col-md-12">
         <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"
-          class="btn btn-lg btn-block btn-primary" id="end_">&nbsp;&nbsp;&nbsp;Exit&nbsp;&nbsp;&nbsp;
+          class="btn btn-lg btn-block btn-primary" id="exit">&nbsp;&nbsp;&nbsp;Exit&nbsp;&nbsp;&nbsp;
         </button>
       </div>
     {% endif %}

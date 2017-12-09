@@ -3,20 +3,20 @@
     display: flex;
     width: 100%;
     height: 85vu;
-    background-color: orange;
+    background-color: #ccffcc;
 }
 
 .flex-left {
     width: 70%;
     height: 100vh;
     padding: 10px;
-    background-color: #008800;
+    background-color: #ccffcc;
 }
 
 .flex-right {
     width: 30%;
     height: 100%;
-    background-color: yellow;
+    background-color: #ccffcc;
 }
 
 .name-area{
@@ -34,14 +34,14 @@
 .button-area {
 	width: 70%;
 	padding: 0px;
-  background-color: palegreen;
+  background-color: yellow;
 }
 .intercooler-area {
 	width: 100%;
   height: 80vh;
   flex: 1;
   flex-direction: column;
-  background-color: white;
+  background-color: #ccffcc;
 }
 
 .total-area{
@@ -51,7 +51,7 @@
 }
 
 .receipt {
-  height: 75vh;
+  height: 70vh;
   overflow-y: auto;
   padding: 5px;
   flex-direction: column;
@@ -65,7 +65,7 @@
 .payment-area {
   width: 100%;
   height: 8vh;
-  background-color: white;
+  background-color: #ccffcc;
   flex: 3;
 }
 
@@ -102,9 +102,10 @@
 }
 
 .btn-sq-lg {
-  width: 150px !important;
-  height: 150px !important;
-  font-size: 20px;
+  white-space: normal;
+  width: 110px !important;
+  height: 110px !important;
+  font-size: 22px;
 }
 
 .btn-sq {
@@ -112,8 +113,9 @@
   width: 100px !important;
   height: 70px !important;
   text-align: center;
-  font-size: 15px;
+  font-size: 16px;
 }
+
 span {
   display: inline-block;
   vertical-align: center;
