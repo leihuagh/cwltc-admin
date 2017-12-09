@@ -38,7 +38,7 @@ class Layout(models.Model):
 
 class Location(models.Model):
 
-    ROW_MAX = 5
+    ROW_MAX = 6
     COL_MAX = 6
     row = models.IntegerField()
     col = models.IntegerField()

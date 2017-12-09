@@ -53,7 +53,7 @@ class GetUserView(TemplateView):
             person = Person.objects.get(pk=request.POST['person_id'])
             if person.auth_id:
                 return redirect('pos_password')
-            return redirect('pos_register', next='pos_menu')
+            # return redirect('pos_register', next='pos_menu')
         return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
@@ -297,7 +297,7 @@ class TransactionListView(SingleTableView):
         if person_id:
             self.qs = Transaction.objects.filter(person_id=person_id).order_by('-creation_date')
         else:
-            self.qs = Transaction.objects.all()
+            self.qs = Transaction.objects.all().order_by('-creation_date')
         return self.qs
 
     def get_context_data(self, **kwargs):
@@ -459,7 +459,7 @@ class LayoutUpdateView(LoginRequiredMixin, UpdateView):
             if file_name:
                 new_layout = Layout.objects.create(
                     name=file_name,
-                    invoice_itemtype=layout.invoice_itemtype
+                    #invoice_itemtype=layout.invoice_itemtype
                 )
                 layout=new_layout
             else:

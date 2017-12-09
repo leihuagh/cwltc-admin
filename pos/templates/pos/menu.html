@@ -12,9 +12,7 @@
         <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block stop-timer">Purchase items from bar</a></p>
         <p><a href="{% url 'pos_transactions_person' person_id=person.id %}" class="btn btn-success btn-lg btn-block stop-timer">View my transactions</a></p>
         <p><a href="{% url 'pos_user' %}" class="btn btn-success btn-lg btn-block stop-timer">Back</a></p>
-        {% if request.user.is_admin %}
          <p><a href="{% url 'home' %}" class="btn btn-primary btn-lg btn-block stop-timer">Exit Pos</a></p>
-        {% endif %}
       </div>
     </div>
   </div>
