@@ -2,7 +2,13 @@
 {% load staticfiles %}
 
 {% block content %}
-    <div class="row">
+  {% if messages %}
+{% for message in messages %}
+<div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+      <div class="row">
 
       <img class="img-responsive" src="{% static 'images/Drone1200.jpg' %}" alt="Coombe Wood courts"/>
 
@@ -17,7 +23,7 @@
       </div>
       <div class="col-md-4">
         <h3 style="color:darkgreen">Registration</h3>
-        <a class="btn btn-success" href="{% url 'public_register' next='club_home' %}">Register</a>
+        <a class="btn btn-success" href="{% url 'public_register' next='public_token' %}">Register</a>
         <br />
         <p>For club members who have not yet registered to use our online facilities</p><br />
     

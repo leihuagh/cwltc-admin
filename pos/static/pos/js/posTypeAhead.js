@@ -4,7 +4,7 @@ function bind_typeahead(typeahead_id, person_id, submit_id) {
         datumTokenizer: Bloodhound.tokenizers.whitespace,
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
-            url: '/ajax/people/?term=%QUERY&pos=true',
+            url: '/ajax/people/?term=%QUERY&adult=true',
             wildcard: '%QUERY'
         }
     });
@@ -31,7 +31,7 @@ function bind_typeahead(typeahead_id, person_id, submit_id) {
 
     // Record selected item when cursor changes it
     $(typeahead_id).bind('typeahead:cursorchange', function (event, item) {
-        if (typeof item == 'undefined') {
+        if (typeof item === 'undefined') {
             $(person_id).val("");
         } else {
             $(person_id).val(item.id);

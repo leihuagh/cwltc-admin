@@ -1,9 +1,6 @@
-from decimal import *
-from django.shortcuts import render, render_to_response
-from django.http import HttpRequest, HttpResponseRedirect, HttpResponse, JsonResponse, Http404
-from django.template import RequestContext
-from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, TemplateView
-from django.views.generic.edit import FormView, FormMixin, ProcessFormView
+from django.shortcuts import render_to_response
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, Http404
+from django.views.generic import DetailView, CreateView, UpdateView, TemplateView
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.hashers import check_password
@@ -34,6 +31,7 @@ class LoadView(LoginRequiredMixin, TemplateView):
 
 
 class StartView(LoginRequiredMixin, TemplateView):
+    """ Member login or attended mode selection """
     template_name = 'pos/start.html'
 
     def get_context_data(self, **kwargs):
@@ -45,6 +43,7 @@ class StartView(LoginRequiredMixin, TemplateView):
 
 
 class GetUserView(TemplateView):
+    """ User identification """
     template_name = 'pos/get_user.html'
 
     def post(self, request, *args, **kwargs):
@@ -53,7 +52,7 @@ class GetUserView(TemplateView):
             person = Person.objects.get(pk=request.POST['person_id'])
             if person.auth_id:
                 return redirect('pos_password')
-            # return redirect('pos_register', next='pos_menu')
+            return redirect('pos_register', next='pos_token')
         return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
@@ -64,6 +63,7 @@ class GetUserView(TemplateView):
 
 
 class GetPasswordView(TemplateView):
+    """ User's password or PIN """
     template_name = 'pos/get_password.html'
 
     def post(self, request, *args, **kwargs):
@@ -86,8 +86,9 @@ class GetPasswordView(TemplateView):
 
 
 class PosRegisterView(RegisterView):
+    """ When user is not registered we use the public
+    registration form and override some things """
     template_name = 'pos/register.html'
-
 
     def get_initial(self):
         initial = super(PosRegisterView, self).get_initial()
@@ -103,8 +104,21 @@ class PosRegisterView(RegisterView):
         context['timeout'] = LONG_TIMEOUT
         return context
 
+    def get_success_url(self, **kwargs):
+        """
+        This is really the url called when registration fails.
+        When all is OK we will redirect to PosRegisterTokenView
+        """
+        return reverse('pos_start')
+
+class PosRegisterTokenView(RegisterTokenView):
+
+    def get_success_url(self, **kwargs):
+        return reverse('pos_menu')
+
 
 class MemberMenuView(LoginRequiredMixin, TemplateView):
+    """ Menu of options for members """
     template_name = 'pos/menu.html'
 
     def get_context_data(self, **kwargs):
@@ -118,6 +132,7 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
 
 
 class PosView(LoginRequiredMixin, TemplateView):
+    """ The main POS screen """
     template_name = 'pos/pos.html'
 
     def get_context_data(self, **kwargs):
@@ -220,8 +235,8 @@ class PosView(LoginRequiredMixin, TemplateView):
         return HttpResponse("Error - wrong id", content_type='application/xhtml+xml')
 
 
-
 class SplitSummaryView(TemplateView):
+    """ Summarise current tstat of a split transaction """
     template_name = 'pos/split_summary.html'
 
     def post(self, request, *args, **kwargs):
@@ -242,6 +257,7 @@ class SplitSummaryView(TemplateView):
 
 
 class GetUserSplitView(TemplateView):
+    """ Add a user to a split transaction """
     template_name = 'pos/split_user.html'
 
     def post(self, request, *args, **kwargs):
@@ -259,6 +275,7 @@ class GetUserSplitView(TemplateView):
 
 
 def make_split_context(request, context):
+    """ Common context for split summary and user views"""
     people = []
     for id in request.session['people_ids']:
         people.append(Person.objects.get(pk=id))
@@ -283,9 +300,7 @@ def make_split_context(request, context):
 
 
 class TransactionListView(SingleTableView):
-    '''
-    List transactions with filtering
-    '''
+    """List transactions with filtering"""
     model = Transaction
     table_class = TransactionTable
     template_name = 'pos/transactions.html'
@@ -311,10 +326,10 @@ class TransactionListView(SingleTableView):
 
 
 class LineItemListView(SingleTableView):
-    '''
+    """
     If trans_id kwarg passed show items for that transaction
     else show all items
-    '''
+    """
     model = LineItem
     table_class = LineItemTable
     template_name = 'pos/lineitems.html'
@@ -343,6 +358,7 @@ class LineItemListView(SingleTableView):
 
 
 class TransactionDetailView(DetailView):
+    """ Transaction details """
     model = Transaction
     template_name = 'pos/transaction_detail.html'
 
@@ -356,6 +372,7 @@ class TransactionDetailView(DetailView):
 
 
 class ItemListView(LoginRequiredMixin, SingleTableView):
+    """ POS items List """
     model = Item
     table_class = ItemTable
     template_name = 'pos/item_list.html'
@@ -367,6 +384,7 @@ class ItemListView(LoginRequiredMixin, SingleTableView):
 
 
 class ItemUpdateView(LoginRequiredMixin, UpdateView):
+    """ Edit POS items"""
     model = Item
     form_class = ItemForm
     success_url = reverse_lazy('pos_item_list')
@@ -392,6 +410,7 @@ class ItemUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class ItemCreateView(LoginRequiredMixin, CreateView):
+    """ Create POS items"""
     model = Item
     form_class = ItemForm
     success_url = reverse_lazy('pos_item_list')
@@ -408,6 +427,7 @@ class ItemCreateView(LoginRequiredMixin, CreateView):
     
 
 class LayoutListView(LoginRequiredMixin, SingleTableView):
+    """ Summary of available POS layouts """
     model = Layout
     table_class = LayoutTable
     template_name = 'pos/layout_list.html'
@@ -419,6 +439,7 @@ class LayoutListView(LoginRequiredMixin, SingleTableView):
 
 
 class LayoutCreateView(LoginRequiredMixin, CreateView):
+    """ Create new POS layout """
     model = Layout
     form_class = LayoutForm
     success_url = reverse_lazy('pos_layout_list')
@@ -435,6 +456,7 @@ class LayoutCreateView(LoginRequiredMixin, CreateView):
 
 
 class LayoutUpdateView(LoginRequiredMixin, UpdateView):
+    """ Edit a POS layout """
     model = Layout
     form_class = LayoutForm
     template_name = 'pos/layout_form.html'

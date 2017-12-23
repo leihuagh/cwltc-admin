@@ -424,11 +424,13 @@ def ajax_people(request):
                 people = Person.objects.filter(pk=q)
             else:
                 people = Person.objects.filter(Q(first_name__istartswith=q) |
-                                               Q(last_name__istartswith=q))[:20]
+                                               Q(last_name__istartswith=q))
         else:
             people = Person.objects.filter(first_name__istartswith=keys[0],
                                            last_name__istartswith=keys[1]
                                            )
+        if request.GET.get('adult', ""):
+            people = people.filter(membership__is_adult=True, state=Person.ACTIVE, sub__paid=True)[:9]
         for person in people:
             person_json = {}
             person_json['id'] = person.id

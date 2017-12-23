@@ -4,11 +4,12 @@ from decimal import *
 from enum import IntEnum
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
-from django.dispatch import receiver 
+from django.dispatch import receiver
+
 from markdownx.models import MarkdownxField
-# from cardless.services import invoice_payments_list
 
 def formatted_date(d):
     return u'{}/{}/{}'.format(d.day, d.month, d.year)
@@ -88,6 +89,7 @@ class Person(models.Model):
     # subscription_set
     # payment_set
     # creditnote_set
+
     objects = models.Manager()
     parent_objects = ParentsManager()
 
@@ -98,20 +100,29 @@ class Person(models.Model):
         return reverse("person-detail", kwargs={"pk": self.pk})   
       
     def age(self, date):
-        ''' return the age in years on given date
-        '''
+        """ Return the age in years on given date """
         if self.dob:
             return date.year - self.dob.year - ((date.month, date.day) < (self.dob.month, self.dob.day))
     
     def age_today(self):
         return self.age(date.today())
+
+    def create_user(self, username, password, pin):
+        """ Register a member as a Django user """
+        self.auth = User.objects.create_user(username=username,
+                                             email=self.email,
+                                             password=password,
+                                             first_name=self.first_name,
+                                             last_name=self.last_name)
+        self.pin = make_password(pin)
+        self.save()
     
     @property
     def fullname(self):
         return self.first_name + " " + self.last_name    
     
     def active_sub(self, year):
-        ''' Return the active subscription for a year if one exists. '''       
+        """ Return the active subscription for a year if one exists. """
         subs = self.subscription_set.filter(sub_year=year, active=True)
         if subs.count() == 1:
             return subs[0]
