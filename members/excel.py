@@ -274,42 +274,6 @@ def export_people(sheetName, people, option=""):
     return response   
 
 
-def export_juniors(memlist):
-   
-    sheet_name = 'Juniors'
-    columns = [
-        'Id',
-        'Gender',
-        'First name',
-        'Last name',
-        'Membership',
-        'Date of birth',
-        'Date joined',
-        'Parent first name',
-        'Parent last name',
-        'Email',
-        'Mobile phone',
-        'Home phone',
-        'Address 1',
-        'Address 2',
-        'Town',
-        'Post code'
-        ]
-    response = HttpResponse(content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename=' + sheet_name + '.xls'
-    book = Workbook(encoding='utf-8')
-    sheet = book.add_sheet(sheet_name) 
-    for col_num in range(len(columns)):
-        sheet.write(0, col_num, columns[col_num])
-                   
-    row_num = 0
-    for row in memlist:
-        row_num += 1
-        for col_num in range(len(row)):
-            sheet.write(row_num, col_num, row[col_num]) 
-    book.save(response)
-    return response
-
 def import_items(sheet, save_data):
     """
     Import invoice items and Excel sheets in the book
