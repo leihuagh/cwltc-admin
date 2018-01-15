@@ -215,7 +215,9 @@ def export_people(sheetName, people, option=""):
         'Year joined',
         'Membership',
         'Paid',
-        'Resigned'
+        'Resigned',
+        'DOB',
+        'Parent',
         ]
     for col_num in range(len(columns)):
         sheet.write(0, col_num, columns[col_num])
@@ -258,53 +260,41 @@ def export_people(sheetName, people, option=""):
                 joined.year,
                 desc,
                 paid,
-                resigned
+                resigned,
+                person.dob,
             ]
+            if person.linked:
+                row += [person.linked.fullname]
+            else:
+                row += [""]
+
             for col_num in range(len(row)):
                 sheet.write(row_num, col_num, row[col_num])
     book.save(response)
     return response   
 
 
-def export_members(memlist, juniors=False):
+def export_juniors(memlist):
    
-    if juniors:
-        sheet_name = 'Juniors'            
-        columns = [
-            'Id',
-            'Gender',
-            'First name',
-            'Last name',
-            'Membership',
-            'Date of birth',
-            'Date joined',
-            'Parent first name',
-            'Parent last name',
-            'Email',
-            'Mobile phone',
-            'Home phone',
-            'Address 1',
-            'Address 2',
-            'Town',
-            'Post code'
-            ]
-    else:
-        sheet_name = 'Members'
-        columns = [
-            'Id',
-            'Gender',
-            'First name',
-            'Last name',
-            'Address 1',
-            'Address 2',
-            'Town',
-            'Post code',
-            'Home phone',
-            'Mobile phone',
-            'Email',
-            'Year joined',
-            'Membership'
-            ]
+    sheet_name = 'Juniors'
+    columns = [
+        'Id',
+        'Gender',
+        'First name',
+        'Last name',
+        'Membership',
+        'Date of birth',
+        'Date joined',
+        'Parent first name',
+        'Parent last name',
+        'Email',
+        'Mobile phone',
+        'Home phone',
+        'Address 1',
+        'Address 2',
+        'Town',
+        'Post code'
+        ]
     response = HttpResponse(content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename=' + sheet_name + '.xls'
     book = Workbook(encoding='utf-8')

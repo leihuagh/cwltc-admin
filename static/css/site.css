@@ -1,11 +1,23 @@
-﻿p {
-    font-family: 'Source Sans Pro', sans-serif;
-}
-
+﻿
 /* padding after navbar */
 body {
-    padding-top: 50px;
+  padding-top: 50px;
+  font-family: 'Rubik', sans-serif;
 }
+
+
+.header-stripe {
+  background-color: #389555;
+}
+
+.background-container {
+  background-color: #1f1520;
+}
+
+.header-text {
+  color: #f4f7f5;
+}
+
 
 .fixed-panel {
     min-height: 60vh;

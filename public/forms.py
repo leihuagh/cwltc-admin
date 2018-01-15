@@ -41,11 +41,13 @@ class RegisterForm(Form):
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
             HTML("<p>You must already be a club member to use this form.</p>"),
-            Div('first_name', 'last_name', 'email', 'post_code', css_class="well"),
-            FormActions(
-                SubmitButton('submit', 'Next', css_class='btn-success'),
-                HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>')
-                )
+            Div(
+                Div('first_name', 'last_name', 'email', 'post_code', css_class='card-body green'),
+                Div(
+                    SubmitButton('submit', 'Next', css_class='btn-success'),
+                    HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>'),
+                    css_class='card-footer'),
+                css_class='card')
             )
         self.person = None
 

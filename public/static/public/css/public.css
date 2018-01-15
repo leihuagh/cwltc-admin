@@ -1,8 +1,61 @@
 /* padding after navbar */
 body {
     padding-top: 0px;
+    font-family: 'Rubik', sans-serif;
+    background-color: #eee;
 }
 
-.well {
-    background: rgb(195, 224, 186);
+.header-stripe {
+    background-color: #389555;
+    background-image: url("Drone1200.jpg");
+    line-height: 1.2;
+}
+
+.background-container {
+  background-color: #1f1520;
+}
+
+.header-text {
+  color: #f4f7f5;
+}
+
+.card {
+    /*line-height: 1.5;*/
+    /*border-color: #00aa00;*/
+    /*border-radius: 1px;*/
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+/*.card-body {*/
+    /*background: rgb(195, 224, 186);*/
+/*}*/
+
+/*.card-footer {*/
+    /*border-top-color: #006600;*/
+/*}*/
+
+.control-label {
+    /*font-weight: bold;*/
+}
+
+/*
+Removes white gap between slides
+*/
+.carousel {
+  background:#000;
+}
+
+/*
+Forces image to be 100% width and not max width of 100%
+*/
+.carousel-item .img-fluid {
+  width:100%;
+  height:auto;
+}
+
+/*
+anchors are inline so you need ot make them block to go full width
+*/
+.carousel-item a {
+  display: block;
+  width:100%;
 }

@@ -129,7 +129,8 @@ class SubsTableView(StaffuserRequiredMixin, SingleTableView):
                     'sub__membership'
                     )                                                 
             self.request.session['selected_people_ids'] = []
-            return export_people('People', selected_people)
+            sheet_name = 'Juniors' if 'juniors' in request.session['source_path'] else 'People'
+            return export_people(sheet_name, selected_people)
 
         if action == 'mail':
             return redirect('email-selection')

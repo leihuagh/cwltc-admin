@@ -12,6 +12,7 @@ from .models import Invoice, TextBlock, MailType, Membership, Settings
 mailgun_api_key = 'key-44e941ede1264ea215021bb0b3634eb4'
 mailgun_api_url = 'https://api.mailgun.net/v3/mg.coombewoodltc.co.uk'
 
+
 def do_mail(request, invoice, option):
     count = 0
     family = invoice.person.person_set.all()
@@ -124,13 +125,16 @@ def send_template_mail(request, person, text,
                 anchor ='<p><a href="' + url + '">Invoice ' + str(inv.id) + '</a><p>'
                 invoice_urls.append(anchor)
         context = Context({
-            'first_name':recipient.first_name,
+            'request': request,
+            'recipient': recipient,
+            'id': recipient.id,
+            'first_name': recipient.first_name,
             'last_name': recipient.last_name,
             'total_unpaid': total_unpaid,
             'invoice_urls': invoice_urls})
         if child:
             context['child'] = child.first_name
-        template = Template(text)
+        template = Template('{% load members_extras %}' + text)
         html_body = template.render(context)
 
         # Add an unsubscribe url    
