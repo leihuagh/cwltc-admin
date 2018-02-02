@@ -14,7 +14,7 @@ django-appconf==1.0.2
 django-bootstrap3-datetimepicker-2==2.5.0
 django-braces==1.8.1
 django-celery-email==2.0.0
-django-crispy-forms==1.6.1
+django-crispy-forms==1.7.0
 django-debug-toolbar==1.5
 django-environ==0.4.4
 django-extensions==1.8.1

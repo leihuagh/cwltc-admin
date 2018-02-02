@@ -9,17 +9,29 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.http import HttpResponse
 from django.views.generic.edit import FormView
-
+from django.utils.text import slugify
+from django.db import transaction
 from members.models import Group, Invoice, Person, MailType, AdultApplication, Settings, Subscription
-from members import mail
 from members.services import group_get_or_create
-from members.forms import JuniorForm, PersonForm
-#from .forms import ContactForm, AdultApplicationFormHelper, RegisterForm, RegisterTokenForm
 from .forms import *
 from members.services import membership_from_dob
 from cardless.services import detokenise, invoice_payments_list, active_mandate
 
 logger = logging.getLogger(__name__)
+
+
+class Button(object):
+    name = ''
+    value = ''
+    no_validate = False
+    css_class = 'btn'
+
+    def __init__(self, value="submit", name="", css_class='btn-primary', no_validate=False):
+        self.value = value
+        self.name = slugify(value) if name == "" else name
+        self.css_class = 'btn '+ css_class
+        self.novalidate = no_validate
+
 
 # ================= Public Views accessed through a token
 
@@ -276,21 +288,49 @@ def session_get_post(index, request):
     posts = request.session.get('posts', None)
     if posts:
         if index >= 0 and index < len(posts):
-            return posts[index]
+            if not (posts[index].get('invalid', False) or posts[index].get('deleted', False)):
+                return posts[index]
     return None
+
+
+def session_last_fullname(index, request):
+    """ Return the full name of the last applicant """
+    while True:
+        index -= 1
+        data = session_get_post(index, request)
+        if data:
+            if data['form_type'] == 'Name':
+                return data['first_name'] + " " + data['last_name']
+        if index <=0:
+            return 'Name error'
 
 
 def session_delete_post(index, request):
     """
     Delete post data for index
     If it is not the last one in the list,
-    delete the next record (profile) too
+    delete the next 1 or 2 record ( contact(adults) and profile) too
     """
     posts = request.session['posts']
     if index < len(posts):
         posts[index]['deleted'] = True
-        if index + 1< len(posts):
-            posts[index + 1]['deleted'] = True
+        index += 1
+        if index < len(posts):
+            if posts[index]['form_type'] == 'Contact':
+                posts[index]['deleted'] = True
+                index += 1
+            if index < len(posts):
+                posts[index]['deleted'] = True
+        request.session.modified = True
+
+def session_invalidate_post(index, request):
+    """
+    Invalidate post data for index
+    Used when child profile is changed to adult profile or vice versa
+    """
+    posts = request.session['posts']
+    if index < len(posts):
+        posts[index]['invalid'] = True
         request.session.modified = True
 
 
@@ -320,11 +360,12 @@ def session_back(index, request):
 
 
 def session_update_kwargs(view, kwargs):
-    if view.request.method == 'GET':
-        post = session_get_post(view.index, view.request)
-        if post:
-            kwargs.update({'data': post})
-            kwargs.update({'delete': True})
+    """
+    Update the forms kwargs with stored POST data if it exists
+    """
+    data = session_post_data(view)
+    if data:
+        kwargs.update({'data': data})
     return kwargs
 
 
@@ -333,6 +374,29 @@ def session_last_index(request):
     return the next free index
     """
     return len(request.session['posts']) - 1
+
+
+def session_post_data(view):
+    """ Return POST data if it exists for a view"""
+    if view.request.method == 'GET':
+        return session_get_post(view.index, view.request)
+    return None
+
+
+def redirect_next(index, request):
+    """ Redirect to form if data exists else to next action form """
+    posts = request.session['posts']
+    i = index
+    while i < len(posts) - 1:
+        i += 1
+        if not (posts[i].get('deleted', False) or posts[i].get('invalid', False)):
+            break
+    if i < len(posts) - 1:
+        form_type = posts[i]['form_type']
+        if form_type =='Name':
+            return redirect('public-apply-add', index=i)
+    else:
+        return redirect('public-apply-next')
 
 
 def build_family(request):
@@ -344,18 +408,21 @@ def build_family(request):
     family = []
     while i < len(posts) - 1:
         if not posts[i].get('deleted', False):
-            if posts[i]['form_type'] == "Name":
+            form_type = posts[i]['form_type']
+            if form_type == "Name":
                 name = posts[i]['first_name'] + " " + posts[i]['last_name']
                 i += 1
-                if posts[i]['form_type'] != "Name":
-                    membership_id = posts[i]['membership_id']
-                    membership = Membership.objects.get(pk=membership_id).description
-                    i += 1
-                else:
-                    membership = "Parent or guardian"   
-                family.append([name, membership])
-            else:
+                form_type =  posts[i]['form_type']
+            if form_type == 'Contact':
                 i += 1
+                form_type = posts[i]['form_type']
+            if form_type in ['Adult', 'Child']:
+                membership_id = posts[i]['membership_id']
+                membership = Membership.objects.get(pk=membership_id).description
+                family.append([name, membership])
+                i += 1
+            else:
+                family.append([name, "Parent or guardian"  ])
         else:
             i += 1
     return family
@@ -423,6 +490,13 @@ class ApplyMain(TemplateView):
             self.address_form = AddressForm()
         return render(request, self.template_name, self.get_context_data(**kwargs))
 
+    def get_context_data(self, **kwargs):
+        kwargs['name_form'] = self.name_form
+        kwargs['address_form'] = self.address_form
+        kwargs['form_title'] = "Adult Application Form" if self.request.session['adult'] else "Details of parent or guardian"
+        kwargs['buttons'] = [Button('Next', css_class='btn-success')]
+        return super(ApplyMain, self).get_context_data(**kwargs)
+
     def post(self, request, *args, **kwargs):
         self.name_form = NameForm(request.POST,
                                   adult=request.session['adult'],
@@ -439,25 +513,19 @@ class ApplyMain(TemplateView):
                 request.session['person'] = self.name_form.save(commit=False)
                 request.session['address'] = self.address_form.save(commit=False)
                 session_update_post(0, request)
-
+                next_index = session_next_index(0, request)
                 if 'dob' not in request.POST:
-                    return redirect('public-apply-add', index=1)
+                    return redirect('public-apply-add', index=next_index)
                 else:
                     dob = self.name_form.cleaned_data['dob']
                     membership = membership_from_dob(dob)
                     if membership.is_adult:
                         # actual adult membership will be determined in profile
                         request.session['person'].membership_id = membership.id
-                        return redirect('public-apply-addadult', index=1, membership_id = 0)
+                        return redirect('public-apply-addadult', index=next_index, membership_id=0)
                 self.name_form.add_error(None,"Please enter adult information on this form")
                 self.name_form.add_error('dob', "Not an adult's date of birth")
         return render(request, self.template_name, self.get_context_data(**kwargs))
-
-    def get_context_data(self, **kwargs):  
-        kwargs['name_form'] = self.name_form
-        kwargs['address_form'] = self.address_form     
-        kwargs['form_title'] = "Adult Application Form" if self.request.session['adult'] else "Details of parent or guardian"
-        return super(ApplyMain, self).get_context_data(**kwargs)
 
 
 class ApplyAddView(CreateView):
@@ -465,71 +533,125 @@ class ApplyAddView(CreateView):
     Get name and dob of next family member
     Also handles deletion of member when page revisited
     """
-    template_name = 'public/application.html'
+    template_name = 'public/crispy_card.html'
     form_class = FamilyMemberForm
     model = Person
     index = -1
 
     def dispatch(self, request, *args, **kwargs):
         self.index = int(self.kwargs['index'])
+        posted = session_get_post(self.index, request)
+        if posted:
+            self.initial = posted
+        else:
+            self.initial = {'last_name': self.request.session['person'].last_name}
         return super(ApplyAddView, self).dispatch(request, *args, **kwargs)   
 
     def get_form_kwargs(self):      
         kwargs = super(ApplyAddView, self).get_form_kwargs()
-        kwargs['initial']={'last_name': self.request.session['person'].last_name}
+        kwargs['restricted_fields'] = True
+        kwargs['dob_needed'] = True
         return session_update_kwargs(self, kwargs)
+
+    def get_context_data(self, **kwargs):
+        kwargs['buttons'] = [Button('Back', css_class='btn-success', no_validate=True),
+                             Button('Next', css_class='btn-success')]
+        if session_post_data(self):
+            kwargs['buttons'].append(Button('Delete', css_class='btn-danger', no_validate=True))
+        if self.index == session_last_index(self.request):
+            kwargs['form_title'] = "Add family member"
+        else:
+            kwargs['form_title'] = "Edit family member"
+        return super(ApplyAddView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         if 'back' in request.POST:
             return redirect(session_back(self.index, request))
-        return super(ApplyAddView, self).post(request, *args, **kwargs)
-
-    def form_valid(self, form):
         if 'delete' in self.request.POST:
             session_delete_post(self.index, self.request)
             return redirect(session_back(self.index, self.request))
-        else:
-            session_update_post(self.index, self.request)
-            dob = form.cleaned_data['dob']
-            membership = membership_from_dob(dob)
-            index = session_next_index(self.index, self.request)
-            if membership.is_adult:
-                if not self.request.session['adult']:
-                    form.add_error('dob', 'You can only add children to this form')
-                    return render(self.request, self.template_name, self.get_context_data())
-            
-                if membership.cutoff_age:
-                    return redirect('public-apply-addadult', index=index, membership_id=membership.id)
-                else:
-                    return redirect('public-apply-addadult', index=index, membership_id=0)
-            return redirect('public-apply-addchild', index=index, membership_id=membership.id)  
+        return super(ApplyAddView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        session_update_post(self.index, self.request)
+        dob = form.cleaned_data['dob']
+        membership = membership_from_dob(dob)
+        index = session_next_index(self.index, self.request)
+        # if next record is a profile, invalidate it if it is the wrong type
+        next_post = session_get_post(index, self.request)
+        if next_post and next_post['form_type'] == 'Contact' and not membership.is_adult:
+            session_invalidate_post(index, self.request)
+        if membership.is_adult:
+            if not self.request.session['adult']:
+                form.add_error('dob', 'You can only add children to this form')
+                return super(ApplyAddView, self).form_invalid(form)
+
+            if membership.cutoff_age:
+                return redirect('public-apply-contact', index=index, membership_id=membership.id)
+            else:
+                return redirect('public-apply-contact', index=index, membership_id=0)
+        return redirect('public-apply-addchild', index=index, membership_id=membership.id)
+
+
+class ApplyContactView(FormView):
+    """ Get adult contact details """
+    template_name = 'public/crispy_card.html'
+    form_class = AdultContactForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.index = int(self.kwargs['index'])
+        self.membership_id = int(self.kwargs['membership_id'])
+        self.full_name = session_last_fullname(self.index, request)
+        posted = session_get_post(self.index, request)
+        if posted:
+            self.initial = posted
+        return super(ApplyContactView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        if self.index == session_last_index(self.request):
-            kwargs['form_title'] = "Add family member"
-        else:
-            kwargs['form_title'] = "Family member"
-        return super(ApplyAddView, self).get_context_data(**kwargs)
+
+        kwargs['form_title'] = "Contact details: " + self.full_name
+        kwargs['buttons'] = [Button('Back', css_class='btn-success'),
+                             Button('Next', css_class='btn-success')]
+        return super(ApplyContactView, self).get_context_data(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if 'back' in request.POST:
+            return redirect(session_back(self.index, request))
+        return super(ApplyContactView, self).post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        session_update_post(self.index, self.request)
+        index = session_next_index(self.index, self.request)
+        return redirect('public-apply-addadult', index, self.kwargs['membership_id'])
 
 
 class ApplyAdultProfileView(CreateView):
     """
     Get adult membership type and profile
     """
-    template_name = 'public/application.html'
+    template_name = 'public/crispy_card.html'
     form_class = AdultProfileForm
     
     def dispatch(self, request, *args, **kwargs):
         self.index = int(self.kwargs['index'])
         self.membership_id = int(self.kwargs['membership_id'])
-        last_post = session_get_post(self.index - 1, self.request)
-        self.full_name = last_post['first_name'] + " " + last_post['last_name']
+        self.full_name = session_last_fullname(self.index, request)
+        posted = session_get_post(self.index, request)
+        if posted:
+            self.initial = posted
         return super(ApplyAdultProfileView, self).dispatch(request, *args, **kwargs)
-    
-    def get_form_kwargs(self):      
+
+    def get_form_kwargs(self):
         kwargs = super(ApplyAdultProfileView, self).get_form_kwargs()
         kwargs['choices'] = Membership.adult_choices(self.membership_id)
         return session_update_kwargs(self, kwargs)
+
+    def get_context_data(self, **kwargs):
+        kwargs['form_title'] = "Adult profile: " + self.full_name
+        kwargs['memberships'] = Membership.adult_choices(self.membership_id, description=True)
+        kwargs['buttons'] = [Button('Back', css_class='btn-success'),
+                             Button('Next', css_class='btn-success')]
+        return super(ApplyAdultProfileView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         if 'back' in request.POST:
@@ -539,42 +661,37 @@ class ApplyAdultProfileView(CreateView):
     def form_valid(self, form):
         membership = Membership.objects.get(pk=form.cleaned_data['membership_id']).description
         session_update_post(self.index, self.request)
-        return redirect('public-apply-next')
-
-    def get_context_data(self, **kwargs):          
-        #kwargs['family'] = build_family(self.request)
-        kwargs['name'] = self.full_name
-        kwargs['form_title'] = "Adult profile"
-        kwargs['memberships'] = Membership.adult_choices(self.membership_id, description=True)
-        return super(ApplyAdultProfileView, self).get_context_data(**kwargs)
+        return redirect_next(self.index, self.request)
 
 
 class ApplyChildProfileView(FormView):
     """
     Get child notes
     """
-    template_name = 'public/application.html'
+    template_name = 'public/crispy_card.html'
     form_class = ChildProfileForm
    
     def dispatch(self, request, *args, **kwargs):
         self.index = int(self.kwargs['index'])
-        last_post = session_get_post(self.index - 1, self.request)
-        self.full_name = last_post['first_name'] + " " + last_post['last_name']
+        self.full_name = session_last_fullname(self.index, request)
+        posted = session_get_post(self.index, request)
+        if posted:
+            self.initial = posted
+        else:
+            self.initial = {'membership_id': self.kwargs['membership_id']}
         return super(ApplyChildProfileView, self).dispatch(request, *args, **kwargs) 
 
     def get_form_kwargs(self):      
         kwargs = super(ApplyChildProfileView, self).get_form_kwargs()
-        kwargs['initial'] = {'membership_id': self.kwargs['membership_id']}
         return session_update_kwargs(self, kwargs)
 
-    #def get(self, request, *args, **kwargs):
-    #    last_post = session_get_post(self.index - 1, self.request)
-    #    if last_post:
-    #        if last_post.get('first_name', None):
-    #            self.full_name = last_post['first_name'] + " " + last_post['last_name']
-    #            return super(ApplyChildProfileView, self).get(request, *args, **kwargs)
-    #    return HttpResponse("This form is no longer valid")
-    
+    def get_context_data(self, **kwargs):
+        membership = Membership.objects.get(pk=self.kwargs['membership_id']).description
+        kwargs['form_title'] = membership + ": " + self.full_name
+        kwargs['buttons'] = [Button('Back', css_class='btn-success'),
+                             Button('Next', css_class='btn-success')]
+        return super(ApplyChildProfileView, self).get_context_data(**kwargs)
+
     def post(self, request, *args, **kwargs):
         if 'back' in request.POST:
             return redirect(session_back(self.index, request))
@@ -582,21 +699,23 @@ class ApplyChildProfileView(FormView):
 
     def form_valid(self, form):
         session_update_post(self.index, self.request)
-        return redirect('public-apply-next')
+        return redirect_next(self.index, self.request)
     
-    def get_context_data(self, **kwargs):
-        membership = Membership.objects.get(pk=self.kwargs['membership_id']).description
-        kwargs['form_title'] = membership + ":"
-        kwargs['name'] = self.full_name
-        return super(ApplyChildProfileView, self).get_context_data(**kwargs)
-
 
 class ApplyNextActionView(FormView):
     """
     Decide to Add another member or submit
     """
-    template_name = 'public/application.html'
+    template_name = 'public/crispy_card.html'
     form_class = ApplyNextActionForm
+
+    def get_context_data(self, **kwargs):
+        kwargs['form_title'] = "Applicants"
+        kwargs['family'] = build_family(self.request)
+        kwargs['buttons'] = [Button("Back", "back"),
+                             Button("Add family member", "add"),
+                             Button("Complete application", "submit")]
+        return super(ApplyNextActionView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         index = session_last_index(request) + 1
@@ -606,10 +725,6 @@ class ApplyNextActionView(FormView):
             return redirect('public-apply-submit')
         return redirect('public-apply-add', index)
     
-    def get_context_data(self, **kwargs):
-        kwargs['family'] = build_family(self.request)
-        return super(ApplyNextActionView, self).get_context_data(**kwargs)
-
 
 class ApplySubmitView(TemplateView):
     """
@@ -621,6 +736,7 @@ class ApplySubmitView(TemplateView):
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context_data(**kwargs))
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         if 'back' in request.POST:
             return redirect(session_back(0, request))
@@ -662,6 +778,11 @@ class ApplySubmitView(TemplateView):
                         kid.save()
                         i += 1
                         if posts[i]['form_type'][0] == "Adult":
+                            contact_form = ContactForm(posts[i])
+                            kid.email = contact_form.email
+                            kid.mobile_phone = contact_form.mobile_phone
+                            kid.save()
+                            i += 1
                             profile_form = AdultProfileForm(posts[i])
                             if profile_form.is_valid():
                                 profile = profile_form.save()

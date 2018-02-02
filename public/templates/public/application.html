@@ -1,35 +1,41 @@
 {% extends "public/base.html" %}
-{% load staticfiles %}
+{% load static %}
 {% load crispy_forms_tags %}
 {% load members_extras %}
 {% block content %}
-<div class="row">
-  <div class="col-sm-12">
-    <img class="img-responsive" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />
-  </div>  
-</div> 
-{% if family %}
-  {% include "public/_family.html" %}
-{% endif %}
- <h3>{{ form_title }} {{ name }}</h3>
-  {% if name_form %}
+  <div class="container bg-light">
+    <div class="row">
+      <div class="col-sm-12 p-0">
+        <img class="img-fluid" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />
+      </div>
+    </div>
     <form action="{% url 'public-apply-main' %}" method="POST">
-      <div class="row">
-        <div class="col-md-4">
-          <div class="well">
-              {% csrf_token %}
-              {% crispy name_form %}  
+      {% csrf_token %}
+      <div class="row justify-content-center">
+        <div class="col-sm-12 col-md-8 col-lg-8">
+          <div class="card my-2">
+            {% if form_title %}
+              <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>
+            {% endif %}
+          <div class="card-body">
+            <div class="row">
+                <div class="col-sm-12 col-lg-6 col-md-auto ">
+                  {% crispy name_form %}
+                </div>
+                <div class="col-sm-12 col-lg-6 col-md-auto ">
+                  {% crispy address_form %}
+                </div>
+              </div>
+            </div>
+            <div class="card-footer">
+              {% for button in buttons %}
+                <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} mb-1"
+                       id="id-{{ button.name }}" value="{{ button.value }}">
+              {% endfor %}
             </div>
           </div>
-        <div class="col-md-4">
-          <div class="well">
-            {% crispy address_form %}
-          </div>       
         </div>
-      </div> 
-      <input type="submit" name="next" value="Next >" class="btn btn-success" id="id_next">
+      </div>
     </form>
-  {% else %}
-    {% crispy form %} 
-  {% endif %}
+  </div>
 {% endblock %}

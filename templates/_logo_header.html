@@ -1,19 +1,10 @@
 ﻿{% load staticfiles %}
-<div class="row">
-  <div class="col-sm-2" style="padding-left:25px; padding-top: 6px;">
+<div class="row bg-white align-items-start">
+  <div class="col-2 pl-5 py-2">
     <img src="{% static "images/CWLTC logo small.png" %}"/>
   </div>
-  <div class="col-sm-8" >
-    <h1 class="header-text" style="text-align: center"><strong>Coombe Wood Lawn Tennis Club</strong> </h1>
-    {%  if site_name %}
-      <h4 style="text-align: center"><em>{{ site_name }}</em></h4>
-    {%  else %}
-      <h4 style="text-align: center"><em>Kingston's Premier Tennis Club</em></h4>
-    {% endif %}
-
-  </div>
-  <div class="col-sm-2" style="padding-top: 10px">
-    <p class="header-text">Galsworthy Road<br /> Kingston upon Thames<br/>Surrey<br />KT2 7BS</p>
+  <div class="col-8" >
+    <h1  class="text-primary" style="text-align: center"><strong>Coombe Wood Tennis</strong> </h1>
+      <h4 class="text-danger" style="text-align: center"><em>Kingston's Premier Tennis Club</em></h4>
   </div>
 </div>
-

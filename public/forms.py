@@ -234,68 +234,59 @@ class AdultProfileForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop('choices', Membership.adult_choices())
-        buttons = kwargs.pop('buttons', True)
-        kwargs.pop('delete', False)
         super(AdultProfileForm, self).__init__(*args, **kwargs)
         self.fields['membership_id'].choices = choices
         self.helper = FormHelper(self)
+        self.helper.field_template='public/field.html'
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Div(
-                    Div('form_type', 'membership_id',
-                        HTML("""{% load members_extras %}
-                        {% for mem in memberships %}
-                        <strong>{{ mem|index:0 }} membership</strong><br/>
-                        Annual fee: &pound{{ mem|index:1 }}
-                        {% if mem|index:2 %} + Joining fee: &pound{{ mem|index:2 }} {% endif %}<br/>
-                        {{ mem|index:3 }}<br/><br/>
-                        {% endfor %}"""),
-                        'club',
-                        css_class="well"),
-                    css_class="col-md-4"),
-                Div(
-                    Div('ability', HTML("<strong>Tick all activities that interest you:</strong>"),
-                        'singles', 'doubles', 'coaching1', 'coaching2', 'daytime',
-                        'family', 'social', 'competitions', 'teams',
-                        css_class="well"),
-                    css_class="col-md-4"),
+                Div('form_type', 'membership_id',
+                    HTML("""{% load members_extras %}
+                    {% for mem in memberships %}
+                    <strong>{{ mem|index:0 }} membership</strong><br/>
+                    Annual fee: &pound;{{ mem|index:1 }}
+                    {% if mem|index:2 %} + Joining fee: &pound;{{ mem|index:2 }} {% endif %}<br/>
+                    {{ mem|index:3 }}<br/><br/>
+                    {% endfor %}"""),
+                    css_class="col-lg-6"),
+                Div('club', 'ability', HTML("Tick all activities that interest you:"),
+                    'singles', 'doubles', 'coaching1', 'coaching2', 'daytime',
+                    'family', 'social', 'competitions', 'teams',
+                    css_class="col-lg-6"),
                 css_class="row")
         )
-        if buttons:
-            self.helper.layout.append(
-                FormActions(
-                    Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
-                    Submit('next', 'Next >', css_class='btn btn-success')
-                )
-            )
- 
+
+
+class AdultContactForm(Form):
+    """ Contact details for additional adult family member """
+    form_type = forms.CharField(initial='Contact', widget=HiddenInput, required=False)
+    mobile_phone = forms.CharField(max_length=20)
+    email = forms.EmailField(max_length=75)
+    confirmation = forms.BooleanField()
+
+    def __init__(self, *args, **kwargs):
+        super(AdultContactForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.field_template='public/field.html'
+        self.helper.form_tag = False
+        self.helper.render_required_fields = False
+
 
 class FamilyMemberForm(NameForm):
     """
     Capture family member name and dob
     """  
     def __init__(self, *args, **kwargs):
-        delete = kwargs.pop('delete', False)
+        dob_needed = kwargs.pop('dob_needed', False)
         super(FamilyMemberForm, self).__init__(*args, **kwargs)
+        if dob_needed:
+             self.fields['dob'].required = True
         del self.fields['email']
         del self.fields['mobile_phone']
         self.helper = FormHelper(self)
+        self.helper.form_tag = False
         self.helper.render_required_fields = False
-        self.helper.layout = Layout(
-            Div(
-                Div(
-                    Div('form_type', 'first_name', 'last_name', 'gender', 'dob',
-                        css_class="well"
-                        ),
-                    css_class="col-md-4"
-                    ),
-                css_class="row"
-                ),
-            Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
-            Submit('next', 'Next >', css_class='btn-success')
-            )
-        if delete:
-            self.helper.layout.append(Submit('delete', 'Delete applicant', css_class='btn-danger'))
 
 
 class ChildProfileForm(Form):
@@ -308,34 +299,27 @@ class ChildProfileForm(Form):
                             )
     
     def __init__(self, *args, **kwargs):
-        kwargs.pop('delete', False)
         super(ChildProfileForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
                 Div(
                     Div('form_type', 'membership_id', 'notes',
                         HTML("In the event of injury, illness or other medical need, "
                              "all reasonable steps will be taken to contact you, "
-                             "and to deal with the situation appropriately."), css_class="well"),
-                    css_class="col-md-6"),
-                css_class="row"),
-            Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
-            Submit('next', 'Next >', css_class='btn btn-success')
+                             "and to deal with the situation appropriately.")),
+                    ),
+                ),
             )
 
 
 class ApplyNextActionForm(Form):
 
     def __init__(self, *args, **kwargs):
-        kwargs.pop('delete', False)
         super(ApplyNextActionForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.layout = Layout(
-            Submit('back', '< Back', css_class='btn btn-success', formnovalidate='formnovalidate'),
-            SubmitButton('add', 'Add a family member', css_class='btn-success'),
-            SubmitButton('submit', 'Complete application', css_class='btn-success')
-            )
+        self.helper.form_tag = False
 
 
 class ApplySubmitForm(Form):

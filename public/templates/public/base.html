@@ -5,12 +5,15 @@
 {% endblock %}
 {% block header %}
 
-<div class="container">
-{#  {% include '_logo_header.html' %}#}
+<div class="container bg-white">
+ {% include '_logo_header.html' %}
 </div>
 
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
+  {% endfor %}
+{% endif %}
 
 {% endblock %}
-{% block content %}
 
-{% endblock %}
