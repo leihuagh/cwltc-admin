@@ -17,6 +17,11 @@
             {% if form_title %}
               <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>
             {% endif %}
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
+              {% endfor %}
+            {% endif %}
           <div class="card-body">
             <div class="row">
                 <div class="col-sm-12 col-lg-6 col-md-auto ">

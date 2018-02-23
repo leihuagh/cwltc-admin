@@ -1,7 +1,5 @@
 from django.contrib.auth import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML
-from members.views import SubmitButton
 
 
 class CrispyAuthenticationForm(forms.AuthenticationForm):

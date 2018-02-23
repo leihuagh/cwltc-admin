@@ -272,8 +272,13 @@ urlpatterns = [
         ),
 
     url(r'^person/profile/(?P<pk>\d+)$',
-        AdultProfileView.as_view(),
+        AdultProfileView.as_view(edit=False),
         name='person-profile'
+        ),
+
+    url(r'^person/profile/edit/(?P<pk>\d+)$',
+        AdultProfileView.as_view(edit=True),
+        name='person-profile-edit'
         ),
 
     #   ADDRESSES

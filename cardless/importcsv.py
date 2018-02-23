@@ -38,8 +38,9 @@ def process_payments_list(gc_payments):
                 # if payment exists, update it
                 for payment in invoice.payment_set.all():
                     if payment.cardless_id == gc_payment.id:
-                        update_payment(payment, gc_payment)
-                        break
+                        if update_payment(payment, gc_payment):
+                            updated_invoices.append(invoice.id)
+                            break
                 else:
                     # This will only happen if we create a manual payment on Go Cardless
                     # when there will not be a payment record

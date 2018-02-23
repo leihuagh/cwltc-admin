@@ -1,13 +1,11 @@
 from django.conf.urls import url
 from django.contrib.auth import views as auth_views
 from .forms import *
+from .views import *
 
 urlpatterns = [
-    url(r'login/$',
-        auth_views.LoginView.as_view(
-            template_name='authentication/login.html',
-            form_class=CrispyAuthenticationForm),
-        name='login'),
+    url(r'login/$', CustomLoginView.as_view(), name='login'),
+    url(r'login/(?P<token>.+)/$', CustomLoginView.as_view(), name='login-token'),
     url(r'logout$',
         auth_views.LogoutView.as_view(
             next_page='/public/'),

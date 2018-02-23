@@ -362,6 +362,9 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
             person.pin = None
             person.save()
 
+        elif 'invoice' in request.POST:
+            return redirect('invoice-generate', pk=person.id)
+
         return redirect(person)
 
 
@@ -628,6 +631,10 @@ class SubCreateView(StaffuserRequiredMixin, CreateView):
         # ensure a previously inactive or resigned person is now active
         form.instance.person_member.state = Person.ACTIVE  
         form.instance.person_member.save()
+        parent = form.instance.person_member.linked
+        if parent:
+            if parent.state == Person.APPLIED and parent.adultapplication_set.count == 0:
+                parent.state == Person.ACTIVE
       
         form.instance.invoiced_month = 0
         form.instance.membership = Membership.objects.get(pk=form.cleaned_data['membership_id'])

@@ -29,7 +29,7 @@
                     </tr>
                     <tr><td>Email:</td><td>{{ person.email }} </td></tr>
                     <tr><td>Registered:</td><td>{% if person.auth_id %}Yes{% else %}No{% endif %}</td></tr>
-                    <tr><td>Profile:</td><td>{% if person.adultapplication_set %}
+                    <tr><td>Profile:</td><td>{% if person.adultapplication_set.count %}
                       <a href="{% url 'person-profile' pk=person.id %}">View</a>
                     {% else %}No profile{% endif %}</td></tr>
                   </table>
@@ -91,8 +91,14 @@
                       {% for child in children %}
                       </tr>
                       {% ifequal child.id person.id %}<tr class="info">{% else %}<tr>{% endifequal %}
-                              <td><a href="{% url "person-detail" pk=child.id %}">{{ child.fullname }}</a></td>
-                              <td>{{ child.membership.description }}</td>
+                        <td><a href="{% url "person-detail" pk=child.id %}">{{ child.fullname }}</a></td>
+                        <td>{{ child.membership.description }}
+                          {%  if child.sub %}
+                            {%  if not child.sub.paid %}(unpaid){% endif %}
+                          {% else %}
+                            (no sub)
+                          {%  endif %}
+                        </td>
                           </tr>
                       {% endfor child %}
                   {% else %}
@@ -240,7 +246,7 @@
         <div class="panel-footer">
           <a href="{% url "item-create" person_id=person.id %}" class="btn btn-primary btn-sm">Create item</a>
           {% if items %}
-            <a href="{% url "invoice-generate" pk=person.id %}" class="btn btn-primary btn-sm">Generate an invoice</a>
+            <button type="submit" name="invoice" class="btn btn-primary btn-sm">Generate an invoice</button>
           {% endif %}
         </div>
       </div>

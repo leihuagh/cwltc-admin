@@ -582,8 +582,7 @@ class SubscriptionForm(ModelForm):
                 else:
                     cleaned_data[key] = getattr(instance, key)
             # Remove the error fields
-            for key in self.errors.keys():
-                del self.errors[key]
+            self.errors.clear()
 
         end_date = cleaned_data['end_date']
         y = end_date.year

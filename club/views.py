@@ -38,5 +38,13 @@ class ClubAccountView(LoginRequiredMixin, DetailView):
             raise Http404                    
         return obj
 
+
 class ClubSearchView(LoginRequiredMixin, TemplateView):
     template_name = 'club/search.html'
+
+
+class ClubMagazineView(LoginRequiredMixin, TemplateView):
+    template_name = 'club/magazine.html'
+
+    def get_context_data(self, **kwargs):
+        super().get_context_data(**kwargs)

@@ -1,15 +1,19 @@
 import string
+import re
+import requests
+import json
 from django import forms
-from django.forms import Form, ModelForm, HiddenInput, RadioSelect
+from django.forms import Form, ModelForm, HiddenInput
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Fieldset
+from crispy_forms.layout import Layout, Div, HTML
 from crispy_forms.bootstrap import FormActions
 from members.forms import SubmitButton
 from members.models import AdultApplication, Person, Address, Membership
 
 
 class ContactForm(Form):
+    """ Contact form to notify resignation """
     message = forms.CharField(max_length=2000, required=True, widget=forms.Textarea)
     email = forms.EmailField(required=True)
 
@@ -34,21 +38,22 @@ class RegisterForm(Form):
     post_code = forms.CharField(max_length=10)
 
     def __init__(self, *args, **kwargs):
-        super(RegisterForm, self).__init__(*args, **kwargs)    
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form'
+        self.helper.form_tag = False
         self.helper.help_text_inline = True
-        self.helper.form_method = 'post'
-        self.helper.layout = Layout(
-            HTML("<p>You must already be a club member to use this form.</p>"),
-            Div(
-                Div('first_name', 'last_name', 'email', 'post_code', css_class='card-body green'),
-                Div(
-                    SubmitButton('submit', 'Next', css_class='btn-success'),
-                    HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>'),
-                    css_class='card-footer'),
-                css_class='card')
-            )
+        # self.helper.form_method = 'post'
+        # self.helper.layout = Layout(
+        #     HTML("<p>You must already be a club member to use this form.</p>"),
+        #     Div(
+        #         Div('first_name', 'last_name', 'email', 'post_code', css_class='card-body green'),
+        #         Div(
+        #             SubmitButton('submit', 'Next', css_class='btn-success'),
+        #             HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>'),
+        #             css_class='card-footer'),
+        #         css_class='card')
+        #     )
         self.person = None
 
     def clean(self):
@@ -72,7 +77,7 @@ class RegisterForm(Form):
                         break
         
         if not self.person:
-            raise forms.ValidationError('No matching member found', code='invalid')
+            raise forms.ValidationError('No matching person found', code='invalid')
         if not self.person.address.post_code.replace(' ', '').lower() == post_code:
             raise forms.ValidationError('Post code is wrong', code='invalid')
         if self.person.state == Person.RESIGNED:
@@ -95,25 +100,25 @@ class RegisterTokenForm(Form):
     Stage 2 - user defines a username and password
     """
     username = forms.CharField(max_length=30,
-                               help_text="Your user name must contain at least 8 characters.")
+                               help_text="We have made your username your email address. You can change it but it must contain at least 8 characters.")
     password = forms.CharField(max_length=30, widget=forms.PasswordInput,
-                               help_text="Your password must be 8 characters or more and contain at least 1 number.")
+                               help_text="Your password must be 8 characters or more and contain at least 1 letter and 1 number.")
     password_again = forms.CharField(max_length=30, widget=forms.PasswordInput)
     pin = forms.CharField(max_length=8, widget=forms.NumberInput, required=False, label="PIN",
                           help_text="The PIN is optional and is 4 to 8 digits long. It is used for fast log in to the bar system.")
 
     def __init__(self, *args, **kwargs):
-        super(RegisterTokenForm, self).__init__(*args, **kwargs)    
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.help_text_inline = True
-        self.helper.layout = Layout(
-            Div('username', 'password', 'password_again', 'pin', css_class="well"),
-            FormActions(
-                SubmitButton('submit', 'Register', css_class='btn-success'),
-                HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>')
-                )
-            )
+        # self.helper.layout = Layout(
+        #     Div('username', 'password', 'password_again', 'pin', css_class="well"),
+        #     FormActions(
+        #         SubmitButton('submit', 'Register', css_class='btn-success'),
+        #         HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>')
+        #         )
+        #     )
 
     def clean(self):
         cleaned_data = super(RegisterTokenForm, self).clean()
@@ -144,13 +149,23 @@ class RegisterTokenForm(Form):
         if not num_check or not char_check:
             raise forms.ValidationError('Your password must include at least \
                                          one letter and at least one number.', code='invalid_password')
-
         return self.cleaned_data
 
-    # Forms for the application process
 
-    def as_ul(self):
-        return super().as_ul()
+class ConsentForm(ModelForm):
+    """ Get consent flags """
+    class Meta:
+        model = Person
+        fields = ['allow_email', 'allow_phone', 'allow_marketing', ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.field_template ='public/field.html'
+        self.helper.form_tag = False
+
+
+# Forms for the application process
 
 
 class NameForm(ModelForm):
@@ -166,11 +181,7 @@ class NameForm(ModelForm):
                 'gender',
                 'dob',
                 'email',
-                'mobile_phone',
-                'british_tennis',
-                'pays_own_bill',
-                'notes',
-                'state'
+                'mobile_phone'
                 ]
         widgets = {'dob': forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY'})}
     
@@ -178,13 +189,7 @@ class NameForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         adult = kwargs.pop('adult', True)
-        restricted_fields = kwargs.pop('restricted_fields', False)
-        super(NameForm, self).__init__(*args, **kwargs)
-        if restricted_fields:
-            del self.fields['state']
-            del self.fields['british_tennis']
-            del self.fields['pays_own_bill']
-            del self.fields['notes']
+        super().__init__(*args, **kwargs)
         if not adult:
             del self.fields['dob']
             del self.fields['gender']
@@ -192,6 +197,15 @@ class NameForm(ModelForm):
         self.helper.form_class = 'form-horizontal'
         self.helper.form_tag = False
         self.helper.disable_csrf = True
+
+    def clean_first_name(self):
+        return self.cleaned_data['first_name'].title()
+
+    def clean_last_name(self):
+        return self.cleaned_data['last_name'].title()
+
+    def clean_mobile_phone(self):
+        return clean_mobile(self.cleaned_data['mobile_phone'])
 
 
 class AddressForm(ModelForm):
@@ -204,10 +218,30 @@ class AddressForm(ModelForm):
         fields = ['address1', 'address2', 'town', 'post_code', 'home_phone']
 
     def __init__(self, *args, **kwargs):
-        super(AddressForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_tag = False
         self.helper.disable_csrf = True
+
+    def clean_address1(self):
+        return self.cleaned_data['address1'].title()
+
+    def clean_address2(self):
+        return self.cleaned_data['address2'].title()
+
+    def clean_town(self):
+        return self.cleaned_data['town'].title()
+
+    def clean_post_code(self):
+        url = 'https://api.postcodes.io/postcodes/' + self.cleaned_data['post_code']
+        r = requests.get(url)
+        if r.status_code == 200:
+            content = json.loads(r.text)
+            return content['result']['postcode']
+        raise forms.ValidationError('Post code is invalid')
+
+    def clean_home_phone(self):
+        return clean_phone(self.cleaned_data['home_phone'])
 
 
 class AdultProfileForm(ModelForm):
@@ -234,10 +268,14 @@ class AdultProfileForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop('choices', Membership.adult_choices())
-        super(AdultProfileForm, self).__init__(*args, **kwargs)
+        disabled = kwargs.pop('disabled', False)
+        super().__init__(*args, **kwargs)
         self.fields['membership_id'].choices = choices
+        if disabled:
+            for key in self.fields:
+                self.fields[key].disabled = True
         self.helper = FormHelper(self)
-        self.helper.field_template='public/field.html'
+        self.helper.field_template ='public/field.html'
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
@@ -266,9 +304,9 @@ class AdultContactForm(Form):
     confirmation = forms.BooleanField()
 
     def __init__(self, *args, **kwargs):
-        super(AdultContactForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.field_template='public/field.html'
+        self.helper.field_template ='public/field.html'
         self.helper.form_tag = False
         self.helper.render_required_fields = False
 
@@ -279,7 +317,7 @@ class FamilyMemberForm(NameForm):
     """  
     def __init__(self, *args, **kwargs):
         dob_needed = kwargs.pop('dob_needed', False)
-        super(FamilyMemberForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if dob_needed:
              self.fields['dob'].required = True
         del self.fields['email']
@@ -299,7 +337,7 @@ class ChildProfileForm(Form):
                             )
     
     def __init__(self, *args, **kwargs):
-        super(ChildProfileForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_tag = False
         self.helper.layout = Layout(
@@ -317,26 +355,68 @@ class ChildProfileForm(Form):
 class ApplyNextActionForm(Form):
 
     def __init__(self, *args, **kwargs):
-        super(ApplyNextActionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_tag = False
 
 
-class ApplySubmitForm(Form):
-    PHOTO_CHOICES = ((True, 'I give consent to photographs being taken of my child'),
-                     (False, 'I do not give consent to photographs being taken of my child')
-                     )
-    CONTACT_CHOICES = ((True, 'I agree to my email mail and phone number being visible'),
-                       (False, 'I do not agree to my mail and phone number being visible')
-                       )
-    photo_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=PHOTO_CHOICES))
-    contact_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=CONTACT_CHOICES))
-    test = forms.TypedChoiceField(widget=RadioSelect(choices=CONTACT_CHOICES))
-    rules = forms.BooleanField(required=True, label="I agree to be bound by the club rules")
+# class ApplySubmitForm(Form):
+#     PHOTO_CHOICES = ((True, 'I give consent to photographs being taken of my child'),
+#                      (False, 'I do not give consent to photographs being taken of my child')
+#                      )
+#     CONTACT_CHOICES = ((True, 'I agree to my email mail and phone number being visible'),
+#                        (False, 'I do not agree to my mail and phone number being visible')
+#                        )
+#     photo_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=PHOTO_CHOICES))
+#     contact_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=CONTACT_CHOICES))
+#     test = forms.TypedChoiceField(widget=RadioSelect(choices=CONTACT_CHOICES))
+#     rules = forms.BooleanField(required=True, label="I agree to be bound by the club rules")
+#
+#     def __init__(self, *args, **kwargs):
+#         kwargs.pop('delete', False)
+#         children = kwargs.pop('children', None)
+#         super(ApplySubmitForm, self).__init__(*args, **kwargs)
+#         if not children:
+#             del self.fields['photo_consent']
+
+
+class CampFindRecordForm(Form):
+    email = forms.EmailField(max_length=75, required=True)
+    last_name = forms.CharField(max_length=30, required=True)
+    post_code = forms.CharField(max_length=15, required=True)
 
     def __init__(self, *args, **kwargs):
-        kwargs.pop('delete', False)
-        children = kwargs.pop('children', None)
-        super(ApplySubmitForm, self).__init__(*args, **kwargs)
-        if not children:
-            del self.fields['photo_consent']
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.field_template='public/field.html'
+        self.helper.form_tag = False
+
+
+def clean_mobile(input):
+    """ Clean format a mobile number"""
+    input = input.replace(" ", "")
+    if input:
+        rule1 = re.compile(r'^07\d{9}$')
+        if rule1.match(input):
+            return input[0:5] + ' ' + input[5:]
+        else:
+            rule2 = re.compile(r'^(?:\+?\d{1,2})?[07]\d{9,13}$')
+            if rule2.match(input):
+                return input[0:3] + ' ' + input[3:8] + ' ' + input[8:]
+            else:
+                raise forms.ValidationError("Bad mobile number")
+    return ""
+
+def clean_phone(input):
+    """ Clean format a phone number """
+    input = input.replace(" ", "")
+    if input:
+        rule = re.compile(r'^0\d{10,13}$')
+        if rule.match(input):
+            if input[0:3] == '020':
+                return input[0:3] + ' ' + input[3:7] + ' ' + input[7:]
+            else:
+                return input[0:5] + ' ' + input[5:]
+        else:
+            raise forms.ValidationError("Bad phone number")
+    return ""

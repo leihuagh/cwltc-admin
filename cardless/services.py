@@ -182,6 +182,7 @@ def payments_list(start_date=None, end_date=None):
 def update_payment(payment: Payment, gc_payment):
     """
     Update our payment from a goCardless payment
+    Return True if it changed
     """
     updated = payment_update_state(payment, gc_payment.status)
     if payment.banked and not payment.banked_date:

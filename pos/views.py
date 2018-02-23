@@ -27,7 +27,7 @@ class LoadView(LoginRequiredMixin, TemplateView):
         layout = Layout.objects.filter(name=request.POST['layout'])[0]
         request.session['layout_id'] = layout.id
         request.session['attended'] = True
-        return HttpResponseRedirect(reverse('pos_start'))
+        return redirect('pos_start')
 
 
 class StartView(LoginRequiredMixin, TemplateView):
@@ -110,6 +110,7 @@ class PosRegisterView(RegisterView):
         When all is OK we will redirect to PosRegisterTokenView
         """
         return reverse('pos_start')
+
 
 class PosRegisterTokenView(RegisterTokenView):
 

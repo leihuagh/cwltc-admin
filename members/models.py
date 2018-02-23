@@ -68,12 +68,15 @@ class Person(models.Model):
     dob = models.DateField(null=True, blank=True, verbose_name='Date of birth')
     british_tennis = models.IntegerField(null=True, blank=True)
     notes = models.TextField(blank=True)  
-    pays_own_bill = models.BooleanField(default = False)
+    pays_own_bill = models.BooleanField(default=False)
     state = models.SmallIntegerField(choices=STATES, default=ACTIVE)
     date_joined = models.DateField(null=True, blank=True)
     pin = models.CharField(max_length=128, null=True, blank=True)
-    allow_phone = models.BooleanField(default=True)
-    allow_email = models.BooleanField(default=True)
+    # members database entries
+    allow_phone = models.BooleanField(default=False)
+    allow_email = models.BooleanField(default=False)
+    allow_marketing = models.BooleanField(default=False)
+    consent_date = models.DateField(null=True, blank=True)
     #
     membership = models.ForeignKey('Membership', blank=True, null=True)
     linked = models.ForeignKey('self', blank=True, null=True)
