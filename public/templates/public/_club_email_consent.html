@@ -1,0 +1,37 @@
+{%  if pos %}
+  <h3>Club emails</h3>
+{%  else %}
+  <h5 class="card-title bg-success text-white p-1">Club emails</h5>
+{%  endif %}
+<p>
+  We occasionally send newsletters, details of events and other club-related emails to members.
+  You can selectively unsubscribe from such emails on our website and through
+  unsubscribe links at the end of every mail.
+</p>
+{% if pos %}
+  <div class="form-check">
+    <label>
+      <input type="radio" name="marketing" value="yes" required>
+      <span class="label-text">Yes, please send me club emails</span>
+    </label>
+  </div>
+  <div class="form-check">
+    <label>
+      <input type="radio" name="marketing" value="no" required>
+      <span class="label-text">No, do not send me any club emails</span>
+    </label>
+  </div>
+{% else %}
+  <div class="form-check mx-5 my-0">
+    <input class="form-check-input" type="radio" name="marketing" id="email1" value="yes" required>
+    <label class="form-check-label" for="email1">
+      <strong>Yes, please send me club emails</strong>
+    </label>
+  </div>
+  <div class="form-check mx-5">
+    <input class="form-check-input" type="radio" name="marketing" id="email2" value="no" required>
+    <label class="form-check-label" for="email2">
+      <strong>No, do not send me any club emails</strong>
+    </label>
+  </div>
+{% endif %}

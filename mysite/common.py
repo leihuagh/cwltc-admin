@@ -10,4 +10,4 @@ class Button(object):
         self.value = value
         self.name = slugify(value) if name == "" else name
         self.css_class = 'btn '+ css_class
-        self.novalidate = no_validate
+        self.no_validate = no_validate

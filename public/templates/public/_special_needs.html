@@ -1,0 +1,29 @@
+<h5 class="card-title bg-success text-white p-1">Special requirements</h5>
+<p>
+Does your child have any special requirements that we should be aware of?
+This includes medical conditions, dietary requirements, access needs etc.
+</p>
+<div class="form-check mx-5 my-0">
+  <input class="form-check-input" type="radio" name="rad_has_needs" id="needs1" value="1"
+         onclick="document.getElementById('needsDiv').style.display = 'none'"
+         {% if form.data.rad_has_needs == '1' %}checked{% endif %}>
+  <label class="form-check-label" for="needs1">
+    My child has no special requirements
+  </label>
+</div>
+{{ form.rad_has_needs.widget.value }}
+<div class="form-check mx-5">
+  <input class="form-check-input" type="radio" name="rad_has_needs" id="needs2" value="2"
+         onclick="document.getElementById('needsDiv').style.display = 'block'"
+         {% if form.data.rad_has_needs == '2' %}checked{% endif %}>
+  <label class="form-check-label" for="needs2">
+    My child has special requirements as detailed below
+  </label>
+</div>
+{% if form.errors.rad_has_needs %}
+  <div class="mx-4" style="color: red; font-weight: bold">You must select one of these options</div>
+{% endif %}
+<div class="form-group" id="needsDiv" style="display: none">
+  <label for="needs">Special requirements</label>
+  <textarea class="form-control" id="needs" name="needs" rows="3"></textarea>
+</div>

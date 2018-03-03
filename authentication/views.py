@@ -16,7 +16,7 @@ class CustomLoginView(LoginView):
                 self.person = Person.objects.get(pk=Signer().unsign(token))
             except Person.DoesNotExist:
                 pass
-        super().dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
         initial = {}

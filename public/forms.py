@@ -3,13 +3,13 @@ import re
 import requests
 import json
 from django import forms
-from django.forms import Form, ModelForm, HiddenInput
+from django.forms import Form, ModelForm, HiddenInput, RadioSelect
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, HTML
+from crispy_forms.layout import Layout, Div, HTML, Field
 from crispy_forms.bootstrap import FormActions
 from members.forms import SubmitButton
-from members.models import AdultApplication, Person, Address, Membership
+from members.models import AdultApplication, Person, Address, Membership, JuniorProfile
 
 
 class ContactForm(Form):
@@ -38,22 +38,15 @@ class RegisterForm(Form):
     post_code = forms.CharField(max_length=10)
 
     def __init__(self, *args, **kwargs):
+        hide_name = kwargs.pop('hide_name', None)
         super().__init__(*args, **kwargs)
+        if hide_name:
+            self.fields['first_name'].widget = HiddenInput()
+            self.fields['last_name'].widget = HiddenInput()
         self.helper = FormHelper()
         self.helper.form_class = 'form'
         self.helper.form_tag = False
         self.helper.help_text_inline = True
-        # self.helper.form_method = 'post'
-        # self.helper.layout = Layout(
-        #     HTML("<p>You must already be a club member to use this form.</p>"),
-        #     Div(
-        #         Div('first_name', 'last_name', 'email', 'post_code', css_class='card-body green'),
-        #         Div(
-        #             SubmitButton('submit', 'Next', css_class='btn-success'),
-        #             HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>'),
-        #             css_class='card-footer'),
-        #         css_class='card')
-        #     )
         self.person = None
 
     def clean(self):
@@ -61,7 +54,9 @@ class RegisterForm(Form):
         first_name = cleaned_data.get('first_name')
         last_name = cleaned_data.get('last_name')
         email = cleaned_data.get('email')
-        post_code = cleaned_data.get('post_code').replace(' ', '').lower()
+        post_code = cleaned_data.get('post_code')
+        if post_code:
+            post_code = post_code.replace(' ', '').lower()
         people = Person.objects.filter(first_name__iexact=first_name,
                                        last_name__iexact=last_name,
                                        email__iexact=email)
@@ -99,26 +94,23 @@ class RegisterTokenForm(Form):
     """
     Stage 2 - user defines a username and password
     """
-    username = forms.CharField(max_length=30,
-                               help_text="We have made your username your email address. You can change it but it must contain at least 8 characters.")
-    password = forms.CharField(max_length=30, widget=forms.PasswordInput,
-                               help_text="Your password must be 8 characters or more and contain at least 1 letter and 1 number.")
-    password_again = forms.CharField(max_length=30, widget=forms.PasswordInput)
-    pin = forms.CharField(max_length=8, widget=forms.NumberInput, required=False, label="PIN",
-                          help_text="The PIN is optional and is 4 to 8 digits long. It is used for fast log in to the bar system.")
+    username = forms.CharField(max_length=30, min_length=8,
+                               help_text="We have made your username your email address."
+                                         " You can change it but it must contain at least 8 characters.")
+    password = forms.CharField(max_length=30, min_length=8, widget=forms.PasswordInput,
+                               help_text="Your password must be 8 characters or more and contain"
+                                         " at least 1 letter and 1 number.")
+    password_again = forms.CharField(max_length=30, min_length=8, widget=forms.PasswordInput)
+    pin = forms.CharField(max_length=8, min_length=4, widget=forms.PasswordInput,
+                          required=False, label="PIN",
+                          help_text="The PIN is optional and is 4 to 8 digits long.")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
+        self.helper.form_tag = False
         self.helper.help_text_inline = True
-        # self.helper.layout = Layout(
-        #     Div('username', 'password', 'password_again', 'pin', css_class="well"),
-        #     FormActions(
-        #         SubmitButton('submit', 'Register', css_class='btn-success'),
-        #         HTML('<a href="{% url "public-home" %}" class="btn btn-default">Cancel</a>')
-        #         )
-        #     )
 
     def clean(self):
         cleaned_data = super(RegisterTokenForm, self).clean()
@@ -152,17 +144,17 @@ class RegisterTokenForm(Form):
         return self.cleaned_data
 
 
-class ConsentForm(ModelForm):
-    """ Get consent flags """
-    class Meta:
-        model = Person
-        fields = ['allow_email', 'allow_phone', 'allow_marketing', ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper(self)
-        self.helper.field_template ='public/field.html'
-        self.helper.form_tag = False
+# class ConsentForm(ModelForm):
+#     """ Get consent flags """
+#     class Meta:
+#         model = Person
+#         fields = ['allow_email', 'allow_phone', 'allow_marketing', ]
+#
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.helper = FormHelper(self)
+#         self.helper.field_template ='public/field.html'
+#         self.helper.form_tag = False
 
 
 # Forms for the application process
@@ -301,7 +293,7 @@ class AdultContactForm(Form):
     form_type = forms.CharField(initial='Contact', widget=HiddenInput, required=False)
     mobile_phone = forms.CharField(max_length=20)
     email = forms.EmailField(max_length=75)
-    confirmation = forms.BooleanField()
+    confirmation = forms.BooleanField(label="Confirm you have this person's permission to enter their details")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -327,29 +319,41 @@ class FamilyMemberForm(NameForm):
         self.helper.render_required_fields = False
 
 
-class ChildProfileForm(Form):
+class JuniorProfileForm(ModelForm):
+    class Meta:
+        model = JuniorProfile
+        fields = [
+            'needs',
+            'contact0',
+            'phone0',
+            'relationship0',
+            'contact1',
+            'phone1',
+            'relationship1',
+            'contact2',
+            'phone2',
+            'relationship2',
+            'coaching1',
+            'coaching2'
+            ]
+
+    # these fields are represented by radio buttons that update a boolean
+    # '0' = not set, '1' = False, '2' = True
+    rad_has_needs = forms.CharField()
+    rad_photo_consent = forms.CharField()
+    #test = forms.BooleanField(widget=RadioSelect(choices = ((None, 'Not selected'),(True, 'yes is do'),(False, 'No I dont'))))
+
     form_type = forms.CharField(initial='Child', widget=HiddenInput, required=False)
     membership_id = forms.CharField(required=False, widget=HiddenInput)
-    notes = forms.CharField(max_length=100, required=False,
-                            widget=forms.Textarea,
-                            label=("Use the box below to describe any special care needs, "
-                                   "dietary requirements, allergies or medical conditions:")
-                            )
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Div(
-                Div(
-                    Div('form_type', 'membership_id', 'notes',
-                        HTML("In the event of injury, illness or other medical need, "
-                             "all reasonable steps will be taken to contact you, "
-                             "and to deal with the situation appropriately.")),
-                    ),
-                ),
-            )
+        for field_name, field in self.fields.items():
+            if field_name not in ['needs','contact0', 'phone0', 'relationship0', 'coaching1', 'coaching2']:
+                field.widget.attrs = {'placeholder': field.label}
+                field.label = ""
 
 
 class ApplyNextActionForm(Form):
@@ -360,16 +364,19 @@ class ApplyNextActionForm(Form):
         self.helper.form_tag = False
 
 
-# class ApplySubmitForm(Form):
+# class ConsentForm(Form):
 #     PHOTO_CHOICES = ((True, 'I give consent to photographs being taken of my child'),
 #                      (False, 'I do not give consent to photographs being taken of my child')
 #                      )
-#     CONTACT_CHOICES = ((True, 'I agree to my email mail and phone number being visible'),
-#                        (False, 'I do not agree to my mail and phone number being visible')
+#     EMAIL_CHOICES = ((True, 'Yes, send me marketing emails'),
+#                      (False, 'No, do not send me marketing emails')
+#                      )
+#     DATABASE_CHOICES = ((True, 'Yes, include my email and phone number in the members database'),
+#                         (False, 'No, do not include me')
 #                        )
 #     photo_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=PHOTO_CHOICES))
-#     contact_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=CONTACT_CHOICES))
-#     test = forms.TypedChoiceField(widget=RadioSelect(choices=CONTACT_CHOICES))
+#     email_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=EMAIL_CHOICES))
+#     database_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=CONTACT_CHOICES))
 #     rules = forms.BooleanField(required=True, label="I agree to be bound by the club rules")
 #
 #     def __init__(self, *args, **kwargs):

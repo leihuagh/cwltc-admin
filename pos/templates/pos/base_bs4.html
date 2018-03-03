@@ -10,55 +10,26 @@
 {#      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">#}
 
   <link rel="stylesheet" type="text/css"  href="{% static 'css/custom.css' %}">
-  <link rel="stylesheet" type="text/css"  href="{% static 'css/bootstrap-datetimepicker.css' %}">
-{#  <link rel="stylesheet" type="text/css"  href="{% static 'css/site.css' %}">#}
 
   {% block title %}<title>{{ title }} {{ site_name }}</title> {% endblock %}
   {% block head %}
   {% endblock %}
 </head>
 <!-- https://www.codeply.com/go/wECEBeWpLO/bootstrap-4-sticky-footer-flexbox -->
-<body class="bg-primary mt-0 d-flex flex-column">
-  {% block header %}
-  {% endblock %}
-  {% block navbar %}
-  {% endblock %}
+<body class="bg-light mt-0 d-flex flex-column">
   <div class="container-fluid flex-grow">
     {% block content %}
     {% endblock %}
   </div>
-   <footer class="mt-md-5 mb-0 pt-md-3 bg-primary">
-    <div class="container text-info">
-      <div class="row">
-        <div class="col">
-          <p>Coombe Wood Lawn Tennis Club<br/>
-             Galsworthy Road <br/>Kingston upon Thames <br/>KT2 7BS
-          </p>
-        </div>
-        <div class="col">Enquiries: info@coomebwoodltc.co.uk<br/>
-          Head coach: ollie@oltennis.co.uk
-        </div>
-        <div class="col">
-          <a class="text-info" href="#">Privacy policy</a>
-        </div>
-      </div>
-      <p class= "text-muted">Membership Management System &copy; 2015-2018 ISKT Ltd</p>
-    </div>
-   </footer>
+
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"
         integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
         crossorigin="anonymous"></script>
-  <script src="{% static 'js/moment.min.js' %}"></script>
-
-  <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
-
-
   {% block typeahead %}
   {% endblock %}
   {% block scripts %}
   {% endblock %}
 </body>
 </html>
-

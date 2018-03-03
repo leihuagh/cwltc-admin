@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+{% block head %}
+{#  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">#}
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+{% endblock %}
+{% block content %}
+  <h4 class="text-center">Consent</h4>
+New data protection regulations mean that we need to get your consent.
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-md-offset-3">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        <div class="well">
+          {%  include 'public/_club_email_consent.html' %}
+          {%  include 'public/_members_database.html' %}
+        </div>
+        <input type="submit" name="submit" value="Continue" class="btn-success btn-lg">
+      </form>
+      <br/>
+    </div>
+  </div>
+{% endblock content %}
+{% block scripts %}
+  <script src="{% static 'pos/js/timeout.js' %}"></script>
+  <script>
+    $(document).ready(function () {
+      startTimer({{ timeout }}, "{{ timeout_url }}");
+    });
+  </script>
+
+{% endblock %}

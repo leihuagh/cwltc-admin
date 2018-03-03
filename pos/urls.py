@@ -22,8 +22,9 @@ urlpatterns = [
     url(r'^lineitems/$', LineItemListView.as_view(), name='pos_lineitems'),
     url(r'^lineitems/(?P<trans_id>\d+)/$', LineItemListView.as_view(), name='pos_lineitems2'),
 
-    url(r'^register/(?P<next>[\w\-]+)/$', PosRegisterView.as_view(), name='pos_register'),
-    url(r'^register/token/(?P<token>.+)/$', PosRegisterTokenView.as_view(), name='pos_token'),
+    url(r'^register/$', PosRegisterView.as_view(), name='pos_register'),
+    url(r'^register/token/(?P<token>.+)/$', PosRegisterTokenView.as_view(), name='pos_register_token'),
+    url(r'^consent/token/(?P<token>.+)/$', PosConsentView.as_view(), name='pos_consent_token'),
 
     url(r'^item/list/$', ItemListView.as_view(), name='pos_item_list'),
     url(r'^item/(?P<pk>\d+)/$', ItemUpdateView.as_view(), name='pos_item_update'),

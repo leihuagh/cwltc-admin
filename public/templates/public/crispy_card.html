@@ -2,7 +2,7 @@
 {% load static %}
 {% load crispy_forms_tags %} 
 {% block content %}
-  <div class="container bg-light flex-sm-grow">
+  <div class="container bg-light flex-sm-grow" style="height: 100%">
     <div class="row">
       <div class="col-sm-12 p-0">
         <img class="img-fluid" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />
@@ -11,7 +11,7 @@
     <h3 {% if class %}class="text-center"{% endif %}>{{ title }}</h3>
     <div class="row justify-content-center">
       <div class="col-sm-12 col-md-8 col-lg-8">
-        <form method="POST" novalidate>
+        <form method="POST" novalidate="">
           <div class="card my-2">
             {% if form_title %}
               <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>

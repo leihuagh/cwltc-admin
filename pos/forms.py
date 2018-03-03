@@ -71,3 +71,4 @@ class LayoutForm(ModelForm):
                 1, SubmitButton('delete','Delete', css_class='btn-danger', formnovalidate='formnovalidate')
             )
 
+

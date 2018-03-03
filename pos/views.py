@@ -6,7 +6,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.hashers import check_password
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
-from public.views import RegisterView, RegisterTokenView
+from public.views import RegisterView, RegisterTokenView, ConsentTokenView
+from mysite.common import Button
 from .tables import *
 from .forms import ItemForm, LayoutForm
 from .services import *
@@ -52,7 +53,7 @@ class GetUserView(TemplateView):
             person = Person.objects.get(pk=request.POST['person_id'])
             if person.auth_id:
                 return redirect('pos_password')
-            return redirect('pos_register', next='pos_token')
+            return redirect('pos_register')
         return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
@@ -92,30 +93,61 @@ class PosRegisterView(RegisterView):
 
     def get_initial(self):
         initial = super(PosRegisterView, self).get_initial()
-        person = Person.objects.get(pk=self.request.session['person_id'])
-        initial['first_name'] = person.first_name
-        initial['last_name'] = person.last_name
+        self.person = Person.objects.get(pk=self.request.session['person_id'])
+        initial['first_name'] = self.person.first_name
+        initial['last_name'] = self.person.last_name
         return initial
 
+    def get_form_kwargs(self):
+        """ set form kwargs so the name is hidden """
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'hide_name': True})
+        return kwargs
+
     def get_context_data(self, **kwargs):
-        context = super(RegisterView, self).get_context_data(**kwargs)
-        context['title'] = 'Register'
+        context = super().get_context_data(**kwargs)
+        context['person'] = self.person
+        context['timeout_url'] = reverse('pos_start')
+        context['timeout'] = LONG_TIMEOUT
+        context['buttons'] = [Button('Back', 'back', css_class='btn-success btn-lg'),
+                             Button('Next', 'register', css_class='btn-success btn-lg')]
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if 'back' in request.POST:
+            return redirect('pos_start')
+        return super().post(request, args, kwargs)
+
+    def get_success_url_name(self):
+        return 'pos_register_token'
+
+    def get_failure_url_name(self):
+        return 'pos_start'
+
+
+class PosRegisterTokenView(RegisterTokenView):
+    template_name = 'pos/register_token.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pos'] = True
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
 
-    def get_success_url(self, **kwargs):
-        """
-        This is really the url called when registration fails.
-        When all is OK we will redirect to PosRegisterTokenView
-        """
-        return reverse('pos_start')
+    def get_success_url_name(self, **kwargs):
+        return 'pos_consent_token'
 
 
-class PosRegisterTokenView(RegisterTokenView):
+class PosConsentView(ConsentTokenView):
+    template_name = 'pos/consent.html'
 
-    def get_success_url(self, **kwargs):
-        return reverse('pos_menu')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pos'] = True
+        context['timeout_url'] = reverse('pos_start')
+        context['timeout'] = LONG_TIMEOUT
+        return context
 
 
 class MemberMenuView(LoginRequiredMixin, TemplateView):
@@ -123,10 +155,12 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/menu.html'
 
     def get_context_data(self, **kwargs):
-        context = super(MemberMenuView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         self.request.session['receipt'] = []
         self.request.session['people_ids'] = []
-        context['person']= Person.objects.get(pk=self.request.session['person_id'])
+        person = Person.objects.get(pk=self.request.session['person_id'])
+        context['person'] = person
+        context['exit_menu'] = person.auth.is_staff or person.auth.groups.filter(name='pos').exists()
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
@@ -305,7 +339,7 @@ class TransactionListView(SingleTableView):
     model = Transaction
     table_class = TransactionTable
     template_name = 'pos/transactions.html'
-    table_pagination={'per_page': 10}
+    table_pagination = {'per_page': 10}
     main_menu = False
  
     def get_table_data(self):

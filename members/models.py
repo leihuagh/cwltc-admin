@@ -45,9 +45,9 @@ class Group(models.Model):
 
 class Person(models.Model):
     GENDERS = (
-        ('M','Male'),
-        ('F','Female'),
-        ('U','Unknown'),
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('U', 'Unknown'),
     )
     ACTIVE = 0
     APPLIED = 1  
@@ -282,7 +282,7 @@ class AdultApplication(models.Model):
     membership_id = models.SmallIntegerField('Membership type',
                                           choices = Membership.ADULT_CHOICES,
                                           default = Membership.FULL)
-    ability = models.SmallIntegerField('Judge your tennnis ability',
+    ability = models.SmallIntegerField('Judge your tennis ability',
                                        choices = ABILITIES, default = BEGINNER)
     singles = models.BooleanField('Singles', default=False)
     doubles = models.BooleanField('Doubles', default=False)
@@ -300,6 +300,25 @@ class AdultApplication(models.Model):
                                       choices = SOURCES, default = WEB,)
     person = models.ForeignKey(Person, blank=True, null=True)
 
+BOOL_CHOICES = ((0, 'Zero'), (1, 'One'), (2, 'Two'))
+
+class JuniorProfile(models.Model):
+    update_date = models.DateTimeField(auto_now=True)
+    has_needs = models.BooleanField('Special needs', choices=BOOL_CHOICES)
+    needs = models.TextField(blank=True)
+    contact0 = models.CharField('Primary contact', max_length=50, blank=True)
+    phone0 = models.CharField('Phone number', max_length=20, blank=True)
+    relationship0 = models.CharField("Relationship to child", max_length=50, blank=True)
+    contact1 = models.CharField('Additional contact 1', max_length=50, blank=True)
+    phone1 = models.CharField('Phone number', max_length=20, blank=True)
+    relationship1 = models.CharField('Relationship to child', max_length=50, blank=True)
+    contact2 = models.CharField('Additional contact 2', max_length=50, blank=True)
+    phone2 = models.CharField('Phone number', max_length=20, blank=True)
+    relationship2 = models.CharField('Relationship to child', max_length=50, blank=True)
+    photo_consent = models.BooleanField(default=False, choices=BOOL_CHOICES)
+    coaching1 = models.BooleanField('Individual coaching', default=False)
+    coaching2 = models.BooleanField('Group coaching', default=False)
+    person = models.ForeignKey(Person, blank=True, null=True)
 
 class Fees(models.Model):
     membership = models.ForeignKey('Membership')

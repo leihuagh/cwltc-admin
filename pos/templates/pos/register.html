@@ -2,18 +2,24 @@
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 {% block content %}
-  <h3 {% if class %}class="text-center"{% endif %}>{{ title }}</h3>
+  <h4 class="text-center">You have not yet registered on the members web site but you can do that now.</h4>
+  <h3 class="text-center">Enter these details to confirm that you are {{ person.fullname }}:</h3>
 {% if message %}
     <p>{{ message }}</p>
 {% endif %}
-  <div class="row">
-    <div class="col-md-4 col-md-push-4">
-      <h4>Please confirm your email and post code</h4>
-      <div >
-        {% crispy form %}
-      </div>
+  <div class="row justify-content-center">
+    <div class="col-md-4 col-md-offset-4">
+      <form method="POST">
+        <div class="well">
+          {% crispy form %}
+        </div>
+          {% for button in buttons %}
+            <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} mb-1"
+                   id="id-{{ button.name }}" value="{{ button.value }}"
+                   {% if button.no_validate %}formnovalidate=""{% endif %}>
+        {% endfor %}
+      </form>
     </div>
-
   </div>
 {% endblock content %}
 {% block scripts %}
@@ -23,4 +29,5 @@
       startTimer({{ timeout }}, "{{ timeout_url }}");
     });
   </script>
+
 {% endblock %}
