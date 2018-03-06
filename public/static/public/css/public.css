@@ -1,7 +1,7 @@
 /* padding after navbar */
 body {
     padding-top: 0px;
-    font-family: 'Rubik', sans-serif;
+    font-family: 'Questrial', sans-serif;
     min-height: 100vh;
 }
 
@@ -99,4 +99,68 @@ anchors are inline so you need ot make them block to go full width
 .carousel-item a {
   display: block;
   width:100%;
+}
+
+
+.logoPanorama {
+    background: url('../images/LogoPanorama.jpg') ;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
+    height:140px;
+}
+
+.logoStrip {
+  background-color: white;
+  height:85px;
+  padding: 0px;
+}
+.logoOrange {
+  color: #8b3d00;
+  font-size: 3em;
+}
+.logoGreen {
+  color: #00564f;
+  font-size: 3em;
+ }
+.logoStrap {
+  color: #6f8f8b;
+  position: absolute;
+  font-size: 1.2em;
+  font-style: oblique;
+  top: 50px;
+}
+
+#CookielawBanner {
+    background: #fff;
+    padding: 15px 0;
+}
+
+
+#CookielawBanner #CookielawCross {
+    background: url('../img/close.png') no-repeat 0 0;
+    cursor: pointer;
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 15px;
+    height: 15px;
+}
+
+
+
+
+.centered {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translate(-50%);
+}
+
+.deepshd {
+  color: #e0dfdc;
+  letter-spacing: .1em;
+  text-shadow: 0 -1px 0 #fff, 1px 1px 0 #2e2e2e, 2px 2px 0 #2c2c2c, 0 3px 0 #2a2a2a, 0 4px 0 #282828;
 }

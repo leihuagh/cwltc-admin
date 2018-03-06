@@ -1,5 +1,6 @@
 <!doctype html>
 {% load staticfiles %}
+{% load cookielaw_tags %}
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -8,9 +9,11 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
 {#  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"#}
 {#      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">#}
-
+  <link href="https://fonts.googleapis.com/css?family=Questrial|Roboto" rel="stylesheet">
   <link rel="stylesheet" type="text/css"  href="{% static 'css/custom.css' %}">
   <link rel="stylesheet" type="text/css"  href="{% static 'css/bootstrap-datetimepicker.css' %}">
+
+  <script type="text/javascript" src="{% static 'js/cookielaw.js' %}"></script>
 {#  <link rel="stylesheet" type="text/css"  href="{% static 'css/site.css' %}">#}
 
   {% block title %}<title>{{ title }} {{ site_name }}</title> {% endblock %}
@@ -21,9 +24,11 @@
 <body class="bg-primary mt-0 d-flex flex-column">
   {% block header %}
   {% endblock %}
+
   {% block navbar %}
   {% endblock %}
-  <div class="container-fluid flex-grow">
+  <div class="container-fluid flex-grow p-0">
+    {% cookielaw_banner %}
     {% block content %}
     {% endblock %}
   </div>
@@ -53,7 +58,6 @@
   <script src="{% static 'js/moment.min.js' %}"></script>
 
   <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
-
 
   {% block typeahead %}
   {% endblock %}

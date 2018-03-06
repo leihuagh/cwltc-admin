@@ -1,6 +1,50 @@
+{% load crispy_forms_tags %}
 <h5 class="card-title bg-success text-white p-1">Emergency contacts</h5>
 <p>
 In the event of injury, illness or other medical need during supervised activities
 all reasonable steps will be taken to contact the people below
 and to deal with the situation appropriately.
 </p>
+<div class="row">
+  <div class="col-md-4">
+    {{ form.contact0|as_crispy_field }}
+  </div>
+  <div class="col-md-4 py-0">
+    {{ form.phone0|as_crispy_field }}
+  </div>
+  <div class="col-md-4 py-0">
+    {{ form.relationship0|as_crispy_field }}
+  </div>
+</div>
+<div class="form-check mx-5 myb-2">
+  <input class="form-check-input" type="checkbox" name="additional_contacts"
+         onclick="$('#additional').toggle()"
+         {% if form.data.additional_contacts %}checked{% endif %}>
+  <label class="form-check-label" for="needs1">
+    <strong>Add more emergency contacts</strong>
+  </label>
+</div>
+<div id="additional" style="display: {% if form.data.additional_contacts %}block{% else %}none{% endif %}">
+  <div class="row">
+    <div class="col-md-4">
+      {{ form.contact1|as_crispy_field }}
+    </div>
+    <div class="col-md-4">
+      {{ form.phone1|as_crispy_field }}
+    </div>
+    <div class="col-md-4">
+      {{ form.relationship1|as_crispy_field }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4">
+      {{ form.contact2|as_crispy_field }}
+    </div>
+    <div class="col-md-4">
+      {{ form.phone2|as_crispy_field }}
+    </div>
+    <div class="col-md-4">
+      {{ form.relationship2|as_crispy_field }}
+    </div>
+  </div>
+</div>

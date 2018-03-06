@@ -281,6 +281,16 @@ urlpatterns = [
         name='person-profile-edit'
         ),
 
+    url(r'^junior/profile/(?P<pk>\d+)$',
+        JuniorProfileView.as_view(edit=False),
+        name='junior-profile'
+        ),
+
+    url(r'^junior/profile/edit/(?P<pk>\d+)$',
+        JuniorProfileView.as_view(edit=True),
+        name='junior-profile-edit'
+        ),
+
     #   ADDRESSES
     url(r'^person/address/(?P<person_id>\d+)/$',
         AddressUpdateView.as_view(),

@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django_mail_viewer',
     'django_tables2',
     'djcelery_email',
+    'cookielaw',
     'members',
     'pos',
     'public',

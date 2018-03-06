@@ -4,17 +4,10 @@
   <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
 {% endblock %}
 {% block header %}
-
-<div class="container bg-white">
- {% include '_logo_header.html' %}
-</div>
-
-{% if messages %}
-  {% for message in messages %}
-    <div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
-  {% endfor %}
-{% endif %}
-
+  {%  include '_logo_banner.html' %}
 {% endblock %}
+
+
+
 
 

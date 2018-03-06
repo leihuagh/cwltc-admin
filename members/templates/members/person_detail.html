@@ -31,7 +31,10 @@
                     <tr><td>Registered:</td><td>{% if person.auth_id %}Yes{% else %}No{% endif %}</td></tr>
                     <tr><td>Profile:</td><td>{% if person.adultapplication_set.count %}
                       <a href="{% url 'person-profile' pk=person.id %}">View</a>
-                    {% else %}No profile{% endif %}</td></tr>
+                    {% elif person.juniorprofile_set.count %}
+                      <a href="{% url 'junior-profile' pk=person.id %}">View</a>
+                      {% else %}
+                      No profile{% endif %}</td></tr>
                   </table>
    
                   <div class="panel-footer">

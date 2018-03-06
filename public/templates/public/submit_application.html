@@ -3,13 +3,23 @@
 {% load crispy_forms_tags %}
 {% load members_extras %}
 {% load widget_tweaks %}
+{% block header %}
+  <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
+{% endblock %}
 {% block content %}
-<div class="container bg-light">
-  <div class="row">
+<div class="logoStrip">
+  <div class="container">
+    <strong><span class="logoGreen">Coombe</span><span class="logoOrange">Wood</span></strong>
+    <br>
+    <span class="logoStrap">Kingston's premier tennis club</span>
+    <div class="row ">
     <div class="col-sm-12 p-0">
-      <img class="img-fluid" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />
+
     </div>
   </div>
+</div>
+</div>
+<div class="container bg-light">
   <form class="form-horizontal" role="form" action="{% url "public-apply-submit" %}" method="post" novalidate="">
     {% csrf_token %}
     <div class="row my-2">
@@ -25,10 +35,9 @@
 
             {% endif %}
             {% if children %}
-                {% include 'public/_parent_declaration.html' %}
-                {% include 'public/_photo_consent.html' %}
+              {% include 'public/_parent_declaration.html' %}
             {% endif %}
-            {%  include 'public/_privacy.html' %}
+            {% include 'public/_privacy.html' %}
             {% include "public/_membership_email.html" %}
             {% include "public/_club_email_consent.html" %}
             {% include "public/_camp_email_consent.html" %}

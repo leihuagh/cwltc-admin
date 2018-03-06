@@ -1,0 +1,22 @@
+{% load i18n static %}
+<script src="{% static 'cookielaw/js/cookielaw.js' %}"></script>
+<div class="container bg-warning" id="CookielawBanne">
+  <div class="row py-1">
+       <div class="col-10">
+        <p>{% trans '<strong>This site uses cookies. </strong> By continuing to browse you are agreeing to our use of cookies.'%}
+         <a  href="{% url 'privacy-policy' %}">{% trans "More information" %}</a></p>
+      </div>
+      <div class="col">
+          <a class="btn btn-danger float-right" href="javascript:Cookielaw.createCookielawCookie();">{% trans "Accept" %}</a>
+      </div>
+  </div>
+    <div class="close-cookies"></div>
+</div>
+
+<script type="application/javascript">
+$(document).ready(function () {
+   $('.close-cookies').click(function () {
+       $(this).parent().hide();
+   });
+});
+</script>

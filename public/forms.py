@@ -6,7 +6,7 @@ from django import forms
 from django.forms import Form, ModelForm, HiddenInput, RadioSelect
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, HTML, Field
+from crispy_forms.layout import Layout, Div, HTML, Field, Fieldset
 from crispy_forms.bootstrap import FormActions
 from members.forms import SubmitButton
 from members.models import AdultApplication, Person, Address, Membership, JuniorProfile
@@ -236,6 +236,20 @@ class AddressForm(ModelForm):
         return clean_phone(self.cleaned_data['home_phone'])
 
 
+class AdultMembershipForm(Form):
+    """ Capture required adult membership"""
+
+    membership_id = forms.TypedChoiceField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        choices = kwargs.pop('choices', Membership.adult_choices())
+        super().__init__(*args, **kwargs)
+        self.fields['membership_id'].choices = choices
+        self.helper = FormHelper(self)
+        self.helper.field_template ='public/field.html'
+        self.helper.form_tag = False
+
+
 class AdultProfileForm(ModelForm):
     """
     Capture adult profile
@@ -243,8 +257,7 @@ class AdultProfileForm(ModelForm):
     class Meta:
         model = AdultApplication
         fields = [
-            'membership_id',
-            'ability',                                          
+            'ability',
             'singles',
             'doubles',
             'coaching1',
@@ -256,41 +269,34 @@ class AdultProfileForm(ModelForm):
             'teams',
             'club',
             ]
-    form_type = forms.CharField(initial='Adult', widget=HiddenInput, required=False)
 
     def __init__(self, *args, **kwargs):
-        choices = kwargs.pop('choices', Membership.adult_choices())
         disabled = kwargs.pop('disabled', False)
         super().__init__(*args, **kwargs)
-        self.fields['membership_id'].choices = choices
         if disabled:
             for key in self.fields:
                 self.fields[key].disabled = True
         self.helper = FormHelper(self)
         self.helper.field_template ='public/field.html'
         self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Div(
-                Div('form_type', 'membership_id',
-                    HTML("""{% load members_extras %}
-                    {% for mem in memberships %}
-                    <strong>{{ mem|index:0 }} membership</strong><br/>
-                    Annual fee: &pound;{{ mem|index:1 }}
-                    {% if mem|index:2 %} + Joining fee: &pound;{{ mem|index:2 }} {% endif %}<br/>
-                    {{ mem|index:3 }}<br/><br/>
-                    {% endfor %}"""),
-                    css_class="col-lg-6"),
-                Div('club', 'ability', HTML("Tick all activities that interest you:"),
-                    'singles', 'doubles', 'coaching1', 'coaching2', 'daytime',
-                    'family', 'social', 'competitions', 'teams',
-                    css_class="col-lg-6"),
-                css_class="row")
-        )
+        self.helper.layout=Layout(
+            'ability',
+            HTML('<strong>Select all activities that interest you:</strong>'),
+            'singles',
+            'doubles',
+            'coaching1',
+            'coaching2',
+            'daytime',
+            'family',
+            'social',
+            'competitions',
+            'teams',
+            'club'
+            )
 
 
-class AdultContactForm(Form):
+class AdultContactForm(AdultMembershipForm):
     """ Contact details for additional adult family member """
-    form_type = forms.CharField(initial='Contact', widget=HiddenInput, required=False)
     mobile_phone = forms.CharField(max_length=20)
     email = forms.EmailField(max_length=75)
     confirmation = forms.BooleanField(label="Confirm you have this person's permission to enter their details")
@@ -341,19 +347,28 @@ class JuniorProfileForm(ModelForm):
     # '0' = not set, '1' = False, '2' = True
     rad_has_needs = forms.CharField()
     rad_photo_consent = forms.CharField()
-    #test = forms.BooleanField(widget=RadioSelect(choices = ((None, 'Not selected'),(True, 'yes is do'),(False, 'No I dont'))))
 
-    form_type = forms.CharField(initial='Child', widget=HiddenInput, required=False)
+    additional_contacts = forms.BooleanField(required=False)
     membership_id = forms.CharField(required=False, widget=HiddenInput)
 
     def __init__(self, *args, **kwargs):
+        disabled = kwargs.pop('disabled', False)
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
+        self.helper.field_template = 'public/field.html'
         self.helper.form_tag = False
         for field_name, field in self.fields.items():
             if field_name not in ['needs','contact0', 'phone0', 'relationship0', 'coaching1', 'coaching2']:
                 field.widget.attrs = {'placeholder': field.label}
                 field.label = ""
+        self.fields['needs'].widget.attrs = {'rows': '3'}
+        self.fields['needs'].label = ""
+
+    def clean(self):
+        cleaned_data = super().clean()
+        has_needs = cleaned_data.get('rad_has_needs', False)
+        if has_needs == '2' and not cleaned_data.get('needs', False):
+            self.add_error('needs', 'Please detail the special requirements')
 
 
 class ApplyNextActionForm(Form):
@@ -362,29 +377,6 @@ class ApplyNextActionForm(Form):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_tag = False
-
-
-# class ConsentForm(Form):
-#     PHOTO_CHOICES = ((True, 'I give consent to photographs being taken of my child'),
-#                      (False, 'I do not give consent to photographs being taken of my child')
-#                      )
-#     EMAIL_CHOICES = ((True, 'Yes, send me marketing emails'),
-#                      (False, 'No, do not send me marketing emails')
-#                      )
-#     DATABASE_CHOICES = ((True, 'Yes, include my email and phone number in the members database'),
-#                         (False, 'No, do not include me')
-#                        )
-#     photo_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=PHOTO_CHOICES))
-#     email_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=EMAIL_CHOICES))
-#     database_consent = forms.BooleanField(required=True, widget=RadioSelect(choices=CONTACT_CHOICES))
-#     rules = forms.BooleanField(required=True, label="I agree to be bound by the club rules")
-#
-#     def __init__(self, *args, **kwargs):
-#         kwargs.pop('delete', False)
-#         children = kwargs.pop('children', None)
-#         super(ApplySubmitForm, self).__init__(*args, **kwargs)
-#         if not children:
-#             del self.fields['photo_consent']
 
 
 class CampFindRecordForm(Form):

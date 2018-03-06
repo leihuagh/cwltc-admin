@@ -1,7 +1,6 @@
 <h5 class="card-title bg-success text-white p-1">Photo consent</h5>
-<p>
-  There are occasions when photographs of juniors are taken at the club for publicity purposes.
-  These may be displayed on the club's notice boards, web site, social media pages or promotional literature and occasionally may be sent to the local press.
+<p class="mb-2">
+  Sometimes photographs of juniors are taken at the club. These may be displayed on the notice board, web site, social media pages or promotional literature.
 </p>
 <div class="form-check mx-5 my-0">
   <input class="form-check-input" type="radio" name="rad_photo_consent" id="photo1" value="1" required
@@ -16,5 +15,5 @@
     <strong>I give consent for my child to be photographed</strong></label>
 </div>
 {% if form.errors.rad_photo_consent %}
-  <div class="mx-4" style="color: red; font-weight: bold">You must select one of these options<br/></div>
+  <div class="invalid-feedback" style="display: block; font-weight: bold">You must select one of these options<br/></div>
 {% endif %}

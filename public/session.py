@@ -1,6 +1,7 @@
 from enum import Enum
 from django.shortcuts import redirect
 from members.models import Membership
+from .forms import *
 
 # During the application process we store data posted from each of the forms
 # in session variables
@@ -67,12 +68,17 @@ def add_to_context(context, request):
     return context
 
 
-def update_data(index, request, cleaned_data):
+def update_data(index, request, form, form2=None):
     """
     Save cleaned data in session at index
     """
     posts = request.session['posts']
+    if form2:
+        cleaned_data = {**form.cleaned_data, **form2.cleaned_data}
+    else:
+        cleaned_data = form.cleaned_data
     cleaned_data['path'] = request.path
+    cleaned_data['form_class'] = form.__class__.__name__
     if index >= len(posts):
         posts.append(cleaned_data)
     else:
@@ -96,14 +102,14 @@ def delete_data(index, request):
     """
     Delete post data for index
     If it is not the last one in the list,
-    delete the next 1 or 2 records ( contact(adults) and profile) too
+    delete the next 1 record (junior profile) or 2 records ( contact/membership(adults) and adult profile) too
     """
     posts = request.session['posts']
     if index < len(posts):
         posts[index]['deleted'] = True
         index += 1
         if index < len(posts):
-            if posts[index]['form_type'] == 'Contact':
+            if is_membership_form(posts[index]):
                 posts[index]['deleted'] = True
                 index += 1
             if index < len(posts):
@@ -119,6 +125,10 @@ def invalidate_data(index, request):
     posts = request.session['posts']
     if index < len(posts):
         posts[index]['invalid'] = True
+        if is_membership_form(posts[index]):
+            index += 1
+            if index < len(posts):
+                posts[index]['invalid'] = True
         request.session.modified = True
 
 def last_index(request):
@@ -153,13 +163,39 @@ def back(index, request):
     return posts[0]['path']
 
 
+def is_name_form(data):
+    if data:
+        return data['form_class'] in [NameForm.__name__, FamilyMemberForm.__name__]
+    return False
+
+
+def is_membership_form(data):
+    return data['form_class'] in [AdultMembershipForm.__name__, AdultContactForm.__name__]
+
+
+def is_profile_form(data):
+    return data['form_class'] in [AdultProfileForm.__name__, JuniorProfileForm.__name__]
+
+
+def is_adult_profile(data):
+    return data['form_class'] == AdultProfileForm.__name__
+
+
+def is_junior_profile(data):
+    return data['form_class'] == JuniorProfileForm.__name__
+
+
+def is_valid(data):
+    return None if not data else not (data.get('deleted', False) or data.get('invalid', False))
+
+
 def last_fullname(index, request):
     """ Return the full name of the last applicant """
     while True:
         index -= 1
         data = get_data(index, request)
-        if data:
-            if data['form_type'] == 'Name':
+        if is_valid(data):
+            if is_name_form(data):
                 return data['first_name'] + " " + data['last_name']
         if index <= 0:
             return 'Name error'
@@ -188,10 +224,10 @@ def redirect_next(index, request):
     i = index
     while i < len(posts) - 1:
         i += 1
-        if not (posts[i].get('deleted', False) or posts[i].get('invalid', False)):
+        if is_valid(posts[i]):
             break
     if i < len(posts) - 1:
-        if posts[i]['form_type'] == 'Name':
+        if is_name_form(posts[i]):
             return redirect('public-apply-add', index=i)
     return redirect('public-apply-next')
 
@@ -201,8 +237,8 @@ def first_child_profile(index, request):
     posts = request.session['posts']
     i = 1
     while i < index:
-        if not (posts[i].get('deleted', False) or posts[i].get('invalid', False)):
-            if posts[i]['form_type'] == 'Child':
+        if is_valid(posts[i]):
+            if posts[i]['form_class'] == JuniorProfileForm.__name__:
                 return posts[i]
         i += 1
     return None
@@ -213,27 +249,25 @@ def get_family(request):
     Return a list of name and membership for each family member
     """
     posts = request.session['posts']
-    i = 0
+    i = 1
     family = []
-    while i < len(posts) - 1:
-        if not posts[i].get('deleted', False):
-            form_type = posts[i]['form_type']
-            if form_type == "Name":
+    # first entries can be adult + membership + profile OR parent + child
+    name = posts[0]['first_name'] + " " + posts[0]['last_name']
+    if is_membership_form(posts[1]):
+        membership = Membership.objects.get(pk=posts[1]['membership_id']).description
+        i = 3
+    else:
+        membership = 'Parent or guardian'
+        i = 2
+    family.append([name, membership])
+    while i < len(posts):
+        if is_valid(posts[i]):
+            if is_name_form(posts[i]):
                 name = posts[i]['first_name'] + " " + posts[i]['last_name']
-                i += 1
-                form_type = posts[i]['form_type']
-            if form_type == 'Contact':
-                i += 1
-                form_type = posts[i]['form_type']
-            if form_type in ['Adult', 'Child']:
-                membership_id = posts[i]['membership_id']
-                membership = Membership.objects.get(pk=membership_id).description
+            elif is_membership_form(posts[i]) or is_junior_profile(posts[i]):
+                membership = Membership.objects.get(pk=posts[i]['membership_id']).description
                 family.append([name, membership])
-                i += 1
-            else:
-                family.append([name, "Parent or guardian"])
-        else:
-            i += 1
+        i += 1
     return family
 
 
@@ -245,10 +279,10 @@ def get_children(request):
     i = 1
     children = ""
     while i < len(posts) - 1:
-        if posts[i]['form_type'] == "Name":
+        if is_name_form(posts[i]):
             name = posts[i]['first_name'] + " " + posts[i]['last_name']
             i += 1
-            if posts[i]['form_type'] == "Child":
+            if is_junior_profile(posts[i]):
                 if children != "":
                     children += ", "
                 children += name

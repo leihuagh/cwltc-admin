@@ -9,6 +9,8 @@ urlpatterns = [
     url(r'^apply/child/$', ApplyChild.as_view(), name='public-apply-child'),
     url(r'^apply/nonmember/$', ApplyNonMember.as_view(), name='public-apply-nonmember'),
     url(r'^apply/main/$', ApplyMain.as_view(), name='public-apply-main'),
+    url(r'^apply/membership/(?P<index>\d+)/(?P<membership_id>\d+)/$', ApplyMembershipView.as_view(),
+        name='public-apply-membership'),
     url(r'^apply/next/$', ApplyNextActionView.as_view(), name='public-apply-next'),
     url(r'^apply/add/(?P<index>\d+)/$', ApplyAddView.as_view(), name='public-apply-add'),
     url(r'^apply/contact/(?P<index>\d+)/(?P<membership_id>\d+)/$', ApplyContactView.as_view(),

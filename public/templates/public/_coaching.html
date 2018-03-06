@@ -1,0 +1,20 @@
+{% load crispy_forms_tags %}
+<h5 class="card-title bg-success text-white p-1">Coaching</h5>
+
+<p class="mb-2">Tick below if you want your child to receive coaching.</p>
+
+<div class="form-check mx-5 mb-0">
+  <input class="form-check-input" type="checkbox" name="coaching1" id="coaching1"
+         {% if form.data.coaching1 %}checked{% endif %}>
+  <label class="form-check-label" for="coaching1">
+    <strong>Individual coaching</strong>
+  </label>
+</div>
+<div class="form-check mx-5 myb-2">
+  <input class="form-check-input" type="checkbox" name="coaching2" id="coaching2"
+         {% if form.data.coaching2 %}checked{% endif %}>
+  <label class="form-check-label" for="coaching2">
+    <strong>Group coaching (Term programme)</strong>
+  </label>
+</div>
+Coaching fees are payable separately to the coach.
