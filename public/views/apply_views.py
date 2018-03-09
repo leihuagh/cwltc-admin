@@ -12,7 +12,7 @@ from mysite.common import Button
 from members.models import Person, AdultApplication, JuniorProfile, Membership, Settings, Fees
 from members.services import membership_from_dob
 from public.forms import (NameForm, AddressForm, AdultMembershipForm, AdultProfileForm, JuniorProfileForm, FamilyMemberForm,
-                          ApplyNextActionForm, AdultContactForm, CampFindRecordForm)
+                          ApplyNextActionForm, AdultContactForm, ApplySubmitForm, CampFindRecordForm)
 import public.session as session
 
 logger = logging.getLogger(__name__)
@@ -106,6 +106,8 @@ class DispatchMixin():
     """ Mixin to add session variables to class """
 
     def dispatch(self, request, *args, **kwargs):
+        if not session.exists(request):
+            raise Http404
         self.membership_id = int(kwargs.get('membership_id', 0))
         self.index = int(kwargs['index'])
         self.full_name = session.last_fullname(self.index, request)
@@ -118,9 +120,9 @@ class DispatchMixin():
         return super(DispatchMixin, self).dispatch(request, *args, **kwargs)
 
 
-class ApplyMembershipView(DispatchMixin, FormView):
+class ApplyAdultMembershipView(DispatchMixin, FormView):
     """ Select adult membership category"""
-    template_name = 'public/membership_select.html'
+    template_name = 'public/adult_membership.html'
     form_class = AdultMembershipForm
 
     def get_form_kwargs(self):
@@ -222,7 +224,7 @@ class ApplyAddView(DispatchMixin, CreateView):
         return redirect('public-apply-child-profile', index=index, membership_id=membership.id)
 
 
-class ApplyContactView(ApplyMembershipView):
+class ApplyAdultContactView(ApplyAdultMembershipView):
     """ Get adult contact details """
 
     form_class = AdultContactForm
@@ -330,11 +332,14 @@ class ApplyNextActionView(FormView):
     form_class = ApplyNextActionForm
 
     def get_context_data(self, **kwargs):
-        kwargs['form_title'] = "Applicants"
-        kwargs['family'] = session.get_family(self.request)
-        kwargs['buttons'] = [Button("Back", "back"),
-                             Button("Add family member", "add"),
-                             Button("Complete application", "submit")]
+        if session.exists(self.request):
+            kwargs['form_title'] = "Applicants"
+            kwargs['family'] = session.get_family(self.request)
+            kwargs['buttons'] = [Button("Back", "back"),
+                                 Button("Add family member", "add"),
+                                 Button("Complete application", "submit")]
+        else:
+            kwargs['form_title'] = "Invalid application"
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -346,26 +351,42 @@ class ApplyNextActionView(FormView):
         return redirect('public-apply-add', index)
     
 
-class ApplySubmitView(TemplateView):
+class ApplySubmitView(FormView):
     """
     Confirm everything and get acceptance
     Add all to database
     """
     template_name = 'public/submit_application.html'
+    form_class = ApplySubmitForm
+
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'children': session.get_children(self.request)})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        kwargs['membership'] = session.is_adult_application(self.request) or session.is_child_application(self.request)
+        kwargs['family'] = session.get_family(self.request)
+        kwargs['children'] = session.get_children(self.request)
+        kwargs['adult'] = session.is_adult_application(self.request)
+        return super().get_context_data(**kwargs)
 
     def get(self, request, *args, **kwargs):
         if session.exists(request):
             return render(request, self.template_name, self.get_context_data(**kwargs))
         return HttpResponse("Your application form has been processed and cannot be resubmitted")
 
-    @transaction.atomic
     def post(self, request, *args, **kwargs):
         if not session.exists(request):
-            return HttpResponse("Your application form has been processed and cannot be resubmitted")
+            return Http404
         index = session.last_index(request) + 1
         if 'back' in request.POST:
             return redirect(session.back(index, request))
+        return super().post(self, request, *args, **kwargs)
 
+    @transaction.atomic
+    def form_valid(self, form):
         try:
             person = self.request.session['person']
             address = self.request.session['address']
@@ -373,16 +394,16 @@ class ApplySubmitView(TemplateView):
             person.address = address
             person.state = Person.APPLIED
             person.date_joined = datetime.today()
-            person.allow_phone = request.POST['database'] == 'yes'
-            person.allow_email = request.POST['database'] == 'yes'
-            person.allow_marketing = request.POST['marketing'] == 'yes'
+            person.allow_marketing = self.request.POST['marketing'] == 'yes'
             person.consent_date = datetime.today()
             person.save()
         
             posts = self.request.session['posts']
             i = 1
-            if session.is_adult_application(request):
+            if session.is_adult_application(self.request):
                 person.membership_id = posts[i]['membership_id']
+                person.allow_phone = posts[i]['database'] == 'yes'
+                person.allow_email = posts[i]['database'] == 'yes'
                 i += 1
                 profile_form = AdultProfileForm(posts[i])
                 if profile_form.is_valid():
@@ -426,7 +447,7 @@ class ApplySubmitView(TemplateView):
                     profile = profile_form.save(commit=False)
                     if child:
                         profile.has_needs = profile_form.cleaned_data['rad_has_needs'] == '2'
-                        profile.photo_consent = profile_form.cleaned_data['rad_photo_consent'] == '2'
+                        profile.photo_consent = profile_form.cleaned_data['photo'] == 'yes'
                         fam_member.membership_id = profile_form.cleaned_data['membership_id']
                         fam_member.save()
                     profile.person = fam_member
@@ -450,12 +471,6 @@ class ApplySubmitView(TemplateView):
             message = ("Sorry, an error occurred while processing the form. {0}").format(error)
             logger.error(message)
             return HttpResponse(message)
-            
-    def get_context_data(self, **kwargs):
-        kwargs['family'] = session.get_family(self.request)
-        kwargs['children'] = session.get_children(self.request)
-        kwargs['adult'] = session.is_adult_application(self.request)
-        return super().get_context_data(**kwargs)
 
 
 class ApplyThankYouView(TemplateView):

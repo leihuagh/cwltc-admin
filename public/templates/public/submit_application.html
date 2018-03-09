@@ -1,62 +1,46 @@
 ﻿{% extends "public/base.html" %}
 {% load staticfiles %}
 {% load crispy_forms_tags %}
-{% load members_extras %}
-{% load widget_tweaks %}
-{% block header %}
-  <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
-{% endblock %}
 {% block content %}
-<div class="logoStrip">
-  <div class="container">
-    <strong><span class="logoGreen">Coombe</span><span class="logoOrange">Wood</span></strong>
-    <br>
-    <span class="logoStrap">Kingston's premier tennis club</span>
-    <div class="row ">
-    <div class="col-sm-12 p-0">
-
+  <div class="container bg-light flex-sm-grow" style="height: 100%">
+    <h3></h3>
+    <div class="row justify-content-center">
+      <div class="col-sm-12 col-md-8 col-lg-8">
+        <form class="form-horizontal" role="form" action="{% url "public-apply-submit" %}" method="post" novalidate>
+          {% csrf_token %}
+          <div class="card my-2">
+            <h4 class="card-header card-title bg-success text-white mb-3">
+              Terms and conditions
+            </h4>
+            <div class="card-body pt-0">
+              {%  if form.errors %}
+                <div class="text-danger">
+                  <strong>Please correct the errors in red below</strong>
+                </div>
+              {% endif %}
+              {% if membership %}
+                {% include 'public/_club_rules.html' %}
+              {% else %}
+                {% include 'public/_camp_rules.html' %}
+              {% endif %}
+              {% if children %}
+                {% include 'public/_parent_declaration.html' %}
+              {% endif %}
+              {% if membership %}
+                {% include "public/_membership_email.html" %}
+                {% include "public/_club_email_consent.html" %}
+              {% else %}
+                {% include "public/_camp_email_consent.html" %}
+              {% endif %}
+            {% include 'public/_privacy.html' %}
+            </div>
+            <div class="card-footer">
+              <input type="submit" name="back" class="btn btn-primary" value="Back" formnovalidate >
+              <input type="submit" class="btn btn-primary" value="Submit application" >
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
-</div>
-<div class="container bg-light">
-  <form class="form-horizontal" role="form" action="{% url "public-apply-submit" %}" method="post" novalidate="">
-    {% csrf_token %}
-    <div class="row my-2">
-      <div class="col">
-        <div class="card my-3">
-          <h4 class="card-header card-title bg-success text-white mb-3">
-            Terms and conditions
-          </h4>
-          <div class="card-body pt-0">
-            {% include 'public/_camp_rules.html' %}
-            {% include 'public/_club_rules.html' %}
-            {% if family %}
-
-            {% endif %}
-            {% if children %}
-              {% include 'public/_parent_declaration.html' %}
-            {% endif %}
-            {% include 'public/_privacy.html' %}
-            {% include "public/_membership_email.html" %}
-            {% include "public/_club_email_consent.html" %}
-            {% include "public/_camp_email_consent.html" %}
-            {% if adult %}
-              {% include "public/_members_database.html" %}
-            {% endif %}
-          </div>
-          <div class="card-footer">
-            <input type="submit" name="back" class="btn btn-primary" value="Back" formnovalidate >
-            <input type="submit" class="btn btn-primary" value="Submit application" >
-          </div>
-        </div>
-      </div>
-  </div>
-</form>
-
 {% endblock %}
-
-
-
-
-

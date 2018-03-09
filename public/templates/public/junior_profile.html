@@ -4,11 +4,6 @@
 {% load members_extras %}
 {% block content %}
   <div class="container bg-light flex-sm-grow" style="height: 100%">
-    <div class="row">
-{#      <div class="col-sm-12 p-0">#}
-{#        <img class="img-fluid" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />#}
-{#      </div>#}
-    </div>
     <h3> {{ title }}</h3>
     <div class="row justify-content-center">
       <div class="col-sm-12 col-md-8 col-lg-8">
@@ -29,10 +24,11 @@
             <div class="card-body pt-0">
               {%  if form.errors %}
               <div class="text-danger">
-                <strong>Please correct the errors in red below</strong>
+                <strong>Please correct the errors in red below.</strong>
               </div>
               {% endif %}
-              <p>
+            <h5 class="card-title bg-success text-white p-1">Membership</h5>
+              <p class="mb-0">
               Membership category: <strong>{{ membership.description }}</strong> (Under {{ membership.cutoff_age }} on 1 May {{ year }})
               <br>
               Annual membership: <strong>&pound;{{ sub }}</strong> (1st May {{ year }} to 30th April {{ end_year }})

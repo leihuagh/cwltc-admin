@@ -248,26 +248,27 @@ def get_family(request):
     """
     Return a list of name and membership for each family member
     """
-    posts = request.session['posts']
-    i = 1
     family = []
-    # first entries can be adult + membership + profile OR parent + child
-    name = posts[0]['first_name'] + " " + posts[0]['last_name']
-    if is_membership_form(posts[1]):
-        membership = Membership.objects.get(pk=posts[1]['membership_id']).description
-        i = 3
-    else:
-        membership = 'Parent or guardian'
-        i = 2
-    family.append([name, membership])
-    while i < len(posts):
-        if is_valid(posts[i]):
-            if is_name_form(posts[i]):
-                name = posts[i]['first_name'] + " " + posts[i]['last_name']
-            elif is_membership_form(posts[i]) or is_junior_profile(posts[i]):
-                membership = Membership.objects.get(pk=posts[i]['membership_id']).description
-                family.append([name, membership])
-        i += 1
+    if exists(request):
+        posts = request.session['posts']
+        i = 1
+        # first entries can be adult + membership + profile OR parent + child
+        name = posts[0]['first_name'] + " " + posts[0]['last_name']
+        if is_membership_form(posts[1]):
+            membership = Membership.objects.get(pk=posts[1]['membership_id']).description
+            i = 3
+        else:
+            membership = 'Parent or guardian'
+            i = 2
+        family.append([name, membership])
+        while i < len(posts):
+            if is_valid(posts[i]):
+                if is_name_form(posts[i]):
+                    name = posts[i]['first_name'] + " " + posts[i]['last_name']
+                elif is_membership_form(posts[i]) or is_junior_profile(posts[i]):
+                    membership = Membership.objects.get(pk=posts[i]['membership_id']).description
+                    family.append([name, membership])
+            i += 1
     return family
 
 

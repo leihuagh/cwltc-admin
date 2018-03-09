@@ -1,7 +1,7 @@
 /* padding after navbar */
 body {
     padding-top: 0px;
-    font-family: 'Questrial', sans-serif;
+    font-family: 'Roboto', sans-serif;
     min-height: 100vh;
 }
 
@@ -149,6 +149,30 @@ anchors are inline so you need ot make them block to go full width
     height: 15px;
 }
 
+/* Corrections to bootstrap check boxes and radio fields */
+.invalid-feedback {
+  display: block;
+  font-size: 1em;
+  margin-bottom: 0px;
+}
+
+.form-check {
+  margin-bottom: 0px;
+}
+
+.form-check-input{
+  margin-right: 5px;
+}
+
+.form-check-label{
+  font-weight: bold;
+}
+
+.col-form-label{
+  padding-top: 0;
+  padding-bottom: 0;
+  font-weight: bold;
+}
 
 
 

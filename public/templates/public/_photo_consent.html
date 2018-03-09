@@ -1,19 +1,8 @@
+{% load crispy_forms_tags %}
 <h5 class="card-title bg-success text-white p-1">Photo consent</h5>
 <p class="mb-2">
   Sometimes photographs of juniors are taken at the club. These may be displayed on the notice board, web site, social media pages or promotional literature.
 </p>
-<div class="form-check mx-5 my-0">
-  <input class="form-check-input" type="radio" name="rad_photo_consent" id="photo1" value="1" required
-         {% if form.rad_photo_consent.initial == '1' %}checked{% endif %}>
-  <label class="form-check-label" for="photo1">
-    <strong>I do not give consent for my child to be photographed</strong></label>
+<div class="mx-4 my-2">
+  {{ form.photo|as_crispy_field }}
 </div>
-<div class="form-check mx-5">
-  <input class="form-check-input" type="radio" name="rad_photo_consent" id="photo2" value="2" required
-           {% if form.rad_photo_consent.initial == '2' %}checked{% endif %}>
-  <label class="form-check-label" for="photo2">
-    <strong>I give consent for my child to be photographed</strong></label>
-</div>
-{% if form.errors.rad_photo_consent %}
-  <div class="invalid-feedback" style="display: block; font-weight: bold">You must select one of these options<br/></div>
-{% endif %}

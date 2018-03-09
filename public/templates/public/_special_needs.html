@@ -5,10 +5,13 @@ Does your child have any special requirements that we should be aware of?<br>
 This includes medical conditions, dietary requirements, access needs etc.
 </p>
 <div class="form-check mx-5 my-0">
+  {% if form.errors.rad_has_needs %}
+    <div class="invalid-feedback" style="display: block; font-weight: bold">You must select one of these options</div>
+  {% endif %}
   <input class="form-check-input" type="radio" name="rad_has_needs" id="needs1" value="1"
          onclick="document.getElementById('needsDiv').style.display = 'none'"
          {% if form.data.rad_has_needs == '1' %}checked{% endif %}>
-  <label class="form-check-label" for="needs1">
+  <label class="my-0" for="needs1">
     <strong>My child has no special requirements</strong>
   </label>
 </div>
@@ -16,13 +19,11 @@ This includes medical conditions, dietary requirements, access needs etc.
   <input class="form-check-input" type="radio" name="rad_has_needs" id="needs2" value="2"
          onclick="document.getElementById('needsDiv').style.display = 'block'"
          {% if form.data.rad_has_needs == '2' %}checked{% endif %}>
-  <label class="form-check-label" for="needs2">
+  <label class="" for="needs2">
     <strong>My child has special requirements as detailed below</strong>
   </label>
 </div>
-{% if form.errors.rad_has_needs %}
-  <div class="invalid-feedback" style="display: block; font-weight: bold">You must select one of these options</div>
-{% endif %}
+
 <div class="form-group" id="needsDiv" style="display: {% if form.data.rad_has_needs == '2' %}block{% else %}none{% endif %}">
 {{ form.needs|as_crispy_field }}
 </div>

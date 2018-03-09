@@ -11,6 +11,8 @@ from crispy_forms.bootstrap import FormActions
 from members.forms import SubmitButton
 from members.models import AdultApplication, Person, Address, Membership, JuniorProfile
 
+MANDATORY_OPTION = 'You must choose one of the options below:'
+MANDATORY_TICK = "You must tick this box to proceed."
 
 class ContactForm(Form):
     """ Contact form to notify resignation """
@@ -143,20 +145,6 @@ class RegisterTokenForm(Form):
                                          one letter and at least one number.', code='invalid_password')
         return self.cleaned_data
 
-
-# class ConsentForm(ModelForm):
-#     """ Get consent flags """
-#     class Meta:
-#         model = Person
-#         fields = ['allow_email', 'allow_phone', 'allow_marketing', ]
-#
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.helper = FormHelper(self)
-#         self.helper.field_template ='public/field.html'
-#         self.helper.form_tag = False
-
-
 # Forms for the application process
 
 
@@ -186,7 +174,6 @@ class NameForm(ModelForm):
             del self.fields['dob']
             del self.fields['gender']
         self.helper = FormHelper(self)
-        self.helper.form_class = 'form-horizontal'
         self.helper.form_tag = False
         self.helper.disable_csrf = True
 
@@ -240,11 +227,18 @@ class AdultMembershipForm(Form):
     """ Capture required adult membership"""
 
     membership_id = forms.TypedChoiceField(required=False)
+    database = forms.TypedChoiceField(
+        label="",
+        choices=(('yes', 'Yes, include my name, phone and email in the member database'),
+                 ('no', 'No, do not include me in the member database')),
+        error_messages={'required': MANDATORY_OPTION},
+        widget=forms.RadioSelect)
 
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop('choices', Membership.adult_choices())
         super().__init__(*args, **kwargs)
         self.fields['membership_id'].choices = choices
+        self.fields['membership_id'].label = 'Select membership category'
         self.helper = FormHelper(self)
         self.helper.field_template ='public/field.html'
         self.helper.form_tag = False
@@ -270,6 +264,7 @@ class AdultProfileForm(ModelForm):
             'club',
             ]
 
+
     def __init__(self, *args, **kwargs):
         disabled = kwargs.pop('disabled', False)
         super().__init__(*args, **kwargs)
@@ -277,7 +272,7 @@ class AdultProfileForm(ModelForm):
             for key in self.fields:
                 self.fields[key].disabled = True
         self.helper = FormHelper(self)
-        self.helper.field_template ='public/field.html'
+        self.helper.field_template ='public/field.html' # so checkboxes stack neatly
         self.helper.form_tag = False
         self.helper.layout=Layout(
             'ability',
@@ -329,6 +324,8 @@ class JuniorProfileForm(ModelForm):
     class Meta:
         model = JuniorProfile
         fields = [
+            'coaching1',
+            'coaching2',
             'needs',
             'contact0',
             'phone0',
@@ -346,7 +343,13 @@ class JuniorProfileForm(ModelForm):
     # these fields are represented by radio buttons that update a boolean
     # '0' = not set, '1' = False, '2' = True
     rad_has_needs = forms.CharField()
-    rad_photo_consent = forms.CharField()
+
+    photo = forms.TypedChoiceField(
+        label="",
+        choices=(('no','No, I do not give consent for my child to be photographed'),
+                 ('yes','Yes, I give consent for my child to be photographed')),
+        error_messages={'required': MANDATORY_OPTION},
+        widget=forms.RadioSelect)
 
     additional_contacts = forms.BooleanField(required=False)
     membership_id = forms.CharField(required=False, widget=HiddenInput)
@@ -375,6 +378,28 @@ class ApplyNextActionForm(Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
+
+class ApplySubmitForm(Form):
+    """ Final confirmation """
+
+    rules = forms.BooleanField(label="<strong>All people listed above agree to abide by the club's rules</strong>",
+                               error_messages={'required': 'You must tick this box to proceed'})
+    parent_declaration = forms.BooleanField(label="I agree to all of the above points",
+                                error_messages={'required': MANDATORY_TICK})
+    marketing = forms.TypedChoiceField(label="",
+                                   choices=(('yes','Yes, I agree to receive marketing emails'),
+                                            ('no','No, I do not agree to receive marketing emails')),
+                                   error_messages={'required': MANDATORY_OPTION},
+                                   widget=forms.RadioSelect)
+
+    def __init__(self, *args, **kwargs):
+        children = kwargs.pop('children', False)
+        super().__init__(*args, **kwargs)
+        if not children:
+            self.fields.pop('parent_declaration')
         self.helper = FormHelper(self)
         self.helper.form_tag = False
 

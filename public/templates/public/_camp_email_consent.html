@@ -1,20 +1,9 @@
 <h5 class="card-title bg-success text-white p-1">Marketing emails</h5>
 <p>
-  From time to time we send emails with details of tennis camps, coaching programmes and
-  invitations to join Coombe Wood.
-  You will have the opportunity to unsubscribe from such emails on the club website and through
-  unsubscribe links at the end of every mail.
+  We would like to send yoo occasional emails with details of tennis camps, coaching programmes and
+  invitations to join Coombe Wood. <br>
+  You can unsubscribe from such emails through unsubscribe links at the end of every email.
 </p>
-
-<div class="form-check mx-5 my-0">
-  <input class="form-check-input" type="radio" name="email" id="email1" value="yes" required>
-  <label class="form-check-label" for="email1">
-    <strong>Yes, send me club emails</strong>
-  </label>
-</div>
-<div class="form-check mx-5">
-  <input class="form-check-input" type="radio" name="email" id="email2" value="no" required>
-  <label class="form-check-label" for="email2">
-    <strong>No, do not send me any club emails</strong>
-  </label>
+<div class="mx-4 my-0">
+  {{ form.marketing|as_crispy_field }}
 </div>

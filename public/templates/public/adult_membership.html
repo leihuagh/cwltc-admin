@@ -1,14 +1,8 @@
 {% extends "public/base.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
-{% load members_extras %}
 {% block content %}
   <div class="container bg-light flex-sm-grow" style="height: 100%">
-{#    <div class="row">#}
-{#      <div class="col-sm-12 p-0">#}
-{#        <img class="img-fluid" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />#}
-{#      </div>#}
-{#    </div>#}
     <h3 {% if class %}class="text-center"{% endif %}>{{ title }}</h3>
     <div class="row justify-content-center">
       <div class="col-sm-12 col-md-8 col-lg-8">
@@ -31,16 +25,15 @@
                   <strong>Please correct the errors in red below</strong>
                 </div>
               {% endif %}
-              {% if memberships|length == 1 %}
-                <p>You qualify for the membership below</p>
-              {% else %}
+              <h5 class="card-title bg-success text-white p-1">Membership</h5>
+              {% if memberships|length > 1 %}
                 <p>Please choose from the following membership categories:</p>
               {% endif %}
               {% for mem in memberships %}
-                <strong>{{ mem|index:0 }} membership</strong><br/>
-                Annual fee: &pound;{{ mem|index:1 }}
-                {% if mem|index:2 %} + Joining fee: &pound;{{ mem|index:2 }} {% endif %}<br/>
-                {{ mem|index:3 }}<br/><br/>
+                <strong>{{ mem.0 }} membership</strong><br/>
+                Annual fee: &pound;{{ mem.1 }}
+                {% if mem.2 %} + Joining fee: &pound;{{ mem.2 }} {% endif %}<br/>
+                {{ mem.3 }}<br/><br/>
               {% endfor %}
               {% if memberships|length > 1 %}
                 {{ form.membership_id|as_crispy_field }}
@@ -50,6 +43,7 @@
                 {{ form.email|as_crispy_field }}
                 {{ form.confirmation|as_crispy_field }}
               {% endif %}
+              {% include 'public/_members_database.html' %}
             </div>
             <div class="card-footer">
               {% for button in buttons %}
