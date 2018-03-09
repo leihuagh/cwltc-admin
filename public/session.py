@@ -164,9 +164,7 @@ def back(index, request):
 
 
 def is_name_form(data):
-    if data:
-        return data['form_class'] in [NameForm.__name__, FamilyMemberForm.__name__]
-    return False
+    return data['form_class'] in [NameForm.__name__, FamilyMemberForm.__name__]
 
 
 def is_membership_form(data):
@@ -280,14 +278,13 @@ def get_children(request):
     i = 1
     children = ""
     while i < len(posts) - 1:
-        if is_name_form(posts[i]):
-            name = posts[i]['first_name'] + " " + posts[i]['last_name']
-            i += 1
-            if is_junior_profile(posts[i]):
-                if children != "":
-                    children += ", "
-                children += name
-            i += 1
-        else:
-            i += 1
+        if is_valid(posts[i]):
+            if is_name_form(posts[i]):
+                name = posts[i]['first_name'] + " " + posts[i]['last_name']
+                i += 1
+                if is_junior_profile(posts[i]):
+                    if children != "":
+                        children += ", "
+                    children += name
+        i += 1
     return children
