@@ -1,10 +1,15 @@
 ﻿{% load staticfiles %}
-<div class="row bg-white align-items-start">
-  <div class="col-2 pl-5 py-2">
-    <img src="{% static "images/CWLTC logo small.png" %}"/>
+<div class="logostrip">
+  <div class="container">
+    <div class="row bg-white">
+      <div class="col">
+        <strong><span class="logoGreen">Coombe</span><span class="logoOrange">Wood</span></strong>
+        <br>
+        <span class="logoStrap">Kingston's premier tennis club</span>
+      </div>
+      <div class="col">
+        <img class="float-right p-1" src="{% static "images/CWLTC logo small.png" %}"/>
+      </div>
   </div>
-  <div class="col-8" >
-    <h1  class="text-primary" style="text-align: center"><strong>Coombe Wood Tennis</strong> </h1>
-      <h4 class="text-danger" style="text-align: center"><em>Kingston's Premier Tennis Club</em></h4>
-  </div>
+</div>
 </div>

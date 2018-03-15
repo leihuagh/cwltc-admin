@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^run/$', PosView.as_view(), name='pos_run'),
     url(r'^split/summary/$', SplitSummaryView.as_view(), name='pos_split_summary'),
     url(r'^split/user/$', GetUserSplitView.as_view(), name='pos_split_user'),
+    url(r'^ajax/items/$', ajax_items_view, name='pos_ajax_items'),
 
     url(r'^transactions/$', TransactionListView.as_view(), name='pos_transactions'),
     url(r'^transactions/main/$', TransactionListView.as_view(main_menu=True), name='pos_transactions_main'),

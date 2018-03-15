@@ -34,7 +34,7 @@ class RegisterView(FormView):
             user = User.objects.filter(pk=person.auth_id)
             if len(user) == 1:
                 messages.error(self.request, 'You are already registered with username {}'.format(user[0].username))
-                return redirect('login-token', token=Signer().sign(user[0].username))
+                return redirect('login-token', token=Signer().sign(person.id))
 
         if person.membership and person.membership.is_adult:
             return redirect(self.get_success_url_name(), token=Signer().sign(person.id))
@@ -91,7 +91,7 @@ class RegisterTokenView(FormView):
             return redirect('public-home')
 
     def get_success_url_name(self, **kwargs):
-        return 'public_consent_token'
+        return 'public-consent-token'
 
 
 class ConsentTokenView(TemplateView):
@@ -137,10 +137,6 @@ class ConsentTokenView(TemplateView):
     def get_success_url_name(self, **kwargs):
         return 'public-home'
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context['name'] = self.object.fullname
-    #     return context
 
     def get_success_url(self, **kwargs):
         return reverse('pos_start')

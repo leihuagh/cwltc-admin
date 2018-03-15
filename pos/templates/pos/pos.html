@@ -17,40 +17,57 @@
 <!-- Include meta tag to ensure proper rendering and touch zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<form id="defaults">
-  {% csrf_token %}
-  <div class="flex-container">
-    <div class="flex-left">
-      {% for row in rows %}
-        <div class="row">
-          {% for loc in row %}
-            <div class="col col-md-2">
-              {% if loc.2 %}
-                <button class="btn btn-success btn-sq-lg timed" id="itm_{{ loc.2.id }}"
-                        ic-include="#defaults" ic-post-to="{{ request.path }}"
-                        ic-target="#intercooler_area" ic-trigger-on="tap">
-                  <span>{{ loc.2.button_text }}</span>
-                </button>
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
-        <br/>
-      {% endfor %}
-    </div>
-
-    <div class="flex-right">
-      <div class="name-area"><h2 class="text-center">
-        {% if person %}{{ person.fullname }}{%  else %} Attended mode{% endif %}</h2></div>
-      <div class="intercooler-area" id="intercooler_area">
-        <!-- Receipt table & buttons inserted here-->
+<div class="flex-container">
+  <div class="flex-left">
+    {% for row in rows %}
+      <div class="row">
+        {% for loc in row %}
+          <div class="col col-md-2">
+            {% if loc.2 %}
+              <button class="btn btn-success btn-sq-lg timed" id="itm_{{ loc.2.id }}"
+                      onclick="Pos.itemAdd({{ loc.2.id }})">
+                <span>{{ loc.2.button_text }}</span>
+              </button>
+            {% endif %}
+          </div>
+        {% endfor %}
       </div>
-
-    </div >
-      <button ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"
-              ic-trigger-on="click" id="dum_" style="display: none"></button>
+      <br/>
+    {% endfor %}
   </div>
 
+  <div class="flex-right">
+    <div class="name-area"><h2 class="text-center">
+      {% if person %}{{ person.fullname }}{%  else %} Attended mode{% endif %}</h2></div>
+      <div id="id_receipt">
+        <table id="id_table">
+
+        </table>
+      </div>
+      <div id="id_total" style="text-align: right"></div>
+      <div id="id_payment">
+        <div class="col-md-6">
+          <button class="btn btn-success btn-lg btn-block timed" id="id_pay" onclick="Pos.pay()">
+            Payment
+            <span class="glyphicon glyphicon-ok"></span>&nbsp;
+          </button>
+        </div>
+        <div class="col-md-6">
+          <button class="btn btn-danger btn-lg btn-block timed" id="id_cancel" onclick="Pos.newReceipt()">
+            Cancel all
+            <span class="glyphicon glyphicon-trash"></span>&nbsp;
+          </button>
+        </div>
+        <div class="col-md-12">
+          <button class="btn btn-lg btn-block btn-primary" id="id_exit" onclick="Pos.exitPos()">
+            Exit
+          </button>
+        </div>
+      </div>
+  </div>
+</div>
+<form id="defaults">
+  {% csrf_token %}
   <!-- Modal -->
   <div id="pay_modal" class="modal fade" role="dialog">
     <div class="modal-dialog">
@@ -64,18 +81,15 @@
             <h4>Total is <span id="id_total2"></span></h4>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-lg btn-success" id="account" data-dismiss="modal"
-              ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"     >
+            <button class="btn btn-lg btn-success" id="account" data-dismiss="modal" onclick="Pos.account()">
               Charge to member account
               <span class="glyphicon glyphicon-ok"></span>&nbsp;
             </button>
-            <button class="btn btn-lg btn-success" id="cash" data-dismiss="modal"
-              ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"     >
+            <button class="btn btn-lg btn-success" id="cash" data-dismiss="modal" onclick="Pos.cash()">
               Cash sale
               <span class="glyphicon glyphicon-ok"></span>&nbsp;
             </button>
-            <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back"
-              ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area">
+            <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back" onclick="Pos.back()">
               Back
             </button>
           </div>
@@ -151,22 +165,23 @@
 
 {#  <script src="https://cdn.intercoolerjs.org/intercooler-1.2.0.min.js"></script>#}
   <script src="{% static 'pos/js/intercooler-1.2.0.min.js' %}"></script>
-<script src="{% static 'pos/js/timeout.js' %}"></script>
+  <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
   <script src="{% static 'js/person_typeahead.js' %}"></script>
-
+  <script src="{% static 'pos/js/pos.js' %}"></script>
 <script>
   $(document).bind("mobileinit", function () {
       // Stop jQuery Mobile messing with our link buttons
       $.mobile.linkBindingEnabled = false;
       // Hide the loading message at bottom of screen
-
   });
       $(document).ready(function () {
       $(".ui-loader").hide();
+      Pos = PosCode;
+      Pos.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}');
       startTimer({{ timeout }}, "{{ timeout_url }}");
-      $('#dum_').click();
     });
+
   function preparePay(){
     $('#id_total1').text($('#id_total').text());
     $('#id_total2').text($('#id_total').text());

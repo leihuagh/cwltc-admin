@@ -1,9 +1,10 @@
 ﻿{% extends "base_new.html" %}
 {% load staticfiles %}
 {% block head %}
+    <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
 {% endblock %}
 {% block header %}
-
+  {%  include '_logo_header.html' %}
 {% endblock %}
 {% block navbar %}
 <div class="container-fluid bg-success">
