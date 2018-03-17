@@ -11,7 +11,7 @@
     <form method="post">
       <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
       {% for layout in layouts %}
-        <input class="btn btn-success" type="submit" name="layout" value="{{ layout.name }}"\>
+        <input class="btn btn-success" type="submit" name="layout" value="{{ layout.name }}">
       {% endfor %}
     </form>
   </div>

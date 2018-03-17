@@ -1,9 +1,10 @@
-var PosCode = (function () {
+var PosCode;
+PosCode = (function () {
     "use strict";
 
     var Pos = {};
 
-    /* DOM objects */
+    // DOM objects
     var receiptArea = document.getElementById('id_receipt');
     var totalArea = document.getElementById('id_total');
     var table = document.getElementById('id_table');
@@ -11,25 +12,28 @@ var PosCode = (function () {
     var exitButton = document.getElementById('id_exit');
     var cancelButton = document.getElementById('id_cancel');
 
-    /* Django context variables */
-    var itemsUrl, postUrl, exitUrl;
-
     var items;
     var receipt;
+    var total;
     var line;
 
-    /* Public functions */
-    Pos.init = function(items, post, exit) {
-        console.log("init");
-        itemsUrl = items;
-        postUrl = post;
-        exitUrl = exit;
+    // Django context variables
+    var itemsUrl, postUrl, exitUrl;
+    var isAttended = false;
+    var personId;
 
+    /* Public functions */
+    Pos.init = function (items_url, post_url, exit_url, is_attended, person_id) {
+        itemsUrl = items_url;
+        postUrl = post_url;
+        exitUrl = exit_url;
+        isAttended = is_attended;
+        personId = person_id;
         loadItems();
         newReceipt();
     };
 
-    Pos.itemAdd = function(id) {
+    Pos.itemAdd = function (id) {
         // Add item to receipt array
         var obj = lookup(id);
         var item = {};
@@ -42,31 +46,62 @@ var PosCode = (function () {
         createTable(receipt);
     };
 
-    Pos.newReceipt = function() {
+    Pos.newReceipt = function () {
         newReceipt();
     };
 
-    Pos.pay = function() {
-        $('#id_total1').text($('#id_total').text());
-        $('#id_total2').text($('#id_total').text());
-        $('#pay_modal').modal('show');
+    Pos.itemRemove = function (target) {
+        var index;
+        for (index = 0; index < receipt.length; ++index) {
+            if (receipt[index].lineId === target) {
+                receipt.splice(index, 1);
+                createTable(receipt);
+                return;
+            }
+        }
     };
 
-    Pos.exitPos = function() {
+    Pos.sendTransaction = function () {
+        var data = JSON.stringify(receipt);
+        $.post(postUrl, data);
+    };
+
+    Pos.pay = function () {
+        var myTotal = '£' + Number(total).toFixed(2);
+        if (isAttended) {
+            $('#attended_total').text(myTotal);
+            $('#attended_modal').modal('show');
+        } else {
+            $('#member_total').text(myTotal);
+            $('#member_modal').modal('show');
+        }
+    };
+
+    Pos.exitPos = function () {
         window.location.replace(exitUrl);
     };
 
-    Pos.cash = function() {
-        console.log('cash');
+    Pos.cash = function () {
+        personId = 'cash';
+        Pos.chargeMember();
+    };
+
+    Pos.chargeMember = function () {
+        receipt.push({'id': personId, 'total': total});
+        var data = JSON.stringify(receipt);
+        $.post(postUrl, data);
+    };
+
+    Pos.account = function () {
+        $('#member_modal').modal('show');
+    };
+
+    Pos.split = function () {
+        console.log('split');
         Pos.exitPos();
     };
 
-    Pos.account = function() {
-        console.log('account');
-        Pos.exitPos();
-    };
-
-    Pos.back = function() {
+    Pos.resume = function () {
         $('#pay_modal').modal('hide');
     };
 
@@ -76,7 +111,7 @@ var PosCode = (function () {
         createTable(receipt);
     }
 
-    var loadItems = function () {
+    function loadItems() {
         // AJAX request to download items with description & price
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -88,7 +123,7 @@ var PosCode = (function () {
         };
         xhttp.open("GET", itemsUrl, true);
         xhttp.send();
-    };
+    }
 
     var lookup = function (id) {
         var index;
@@ -102,7 +137,6 @@ var PosCode = (function () {
 
     function createTable(receipt) {
         var tableBody = document.createElement('tbody');
-        var total = 0;
         var row;
         var cell;
         var button;
@@ -112,6 +146,7 @@ var PosCode = (function () {
         while (table.firstChild) {
             table.removeChild(table.firstChild);
         }
+        total = 0;
         if (receipt.length > 0) {
             payButton.style.visibility = "visible";
             cancelButton.style.visibility = "visible";
@@ -130,7 +165,10 @@ var PosCode = (function () {
                 button = document.createElement("button");
                 button.id = item.lineId;
                 button.innerHTML = "X";
-                button.addEventListener("click", function(){Pos.itemRemove(button.id);}, false);
+                button.addEventListener("click", function (event) {
+                    console.log(event.currentTarget);
+                    Pos.itemRemove(event.currentTarget.id);
+                }, false);
                 cell.appendChild(button);
                 row.appendChild(cell);
                 tableBody.appendChild(row);
@@ -142,17 +180,5 @@ var PosCode = (function () {
         }
         totalArea.innerHTML = "<h3> Total :" + Number(total).toFixed(2) + "<h3>";
     }
-
-    Pos.itemRemove = function (target) {
-        var index;
-        for (index = 0; index < receipt.length; ++index) {
-            if (receipt[index].lineId === target) {
-                receipt.splice(index, 1);
-                createTable(receipt);
-                return;
-            }
-        }
-    }
-
     return Pos;
 })();

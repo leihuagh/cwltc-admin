@@ -1,4 +1,7 @@
+import json
 from django.shortcuts import render_to_response
+from django.core.serializers.json import DjangoJSONEncoder
+from django.core.serializers import serialize
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, Http404
 from django.views.generic import DetailView, CreateView, UpdateView, TemplateView
 from django.urls import reverse, reverse_lazy
@@ -22,12 +25,12 @@ class LoadView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(LoadView, self).get_context_data(**kwargs)
         context['layouts'] = Layout.objects.all()
+        context['allow_attended'] = True
         return context
 
     def post(self, request, *args, **kwargs):
         layout = Layout.objects.filter(name=request.POST['layout'])[0]
         request.session['layout_id'] = layout.id
-        request.session['attended'] = True
         return redirect('pos_start')
 
 
@@ -37,11 +40,19 @@ class StartView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(StartView, self).get_context_data(**kwargs)
-        context['attended'] = self.request.session['attended']
-        self.request.session['receipt'] = []
+        context['allow_attended'] = True
         self.request.session['person_id'] = None
         return context
 
+    def post(self, request, *args, **kwargs):
+        if 'login' in request.POST:
+            request.session['attended'] = False
+            return redirect('pos_user')
+        elif 'attended' in request.POST:
+            request.session['attended'] = True
+            return redirect('pos_run')
+        return redirect('pos_start')
+1
 
 class GetUserView(TemplateView):
     """ User identification """
@@ -156,7 +167,6 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.request.session['receipt'] = []
         self.request.session['people_ids'] = []
         person = Person.objects.get(pk=self.request.session['person_id'])
         context['person'] = person
@@ -175,103 +185,44 @@ class PosView(LoginRequiredMixin, TemplateView):
         layout_id = self.request.session['layout_id']
         locations = Location.objects.filter(layout_id=layout_id).order_by('row', 'col')
         context['rows'] = pos_layout_context(layout_id, locations)
-        if not self.request.session['attended']:
-            context['person']= Person.objects.get(pk=self.request.session['person_id'])
-        context['enable_payment'] = len(self.request.session['receipt']) > 0
-        context['attended'] = True
+        context['timeout_url'] = reverse('pos_start')
+        context['items_url'] = reverse('pos_ajax_items')
+        context['post_url'] = reverse('pos_run')
+        context['exit_url'] = reverse('pos_start' if self.request.session['attended'] else 'pos_menu')
+        if self.request.session['attended']:
+            context['is_attended'] = 'true'
+        else:
+            context['is_attended'] = 'false'
+            person = Person.objects.get(pk=self.request.session['person_id'])
+            context['person'] = person
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
 
     def post(self, request, *args, **kwargs):
 
+
         if request.is_ajax():
-            receipt = request.session['receipt']
-            element = request.POST['ic-element-id']
-            response = HttpResponse()
-            key = element
-            if key[3] == '_':
-                key = key[0:3]
-
-            # keys that initiate a script or a redirect
-            if key == 'split':
-                request.session['people_ids'] = [request.session['person_id']]
-                response['X-IC-Redirect'] = reverse('pos_split_summary')
-                return response
-
-            elif key == 'submit_id':
-                create_transaction_from_receipt(request.user.id,
-                                                [request.POST['person_id']],
-                                                request.session['layout_id'],
-                                                receipt)
-                response['X-IC-Redirect'] = reverse('pos_start')
-                return response
-
-            elif key == 'pay':
-                #response['X-IC-Script'] = "$('#id_confirm').text($('#id_total').text());$('#pay_modal').modal('show')"
-                response['X-IC-Script'] = "preparePay()"
-                return response
-
-            elif key == 'back':
-                response['X-IC-Script'] = "$('#pay_modal').modal('hide')"
-                return response
-
-            elif key == 'account':
-                response['X-IC-Script'] = "chargeMember()"
-                return response
-
-            elif key == 'charge':
-                create_transaction_from_receipt(request.user.id,
-                                                [request.session['person_id']],
-                                                request.session['layout_id'],
-                                                receipt)
-                response['X-IC-Redirect'] = reverse('pos_start')
-                return response
-
-            elif key == 'cash':
-                create_transaction_from_receipt(request.user.id,
-                                                [],
-                                                request.session['layout_id'],
-                                                receipt,
-                                                cash=True)
-                response['X-IC-Redirect'] = reverse('pos_start')
-                return response
-
-            elif key == 'exit':
-                url = 'pos_start' if request.session['attended'] else 'pos_menu'
-                response['X-IC-Redirect'] = reverse(url)
-                return response
-
-            # Subsequent keys update and refresh the receipt
-            elif key == 'can':
-                receipt = []
-
-            elif key == "itm":
-                item_id = int(element[4:])
-                item = Item.objects.get(id=item_id)
-                item_dict = item.to_dict()
-                receipt.append(item_dict)
-
-            elif key == 'del':
-                counter = int(element[4:])
-                receipt.remove(receipt[counter])
-
-            request.session['receipt'] = receipt
-            tot = 0
-            for item_dict in receipt:
-                tot += item_dict['sale_price'] * item_dict['quantity']
-            context = {}
-            context['receipt'] = receipt
-            context['total'] = chr(163) + ' {0:.2f}'.format(Decimal(tot)/100)
-            context['request'] = request
-            context['enable_payment'] = tot > 0
-            return render_to_response("pos/receipt.html", context)
-
-        return HttpResponse("Error - wrong id", content_type='application/xhtml+xml')
+            ids = json.loads(request.body)
+            pass
+    #         #account
+    #             create_transaction_from_receipt(request.user.id,
+    #                                             [request.POST['person_id']],
+    #                                             request.session['layout_id'],
+    #                                             receipt)
+    #             return redirect('pos_start')
+    #
+    # # Cash
+    #             create_transaction_from_receipt(request.user.id,
+    #                                             [],
+    #                                             request.session['layout_id'],
+    #                                             receipt,
+    #                                             cash=True)
+        return redirect('pos_start')
 
 
 class SplitSummaryView(TemplateView):
-    """ Summarise current tstat of a split transaction """
+    """ Summarise current state of a split transaction """
     template_name = 'pos/split_summary.html'
 
     def post(self, request, *args, **kwargs):
@@ -332,6 +283,14 @@ def make_split_context(request, context):
     context['timeout_url'] = reverse('pos_start')
     context['timeout'] = LONG_TIMEOUT
     return context
+
+
+def ajax_items_view(request):
+    """ responds to ajax request for item list"""
+    data = serialize('json', Item.objects.all())
+    return JsonResponse(data, safe=False)
+    # items = Item.objects.all().values_list('pk', 'description','sale_price')
+    # return JsonResponse(json.dumps(list(items), cls=DjangoJSONEncoder), safe=False)
 
 
 class TransactionListView(SingleTableView):
@@ -552,3 +511,4 @@ def pos_layout_context(layout_id, locations, items=None):
     if items:
         return rows, items
     return rows
+

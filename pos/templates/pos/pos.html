@@ -66,96 +66,89 @@
       </div>
   </div>
 </div>
-<form id="defaults">
-  {% csrf_token %}
-  <!-- Modal -->
-  <div id="pay_modal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        {% if attended %}
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-              <h3 class="modal-title">Select payment type</h3>
-          </div>
-          <div class="modal-body">
-            <h4>Total is <span id="id_total2"></span></h4>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-lg btn-success" id="account" data-dismiss="modal" onclick="Pos.account()">
-              Charge to member account
-              <span class="glyphicon glyphicon-ok"></span>&nbsp;
-            </button>
-            <button class="btn btn-lg btn-success" id="cash" data-dismiss="modal" onclick="Pos.cash()">
-              Cash sale
-              <span class="glyphicon glyphicon-ok"></span>&nbsp;
-            </button>
-            <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back" onclick="Pos.back()">
-              Back
-            </button>
-          </div>
-        {%  else %}
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-              <h3 class="modal-title">Charge to account</h3>
-          </div>
-          <div class="modal-body">
-            <h4>Confirm charge of <span id="id_total2"></span> to {{ person.first_name }} {{ person.last_name}}</h4>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-lg btn-success" id="charge" data-dismiss="modal"
-              ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"     >
-              Charge to account
-              <span class="glyphicon glyphicon-ok"></span>&nbsp;
-            </button>
-            <button class="btn btn-lg btn-success" id="split" data-dismiss="modal"
-              ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area"     >
-              Split account
-              <span class="glyphicon glyphicon-ok"></span>&nbsp;
-            </button>
-            <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back"
-              ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area">
-              Back
-            </button>
-          </div>
-        {% endif %}
+<!-- Modal for attended mode -->
+<div id="attended_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3 class="modal-title">Select payment type</h3>
+        </div>
+        <div class="modal-body">
+          <h4>Total is <span id="attended_total">xxx</span></h4>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-lg btn-success" id="account" data-dismiss="modal" onclick="Pos.account()">
+            Charge to member account
+          </button>
+          <button class="btn btn-lg btn-success" id="cash" data-dismiss="modal" onclick="Pos.cash()">
+            Cash sale
+          </button>
+          <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back" onclick="Pos.resume()">
+            Back
+          </button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for member mode -->
+<div id="member_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h3 class="modal-title">Charge to account</h3>
+      </div>
+      <div class="modal-body">
+        <h4>Confirm charge of <span id="member_total"></span> to {{ person_name }}</h4>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-lg btn-success" id="charge" data-dismiss="modal" onclick="Pos.chargeMember()">
+          Charge to account
+        </button>
+        <button class="btn btn-lg btn-success" id="split" data-dismiss="modal" onclick="Pos.split()">
+          Split account
+        </button>
+        <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back" onclick="Pos.resume()">
+          Back
+        </button>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Modal -->
-  <div id="member_modal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-      <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h3 class="modal-title">Charge <span id="id_total3"></span> to member's account</h3>
-          </div>
-           <div class="modal-footer">
+<!-- Modal to select and charge to members account -->
+<div id="select_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h3 class="modal-title">Charge <span id="id_total3"></span> to member's account</h3>
+        </div>
+         <div class="modal-footer">
 
-            <div class="col-md-9">
-              <div class="input-group input-group-lg">
-                <span class="input-group-addon" id="sizing-addon1">Select member</span>
-                <input type="text" class="form-control typeahead tt-query timed"
-                       id = "search_id" aria-describedby="sizing-addon1"
-                       autocomplete="on" spellcheck="false">
-              </div>
-              <input name="person_id" id="person_id" type="hidden" value="">
-              <button  id ="submit_id" style="display: none"
-                      ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area">
-              </button>
+          <div class="col-md-9">
+            <div class="input-group input-group-lg">
+              <span class="input-group-addon" id="sizing-addon1">Select member</span>
+              <input type="text" class="form-control typeahead tt-query timed"
+                     id = "search_id" aria-describedby="sizing-addon1"
+                     autocomplete="on" spellcheck="false">
             </div>
-            <div class="col-md-3">
-              <button class="btn btn-lg btn-danger" data-dismiss="modal">Back</button>
-            </div>
+            <input name="person_id" id="person_id" type="hidden" value="">
+            <button  id ="submit_id" style="display: none"
+                    ic-include="#defaults" ic-post-to="{{ request.path }}" ic-target="#intercooler_area">
+            </button>
           </div>
+          <div class="col-md-3">
+            <button class="btn btn-lg btn-danger" data-dismiss="modal">Back</button>
+          </div>
+        </div>
 
-      </div>
     </div>
   </div>
+</div>
 
-
-
-</form>
 
   <!-- Could not get mobile and intercooler to work together with jquery version 3 -->
  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -164,7 +157,6 @@
 
 
 {#  <script src="https://cdn.intercoolerjs.org/intercooler-1.2.0.min.js"></script>#}
-  <script src="{% static 'pos/js/intercooler-1.2.0.min.js' %}"></script>
   <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
   <script src="{% static 'js/person_typeahead.js' %}"></script>
@@ -177,16 +169,15 @@
   });
       $(document).ready(function () {
       $(".ui-loader").hide();
+      $.ajaxSetup({beforeSend: function(xhr, settings){
+        xhr.setRequestHeader('X-CSRFToken',
+                             '{{ csrf_token }}');
+      }});
       Pos = PosCode;
-      Pos.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}');
+      Pos.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }}, {{ person.id }});
       startTimer({{ timeout }}, "{{ timeout_url }}");
     });
 
-  function preparePay(){
-    $('#id_total1').text($('#id_total').text());
-    $('#id_total2').text($('#id_total').text());
-    $('#pay_modal').modal('show');
-  }
     function chargeMember(){
     $('#id_total3').text($('#id_total').text());
     $('#pay_modal').modal('hide');

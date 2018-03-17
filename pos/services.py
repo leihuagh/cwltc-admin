@@ -1,11 +1,13 @@
 from datetime import datetime
 from decimal import Decimal
 from django.db.models import Sum
+from django.db import transaction
 from django.forms.models import model_to_dict
 from .models import Transaction, LineItem, Layout, PosPayment
 from members.models import InvoiceItem, ItemType
 
 
+@transaction.atomic
 def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt,
                                     cash=False, complementary=False):
     """ Create Transaction, LineItem and PosPayment records in the database """

@@ -7,21 +7,25 @@
     <div class="row">
       <img class="center-block" src="{% static 'images/CWLTC logo small.png' %}">
     </div>
-  <h1>Bar System</h1>
+    <h1>Bar System</h1>
     <p>Welcome to the Coombe Wood Bar System.</p>
     <br/><br/>
-    <a href="{% url 'pos_user' %}" class="btn btn-lg btn-success">Member log in</a>
-    {% if attended %}
-      <br/><br/><br/>
-      <a href="{% url 'pos_run' %}" class="btn btn-lg btn-success">Attended mode</a>
-    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <input class="btn btn-lg btn-success" type="submit" name="login" value="Member log in">
+      {% if allow_attended %}
+        <br/><br/><br/>
+        <input class="btn btn-lg btn-success" type="submit" name="attended" value="Attended mode">
+      {% endif %}
+    </form>
   </div>
 </div>
 {% endblock %}
 {% block scripts %}
-<script>
-  $(document).bind("mobileinit", function () {
-      // Stop jQuery Mobile messing with our links
-      $.mobile.linkBindingEnabled = false;
-  });
+  <script>
+    $(document).bind("mobileinit", function () {
+        // Stop jQuery Mobile messing with our links
+        $.mobile.linkBindingEnabled = false;
+    });
+  </script>
 {% endblock %}
