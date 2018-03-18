@@ -200,24 +200,33 @@ class PosView(LoginRequiredMixin, TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-
+        """ Write transaction to database"""
 
         if request.is_ajax():
-            ids = json.loads(request.body)
-            pass
-    #         #account
-    #             create_transaction_from_receipt(request.user.id,
-    #                                             [request.POST['person_id']],
-    #                                             request.session['layout_id'],
-    #                                             receipt)
-    #             return redirect('pos_start')
-    #
-    # # Cash
-    #             create_transaction_from_receipt(request.user.id,
-    #                                             [],
-    #                                             request.session['layout_id'],
-    #                                             receipt,
-    #                                             cash=True)
+            receipt = json.loads(request.body)
+            pay_record = receipt.pop()
+            if pay_record['pay_type'] == 'split':
+                request.session['people_ids'] = [pay_record['person_id']]
+                request.session['receipt'] = receipt
+                request.session['total'] = pay_record['total']
+                return HttpResponse(reverse('pos_split_summary'))
+
+            elif pay_record['pay_type'] == 'cash':
+                create_transaction_from_receipt(request.user.id,
+                                                [],
+                                                request.session['layout_id'],
+                                                receipt,
+                                                pay_record['total'],
+                                                cash=True)
+            else:
+                create_transaction_from_receipt(request.user.id,
+                                                [pay_record['person_id']],
+                                                request.session['layout_id'],
+                                                receipt,
+                                                pay_record['total']
+                                                )
+            return HttpResponse(reverse('pos_start'))
+        # should not get here - all posts are ajax
         return redirect('pos_start')
 
 
@@ -230,7 +239,8 @@ class SplitSummaryView(TemplateView):
             create_transaction_from_receipt(request.user.id,
                                             request.session['people_ids'],
                                             request.session['layout_id'],
-                                            request.session['receipt']
+                                            request.session['receipt'],
+                                            request.session['total']
                                             )
             return redirect('pos_menu')
         if 'add' in request.POST:
@@ -256,7 +266,7 @@ class GetUserSplitView(TemplateView):
         return redirect('pos_split_summary')
 
     def get_context_data(self, **kwargs):
-        context = super(GetUserSplitView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         return make_split_context(self.request, context)
 
 
@@ -266,10 +276,7 @@ def make_split_context(request, context):
     for id in request.session['people_ids']:
         people.append(Person.objects.get(pk=id))
 
-    receipt = request.session['receipt']
-    total = 0
-    for item_dict in receipt:
-        total += item_dict['sale_price'] * item_dict['quantity']
+    total = request.session['total'] * 100
 
     first_amount, split_amount = get_split_amounts(total, len(people))
 

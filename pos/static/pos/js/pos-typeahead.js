@@ -1,4 +1,4 @@
-function bind_typeahead(typeahead_id, person_id, submit_id) {
+function bind_typeahead(typeahead_id, setPerson) {
 
     var people = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.whitespace,
@@ -8,6 +8,8 @@ function bind_typeahead(typeahead_id, person_id, submit_id) {
             wildcard: '%QUERY'
         }
     });
+
+    var lastItem;
 
     // Initializing the typeahead with remote dataset
     $(typeahead_id).typeahead({
@@ -24,41 +26,34 @@ function bind_typeahead(typeahead_id, person_id, submit_id) {
 
     // Selecting an item sets person_id
     $(typeahead_id).bind('typeahead:select', function (event, item) {
-        $(person_id).val(item.id);
-        $(submit_id).trigger('click');
-        return item;
+        setPerson(item);
     });
 
     // Record selected item when cursor changes it
     $(typeahead_id).bind('typeahead:cursorchange', function (event, item) {
-        if (typeof item === 'undefined') {
-            $(person_id).val("");
-        } else {
-            $(person_id).val(item.id);
-        }
+        lastItem = item;
     });
 
     // Autocomplete sets the item
     $(typeahead_id).bind('typeahead:autocomplete', function (event, item) {
-        $(person_id).val(item.id);
-        console.log("autocomplete");
+        setPerson(item);
     });
 
     // http://bwbecker.github.io/blog/2015/08/29/pain-with-twitter-typeahead-widget/
 
     // Enter key behaviour
     $(typeahead_id).on('keydown', function (e) {
-        if (e.keyCode == 13) {
+        if (e.keyCode === 13) {
             // if no suggestions ignore the keypress
             if ($('.tt-suggestion').length === 0) {
                 e.preventDefault();
             } else {
-                if ($(person_id).val() === '') {
+                if (lastitem === undefined) {
                     // Trigger the default (first) suggestion
                     $('.tt-suggestion:first-child').trigger('click');
                 } else {
                     // The suggestion they chose with arrow keys
-                    $(submit_id).trigger('click');
+                    setPerson(item)
                 }
             }
         }

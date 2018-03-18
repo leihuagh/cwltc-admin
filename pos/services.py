@@ -8,10 +8,10 @@ from members.models import InvoiceItem, ItemType
 
 
 @transaction.atomic
-def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt,
+def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt, total,
                                     cash=False, complementary=False):
     """ Create Transaction, LineItem and PosPayment records in the database """
-    total = Decimal(0)
+    total = Decimal(total)
     count = len(people_ids)
     if count > 0:
         person_id = people_ids[0]
@@ -31,20 +31,17 @@ def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt,
     for item_dict in receipt:
         line_item = LineItem(
             item_id=item_dict['id'],
-            sale_price=Decimal(item_dict['sale_price'])/100,
-            cost_price=Decimal(item_dict['cost_price'])/100,
-            quantity=item_dict['quantity'],
+            sale_price=Decimal(item_dict['sale_price']),
+            cost_price=Decimal(item_dict['cost_price']),
+            quantity=1,
             transaction=trans
             )       
         line_item.save()
-        total += line_item.quantity * line_item.sale_price
-    trans.total = total
-    trans.save()
     if count > 0:
         first_amount, split_amount = get_split_amounts(total * 100, count)
         i = 0
         for person_id in people_ids:
-            amount = first_amount if i==0 else split_amount
+            amount = first_amount if i == 0 else split_amount
             pos_payment = PosPayment(
                 transaction=trans,
                 person_id=person_id,

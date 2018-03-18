@@ -7,7 +7,8 @@ PosCode = (function () {
     // DOM objects
     var receiptArea = document.getElementById('id_receipt');
     var totalArea = document.getElementById('id_total');
-    var table = document.getElementById('id_table');
+    var receiptTable = document.getElementById('id_table');
+    var peopleTable = document.getElementById('peopleTable');
     var payButton = document.getElementById('id_pay');
     var exitButton = document.getElementById('id_exit');
     var cancelButton = document.getElementById('id_cancel');
@@ -21,14 +22,18 @@ PosCode = (function () {
     var itemsUrl, postUrl, exitUrl;
     var isAttended = false;
     var personId;
+    var person;
+    var personName;
+    var personList;
 
-    /* Public functions */
-    Pos.init = function (items_url, post_url, exit_url, is_attended, person_id) {
+    /* Public methods*/
+    Pos.init = function (items_url, post_url, exit_url, is_attended, person_id, person_name) {
         itemsUrl = items_url;
         postUrl = post_url;
         exitUrl = exit_url;
         isAttended = is_attended;
         personId = person_id;
+        personName = person_name;
         loadItems();
         newReceipt();
     };
@@ -42,6 +47,7 @@ PosCode = (function () {
         line++;
         item.description = obj.description;
         item.sale_price = obj.sale_price;
+        item.cost_price = obj.cost_price;
         receipt.push(item);
         createTable(receipt);
     };
@@ -61,12 +67,9 @@ PosCode = (function () {
         }
     };
 
-    Pos.sendTransaction = function () {
-        var data = JSON.stringify(receipt);
-        $.post(postUrl, data);
-    };
 
     Pos.pay = function () {
+        personList = [];
         var myTotal = '£' + Number(total).toFixed(2);
         if (isAttended) {
             $('#attended_total').text(myTotal);
@@ -75,31 +78,126 @@ PosCode = (function () {
             $('#member_total').text(myTotal);
             $('#member_modal').modal('show');
         }
+        $('#memberSearch').val('');
+        $('.typeahead').typeahead('val', '');
     };
 
     Pos.exitPos = function () {
         window.location.replace(exitUrl);
     };
 
-    Pos.cash = function () {
-        personId = 'cash';
-        Pos.chargeMember();
+    Pos.selectMember = function () {
+        console.log('selected');
     };
 
-    Pos.chargeMember = function () {
-        receipt.push({'id': personId, 'total': total});
-        var data = JSON.stringify(receipt);
-        $.post(postUrl, data);
+    Pos.cash = function () {
+        personList = [];
+        sendTransaction('cash');
+    };
+
+    Pos.chargeSingleMember = function () {
+        // charge to single logged on member
+        personList = [{'id': personId, 'name': personName, 'amount': Math.floor(total*100)}];
+        sendTransaction('account');
+    };
+
+    Pos.chargeMultipleMembers = function () {
+        // charge to single logged on member
+        sendTransaction('account');
     };
 
     Pos.account = function () {
-        $('#member_modal').modal('show');
+        // Select first member in attended mode
+        personList = [];
+        $('#addMemberTypeahead').show();
+        $('#payButtons').hide();
+        $('#select_modal').modal('show');
     };
 
     Pos.split = function () {
-        console.log('split');
-        Pos.exitPos();
+        // initiate a split across members
+        personList = [{'id': personId, 'name': personName}];
+        showSplit();
+        $('#addMemberTypeahead').hide();
+        $('#paybuttons').show();
+        $('#select_modal').modal('show');
     };
+
+    Pos.addMember = function() {
+        // add member button on split sale modal
+        $('#addMemberTypeahead').show();
+        $('#payButtons').hide();
+        $('#memberSearch').val('').focus();
+        $('.typeahead').typeahead('val', '');
+        $('#select_modal').modal('show');
+    };
+
+    Pos.selectedPerson = function (p) {
+        // user selected a person through the type ahead
+        person = p;
+        personList.push({'id': p.id, 'name': p.value});
+        showSplit();
+        $('#addMemberTypeahead').hide();
+        $('#payButtons').show();
+        $('#select_modal').modal('show');
+    };
+
+    Pos.back1 = function() {
+        if (isAttended) {
+            $('#select_modal').modal('hide');
+        } else {
+            $('#addMemberTypeahead').hide();
+            $('#payButtons').show();
+            $('#select_modal').modal('show');
+        }
+
+    };
+
+    function showSplit() {
+        var row;
+        var cell;
+        var tableBody = document.createElement('tbody');
+        while (peopleTable.firstChild) {
+            peopleTable.removeChild(peopleTable.firstChild);
+        }
+        var totalPence = total * 100;
+        var splitPence = Math.floor(totalPence/personList.length);
+        var firstPence = splitPence;
+        var splitTotal = splitPence * personList.length;
+        if (splitTotal !== totalPence) {
+            firstPence += (totalPence - splitTotal);
+        }
+        for (var i = 0; i < personList.length; i++) {
+            if (i === 0) {
+                personList[i].amount = firstPence;
+            } else {
+                personList[i].amount = splitPence;
+            }
+            row = document.createElement('tr');
+            cell = document.createElement('td');
+            cell.className = "description";
+            cell.appendChild(document.createTextNode(personList[i].name));
+            row.appendChild(cell);
+            cell = document.createElement('td');
+            cell.className = "price";
+            cell.appendChild(document.createTextNode((personList[i].amount/100).toFixed(2)));
+            row.appendChild(cell);
+            tableBody.appendChild(row);
+        }
+        peopleTable.appendChild(tableBody);
+        $('#add_member').hide();
+        $('#select_modal').modal('show');
+    }
+
+    function sendTransaction(payType) {
+        var payObj = {'pay_type': payType, 'people': personList};
+        receipt.push(payObj);
+        var data = JSON.stringify(receipt);
+        $.post(postUrl, data, function(result){
+            window.location.replace(result);
+        });
+    }
+
 
     Pos.resume = function () {
         $('#pay_modal').modal('hide');
@@ -127,7 +225,7 @@ PosCode = (function () {
 
     var lookup = function (id) {
         var index;
-        for (index = 0; index < items.length; ++index) {
+        for (index = 0; index < items.length; index++) {
             if (items[index].pk === id) {
                 return items[index].fields;
             }
@@ -143,8 +241,8 @@ PosCode = (function () {
         payButton.style.visibility = "hidden";
         cancelButton.style.visibility = "hidden";
         exitButton.style.visibility = "hidden";
-        while (table.firstChild) {
-            table.removeChild(table.firstChild);
+        while (receiptTable.firstChild) {
+            receiptTable.removeChild(receiptTable.firstChild);
         }
         total = 0;
         if (receipt.length > 0) {
@@ -174,7 +272,7 @@ PosCode = (function () {
                 tableBody.appendChild(row);
                 total += Number(item.sale_price);
             });
-            table.appendChild(tableBody);
+            receiptTable.appendChild(tableBody);
         } else {
             exitButton.style.visibility = "visible";
         }
