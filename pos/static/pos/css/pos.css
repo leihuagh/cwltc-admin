@@ -22,50 +22,35 @@
 
 .flex-bottom {
   width: 100%;
-  height: 5vh;
-  background-color: black;
+  height: 4vh;
+  background-color: #000a09;
 }
 
 .name-area{
   width: 100%;
   height: 5vh;
   text-align: center;
-  font-size: 24px;
+  font-size: 22px;
+  font-weight: bold;
+  padding-top: 3px;
 }
 
-
-/*.well {*/
-    /*background: forestgreen;*/
-    /*border: none;*/
-/*}*/
-
-.button-area {
-	width: 70%;
-	padding: 0px;
-  background-color: yellow;
-}
-.intercooler-area {
-	width: 100%;
-  height: 80vh;
-  flex: 1;
-  flex-direction: column;
-  background-color: #ccffcc;
-}
-
-#id_total{
-  height: 8vh;
+#total-area {
+  height: 6vh;
   width: 97%;
-  padding: 3px 50px 3px 3px;
-  background-color: white;
+  padding: 6px 50px 3px 3px;
+  text-align: right;
+  background-color: cornsilk;
   border-style: solid;
-  border-color: #a1a1a1;
-  border-top-color: cornsilk;
+  border-color: #4e605e;
   border-width: thin;
   margin-bottom: 16px;
+  font-size: 22px;
+  font-weight: bold;
   box-shadow: 0 4px 4px 2px rgba(0, 0, 0, 0.2), 0 6px 20px 4px rgba(0, 0, 0, 0.19);
 }
 
-#id_receipt {
+#receipt-area {
   height: 70vh;
   width: 97%;
   overflow-y: auto;
@@ -73,10 +58,11 @@
   flex-direction: column;
   background-color: cornsilk;
   border-style: solid;
-  border-color: #a1a1a1;
-  border-bottom-color: cornsilk;
+  border-color: #4e605e;
   border-width: thin;
   margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: bold;
   flex: 2;
   box-shadow: 0 4px 4px 2px rgba(0, 0, 0, 0.2), 0 6px 20px 4px rgba(0, 0, 0, 0.19);
 }
@@ -109,8 +95,6 @@
 
 #id_table {
   width: 100%;
-  font-size: 16px;
-  font-weight: bold;
 }
 
 .description {
@@ -129,29 +113,38 @@ padding: 3px;
   text-align: center;
 }
 
+.row-description {
+  width: 100%;
+  height: 20px;
+  margin-top: -10px;
+  padding-left: 15px;
+  background-color: #bbeebb;
+  color: darkred;
+}
+
 
 .posbutton {
     -webkit-user-select: none;
-    background-color: #4CAF50; /* Green */
+    background-color: #008800; /* Green */
     cursor: pointer;
     border: none;
     color: white;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 16px;
-    width: 16%;
-    height: 45px;
-    margin: 5px 5px 5px 5px;
-    padding: 6px 0px 0px;
+    font-size: 18px;
+    width: 100px;
+    height: 85px;
+
+    padding: 6px;
     border-radius: 10px;
-    box-shadow: 0 3px darkgreen;
+    box-shadow: 4px 6px 12px rgba(0, 0, 0, 0.4);
     white-space: normal;
 }
 .posbutton:active {
-    background-color: #3e8e41;
-    box-shadow: 0 2px #1b3408;
-    transform: translateY(1px);
+    /*background-color: #3e8e41;*/
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.4);
+    transform: translateY(2px) translateX(1px);
 }
 
 .btn-sq-lg {
@@ -159,6 +152,7 @@ padding: 3px;
   width: 110px !important;
   height: 100px !important;
   font-size: 20px;
+  background-color: #008800;
 }
 
 .btn-sq {
@@ -187,19 +181,6 @@ span {
   padding:2px;
 }
 
-.btn-circle.btn-xl {
-  width: 80px;
-  height: 80px;
-  padding: 5px 5px;
-  font-size: 16px;
-  font-weight: bold;
-  line-height: 1.33;
-  border-radius: 40px;
-  background-color: yellow;
-  border-width: 1px;
-  border-color: #A30000;
-  white-space: normal;
-}
 
 span.twitter-typeahead .tt-menu,
 span.twitter-typeahead .tt-dropdown-menu {
@@ -366,3 +347,125 @@ span.twitter-typeahead {
 	border-radius: 50%;
 	background: white;
 }
+
+
+/* ===[ Begin Chunky Button ]=== */
+
+
+.chunky  {
+    /* Normal State */
+    padding: 4px 15px 7px 15px;
+    width: auto;
+    height: auto;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    font-style: normal;
+    font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-font-smoothing: antialiased;
+    -o-font-smoothing: antialiased;
+    -ms-font-smoothing: antialiased;
+    text-decoration: none;
+    text-shadow: 0 -1px 1px rgba(0,0,0,0.50);
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -o-border-radius: 3px;
+    -ms-border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.50);
+    border-top: 1px solid rgba(0,0,0,0.001);
+    box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.10);
+    -webkit-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.10);
+    -moz-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.10);
+    -o-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.10);
+    -ms-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.10);
+    cursor: pointer;
+}
+
+.chunky a:hover {
+    /* Hover State */
+    box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.25);
+    -webkit-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.25);
+    -moz-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.25);
+    -o-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.25);
+    -ms-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 1px 3px rgba(0,0,0,0.18), inset 0px -3px 0px rgba(0,0,0,0.35), inset 0px 14px 14px rgba(255,255,255,0.25);
+    -webkit-animation: glow 1s infinite ease-in-out;
+    cursor: pointer;
+}
+
+/*.chunky active {*/
+    /*!* Active State (clicked on) *!*/
+    /*padding: 6px 15px 5px 15px;*/
+    /*border-top: 1px solid rgba(0,0,0,0.55);*/
+    /*box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 2px 1px rgba(255,255,255,0.50), inset 0px 1px 4px rgba(0,0,0,0.35), inset 0px -14px 14px rgba(255,255,255,0.10);*/
+    /*-webkit-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 2px 1px rgba(255,255,255,0.50), inset 0px 1px 4px rgba(0,0,0,0.35), inset 0px -14px 14px rgba(255,255,255,0.10);*/
+    /*-moz-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 2px 1px rgba(255,255,255,0.50), inset 0px 1px 4px rgba(0,0,0,0.35), inset 0px -14px 14px rgba(255,255,255,0.10);*/
+    /*-o-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 2px 1px rgba(255,255,255,0.50), inset 0px 1px 4px rgba(0,0,0,0.35), inset 0px -14px 14px rgba(255,255,255,0.10);*/
+    /*-ms-box-shadow: 0 0 10px rgba(0,0,0,0.35), 0px 2px 1px rgba(255,255,255,0.50), inset 0px 1px 4px rgba(0,0,0,0.35), inset 0px -14px 14px rgba(255,255,255,0.10);*/
+    /*-webkit-animation: none;*/
+    /*cursor: pointer !important;*/
+/*}*/
+
+/* ===[ End Chunky Button ]=== */
+
+/* ===[ Start Chunky Button Background Color ]=== */
+
+.chunky1 { background: #c0c0c0 }
+
+.chunky2 { background: #b2b2b2 }
+
+.chunky3 { background: #a1a1a1 }
+
+.chunky4 { background: #9b9b9b }
+
+.chunky5 { background: #999 }
+
+.chunky6 { background: #8b8b8b }
+
+.chunky7 { background: #7b7b7b }
+
+.chunky8 { background: #6b6b6b }
+
+.chunky9 { background: #666 }
+
+.chunky10 { background: #5e5e5e }
+
+.chunky11 { background: #5b5b5b }
+
+.chunky12 { background: #4b4b4b }
+
+.chunky13 { background: #77AD0C }
+
+.chunky14 { background: #669900 }
+
+.chunky15 { background: #336600 }
+
+.chunky16 { background: #0066cc }
+
+.chunky17 { background: #333399 }
+
+.chunky18 { background: #663399 }
+
+.chunky19 { background: #993399 }
+
+.chunky20 { background: #EA4C89 }
+
+.chunky21 { background: #CC3333 }
+
+.chunky22 { background: #CC0000 }
+
+.chunky23 { background: #990000 }
+
+.chunky24 { background: #cc6633 }
+
+.chunky25 { background: #FF6600 }
+
+.chunky26 { background: #FF9900 }
+
+.chunky27 { background: #F9BB11 }
+
+.chunky28 { background: #FFCC33 }
+
+/* ===[ End Chunky Button Background Color ]=== */

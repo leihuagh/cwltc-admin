@@ -5,13 +5,14 @@ PosCode = (function () {
     var Pos = {};
 
     // DOM objects
-    var receiptArea = document.getElementById('id_receipt');
-    var totalArea = document.getElementById('id_total');
-    var receiptTable = document.getElementById('id_table');
+    var totalArea = document.getElementById('total-area');
+    var receiptArea = document.getElementById('receipt-area');
     var peopleTable = document.getElementById('peopleTable');
     var payButton = document.getElementById('id_pay');
     var exitButton = document.getElementById('id_exit');
     var cancelButton = document.getElementById('id_cancel');
+    var payClass = $('.buttons-active');
+    var exitClass = $('.button-exit');
 
     var items;
     var receipt;
@@ -35,7 +36,7 @@ PosCode = (function () {
         personId = person_id;
         personName = person_name;
         loadItems();
-        $(".btn-sq-lg").on('click', function(event) {
+        $(".posbutton").on('click', function(event) {
             Pos.itemAdd(Number(event.currentTarget.id));
         });
         newReceipt();
@@ -277,16 +278,19 @@ PosCode = (function () {
         var row;
         var cell;
         var button;
-        payButton.style.visibility = "hidden";
-        cancelButton.style.visibility = "hidden";
-        exitButton.style.visibility = "hidden";
-        while (receiptTable.firstChild) {
-            receiptTable.removeChild(receiptTable.firstChild);
+        payClass.hide();
+        exitClass.hide();
+        // payButton.style.visibility = "hidden";
+        // cancelButton.style.visibility = "hidden";
+        // exitButton.style.visibility = "hidden";
+        while (receiptArea.firstChild) {
+            receiptArea.removeChild(receiptArea.firstChild);
         }
         total = 0;
         if (receipt.length > 0) {
-            payButton.style.visibility = "visible";
-            cancelButton.style.visibility = "visible";
+            // payButton.style.visibility = "visible";
+            // cancelButton.style.visibility = "visible";
+           payClass.show();
             receipt.forEach(function (item) {
                 row = document.createElement('tr');
                 cell = document.createElement('td');
@@ -311,11 +315,12 @@ PosCode = (function () {
                 tableBody.appendChild(row);
                 total += Number(item.sale_price);
             });
-            receiptTable.appendChild(tableBody);
+            receiptArea.appendChild(tableBody);
         } else {
-            exitButton.style.visibility = "visible";
+            // exitButton.style.visibility = "visible";
+            exitClass.show();
         }
-        totalArea.innerHTML = "<h3> Total :" + Number(total).toFixed(2) + "<h3>";
+        totalArea.innerHTML = "Total : £ " + Number(total).toFixed(2);
     }
     return Pos;
 })();
