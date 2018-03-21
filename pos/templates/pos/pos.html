@@ -48,34 +48,34 @@
     <div class="name-area">
       {% if person %}{{ person.fullname }}{% else %}Attended mode{% endif %}
     </div>
-      <div id="id_receipt">
-        <table id="id_table">
+    <div id="id_receipt">
+      <table id="id_table">
 
-        </table>
+      </table>
+    </div>
+    <div id="id_total" style="text-align: right"></div>
+    <div id="id_payment">
+      <div class="col-md-6">
+        <button class="btn btn-success btn-lg btn-block timed" id="id_pay" onclick="Pos.pay()">
+          Payment
+          <span class="glyphicon glyphicon-ok"></span>&nbsp;
+        </button>
       </div>
-      <div class="spacer"></div>
-      <div id="id_total" style="text-align: right"></div>
-      <div id="id_payment">
-        <div class="col-md-6">
-          <button class="btn btn-success btn-lg btn-block timed" id="id_pay" onclick="Pos.pay()">
-            Payment
-            <span class="glyphicon glyphicon-ok"></span>&nbsp;
-          </button>
-        </div>
-        <div class="col-md-6">
-          <button class="btn btn-danger btn-lg btn-block timed" id="id_cancel" onclick="Pos.newReceipt()">
-            Cancel all
-            <span class="glyphicon glyphicon-trash"></span>&nbsp;
-          </button>
-        </div>
-        <div class="col-md-12">
-          <button class="btn btn-lg btn-block btn-primary" id="id_exit" onclick="Pos.exitPos()">
-            Exit
-          </button>
-        </div>
+      <div class="col-md-6">
+        <button class="btn btn-danger btn-lg btn-block timed" id="id_cancel" onclick="Pos.newReceipt()">
+          Cancel all
+          <span class="glyphicon glyphicon-trash"></span>&nbsp;
+        </button>
       </div>
+      <div class="col-md-12">
+        <button class="btn btn-lg btn-block btn-primary" id="id_exit" onclick="Pos.exitPos()">
+          Exit
+        </button>
+      </div>
+    </div>
   </div>
 </div>
+ <div class="flex-bottom"></div>
 
 <!-- Modal for attended mode -->
 <div id="attended_modal" class="modal" role="dialog">
