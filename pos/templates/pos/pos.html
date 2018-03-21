@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
+  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
 
 </head>
 <body>
@@ -37,13 +37,15 @@
   </div>
 
   <div class="flex-right">
-    <div class="name-area"><h2 class="text-center">
-      {% if person %}{{ person.fullname }}{% else %}Attended mode{% endif %}</h2></div>
+    <div class="name-area">
+      {% if person %}{{ person.fullname }}{% else %}Attended mode{% endif %}
+    </div>
       <div id="id_receipt">
         <table id="id_table">
 
         </table>
       </div>
+      <div class="spacer"></div>
       <div id="id_total" style="text-align: right"></div>
       <div id="id_payment">
         <div class="col-md-6">
@@ -68,7 +70,7 @@
 </div>
 
 <!-- Modal for attended mode -->
-<div id="attended_modal" class="modal fade" role="dialog">
+<div id="attended_modal" class="modal" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
@@ -94,7 +96,7 @@
 </div>
 
 <!-- Modal for member mode -->
-<div id="member_modal" class="modal fade" role="dialog">
+<div id="member_modal" class="modal" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -102,10 +104,10 @@
           <h3 class="modal-title">Charge to account</h3>
       </div>
       <div class="modal-body">
-        <h4>Confirm charge of <span id="member_total"></span> to {{ person.fullname }}</h4>
+        <h4>Confirm charge of <span id="member_total"></span> to <span id="member_name"></span></h4>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="Pos.chargeSingleMember()">
+        <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="Pos.commitSingle()">
           Charge to account
         </button>
         <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="Pos.split()">
@@ -120,24 +122,26 @@
 </div>
 
 <!-- Modal to select and charge to members account -->
-<div id="select_modal" class="modal fade" role="dialog">
+<div id="select_modal" class="modal" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h3 class="modal-title">Charge <span id="id_total3"></span> to member's account</h3>
+        <h3 class="modal-title" id="modal_title">
+          <span id="title_1"></span> <span id="title_total"></span> <span id="title_2"></span>
+        </h3>
       </div>
       <div class="modal-body">
         <table id="peopleTable">
         </table>
       </div>
       <div class="modal-footer">
-        <div id="addMemberTypeahead" class="row">
+        <div id="add_member_typeahead" class="row">
           <div class="col-md-9">
             <div class="input-group input-group-lg">
               <span class="input-group-addon" id="sizing-addon1">Select member</span>
-              <input type="text" class="form-control typeahead tt-query timed"
-                     id = "memberSearch" aria-describedby="sizing-addon1"
+              <input type="text" class="form-control  timed"
+                     id = "member_search" aria-describedby="sizing-addon1"
                      autocomplete="on" spellcheck="false">
             </div>
           </div>
@@ -147,14 +151,14 @@
             </button>
           </div>
         </div>
-        <div id="payButtons">
-          <button class="btn btn-lg btn-success"  data-dismiss="modal" id="chargeMemberBtn" onclick="Pos.chargeMember()">
+        <div id="pay_buttons">
+          <button class="btn btn-lg btn-success"  data-dismiss="modal" id="chargeMemberBtn" onclick="Pos.commit()">
             Charge to account
           </button>
-          <button class="btn btn-lg btn-success" id="addMemberBtn" onclick="Pos.addMember()">
+          <button class="btn btn-lg btn-success" id="add_member_btn" onclick="Pos.addMember()">
             Add another member
           </button>
-          <button class="btn btn-lg btn-danger" data-dismiss="modal" onclick="Pos.resume()">
+          <button class="btn btn-lg btn-danger" data-dismiss="modal" onclick="Pos.back1()">
             Back
           </button>
         </div>
@@ -176,7 +180,6 @@
   $(document).bind("mobileinit", function () {
       // Stop jQuery Mobile messing with our link buttons
       $.mobile.linkBindingEnabled = false;
-      // Hide the loading message at bottom of screen
   });
   $(document).ready(function () {
     $(".ui-loader").hide();
@@ -188,7 +191,7 @@
     Pos = PosCode;
     Pos.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }}, '{{ person.id}}', '{{ person.fullname }}');
     startTimer({{ timeout }}, "{{ timeout_url }}");
-    bind_typeahead('#memberSearch', Pos.selectedPerson, true);
+    bind_typeahead('#member_search', Pos.selectedPerson);
 });
 </script>
 </body>

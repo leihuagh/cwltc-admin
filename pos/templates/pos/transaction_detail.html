@@ -1,15 +1,15 @@
 ﻿{% extends 'base.html' %}
 {% block content %}
-<div class="container">
+<div class="container bg-white">
   <div class="row">
     <div class="col-md-4">
       <h2>POS Transaction detail</h2>
-      <h3>{{ transaction.person.first_name }} {{ transaction.person.last_name }} </h3>
-      <h4>{{ transaction.creation_date }}</h4>
-      <h4>{{ transaction.layout.invoice_itemtype.description }}</h4>
+      <h4>Created by {{ transaction.person.fullname }}</h4>
+      <h4>{{ transaction.creation_date }} &nbsp; Id: {{  transaction.id }}</h4>
       <table class="table">
         {% for lineitem in items %}
-          <tr><td>{{ lineitem.quantity }}</td><td>{{ lineitem.item.description }}</td><td>£ {{ lineitem.sale_price }}</td></tr>
+          <tr><td>{{ lineitem.quantity }}</td><td>{{ lineitem.item.description }}</td><td>£ {{ lineitem.sale_price }}</td>
+          <td>{{ lineitem.item_type.description }}</td></tr>
         {% endfor %}
         <tr><td></td><td><strong>Total:</strong></td><td><strong>£ {{ transaction.total }}</strong></td></tr>
       </table>
@@ -23,20 +23,7 @@
     {% endif %}
     </div>
   </div>
-    <div class="row">
-      This transaction has {% if not payment.0.billed %}not yet{% endif %} been charged to your account.
-    </div>
-  </div>
-    <button id="back" class="btn btn-primary ">Back</button>
-
-{% endblock %}
-{% block scripts %}
-<script>
-  $(document).ready(function(){
-	  $('#back').click(function(){
-		  parent.history.back();
-		  return false;
-	  });
-  });
-</script>
+  <p>This transaction has {% if not payment.0.billed %}not yet{% endif %} been invoiced.<p></p>
+</div>
+  <button id="back" class="btn btn-primary " onclick="parent.history.back()">Back</button>
 {% endblock %}

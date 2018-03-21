@@ -2,7 +2,6 @@
 {% if person %}
   <h3>Transactions for {{ person.first_name }} {{ person.last_name }}</h3>
 {% else %}
-
   <h2>All POS transactions</h2>
 {% endif %}
 {% load render_table from django_tables2 %}

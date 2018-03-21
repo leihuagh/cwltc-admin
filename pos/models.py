@@ -88,3 +88,9 @@ class PosPayment(models.Model):
     person = models.ForeignKey(Person)
     billed = models.BooleanField()
     amount = models.DecimalField(max_digits=5, decimal_places=2, null=False)
+
+    def __str__(self):
+        return "{} {} {} {}".format(str(self.id),
+                                    str(self.person.fullname),
+                                    str(self.amount),
+                                    str(self.billed))

@@ -48,12 +48,12 @@ function bind_typeahead(typeahead_id, setPerson) {
             if ($('.tt-suggestion').length === 0) {
                 e.preventDefault();
             } else {
-                if (lastitem === undefined) {
+                if (lastItem === undefined) {
                     // Trigger the default (first) suggestion
                     $('.tt-suggestion:first-child').trigger('click');
                 } else {
                     // The suggestion they chose with arrow keys
-                    setPerson(item)
+                    setPerson(lastItem);
                 }
             }
         }

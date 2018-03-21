@@ -205,99 +205,21 @@ class PosView(LoginRequiredMixin, TemplateView):
         if request.is_ajax():
             receipt = json.loads(request.body)
             pay_record = receipt.pop()
-            if pay_record['pay_type'] == 'split':
-                request.session['people_ids'] = [pay_record['person_id']]
-                request.session['receipt'] = receipt
-                request.session['total'] = pay_record['total']
-                return HttpResponse(reverse('pos_split_summary'))
-
-            elif pay_record['pay_type'] == 'cash':
-                create_transaction_from_receipt(request.user.id,
-                                                [],
-                                                request.session['layout_id'],
-                                                receipt,
-                                                pay_record['total'],
-                                                cash=True)
-            else:
-                create_transaction_from_receipt(request.user.id,
-                                                [pay_record['person_id']],
-                                                request.session['layout_id'],
-                                                receipt,
-                                                pay_record['total']
-                                                )
+            create_transaction_from_receipt(request.user.id,
+                                            request.session['layout_id'],
+                                            receipt,
+                                            pay_record['total'],
+                                            pay_record['people'],
+                                            )
             return HttpResponse(reverse('pos_start'))
         # should not get here - all posts are ajax
         return redirect('pos_start')
-
-
-class SplitSummaryView(TemplateView):
-    """ Summarise current state of a split transaction """
-    template_name = 'pos/split_summary.html'
-
-    def post(self, request, *args, **kwargs):
-        if 'pay' in request.POST:
-            create_transaction_from_receipt(request.user.id,
-                                            request.session['people_ids'],
-                                            request.session['layout_id'],
-                                            request.session['receipt'],
-                                            request.session['total']
-                                            )
-            return redirect('pos_menu')
-        if 'add' in request.POST:
-            return redirect('pos_split_user')
-        return redirect ('pos_run')
-
-    def get_context_data(self, **kwargs):
-        context = super(SplitSummaryView, self).get_context_data(**kwargs)
-        return make_split_context(self.request, context)
-
-
-class GetUserSplitView(TemplateView):
-    """ Add a user to a split transaction """
-    template_name = 'pos/split_user.html'
-
-    def post(self, request, *args, **kwargs):
-        if 'back' in request.POST:
-            pass
-        elif 'person_id' in request.POST:
-            people_ids = request.session['people_ids']
-            people_ids.append(request.POST['person_id'])
-            request.session['people_ids'] = people_ids
-        return redirect('pos_split_summary')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return make_split_context(self.request, context)
-
-
-def make_split_context(request, context):
-    """ Common context for split summary and user views"""
-    people = []
-    for id in request.session['people_ids']:
-        people.append(Person.objects.get(pk=id))
-
-    total = request.session['total'] * 100
-
-    first_amount, split_amount = get_split_amounts(total, len(people))
-
-    for i in range(0, len(people)):
-        if i == 0:
-            people[i].pos_charge = Decimal("{0:.2f}".format(first_amount/100))
-        else:
-            people[i].pos_charge = Decimal("{0:.2f}".format(split_amount/100))
-
-    context['people'] = people
-    context['timeout_url'] = reverse('pos_start')
-    context['timeout'] = LONG_TIMEOUT
-    return context
 
 
 def ajax_items_view(request):
     """ responds to ajax request for item list"""
     data = serialize('json', Item.objects.all())
     return JsonResponse(data, safe=False)
-    # items = Item.objects.all().values_list('pk', 'description','sale_price')
-    # return JsonResponse(json.dumps(list(items), cls=DjangoJSONEncoder), safe=False)
 
 
 class TransactionListView(SingleTableView):
@@ -317,9 +239,35 @@ class TransactionListView(SingleTableView):
         return self.qs
 
     def get_context_data(self, **kwargs):
-        context = super(TransactionListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['main_menu'] = self.main_menu
         context['sum'] = self.qs.aggregate(sum=Sum('total'))['sum']
+        person_id = self.kwargs.get('person_id', None)
+        if person_id:
+            context['person'] = Person.objects.get(pk=person_id)
+        return context
+
+
+class PaymentListView(SingleTableView):
+    """ List payments with filter"""
+    model = PosPayment
+    table_class = PosPaymentTable
+    template_name = 'pos/transactions.html'
+    table_pagination = {'per_page': 10}
+    main_menu = False
+
+    def get_table_data(self):
+        person_id = self.kwargs.get('person_id', None)
+        if person_id:
+            self.qs = PosPayment.objects.filter(person_id=person_id).select_related('transaction').order_by('-transaction.creation_date')
+        else:
+            self.qs = PosPayment.objects.all().select_related('transaction').order_by('-transaction.creation_date')
+        return self.qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['main_menu'] = self.main_menu
+        context['sum'] = self.qs.aggregate(sum=Sum('amount'))['sum']
         person_id = self.kwargs.get('person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)

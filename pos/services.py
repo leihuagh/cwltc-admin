@@ -6,50 +6,48 @@ from django.forms.models import model_to_dict
 from .models import Transaction, LineItem, Layout, PosPayment
 from members.models import InvoiceItem, ItemType
 
+TWO_PLACES = Decimal(10) ** -2
+
 
 @transaction.atomic
-def create_transaction_from_receipt(creator_id, people_ids, layout_id, receipt, total,
-                                    cash=False, complementary=False):
+def create_transaction_from_receipt(creator_id, layout_id, receipt, total, people,
+                                    complementary=False):
     """ Create Transaction, LineItem and PosPayment records in the database """
-    total = Decimal(total)
-    count = len(people_ids)
+    count = len(people)
     if count > 0:
-        person_id = people_ids[0]
+        person_id = people[0]['id']
     else:
-        person_id=None
+        person_id = None
     trans = Transaction(
         creator_id=creator_id,
         person_id=person_id,
         layout_id=layout_id,
-        total=total,
+        total=Decimal(total).quantize(TWO_PLACES),
         billed=False,
-        cash=cash,
+        cash=person_id == None,
         complementary=complementary,
         split=count > 1
         )
     trans.save()
+
     for item_dict in receipt:
         line_item = LineItem(
             item_id=item_dict['id'],
-            sale_price=Decimal(item_dict['sale_price']),
-            cost_price=Decimal(item_dict['cost_price']),
+            sale_price=Decimal(item_dict['sale_price']).quantize(TWO_PLACES),
+            cost_price=Decimal(item_dict['cost_price']).quantize(TWO_PLACES),
             quantity=1,
             transaction=trans
-            )       
-        line_item.save()
-    if count > 0:
-        first_amount, split_amount = get_split_amounts(total * 100, count)
-        i = 0
-        for person_id in people_ids:
-            amount = first_amount if i == 0 else split_amount
-            pos_payment = PosPayment(
-                transaction=trans,
-                person_id=person_id,
-                billed=False,
-                amount=Decimal(amount/100)
             )
-            pos_payment.save()
-            i += 1
+        line_item.save()
+
+    for person in people:
+        pos_payment = PosPayment(
+            transaction=trans,
+            person_id=person['id'],
+            billed=False,
+            amount=Decimal(person['amount']/100).quantize(TWO_PLACES)
+        )
+        pos_payment.save()
 
 
 def create_invoiceitems_from_transactions():
@@ -104,18 +102,3 @@ def create_invoiceitems_from_payments():
         )
         inv_item.save()
     return PosPayment.objects.filter(billed=False).update(billed=True)
-
-
-def get_split_amounts(total, count):
-    """
-    Split a receipt total into n parts
-    :param total: Decimal
-    :param count: integer
-    :return: tuple( first_amount, subsequent_amount)
-    """
-    split_amount = total // count
-    first_amount = split_amount
-    split_total = split_amount * count
-    if split_total != total:
-        first_amount += 1
-    return first_amount, split_amount

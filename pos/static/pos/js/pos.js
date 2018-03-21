@@ -69,16 +69,19 @@ PosCode = (function () {
 
 
     Pos.pay = function () {
-        personList = [];
-        var myTotal = '£' + Number(total).toFixed(2);
+        // initiate payment sequence
+        var myTotal = '£ ' + Number(total).toFixed(2);
         if (isAttended) {
+            personList = [];
             $('#attended_total').text(myTotal);
             $('#attended_modal').modal('show');
         } else {
+            personList = [{'id': personId, 'name': personName, 'amount': Math.floor(total*100)}];
             $('#member_total').text(myTotal);
+            $('#member_name').text(personName);
             $('#member_modal').modal('show');
         }
-        $('#memberSearch').val('');
+        $('#member_search').val('');
         $('.typeahead').typeahead('val', '');
     };
 
@@ -95,113 +98,146 @@ PosCode = (function () {
         sendTransaction('cash');
     };
 
-    Pos.chargeSingleMember = function () {
+    Pos.commitSingle = function () {
         // charge to single logged on member
         personList = [{'id': personId, 'name': personName, 'amount': Math.floor(total*100)}];
         sendTransaction('account');
     };
 
-    Pos.chargeMultipleMembers = function () {
-        // charge to single logged on member
+    Pos.commit = function () {
+        // charge to list of members
         sendTransaction('account');
     };
 
     Pos.account = function () {
         // Select first member in attended mode
         personList = [];
-        $('#addMemberTypeahead').show();
-        $('#payButtons').hide();
-        $('#select_modal').modal('show');
+        showSplit(true);
+        $('#title_1').text('Charge');
+        $('#title_total').text('£ ' + Number(total).toFixed(2));
+        $('#title_2').text("to member's account");
+
     };
 
     Pos.split = function () {
         // initiate a split across members
         personList = [{'id': personId, 'name': personName}];
-        showSplit();
-        $('#addMemberTypeahead').hide();
-        $('#paybuttons').show();
-        $('#select_modal').modal('show');
+        showSplit(false);
     };
 
     Pos.addMember = function() {
         // add member button on split sale modal
-        $('#addMemberTypeahead').show();
-        $('#payButtons').hide();
-        $('#memberSearch').val('').focus();
+        showSplit(true);
         $('.typeahead').typeahead('val', '');
-        $('#select_modal').modal('show');
     };
 
     Pos.selectedPerson = function (p) {
         // user selected a person through the type ahead
         person = p;
         personList.push({'id': p.id, 'name': p.value});
-        showSplit();
-        $('#addMemberTypeahead').hide();
-        $('#payButtons').show();
-        $('#select_modal').modal('show');
+        showSplit(false);
+        if (isAttended && personList.length === 1) {
+            $('#title_1').text('Charge');
+            $('#title_total').text('£ ' + Number(total).toFixed(2));
+            $('#title_2').text("to member's account");
+        }
     };
 
     Pos.back1 = function() {
-        if (isAttended) {
-            $('#select_modal').modal('hide');
-        } else {
-            $('#addMemberTypeahead').hide();
-            $('#payButtons').show();
-            $('#select_modal').modal('show');
+        // back from select member dialog
+        $('#select_modal').modal('hide');
+        switch(personList.length) {
+            case 0:
+                $('attended_modal').modal('show');
+                break;
+            case 1:
+                if (isAttended) {
+                    Pos.resume();
+                } else {
+                    $('#member_modal').modal('show');
+                }
+                break;
+            default:
+                showSplit(false);
         }
-
     };
 
-    function showSplit() {
+    Pos.resume = function () {
+        $('#pay_modal').modal('hide');
+    };
+
+    function showSplit(withSelect) {
+        // calculate split amounts and show list of members with amounts
+        // withSelect controls whether typeahead or buttons are shown
         var row;
         var cell;
+        var i;
         var tableBody = document.createElement('tbody');
         while (peopleTable.firstChild) {
             peopleTable.removeChild(peopleTable.firstChild);
         }
-        var totalPence = total * 100;
-        var splitPence = Math.floor(totalPence/personList.length);
-        var firstPence = splitPence;
-        var splitTotal = splitPence * personList.length;
-        if (splitTotal !== totalPence) {
-            firstPence += (totalPence - splitTotal);
-        }
-        for (var i = 0; i < personList.length; i++) {
-            if (i === 0) {
-                personList[i].amount = firstPence;
-            } else {
-                personList[i].amount = splitPence;
-            }
+        if (personList.length === 0) {
             row = document.createElement('tr');
             cell = document.createElement('td');
-            cell.className = "description";
-            cell.appendChild(document.createTextNode(personList[i].name));
-            row.appendChild(cell);
-            cell = document.createElement('td');
-            cell.className = "price";
-            cell.appendChild(document.createTextNode((personList[i].amount/100).toFixed(2)));
+            cell.className = "person-name";
+            cell.appendChild(document.createTextNode('No members selected'));
             row.appendChild(cell);
             tableBody.appendChild(row);
+        } else {
+            // calculate the split amounts
+            var totalPence = total * 100;
+            var splitPence = Math.floor(totalPence / personList.length);
+            var firstPence = splitPence;
+            var splitTotal = splitPence * personList.length;
+            for (i = 0; i < personList.length; i ++) {
+                personList[i].amount = splitPence;
+            }
+            if (splitTotal < totalPence) {
+                i = 0;
+                while (splitTotal < totalPence) {
+                    personList[i].amount += 1;
+                    i += 1;
+                    splitTotal += 1;
+                }
+            }
+            for (i = 0; i < personList.length; i ++) {
+                row = document.createElement('tr');
+                cell = document.createElement('td');
+                cell.className = "person-name";
+                cell.appendChild(document.createTextNode(personList[i].name));
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.className = "person-amount";
+                cell.appendChild(document.createTextNode('£ ' + (personList[i].amount / 100).toFixed(2)));
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+            }
         }
         peopleTable.appendChild(tableBody);
-        $('#add_member').hide();
+        // default header message gets overwritten for the first person
+        $('#title_1').text('Split');
+        $('#title_total').text('£ ' + Number(total).toFixed(2));
+        $('#title_2').text("between members");
+        if (withSelect) {
+            $('#add_member_typeahead').show().focus();
+            $('#pay_buttons').hide();
+        } else {
+            $('#add_member_typeahead').hide();
+            $('#pay_buttons').show();
+        }
         $('#select_modal').modal('show');
     }
 
     function sendTransaction(payType) {
-        var payObj = {'pay_type': payType, 'people': personList};
+        // post the transaction to the server
+        // the response is the next screen to show
+        var payObj = {'pay_type': payType, 'people': personList, 'total': total};
         receipt.push(payObj);
         var data = JSON.stringify(receipt);
         $.post(postUrl, data, function(result){
             window.location.replace(result);
         });
     }
-
-
-    Pos.resume = function () {
-        $('#pay_modal').modal('hide');
-    };
 
     function newReceipt() {
         receipt = [];
@@ -261,6 +297,7 @@ PosCode = (function () {
                 cell = document.createElement('td');
                 cell.className = "del-button";
                 button = document.createElement("button");
+                button.className ="btn-danger";
                 button.id = item.lineId;
                 button.innerHTML = "X";
                 button.addEventListener("click", function (event) {

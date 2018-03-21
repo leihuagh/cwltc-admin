@@ -18,6 +18,22 @@ class TransactionTable(tables.Table):
     detail = tables.LinkColumn('pos_transaction_detail', text='Detail', args=[A('pk')], orderable=False)
 
 
+class PosPaymentTable(tables.Table):
+
+    class Meta:
+        model = PosPayment
+        fields = ('transaction.creation_date', 'person.fullname', 'transaction.person.fullname' 'amount', 'billed')
+        attrs = {'class': 'table'}
+
+    amount = tables.Column(
+        attrs={
+            'td': {'style': 'text-align: right;'}
+        }
+    )
+
+    detail = tables.LinkColumn('pos_transaction_detail', text='Detail', args=[A('transaction.pk')], orderable=False)
+
+
 class LineItemTable(tables.Table):
     
     class Meta:

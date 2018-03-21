@@ -10,8 +10,6 @@ urlpatterns = [
     url(r'^password/$', GetPasswordView.as_view(), name='pos_password'),
     url(r'^menu/$', MemberMenuView.as_view(), name='pos_menu'),
     url(r'^run/$', PosView.as_view(), name='pos_run'),
-    url(r'^split/summary/$', SplitSummaryView.as_view(), name='pos_split_summary'),
-    url(r'^split/user/$', GetUserSplitView.as_view(), name='pos_split_user'),
     url(r'^ajax/items/$', ajax_items_view, name='pos_ajax_items'),
 
     url(r'^transactions/$', TransactionListView.as_view(), name='pos_transactions'),
@@ -19,6 +17,10 @@ urlpatterns = [
     url(r'^transactions/person/(?P<person_id>\d+)/$', TransactionListView.as_view(),
         name='pos_transactions_person'),
     url(r'^transaction/(?P<pk>\d+)/$', TransactionDetailView.as_view(), name='pos_transaction_detail'),
+
+    url(r'^payments/$', PaymentListView.as_view(), name='pos_payments'),
+    url(r'^payments/main$', PaymentListView.as_view(main_menu=True), name='pos_payments_main'),
+    url(r'^payments/person/(?P<person_id>\d+)/$', PaymentListView.as_view(), name='pos_payments_main'),
 
     url(r'^lineitems/$', LineItemListView.as_view(), name='pos_lineitems'),
     url(r'^lineitems/(?P<trans_id>\d+)/$', LineItemListView.as_view(), name='pos_lineitems2'),

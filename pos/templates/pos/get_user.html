@@ -1,7 +1,7 @@
 ﻿{% extends 'base.html' %}
 {% load staticfiles %}
 {% block content %}
-
+<link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
 <div class="container">
   <div class="jumbotron">
     <div class="row">
@@ -21,7 +21,7 @@
                    autocomplete="on" spellcheck="false">
           </div>
           <input name="person_id" id="person_id" type="hidden" value="">
-          <input type="submit" class="button" id ="submit_id"
+                    <input type="submit" class="button" id ="submit_id"
                  style="display: none" name="login" value="">
         </form>
       </div>
@@ -37,13 +37,21 @@
 {% endblock content %}
 {% block scripts %}
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
-  <script src="{% static 'js/person_typeahead.js' %}"></script>
-    <script src="{% static 'pos/js/timeout.js' %}"></script>
+{#  <script src="{% static 'js/person_typeahead.js' %}"></script>#}
+  <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
+  <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script>
     $(document).ready(function () {
-      bind_typeahead('#search_id', '#person_id','#submit_id');
+      {#bind_typeahead('#search_id', '#person_id', '#submit_id', true);#}
+      bind_typeahead('#search_id', go, true);
+      $('.typeahead').typeahead('val', '');
       startTimer({{ timeout }}, "{{ timeout_url }}");
     });
+    function go(person) {
+        $('#person_id').val(person.id);
+        $('#submit_id').trigger('click');
+        $('.typeahead').typeahead('val', '');
+    }
   </script>
 {% endblock %}
 
