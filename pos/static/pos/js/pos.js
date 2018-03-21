@@ -35,6 +35,11 @@ PosCode = (function () {
         personId = person_id;
         personName = person_name;
         loadItems();
+        $(".btn-sq-lg").on('click', function(event) {
+            // event.stopPropagation();
+            // event.preventDefault();
+            Pos.itemAdd(Number(event.currentTarget.id));
+        });
         newReceipt();
     };
 
@@ -50,7 +55,7 @@ PosCode = (function () {
         item.cost_price = obj.cost_price;
         receipt.push(item);
         createTable(receipt);
-    };
+    }
 
     Pos.newReceipt = function () {
         newReceipt();
@@ -301,7 +306,6 @@ PosCode = (function () {
                 button.id = item.lineId;
                 button.innerHTML = "X";
                 button.addEventListener("click", function (event) {
-                    console.log(event.currentTarget);
                     Pos.itemRemove(event.currentTarget.id);
                 }, false);
                 cell.appendChild(button);
