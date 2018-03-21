@@ -36,8 +36,8 @@ PosCode = (function () {
         personName = person_name;
         loadItems();
         $(".btn-sq-lg").on('click', function(event) {
-            // event.stopPropagation();
-            // event.preventDefault();
+            event.stopPropagation();
+            event.preventDefault();
             Pos.itemAdd(Number(event.currentTarget.id));
         });
         newReceipt();
