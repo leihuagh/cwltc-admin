@@ -404,6 +404,27 @@ class ApplySubmitForm(Form):
         self.helper.form_tag = False
 
 
+class ConsentForm(Form):
+
+    marketing = forms.TypedChoiceField(label="",
+                                   choices=(('yes','Yes, I agree to receive marketing emails'),
+                                            ('no','No, I do not agree to receive marketing emails')),
+                                   error_messages={'required': MANDATORY_OPTION},
+                                   widget=forms.RadioSelect)
+
+    database = forms.TypedChoiceField(
+        label="",
+        choices=(('yes', 'Yes, include my name, phone and email in the member database'),
+                 ('no', 'No, do not include me in the member database')),
+        error_messages={'required': MANDATORY_OPTION},
+        widget=forms.RadioSelect)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
+
 class CampFindRecordForm(Form):
     email = forms.EmailField(max_length=75, required=True)
     last_name = forms.CharField(max_length=30, required=True)

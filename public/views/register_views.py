@@ -1,14 +1,12 @@
 import logging
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect
 from django.core.signing import Signer
-from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.views.generic.edit import FormView
-from django.views.generic import TemplateView
 from mysite.common import Button
 from members.models import Person
-from public.forms import RegisterForm, RegisterTokenForm
+from public.forms import RegisterForm, RegisterTokenForm, ConsentForm
 
 logger = logging.getLogger(__name__)
 
@@ -94,49 +92,36 @@ class RegisterTokenView(FormView):
         return 'public-consent-token'
 
 
-class ConsentTokenView(TemplateView):
+class ConsentTokenView(FormView):
     """ Update consent flags in the Person record """
-    template_name = 'public/consent_form.html'
-    fields = ('marketing', 'database')
+    template_name = 'public/consent.html'
+    form_class = ConsentForm
 
-    def set_fields(self, fields):
-        self.fields = fields
-
-    def post(self, request, *args, **kwargs):
+    def get_person(self):
         person_id = Signer().unsign(self.kwargs['token'])
-        errors = False
         try:
-            person = Person.objects.get(pk=person_id)
+            return Person.objects.get(pk=person_id)
         except Person.DoesNotExist:
-            return redirect(self.get_success_url())
-        if 'marketing' in self.fields:
-            marketing = request.POST.get('marketing', None)
-            if marketing:
-                person.allow_marketing =  marketing == 'yes'
-            else:
-                errors = True
-        if 'database' in self.fields:
-            database = request.POST.get('database', None)
-            if database:
-                person.allow_email = database == 'yes'
-                person.allow_phone = database == 'yes'
-            else:
-                errors = True
-        if 'photo' in self.fields:
-            photo = request.POST.get('photo', None)
-            if photo:
-                person.allow_photo =  photo == 'yes'
-            else:
-                errors = True
-        if not errors:
-            person.save()
+            return None
+
+    def get_context_data(self, **kwargs):
+        kwargs['person'] = self.get_person()
+        kwargs['form_title'] = 'Choose your password'
+        kwargs['buttons'] = [Button('Next', css_class='btn-success')]
+        return super().get_context_data(**kwargs)
+
+    def form_valid(self, form):
+        person = self.get_person()
+        if person:
+            person.allow_marketing = form.cleaned_data['marketing'] == 'yes'
+            database = form.cleaned_data['database'] == 'yes'
+            person.allow_email = database
+            person.allow_phone = database
             return redirect(self.get_success_url_name())
-        else:
-            return render_to_response(self.template_name, context)
+        messages.error('Invalid token')
+        return redirect('public-home')
 
     def get_success_url_name(self, **kwargs):
         return 'public-home'
 
 
-    def get_success_url(self, **kwargs):
-        return reverse('pos_start')

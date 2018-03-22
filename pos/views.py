@@ -1,8 +1,6 @@
 import json
-from django.shortcuts import render_to_response
-from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers import serialize
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, Http404
+from django.http import HttpResponse, JsonResponse, Http404
 from django.views.generic import DetailView, CreateView, UpdateView, TemplateView
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -160,6 +158,8 @@ class PosConsentView(ConsentTokenView):
         context['timeout'] = LONG_TIMEOUT
         return context
 
+    def get_success_url(self, **kwargs):
+        return 'pos-menu'
 
 class MemberMenuView(LoginRequiredMixin, TemplateView):
     """ Menu of options for members """

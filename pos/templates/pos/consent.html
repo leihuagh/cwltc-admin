@@ -2,14 +2,13 @@
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 {% block head %}
-{#  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">#}
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
 {% endblock %}
 {% block content %}
-  <h4 class="text-center">Consent</h4>
-New data protection regulations mean that we need to get your consent.
+  <h2 class="text-center">Consent</h2>
+  <h4 class="text-center">New data protection regulations mean that we need your explicit consent for the points below.</h4>
   <div class="row justify-content-center">
-    <div class="col-md-6 col-md-offset-3">
+    <div class="col-md-8 col-md-offset-2">
       <form method="POST" novalidate>
         {% csrf_token %}
         <div class="well">
