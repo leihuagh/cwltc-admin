@@ -34,9 +34,9 @@
         {% for loc in row %}
           <div class="col col-md-2">
             {% if loc.2 %}
-              <button class="posbutton timed" id="{{ loc.2.id }}">
+              <div class="posbutton timed" id="{{ loc.2.id }}">
                 <span>{{ loc.2.button_text }}</span>
-              </button>
+              </div>
             {% endif %}
           </div>
         {% endfor %}
