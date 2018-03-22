@@ -36,7 +36,8 @@ PosCode = (function () {
         personId = person_id;
         personName = person_name;
         loadItems();
-        $(".posbutton").on('click', function(event) {
+
+        $(".posbutton").on('touchstart', function(event) {
             Pos.itemAdd(Number(event.currentTarget.id));
         });
         newReceipt();
