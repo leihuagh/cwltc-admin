@@ -142,35 +142,15 @@ padding: 3px;
     white-space: normal;
 }
 .posbutton:active {
-    background-color: #3e8e41;
+    background-color: yellowgreen;
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.4);
     transform: translateY(2px) translateX(1px);
 }
 
 .posbutton:focus {
-  background-color: orange;
   outline: 0;
 }
 
-.posbutton:hover {
-  background-color: yellowgreen;*/
-}
-
-.btn-sq-lg {
-  white-space: normal;
-  width: 110px !important;
-  height: 100px !important;
-  font-size: 20px;
-  background-color: #008800;
-}
-
-.btn-sq {
-  white-space: normal;
-  width: 100px !important;
-  height: 70px !important;
-  text-align: center;
-  font-size: 16px;
-}
 
 span {
   display: inline-block;
