@@ -79,7 +79,7 @@ class GetPasswordView(TemplateView):
     def post(self, request, *args, **kwargs):
         if request.POST['submit']:
             person = Person.objects.get(pk=request.session['person_id'])
-            if check_password(request.POST['password'], person.pin):
+            if check_password(request.POST['pin'], person.pin):
                 return redirect('pos_menu')
             user = User.objects.get(pk=person.auth_id)
             if user.check_password(request.POST['password']):
