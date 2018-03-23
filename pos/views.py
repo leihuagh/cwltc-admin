@@ -17,11 +17,11 @@ from .filters import LineItemFilter
 LONG_TIMEOUT = 120000
 SHORT_TIMEOUT = 30000
 
-class LoadView(LoginRequiredMixin, TemplateView):
-    template_name = 'pos/load.html'
+class AdminView(LoginRequiredMixin, TemplateView):
+    template_name = 'pos/admin.html'
 
     def get_context_data(self, **kwargs):
-        context = super(LoadView, self).get_context_data(**kwargs)
+        context = super(AdminView, self).get_context_data(**kwargs)
         context['layouts'] = Layout.objects.all()
         context['allow_attended'] = True
         return context
@@ -384,6 +384,8 @@ class LayoutListView(LoginRequiredMixin, SingleTableView):
     def post(self, request):
         if 'new' in request.POST:
             return redirect('pos_layout_create')
+        if 'admin' in request.POST:
+            return redirect('pos_admin')
         return redirect('pos_layout_list')
 
 
@@ -440,11 +442,17 @@ class LayoutUpdateView(LoginRequiredMixin, UpdateView):
         for key, value in request.POST.items():
             parts = key.split(":")
             if len(parts) == 3 and value:
-                item = Item.objects.get(button_text=value)
+                if int(parts[2]) == 0:
+                    description = value
+                    item = None
+                else:
+                    item = Item.objects.get(button_text=value)
+                    description = ""
                 Location.objects.create(layout=layout,
                                         row=int(parts[1]),
                                         col=int(parts[2]),
                                         item=item,
+                                        description=description,
                                         visible=True)
 
         return redirect('pos_layout_list')
@@ -454,15 +462,18 @@ def pos_layout_context(layout_id, locations, items=None):
     rows = []
     for r in range(1, Location.ROW_MAX + 1):
         cols = []
-        for c in range(1, Location.COL_MAX + 1):
+        for c in range(0, Location.COL_MAX + 1):
             cols.append([r, c])
         rows.append(cols)
     for loc in locations:
-        rows[loc.row - 1][loc.col - 1].append(loc.item)
-        if items:
-            item = [item for item in items if item.button_text == loc.item.button_text]
-            if item:
-                item[0].used = True
+        if loc.col == 0:
+            rows[loc.row - 1][loc.col].append(loc.description)
+        else:
+            rows[loc.row - 1][loc.col].append(loc.item)
+            if items:
+                item = [item for item in items if item.button_text == loc.item.button_text]
+                if item:
+                    item[0].used = True
     if items:
         return rows, items
     return rows

@@ -19,11 +19,12 @@ function drop(ev) {
 
         if (ev.target.id === 'bin'){
             // drag button to bin
-            var item_id='item:'+from_button.value;
+            var item_id='item:' + from_button.value;
             var item_button = document.getElementById(item_id);
             enable(item_button);
             from_button.value = "";
             disable(from_button);
+
         }else{
             // drag button to button if different button and empty
             if (ev.target.id !== id && ev.target.value ===""){
@@ -34,22 +35,35 @@ function drop(ev) {
             }
         }
     }else{
-        // drag item to button
-        ev.target.value = id.slice(5);
-        disable(from_button);
-        enable(ev.target);
+        if (ev.target.id !== 'bin') {
+            // drag item to button
+            ev.target.value = id.slice(5);
+            disable(from_button);
+            enable(ev.target);
+        }
+
     }
 }
 
 function enable(button){
-    button.classList.remove('btn-default');
-    button.classList.add('btn-success');
+    if (button.classList.contains('posbutton')) {
+        button.classList.remove('layout-empty');
+        button.classList.add('layout');
+    } else {
+        button.classList.remove('btn-default');
+        button.classList.add('btn-success');
+    }
     button.draggable=true;
 }
 
 function disable(button){
-    button.classList.remove('btn-success');
-    button.classList.add('btn-default');
+    if (button.classList.contains('posbutton')) {
+        button.classList.remove('layout');
+        button.classList.add('layout-empty');
+    } else {
+        button.classList.remove('btn-success');
+        button.classList.add('btn-default');
+    }
     button.draggable=false;
     button.blur();
 }

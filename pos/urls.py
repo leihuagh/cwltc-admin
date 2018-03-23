@@ -4,7 +4,7 @@ from pos.views import *
 # POS App URLs
 
 urlpatterns = [
-    url(r'^$', LoadView.as_view(), name='pos_load'),
+    url(r'^$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
     url(r'^user/$', GetUserView.as_view(), name='pos_user'),
     url(r'^password/$', GetPasswordView.as_view(), name='pos_password'),

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'pos/base.html' %}
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 {% block head %}
@@ -22,11 +22,9 @@
   </div>
 {% endblock content %}
 {% block scripts %}
-  <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script>
     $(document).ready(function () {
       startTimer({{ timeout }}, "{{ timeout_url }}");
     });
   </script>
-
 {% endblock %}

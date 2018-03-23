@@ -1,37 +1,19 @@
-﻿<!--- Base for all POS templates -->
-<!DOCTYPE html>
+﻿{% extends 'pos/base.html' %}
 {% load staticfiles %}
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CWLTC POS</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
-
-</head>
-<body>
+{% block content %}
 <!-- Include meta tag to ensure proper rendering and touch zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<script>
-{#  if ('addEventListener' in document) {#}
-{#	document.addEventListener('DOMContentLoaded', function() {#}
-{#		FastClick.attach(document.body);#}
-{#	}, false);#}
-</script>
-
 
 <div class="flex-container">
   <div class="flex-left">
     {% for row in rows %}
-      <div class="row">
-        <div class="col row-description"><strong>Wine</strong></div></div>
-      <div class="row"  style="background-color: #bbeebb; padding: 4px;">
-
-        {% for loc in row %}
+      {% for loc in row %}
+        {% if loc.1 == 0 %}
+          <div class="row">
+            <div class="col row-description"><strong>{{ loc.2 }}</strong></div>
+          </div>
+          <div class="row"  style="background-color: #bbeebb; padding: 4px;">
+        {% else %}
           <div class="col col-md-2">
             {% if loc.2 %}
               <button class="posbutton timed" id="{{ loc.2.id }}">
@@ -39,7 +21,8 @@
               </button>
             {% endif %}
           </div>
-        {% endfor %}
+        {% endif %}
+      {% endfor %}
       </div>
       <br/>
     {% endfor %}
@@ -173,21 +156,12 @@
     </div>
   </div>
 </div>
-
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-{#<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>#}
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-<script src="{% static 'pos/js/timeout.js' %}"></script>
+{% endblock %}
+{% block scripts %}
 <script src= {% static 'js/typeahead.bundle.js' %}></script>
 <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
 <script src="{% static 'pos/js/pos.js' %}"></script>
 <script>
-  $(document).bind("mobileinit", function () {
-      // Stop jQuery Mobile messing with our link buttons
-      $.mobile.linkBindingEnabled = false;
-  });
   $(document).ready(function () {
     $(".ui-loader").hide();
     $.ajaxSetup({
@@ -201,5 +175,4 @@
     bind_typeahead('#member_search', Pos.selectedPerson);
 });
 </script>
-</body>
-</html>
+{% endblock %}

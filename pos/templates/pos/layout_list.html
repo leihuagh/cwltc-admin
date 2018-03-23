@@ -4,9 +4,10 @@
   <h2>POS Layouts</h2>
   {% load render_table from django_tables2 %}
   {% render_table table %}
-  <form action=".", method="post">
+  <form action="." method="post">
     {% csrf_token %}
     <input type="submit" name="new" value="New layout" class="btn btn-primary">
+    <input type="submit" name="admin" value="POS admin menu" class="btn btn-primary">
   </form>
 </div>
 

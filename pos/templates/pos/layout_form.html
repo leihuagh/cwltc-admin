@@ -13,25 +13,34 @@
     <div class="row">
       <div class="col col-md-8">
         {% for row in rows %}
-          <div class="row">
             {% for loc in row %}
-              <input name="id:{{ loc.0 }}:{{ loc.1 }}" type="text" value="{{ loc.2 }}"
-                     id="id:{{ loc.0 }}:{{ loc.1 }}" readonly="readonly"
-                     {% if loc.2 %}
-                     class="btn  btn-success btn-sq"
-                     draggable="true"
-                     {% else %}
-                     class="btn btn-sq btn-default"
-                     {%  endif %}
-                     ondragstart="drag(event)"
-                     ondrop="drop(event)" ondragover="allowDrop(event)">
+              {%  if loc.1 == 0 %}
+                <input name="id:{{ loc.0 }}:{{ loc.1 }}" type="text" value="{{ loc.2 }}"
+                         id="id:{{ loc.0 }}:{{ loc.1 }}">
+                <div class="row">
+              {% else %}
+                <div class="col col-md-2">
+
+                  <input name="id:{{ loc.0 }}:{{ loc.1 }}" type="text" value="{{ loc.2 }}"
+                         id="id:{{ loc.0 }}:{{ loc.1 }}" readonly="readonly"
+                         {% if loc.2 %}
+                         class="posbutton layout"
+                         draggable="true"
+                         {% else %}
+                         class="posbutton layout-empty"
+                         {%  endif %}
+                         ondragstart="drag(event)"
+                         ondrop="drop(event)"
+                         ondragover="allowDrop(event)">
+                </div>
+              {% endif %}
             {% endfor %}
           </div>
           <br />
         {% endfor %}
       </div>
       <div class="col col-md-4">
-        <div class="well" id="well">
+        <div class="well" id="well" ondrop="drop(event)" ondragover="allowDrop(event)">
         <h4 class="text-center">Available items</h4>
         <div class="row">
         {% for item in items %}
@@ -48,7 +57,7 @@
         {% endfor %}
         </div>
           <div class="col-md-12"></div>
-            <p id="bin" ondrop="drop(event)" ondragover="allowDrop(event)">Drag an item here to return it to the list</p>
+            <p class="bin" id="bin" ondrop="drop(event)" ondragover="allowDrop(event)">Drag an item here to return it to the list</p>
           </div>
       </div>
     </div>

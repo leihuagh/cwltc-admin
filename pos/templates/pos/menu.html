@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+﻿{% extends 'pos/base.html' %}
 {% load staticfiles %}
 {% block content %}
 <div class="container">
@@ -22,14 +22,9 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script>
   $(document).ready(function () {
       startTimer({{ timeout }}, "{{ timeout_url }}");
-  });
-  $(document).bind("mobileinit", function () {
-      // Stop jQuery Mobile messing with our links
-      $.mobile.linkBindingEnabled = false;
   });
   </script>
 {% endblock %}

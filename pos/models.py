@@ -45,6 +45,7 @@ class Location(models.Model):
     visible = models.BooleanField()
     item = models.ForeignKey(Item, blank=True, null=True)
     layout = models.ForeignKey(Layout, blank=True, null=True)
+    description = models.CharField(max_length=50, blank=True) # row description when col=0
 
     def __str__(self):
         name = "Layout: {}, Row: {}, Col: {}, ".format(str(self.layout.name),

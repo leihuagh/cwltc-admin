@@ -1,7 +1,6 @@
-﻿{% extends 'base.html' %}
+﻿{% extends 'pos/base.html' %}
 {% load staticfiles %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
 <div class="container">
   <div class="jumbotron">
     <div class="row">
@@ -16,7 +15,7 @@
         <form id="form_member" role="form" method="POST" >{% csrf_token %}
           <div class="input-group input-group-lg">
             <span class="input-group-addon" id="sizing-addon1">Member login</span>
-            <input type="text" class="form-control typeahead tt-query timed"
+            <input type="text" class="form-control typeahead tt-query timed bsfix"
                    id = "search_id" aria-describedby="sizing-addon1"
                    autocomplete="on" spellcheck="false">
           </div>
@@ -36,13 +35,11 @@
 </div>
 {% endblock content %}
 {% block scripts %}
+{#  <script src=https://twitter.github.com/typeahead.js/releases/latest/typeahead.bundle.min.js></script>#}
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
-{#  <script src="{% static 'js/person_typeahead.js' %}"></script>#}
   <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
-  <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script>
     $(document).ready(function () {
-      {#bind_typeahead('#search_id', '#person_id', '#submit_id', true);#}
       bind_typeahead('#search_id', go, true);
       $('.typeahead').typeahead('val', '');
       startTimer({{ timeout }}, "{{ timeout_url }}");
