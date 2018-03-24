@@ -187,7 +187,7 @@ class ApplyAddView(DispatchMixin, CreateView):
         else:
             title = 'child'
             if session.is_non_member_application(self.request):
-                action_text=' attending camp'
+                action_text = ' attending camp'
         if self.index > session.last_index(self.request):
             kwargs['form_title'] = "Add " + title + action_text
         else:
@@ -211,8 +211,8 @@ class ApplyAddView(DispatchMixin, CreateView):
         # if next record is a profile, invalidate it if it is the wrong type
         next_post = session.get_data(index, self.request)
         if next_post:
-            if (session.is_junior_profile(next_post) and not membership.is_adult) or \
-                    (session.is_membership_form(next_post) and membership.is_adult):
+            if (session.is_junior_profile(next_post) and membership.is_adult) or \
+                    (session.is_membership_form(next_post) and not membership.is_adult):
                 session.invalidate_data(index, self.request)
 
         if membership.is_adult:
@@ -275,15 +275,15 @@ class ApplyJuniorProfileView(DispatchMixin, FormView):
         profile = session.first_child_profile(self.index, self.request)
         if profile:
             self.initial.update({'contact0': profile['contact0'],
-                            'phone0': profile['phone0'],
-                            'relationship0': profile['relationship0'],
-                            'contact1': profile['contact1'],
-                            'phone1': profile['phone1'],
-                            'relationship1': profile['relationship1'],
-                            'contact2': profile['contact2'],
-                            'phone2': profile['phone2'],
-                            'relationship2': profile['relationship2']
-                            })
+                                 'phone0': profile['phone0'],
+                                 'relationship0': profile['relationship0'],
+                                 'contact1': profile['contact1'],
+                                 'phone1': profile['phone1'],
+                                 'relationship1': profile['relationship1'],
+                                 'contact2': profile['contact2'],
+                                 'phone2': profile['phone2'],
+                                 'relationship2': profile['relationship2']
+                                 })
         else:
             contact = self.request.session['person']
             if contact.mobile_phone:
@@ -291,9 +291,9 @@ class ApplyJuniorProfileView(DispatchMixin, FormView):
             else:
                 phone = self.request.session['address'].home_phone
             self.initial.update({'contact0': contact.fullname,
-                            'phone0': phone,
-                            'relationship0': ''
-                            })
+                                 'phone0': phone,
+                                 'relationship0': ''
+                                })
         return self.initial
 
 
@@ -430,12 +430,9 @@ class ApplySubmitView(FormView):
                     i += 1
                     child = False
                     if posts[i]['form_class'] == AdultContactForm.__name__:
-                        contact_form = AdultContactForm(posts[i])
-                        if not contact_form.is_valid():
-                            raise ValueError("Invalid adult contact form")
-                        fam_member.membership_id = contact_form.cleaned_data['membership_id']
-                        fam_member.email = contact_form.cleaned_data['email']
-                        fam_member.mobile_phone = contact_form.cleaned_data['mobile_phone']
+                        fam_member.membership_id = posts[i]['membership_id']
+                        fam_member.email = posts[i]['email']
+                        fam_member.mobile_phone = posts[i]['mobile_phone']
                         fam_member.save()
                         i += 1
                         profile_form = AdultProfileForm(posts[i])

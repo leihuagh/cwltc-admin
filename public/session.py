@@ -140,7 +140,7 @@ def last_index(request):
 
 def next_index(index, request):
     """
-    Return next index, skipping deleted records
+    Return next index, skipping deleted records, but not invalid records because we overwrite those
     """
     posts = request.session['posts']
     i = index
@@ -153,12 +153,12 @@ def next_index(index, request):
 
 def back(index, request):
     """
-    Return previous path, skipping deleted records
+    Return previous path, skipping deleted and invalid records
     """
     posts = request.session['posts']
     while index > 0:
         index -= 1
-        if not posts[index].get('deleted', False):
+        if is_valid(posts[index]):
             return posts[index]['path']
     return posts[0]['path']
 

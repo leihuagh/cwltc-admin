@@ -13,7 +13,7 @@
     <form method="post">
       {% csrf_token %}
       <button class="posbutton btn-large" type="submit" name="login">Member log in</button>
-      {% if allow_attended %}
+      {% if attended_mode %}
         <br/><br/><br/>
         <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
       {% endif %}

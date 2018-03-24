@@ -3,6 +3,7 @@
 {% load crispy_forms_tags %}
 {% load members_extras %}
 {% block content %}
+  <div style="min-height: 80%">
   <div class="container bg-light">
     <h3></h3>
     <form action="{% url 'public-apply-main' %}" method="POST">
@@ -38,5 +39,6 @@
         </div>
       </div>
     </form>
+  </div>
   </div>
 {% endblock %}

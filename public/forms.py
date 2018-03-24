@@ -7,9 +7,9 @@ from django.forms import Form, ModelForm, HiddenInput, RadioSelect
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, HTML, Field, Fieldset
-from crispy_forms.bootstrap import FormActions
 from members.forms import SubmitButton
 from members.models import AdultApplication, Person, Address, Membership, JuniorProfile
+from members.services import membership_age
 
 MANDATORY_OPTION = 'You must choose one of the options below:'
 MANDATORY_TICK = "You must tick this box to proceed."
@@ -172,7 +172,6 @@ class NameForm(ModelForm):
         super().__init__(*args, **kwargs)
         if not adult:
             del self.fields['dob']
-            del self.fields['gender']
         self.helper = FormHelper(self)
         self.helper.form_tag = False
         self.helper.disable_csrf = True
@@ -186,6 +185,13 @@ class NameForm(ModelForm):
     def clean_mobile_phone(self):
         return clean_mobile(self.cleaned_data['mobile_phone'])
 
+    def clean_dob(self):
+        age = membership_age(self.cleaned_data['dob'])
+        if age < 18:
+            raise forms.ValidationError("Not an adult age")
+        if age > 90:
+            raise forms.ValidationError("Invalid age")
+        return self.cleaned_data['dob']
 
 class AddressForm(ModelForm):
     """
@@ -198,6 +204,7 @@ class AddressForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.initial = {'town': 'Kingston upon Thames'}
         self.helper = FormHelper(self)
         self.helper.form_tag = False
         self.helper.disable_csrf = True
@@ -229,8 +236,8 @@ class AdultMembershipForm(Form):
     membership_id = forms.TypedChoiceField(required=False)
     database = forms.TypedChoiceField(
         label="",
-        choices=(('yes', 'Yes, include my name, phone and email in the member database'),
-                 ('no', 'No, do not include me in the member database')),
+        choices=(('yes', 'Yes, include name, phone and email in the member database'),
+                 ('no', 'No, do not include in the member database')),
         error_messages={'required': MANDATORY_OPTION},
         widget=forms.RadioSelect)
 

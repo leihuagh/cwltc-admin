@@ -6,6 +6,7 @@ from pos.views import *
 urlpatterns = [
     url(r'^$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
+    url(r'^start/default$', StartDefaultView.as_view(), name='pos_start_default'),
     url(r'^user/$', GetUserView.as_view(), name='pos_user'),
     url(r'^password/$', GetPasswordView.as_view(), name='pos_password'),
     url(r'^menu/$', MemberMenuView.as_view(), name='pos_menu'),

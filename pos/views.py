@@ -1,12 +1,13 @@
 import json
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse, Http404
-from django.views.generic import DetailView, CreateView, UpdateView, TemplateView
+from django.views.generic import DetailView, CreateView, UpdateView, TemplateView, View
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.hashers import check_password
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
+from braces.views import GroupRequiredMixin
 from public.views import RegisterView, RegisterTokenView, ConsentTokenView
 from mysite.common import Button
 from .tables import *
@@ -17,20 +18,37 @@ from .filters import LineItemFilter
 LONG_TIMEOUT = 120000
 SHORT_TIMEOUT = 30000
 
-class AdminView(LoginRequiredMixin, TemplateView):
+class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     template_name = 'pos/admin.html'
+    group_required = 'pos'
 
     def get_context_data(self, **kwargs):
         context = super(AdminView, self).get_context_data(**kwargs)
         context['layouts'] = Layout.objects.all()
-        context['allow_attended'] = True
+        context['admin_record'] = PosAdmin.record()
         return context
 
     def post(self, request, *args, **kwargs):
-        layout = Layout.objects.filter(name=request.POST['layout'])[0]
-        request.session['layout_id'] = layout.id
-        return redirect('pos_start')
+        record = PosAdmin.record()
+        if 'admin_on' in request.POST:
+            record.attended_mode = True
+            record.save()
+        elif 'admin_off' in request.POST:
+            record.attended_mode = False
+            record.save()
+        elif 'default' in request.POST:
+            return redirect('pos_start_default')
+        elif 'layout' in request.POST:
+            layout = Layout.objects.filter(name=request.POST['layout'])[0]
+            request.session['layout_id'] = layout.id
+            return redirect('pos_start')
+        return redirect('pos_admin')
 
+class StartDefaultView(LoginRequiredMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        request.session['layout_id'] = PosAdmin.record().default_layout_id
+        return redirect('pos_start')
 
 class StartView(LoginRequiredMixin, TemplateView):
     """ Member login or attended mode selection """
@@ -38,7 +56,7 @@ class StartView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(StartView, self).get_context_data(**kwargs)
-        context['allow_attended'] = True
+        context['attended_mode'] = PosAdmin.record().attended_mode
         self.request.session['person_id'] = None
         return context
 
@@ -381,11 +399,27 @@ class LayoutListView(LoginRequiredMixin, SingleTableView):
     table_class = LayoutTable
     template_name = 'pos/layout_list.html'
 
+    def get_queryset(self, **kwargs):
+        qs = super().get_queryset()
+        default_id = ""
+        default_layout = PosAdmin.record().default_layout
+        if default_layout:
+            default_id=default_layout.id
+        for item in qs:
+            item.is_default = default_id == item.id
+        return qs
+
     def post(self, request):
         if 'new' in request.POST:
             return redirect('pos_layout_create')
         if 'admin' in request.POST:
             return redirect('pos_admin')
+        admin = PosAdmin.record()
+        for key in request.POST:
+            if key.isnumeric():
+                admin.default_layout_id = key
+                admin.save()
+                break
         return redirect('pos_layout_list')
 
 

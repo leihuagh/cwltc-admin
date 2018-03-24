@@ -47,7 +47,6 @@ class Person(models.Model):
     GENDERS = (
         ('M', 'Male'),
         ('F', 'Female'),
-        ('U', 'Unknown'),
     )
     ACTIVE = 0
     APPLIED = 1  

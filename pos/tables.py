@@ -55,18 +55,18 @@ class ItemTable(tables.Table):
 
     id = tables.LinkColumn('pos_item_update', text='Edit', args=[A('pk')], orderable=True)
     item_type = tables.Column(accessor='item_type.description',
-                                verbose_name='Charge to',
-                                order_by='item_type.description',
-                                orderable=True)
+                              verbose_name='Charge to',
+                              order_by='item_type.description',
+                              orderable=True)
 
 class LayoutTable(tables.Table):
 
     class Meta:
         model = Layout
-        fields = ('edit', 'name')
+        fields = ('edit', 'name', 'is_default', 'default')
         attrs = {'class': 'table'}
 
     edit = tables.TemplateColumn('<a href="{% url "pos_layout_update" record.id %}" class="btn btn-primary btn-xs">Edit</a>', verbose_name = u'Edit',)
-
+    default = tables.TemplateColumn('<input type="submit" name="{{ record.id }}" class="btn btn-primary btn-xs" value="Set as default"></form>', verbose_name = u'',)
 
 

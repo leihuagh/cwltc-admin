@@ -332,19 +332,22 @@ def create_age_list():
         ).order_by('cutoff_age')
                 )         
 
+def membership_age(dob, sub_year=0):
+    """ return age as at start of sub year"""
+    if sub_year == 0:
+        sub_year = Settings.current_year()
+    now_date = datetime(sub_year, Subscription.START_MONTH, 1)
+    return now_date.year - dob.year - ((now_date.month, now_date.day) < (dob.month, dob.day))
+
 
 def membership_from_dob(dob, sub_year=0, age_list=None):
     """
     Return membership id for a date of birth
     Defaults to adult full
     """
-    if sub_year == 0:
-        sub_year = Settings.current_year()
     membership = Membership.objects.get(id=1)
     if dob:
-        now_date = datetime(sub_year, Subscription.START_MONTH, 1)
-        age = now_date.year - dob.year - ((now_date.month, now_date.day) < (dob.month, dob.day))
-
+        age = membership_age(dob, sub_year)
         if not age_list:
             age_list = create_age_list()
         for entry in age_list:

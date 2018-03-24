@@ -119,7 +119,6 @@ class PersonForm(ModelForm):
         ]
         for field in self.fields:
             self.fields[field].widget.attrs = {'autocomplete': "off"}
-
         self.fields['dob'].label = 'Date of birth'
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
