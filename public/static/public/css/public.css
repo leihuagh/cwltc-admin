@@ -5,6 +5,93 @@ body {
     min-height: 100vh;
 }
 
+.logoStrip {
+  background-color: white;
+  height:85px;
+  padding: 0px;
+}
+
+.logo-content {
+  background-color: white;
+  height:85px;
+  padding: 0px;
+  width: 820px;
+  margin: auto;
+  position: relative;
+}
+
+.logo {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.logoOrange {
+  color: #8b3d00;
+}
+
+.logoGreen {
+  color: #00564f;
+ }
+
+.logoStrap {
+  color: #6f8f8b;
+  position: absolute;
+  font-size: 1em;
+  font-style: oblique;
+  top: 40px;
+}
+
+@media only screen and (min-width: 33.9em) {
+  .logo-content {
+    width: 32em;
+  }
+  .logo {
+  font-size: 2em;
+  }
+  .logoStrap {
+    font-size: 1em;
+    top: 40px
+  }
+}
+@media only screen and (min-width: 47.9em) {
+  .logo-content {
+    width: 45em;
+  }
+  .logo {
+  font-size: 2.3em;
+  }
+  .logoStrap {
+    font-size: 1.1em;
+    top: 45px
+  }
+}
+@media only screen and (min-width: 61.9em) {
+  .logo-content {
+    width: 60em;
+  }
+  .logo {
+  font-size: 3em;
+  }
+  .logoStrap {
+    font-size: 1.45em;
+    top: 52px
+  }
+ }
+@media only screen and (min-width: 74.9em) {
+  .logo-content {
+    width: 71em;
+  }
+  .logo {
+    font-size: 3em;
+  }
+  .logoStrap {
+    font-size: 1.45em;
+    top: 52px
+  }
+}
+
+
+
 .footer {
   position: sticky;
   bottom: 0;
@@ -111,25 +198,7 @@ anchors are inline so you need ot make them block to go full width
     height:140px;
 }
 
-.logoStrip {
-  background-color: white;
-  height:85px;
-  padding: 0px;
-}
-.logoOrange {
-  color: #8b3d00;
-  font-size: 3em;
-}
-.logoGreen {
-  color: #00564f;
-  font-size: 3em;
- }
-.logoStrap {
-  color: #6f8f8b;
-  position: absolute;
-  font-size: 1.2em;
-  font-style: oblique;
-  top: 50px;
+
 }
 
 #CookielawBanner {
