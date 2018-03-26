@@ -56,6 +56,7 @@ body {
 @media only screen and (min-width: 47.9em) {
   .logo-content {
     width: 45em;
+    background-color: yellow;
   }
   .logo {
   font-size: 2.3em;
@@ -68,6 +69,7 @@ body {
 @media only screen and (min-width: 61.9em) {
   .logo-content {
     width: 60em;
+    background-color: green;
   }
   .logo {
   font-size: 3em;
