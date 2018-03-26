@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^user/$', GetUserView.as_view(), name='pos_user'),
     url(r'^password/$', GetPasswordView.as_view(), name='pos_password'),
     url(r'^menu/$', MemberMenuView.as_view(), name='pos_menu'),
+    url(r'^menu/timeout/$', MemberMenuView.as_view(timeout=10000), name='pos_menu_timeout'),
     url(r'^run/$', PosView.as_view(), name='pos_run'),
     url(r'^ajax/items/$', ajax_items_view, name='pos_ajax_items'),
 

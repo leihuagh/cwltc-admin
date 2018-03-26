@@ -163,7 +163,6 @@
 <script src="{% static 'pos/js/pos.js' %}"></script>
 <script>
   $(document).ready(function () {
-    $(".ui-loader").hide();
     $.ajaxSetup({
         beforeSend: function (xhr, settings) {
             xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');

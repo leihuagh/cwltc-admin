@@ -36,7 +36,7 @@ class RegisterForm(Form):
     """
     first_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
-    email = forms.EmailField(max_length=75, help_text="This must be the email you registered with the club")
+    email = forms.EmailField(max_length=75, help_text="This must be the email you gave when you joined the club.")
     post_code = forms.CharField(max_length=10)
 
     def __init__(self, *args, **kwargs):
@@ -57,38 +57,38 @@ class RegisterForm(Form):
         last_name = cleaned_data.get('last_name')
         email = cleaned_data.get('email')
         post_code = cleaned_data.get('post_code')
-        if post_code:
+        if post_code and first_name and last_name and email:
             post_code = post_code.replace(' ', '').lower()
-        people = Person.objects.filter(first_name__iexact=first_name,
-                                       last_name__iexact=last_name,
-                                       email__iexact=email)
-        if len(people) == 0:
-            raise forms.ValidationError("No matching person")
-        if len(people) == 1:
-            self.person = people[0]
-        else:
-            for p in people:
-                if p.sub:
-                    if p.sub.membership.isadult:
-                        self.person = p
-                        break
-        
-        if not self.person:
-            raise forms.ValidationError('No matching person found', code='invalid')
-        if not self.person.address.post_code.replace(' ', '').lower() == post_code:
-            raise forms.ValidationError('Post code is wrong', code='invalid')
-        if self.person.state == Person.RESIGNED:
-            raise forms.ValidationError('You cannot register because you have resigned from the club', code='invalid')
-        if self.person.state != Person.ACTIVE:
-            raise forms.ValidationError('You must be an active member to register', code='invalid')
-        sub = self.person.sub
-        if not sub:
-            raise forms.ValidationError('You must have a membership subscription to register', code='invalid')
-        if not sub.paid:
-            raise forms.ValidationError('You must have a current paid subscription to register', code='invalid')
-        if not sub.membership.is_adult:
-            raise forms.ValidationError('Only adult members can register', code='invalid')
-        self.cleaned_data['person'] = self.person
+            people = Person.objects.filter(first_name__iexact=first_name,
+                                           last_name__iexact=last_name,
+                                           email__iexact=email)
+            if len(people) == 0:
+                raise forms.ValidationError('No matching person found', code='invalid')
+            if len(people) == 1:
+                self.person = people[0]
+            else:
+                for p in people:
+                    if p.sub:
+                        if p.sub.membership.isadult:
+                            self.person = p
+                            break
+
+            if not self.person:
+                raise forms.ValidationError('No matching person found', code='invalid')
+            if not self.person.address.post_code.replace(' ', '').lower() == post_code:
+                self.add_error('post_code','Post code is wrong')
+            if self.person.state == Person.RESIGNED:
+                raise forms.ValidationError('You cannot register because you have resigned from the club', code='invalid')
+            if self.person.state != Person.ACTIVE:
+                raise forms.ValidationError('You must be an active member to register', code='invalid')
+            sub = self.person.sub
+            if not sub:
+                raise forms.ValidationError('You must have a membership subscription to register', code='invalid')
+            if not sub.paid:
+                raise forms.ValidationError('You must have a current paid subscription to register', code='invalid')
+            if not sub.membership.is_adult:
+                raise forms.ValidationError('Only adult members can register', code='invalid')
+            self.cleaned_data['person'] = self.person
         return self.cleaned_data
             
     

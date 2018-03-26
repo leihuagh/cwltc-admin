@@ -3,11 +3,6 @@
 {% load crispy_forms_tags %} 
 {% block content %}
   <div class="container bg-light flex-sm-grow" style="height: 100%">
-{#    <div class="row">#}
-{#      <div class="col-sm-12 p-0">#}
-{#        <img class="img-fluid" src="{% static 'images/panorama.jpg' %}" alt="Coombe wood courts" />#}
-{#      </div>#}
-{#    </div>#}
     <h3 {% if class %}class="text-center"{% endif %}>{{ title }}</h3>
     <div class="row justify-content-center">
       <div class="col-sm-12 col-md-8 col-lg-8">
@@ -17,18 +12,23 @@
               <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>
             {% endif %}
 
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-
             <div class="card-body pt-0">
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+              {% if info %}
+                <p>{{ info }}</p>
+              {%  endif %}
+
               {%  if form.errors %}
                 <div class="text-danger">
-                  <strong>Please correct the errors in red below</strong>
+                  <strong>Please correct the errors in red below:</strong>
                 </div>
               {% endif %}
+
+
              {% if family %}
               {% include 'public/_family.html' %}
             {% endif %}

@@ -1,6 +1,7 @@
 var Cookielaw = {
 
     createCookie: function (name, value, days) {
+        "use strict";
         var date = new Date(),
             expires = '';
         if (days) {
@@ -12,14 +13,10 @@ var Cookielaw = {
         document.cookie = name + "=" + value + expires + "; path=/";
     },
 
-    createCookielawCookie: function () {
+    acceptCookie: function () {
+        "use strict";
         this.createCookie('cookielaw_accepted', '1', 10 * 365);
-
-        if (typeof (window.jQuery) === 'function') {
-            jQuery('#CookielawBanner').slideUp();
-        } else {
-            document.getElementById('CookielawBanner').style.display = 'none';
-        }
+        document.getElementById('CookielawBanner').style.display = 'none';
     }
-
 };
+

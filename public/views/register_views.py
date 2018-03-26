@@ -23,6 +23,7 @@ class RegisterView(FormView):
     def get_context_data(self, **kwargs):
         context = super(RegisterView, self).get_context_data(**kwargs)
         context['form_title'] = 'Register for the club website and bar system'
+        context['info'] = 'Enter these details to confirm you are a club member:'
         context['buttons'] = [Button('Register', css_class='btn-success')]
         return context
 
@@ -31,20 +32,16 @@ class RegisterView(FormView):
         if person.auth_id:
             user = User.objects.filter(pk=person.auth_id)
             if len(user) == 1:
-                messages.error(self.request, 'You are already registered with username {}'.format(user[0].username))
-                return redirect('login-token', token=Signer().sign(person.id))
+                messages.error(self.request, f'You are already registered with username: {(user[0].username)}')
+                return redirect(self.get_already_registered_url_name(), token=Signer().sign(person.id))
 
-        if person.membership and person.membership.is_adult:
-            return redirect(self.get_success_url_name(), token=Signer().sign(person.id))
-
-        messages.error(self.request, 'Sorry, only adult members can register on the site')
-        return redirect(self.get_failure_url_name())
+        return redirect(self.get_success_url_name(), token=Signer().sign(person.id))
 
     def get_success_url_name(self):
         return 'public-register-token'
 
-    def get_failure_url_name(self):
-        return 'public-home'
+    def get_already_registered_url_name(self):
+        return 'login-token'
 
 
 class RegisterTokenView(FormView):

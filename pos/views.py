@@ -165,6 +165,9 @@ class PosRegisterTokenView(RegisterTokenView):
     def get_success_url_name(self, **kwargs):
         return 'pos_consent_token'
 
+    def get_already_registered_url_name(self):
+        return 'pos_password'
+
 
 class PosConsentView(ConsentTokenView):
     template_name = 'pos/consent.html'
@@ -179,9 +182,11 @@ class PosConsentView(ConsentTokenView):
     def get_success_url(self, **kwargs):
         return 'pos-menu'
 
+
 class MemberMenuView(LoginRequiredMixin, TemplateView):
     """ Menu of options for members """
     template_name = 'pos/menu.html'
+    timeout = LONG_TIMEOUT
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -190,7 +195,7 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
         context['person'] = person
         context['exit_menu'] = person.auth.is_staff or person.auth.groups.filter(name='pos').exists()
         context['timeout_url'] = reverse('pos_start')
-        context['timeout'] = LONG_TIMEOUT
+        context['timeout'] = self.timeout
         return context
 
 
@@ -229,7 +234,10 @@ class PosView(LoginRequiredMixin, TemplateView):
                                             pay_record['total'],
                                             pay_record['people'],
                                             )
-            return HttpResponse(reverse('pos_start'))
+            if self.request.session['attended']:
+                return HttpResponse(reverse('pos_menu'))
+            else:
+                return HttpResponse(reverse('pos_menu_timeout'))
         # should not get here - all posts are ajax
         return redirect('pos_start')
 

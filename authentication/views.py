@@ -4,7 +4,7 @@ from members.models import Person
 from .forms import *
 
 class CustomLoginView(LoginView):
-    """ Login with username optionally passed as a token """
+    """ Login with person's id optionally passed as a token """
     template_name = 'authentication/login.html'
     form_class = CrispyAuthenticationForm
     person = None
@@ -20,6 +20,6 @@ class CustomLoginView(LoginView):
 
     def get_initial(self):
         initial = {}
-        if self.person:
-            initial['username'] = self.person.email
+        if self.person and self.person.auth:
+            initial['username'] = self.person.auth.username
         return initial
