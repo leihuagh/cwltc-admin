@@ -1,14 +1,18 @@
 ﻿{% extends 'pos/base.html' %}
 {% load static %}
 {% block content %}
-  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
-<div class="container">
-  <div class="jumbotron text-center">
+
+  {%  include '_logo_banner.html' %}
+
+
+  <div class="container">
+
+  <div class="jumbotron text-center bg">
     <div class="row">
-      <img class="center-block" src="{% static 'images/CWLTC logo small.png' %}">
+
     </div>
-    <h1>Bar System</h1>
-    <p>Welcome to the Coombe Wood Bar System.</p>
+    <h1>Honesty Bar System</h1>
+    <p>All adult members can use this system once they have registered. </p>
     <br/><br/>
     <form method="post">
       {% csrf_token %}
@@ -19,28 +23,5 @@
       {% endif %}
     </form>
   </div>
-<p>iOS version: <span id="ios"></span></p>
 </div>
-{% endblock %}
-{% block scripts %}
-  <script>
-$(document).ready(function() {
-	function iOSversion() {
-		if (/iP(hone|od|ad)/.test(navigator.platform)) {
-			// supports iOS 2.0 and later: <https://bit.ly/TJjs1V>
-			var v = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
-			return [parseInt(v[1], 10), parseInt(v[2], 10), parseInt(v[3] || 0, 10)];
-		}
-	}
-
-	ver = iOSversion();
-
-	if (ver[0] >= 5) {
-		alert('This is running iOS '+ver);
-		/*$('body').addClass('iOS-tagged');
-	*/}
-	 $('#ios').val(ver);
-});
-
-  </script>
 {% endblock %}

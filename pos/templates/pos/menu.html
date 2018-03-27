@@ -1,24 +1,21 @@
 ﻿{% extends 'pos/base.html' %}
 {% load staticfiles %}
 {% block content %}
-<div class="container">
-  <div class="jumbotron">
+  {%  include '_logo_banner.html' %}
+  <div class="container bg">
     <div class="row">
-      <div class="col-md-4"><img src="{% static "images/CWLTC logo small.png" %}"/>
-      </div>
-      <div class="col-md-4">
+      <div class="col-md-4 col-md-push-4 text-center">
         <h2 class="text-center">{{ person.first_name }} {{ person.last_name}}</h2>
-        <br/>
+        <br>
         <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block stop-timer">Purchase items from bar</a></p>
         <p><a href="{% url 'pos_transactions_person' person_id=person.id %}" class="btn btn-success btn-lg btn-block stop-timer">View my transactions</a></p>
         <p><a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block stop-timer">Log out</a></p>
         {% if exit_menu %}
-         <p><a href="{% url 'home' %}" class="btn btn-primary btn-lg btn-block stop-timer">Exit Pos</a></p>
+         <p><a href="{% url 'home' %}" class="btn btn-warning btn-lg btn-block stop-timer">Exit Pos</a></p>
         {% endif %}
       </div>
+      </div>
     </div>
-  </div>
-</div>
 {% endblock %}
 
 {% block scripts %}

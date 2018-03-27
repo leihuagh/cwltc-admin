@@ -1,38 +1,36 @@
 ﻿{% extends 'pos/base.html' %}
 {% load staticfiles %}
 {% block content %}
-<div class="container">
-  <div class="jumbotron">
-    <div class="row">
-      <img class="center-block" src="{% static 'images/CWLTC logo small.png' %}">
+  {%  include '_logo_banner.html' %}
+<div class="container bg">
+  <h1 class="text-center">Member login</h1>
+
+  <br/>
+  <div class="row">
+    <div class="col-md-2">
+      <a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block">Back</a>
     </div>
-    <br/>
-    <div class="row">
-      <div class="col-md-2">
-        <a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block">Back</a>
+    <div class="col-md-3 prompt"> Search for name:</div>
+    <form id="form_member" role="form" method="POST" >{% csrf_token %}
+      <div class="col-md-3 input-group input-group-lg">
+        <input type="text" class="form-control typeahead tt-query timed bsfix"
+               id = "search_id" autocomplete="on" spellcheck="false">
       </div>
-      <div class="col-md-6">
-        <form id="form_member" role="form" method="POST" >{% csrf_token %}
-          <div class="input-group input-group-lg">
-            <span class="input-group-addon" id="sizing-addon1">Member login</span>
-            <input type="text" class="form-control typeahead tt-query timed bsfix"
-                   id = "search_id" aria-describedby="sizing-addon1"
-                   autocomplete="on" spellcheck="false">
-          </div>
-          <input name="person_id" id="person_id" type="hidden" value="">
-                    <input type="submit" class="button" id ="submit_id"
-                 style="display: none" name="login" value="">
-        </form>
-      </div>
-      <div class="col-md-4">
-        Enter 1 or more characters of your first name, space, then a few characters of your last name.
-        Case does not matter.<br/>
-        Tap your name in the list that appears.<br/>
-        E.g. <strong>j smi</strong> would select <strong>John Smith</strong>.<br/>
-      </div>
-    </div>
+      <input name="person_id" id="person_id" type="hidden" value="">
+                <input type="submit" class="button" id ="submit_id"
+             style="display: none" name="login" value="">
+    </form>
+  </div>
+  <br>
+  <div class="hint">
+    Enter 1 or more characters of your first name, space, then a few characters of your last name.
+    <br>
+    Case does not matter. Tap your name when it appears in the list.
+    <br>
+    E.g. <strong>j smi</strong> would select <strong>John Smith</strong>
   </div>
 </div>
+
 {% endblock content %}
 {% block scripts %}
 {#  <script src=https://twitter.github.com/typeahead.js/releases/latest/typeahead.bundle.min.js></script>#}

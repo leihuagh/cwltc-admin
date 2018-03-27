@@ -12,8 +12,9 @@
           <div class="row">
             <div class="col row-description"><strong>{{ loc.2 }}</strong></div>
           </div>
-          <div class="row"  style="background-color: #bbeebb; padding: 4px;">
+          <div class="row row-buttons">
         {% else %}
+
           <div class="col col-md-2">
             {% if loc.2 %}
               <button class="posbutton timed" id="{{ loc.2.id }}">
@@ -40,7 +41,7 @@
     <div id="total-area"></div>
     <div id="id_payment">
       <div class="col-md-6 buttons-active">
-        <button class="btn btn-success btn-lg btn-block timed" id="id_pay" onclick="Pos.pay()">
+        <button class="btn btn-warning btn-lg btn-block timed" id="id_pay" onclick="Pos.pay()">
           Payment
         </button>
       </div>
@@ -50,14 +51,13 @@
         </button>
       </div>
       <div class="col-md-12 button-exit">
-        <button class="btn btn-lg btn-block btn-primary" id="id_exit" onclick="Pos.exitPos()">
+        <button class="btn btn-lg btn-block btn-warning" id="id_exit" onclick="Pos.exitPos()">
           Exit
         </button>
       </div>
     </div>
   </div>
 </div>
- <div class="flex-bottom"></div>
 
 <!-- Modal for attended mode -->
 <div id="attended_modal" class="modal" role="dialog">
@@ -94,7 +94,7 @@
           <h3 class="modal-title">Charge to account</h3>
       </div>
       <div class="modal-body">
-        <h4>Confirm charge of <span id="member_total"></span> to <span id="member_name"></span></h4>
+        <h3>Confirm charge of <span id="member_total"></span> to <span id="member_name"></span></h3>
       </div>
       <div class="modal-footer">
         <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="Pos.commitSingle()">
@@ -127,11 +127,11 @@
       </div>
       <div class="modal-footer">
         <div id="add_member_typeahead" class="row">
-          <div class="col-md-9">
+          <div class="col-md-4 prompt">Select member:</div>
+          <div class="col-md-5">
             <div class="input-group input-group-lg">
-              <span class="input-group-addon" id="sizing-addon1">Select member</span>
               <input type="text" class="form-control  timed"
-                     id = "member_search" aria-describedby="sizing-addon1"
+                     id = "member_search"
                      autocomplete="on" spellcheck="false">
             </div>
           </div>

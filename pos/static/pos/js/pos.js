@@ -35,11 +35,20 @@ PosCode = (function () {
         isAttended = is_attended;
         personId = person_id;
         personName = person_name;
+        payClass.hide();
+        exitClass.hide();
         loadItems();
 
         $(".posbutton").on('touchstart', function(event) {
             Pos.itemAdd(Number(event.currentTarget.id));
+            event.preventDefault();
         });
+        // Click event for testing
+        $(".posbutton").on('click', function(event) {
+            Pos.itemAdd(Number(event.currentTarget.id));
+            console.log("click");
+        });
+
         newReceipt();
     };
 
@@ -257,7 +266,6 @@ PosCode = (function () {
             if (this.readyState === 4 && this.status === 200) {
                 var jsonData = this.responseText;
                 items = JSON.parse(JSON.parse(this.responseText));
-                console.log("items loaded");
             }
         };
         xhttp.open("GET", itemsUrl, true);

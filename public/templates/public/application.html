@@ -9,7 +9,7 @@
     <form action="{% url 'public-apply-main' %}" method="POST">
       {% csrf_token %}
       <div class="row justify-content-center">
-        <div class="col-sm-12 col-md-8 col-lg-8">
+        <div class="col-sm-12 col-md-10 col-lg-8">
           <div class="card my-2">
             {% if form_title %}
               <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>
@@ -21,10 +21,10 @@
             {% endif %}
           <div class="card-body">
             <div class="row">
-                <div class="col-sm-12 col-lg-6 col-md-auto ">
+                <div class="col-sm-12 col-md-8 col-lg-6 col-md-auto ">
                   {% crispy name_form %}
                 </div>
-                <div class="col-sm-12 col-lg-6 col-md-auto ">
+                <div class="col-sm-12 col-md-8 col-lg-6 col-md-auto ">
                   {% crispy address_form %}
                 </div>
               </div>

@@ -14,7 +14,6 @@ body {
 .logo-content {
   background-color: white;
   height:85px;
-  padding: 0px;
   width: 820px;
   margin: auto;
   position: relative;
@@ -41,6 +40,19 @@ body {
   top: 40px;
 }
 
+@media only screen and (min-width: 300px) {
+  .logo-content {
+    width: 300px;
+  }
+  .logo {
+  font-size: 2em;
+  }
+  .logoStrap {
+    font-size: 1em;
+    top: 40px
+  }
+}
+
 @media only screen and (min-width: 33.9em) {
   .logo-content {
     width: 32em;
@@ -56,7 +68,6 @@ body {
 @media only screen and (min-width: 47.9em) {
   .logo-content {
     width: 45em;
-    background-color: yellow;
   }
   .logo {
   font-size: 2.3em;
@@ -69,13 +80,12 @@ body {
 @media only screen and (min-width: 61.9em) {
   .logo-content {
     width: 60em;
-    background-color: green;
   }
   .logo {
-  font-size: 3em;
+  font-size: 2.5em;
   }
   .logoStrap {
-    font-size: 1.45em;
+    font-size: 1.25em;
     top: 52px
   }
  }
@@ -109,29 +119,29 @@ body {
     text-shadow: 2px 2px 4px #000000;
 }
 
-@media all and (max-width: 1200px) { /* screen size until 1200px */
+@media all and (max-width: 1200px) {
     .display-4{
-        font-size: 3em; /* 1.5x default size */
+        font-size: 3em;
     }
     .display-5{
-        font-size: 1.75em; /* 1.5x default size */
+        font-size: 1.75em;
     }
 }
-@media all and (max-width: 800px) { /* screen size until 1000px */
+@media all and (max-width: 800px) {
     .display-4{
-        font-size: 2em; /* 1.2x default size */
+        font-size: 2em;
         }
     .display-5{
-        font-size: 1.25em; /* 1.5x default size */
+        font-size: 1.25em;
     }
     }
-@media all and (max-width: 600px) { /* screen size until 500px */
+@media all and (max-width: 600px) {
     .display-4{
-        font-size: 1em; /* 0.8x default size */
+        font-size: 1em;
         }
     .display-5 {
       font-size: .75em;
-    }/* 1.5x default size */
+    }
     }
 
 .header-stripe {
@@ -201,15 +211,12 @@ anchors are inline so you need ot make them block to go full width
 }
 
 
-}
-
 #CookielawBanner {
     background: #fff;
     padding: 15px 0;
 }
 
 #CookielawBanner #CookielawCross {
-    background: url('../img/close.png') no-repeat 0 0;
     cursor: pointer;
     display: block;
     position: absolute;
