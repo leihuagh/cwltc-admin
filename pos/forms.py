@@ -1,12 +1,29 @@
 from django import forms
-from django.forms import ModelForm, ModelChoiceField
+from django.forms import ModelForm, Form
 from django.forms.widgets import TextInput
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout as CrispyLayout, Div
+from crispy_forms.layout import Layout as CrispyLayout, Div, HTML
 from crispy_forms.bootstrap import FormActions
 from .models import *
 from members.forms import SubmitButton
+
+
+class TerminalForm(Form):
+
+    layout = forms.ModelChoiceField(queryset=Layout.objects.all(), empty_label=None)
+    terminal = forms.IntegerField(label="Terminal number")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = CrispyLayout(
+            Div('terminal', 'layout'),
+            HTML('<br><br>'),
+                SubmitButton('start', 'Start terminal', css_class='btn-success btn-lg'),
+                SubmitButton('disable', 'Disable terminal', css_class='btn-warning btn-lg', formnovalidate='formnovalidate'),
+                SubmitButton('cancel', 'Cancel', css_class='btn-default btn-lg', formnovalidate='formnovalidate'),
+            )
 
 
 class ItemForm(ModelForm):
@@ -25,7 +42,7 @@ class ItemForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         delete = kwargs.pop('delete', None)
-        super(ItemForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['item_type'].queryset = ItemType.objects.filter(pos=True)
         self.helper = FormHelper(self)
         self.helper.layout = CrispyLayout(

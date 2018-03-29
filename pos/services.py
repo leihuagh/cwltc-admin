@@ -12,7 +12,10 @@ TWO_PLACES = Decimal(10) ** -2
 @transaction.atomic
 def create_transaction_from_receipt(creator_id, layout_id, receipt, total, people,
                                     complementary=False):
-    """ Create Transaction, LineItem and PosPayment records in the database """
+    """
+    Create Transaction, LineItem and PosPayment records in the database
+    Return a description of it
+    """
     count = len(people)
     if count > 0:
         person_id = people[0]['id']
@@ -48,6 +51,10 @@ def create_transaction_from_receipt(creator_id, layout_id, receipt, total, peopl
             amount=Decimal(person['amount']/100).quantize(TWO_PLACES)
         )
         pos_payment.save()
+    if people:
+        return (people[0]['name'], Decimal(total).quantize(TWO_PLACES))
+    else:
+        return ('Cash', Decimal(total).quantize(TWO_PLACES))
 
 
 def create_invoiceitems_from_transactions():

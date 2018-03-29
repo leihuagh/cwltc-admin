@@ -53,30 +53,42 @@
 }
 
 .flex-container {
-    display: flex;
-    width: 100%;
-    height: 100vh;
-    background-color: #ccffcc;
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  background-color: #ccffcc;
   flex-wrap: nowrap;
 }
 
 .flex-left {
-    width: 70%;
-    height: 95vh;
-    padding: 10px;
-    background-color: #ccffcc;
+  width: 70%;
+  height: 95vh;
+  padding: 10px;
+  background-color: #ccffcc;
 }
 
 .flex-right {
-    width: 30%;
-    height: 95vh;
-    background-color: #ccffcc;
+  width: 30%;
+  height: 95vh;
+  background-color: #ccffcc;
 }
 
-.flex-bottom {
-  width: 100%;
-  height: 4vh;
-  background-color: #000a09;
+.terminal {
+  height: 3vh;
+  position: fixed;
+  bottom: 0;
+  left: 10px;
+  width: 500px;
+}
+
+.last-transaction {
+  height: 3vh;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 500px;
+  text-align: right;
+  padding-right: 10px;
 }
 
 .name-area{
@@ -94,9 +106,6 @@
   padding: 6px 50px 3px 3px;
   text-align: right;
   background-color: cornsilk;
-  border-style: solid;
-  border-color: #4e605e;
-  border-width: thin;
   margin-bottom: 16px;
   font-size: 22px;
   font-weight: bold;
@@ -110,9 +119,6 @@
   padding: 5px;
   flex-direction: column;
   background-color: cornsilk;
-  border-style: solid;
-  border-color: #4e605e;
-  border-width: thin;
   margin-bottom: 10px;
   font-size: 18px;
   font-weight: bold;
@@ -222,7 +228,7 @@
 }
 
 .btn:active {
-    color: white;
+  color: black;
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.4);
     transform: translateY(2px) translateX(1px);
 }

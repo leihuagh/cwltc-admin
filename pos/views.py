@@ -1,7 +1,7 @@
 import json
 from django.core.serializers import serialize
-from django.http import HttpResponse, JsonResponse, Http404
-from django.views.generic import DetailView, CreateView, UpdateView, TemplateView, View
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.views.generic import DetailView, CreateView, UpdateView, TemplateView, View, FormView
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.hashers import check_password
@@ -11,7 +11,7 @@ from braces.views import GroupRequiredMixin
 from public.views import RegisterView, RegisterTokenView, ConsentTokenView
 from mysite.common import Button
 from .tables import *
-from .forms import ItemForm, LayoutForm, ColourForm
+from .forms import ItemForm, LayoutForm, ColourForm, TerminalForm
 from .services import *
 from .filters import LineItemFilter
 
@@ -23,7 +23,7 @@ class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     group_required = 'pos'
 
     def get_context_data(self, **kwargs):
-        context = super(AdminView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['layouts'] = Layout.objects.all()
         context['admin_record'] = PosAdmin.record()
         return context
@@ -36,6 +36,8 @@ class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
         elif 'admin_off' in request.POST:
             record.attended_mode = False
             record.save()
+        elif 'start' in request.POST:
+            return redirect('pos_set_terminal')
         elif 'default' in request.POST:
             return redirect('pos_start_default')
         elif 'layout' in request.POST:
@@ -44,19 +46,67 @@ class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
             return redirect('pos_start')
         return redirect('pos_admin')
 
+
+class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
+    template_name = 'pos/set_terminal.html'
+    form_class = TerminalForm
+    group_required = 'pos'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        layout, terminal = read_cookie(self.request)
+        initial.update({'layout': layout,
+                        'terminal': terminal})
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Start POS on this screen"
+        context['layouts'] = Layout.objects.all()
+        context['admin_record'] = PosAdmin.record()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if 'disable' in request.POST:
+            response = HttpResponseRedirect(reverse('pos_admin'))
+            response.delete_cookie('pos')
+            return response
+        if 'start' in request.POST:
+            layout = request.POST['layout']
+            terminal = request.POST['terminal']
+            response = HttpResponseRedirect(reverse('pos_start'))
+            max_age = 10 * 365 * 24 * 60 * 60
+            response.set_cookie('pos', layout + ';' + terminal, max_age=max_age)
+            request.session['layout_id'] = layout
+            return response
+        return redirect('pos_admin')
+
+
+class DisabledView(TemplateView):
+    template_name = 'pos/disabled.html'
+
+
 class StartDefaultView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         request.session['layout_id'] = PosAdmin.record().default_layout_id
         return redirect('pos_start')
 
+
 class StartView(LoginRequiredMixin, TemplateView):
     """ Member login or attended mode selection """
     template_name = 'pos/start.html'
 
+    def get(self, request, *args, **kwargs):
+        request.session['layout_id'], request.session['terminal'] = read_cookie(request)
+        if request.session['layout_id']:
+            return super().get(request, *args, **kwargs)
+        return redirect('pos_disabled')
+
     def get_context_data(self, **kwargs):
-        context = super(StartView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['attended_mode'] = PosAdmin.record().attended_mode
+        context['terminal'] = self.request.session['terminal']
         self.request.session['person_id'] = None
         return context
 
@@ -68,7 +118,15 @@ class StartView(LoginRequiredMixin, TemplateView):
             request.session['attended'] = True
             return redirect('pos_run')
         return redirect('pos_start')
-1
+
+
+def read_cookie(request):
+    if 'pos' in request.COOKIES:
+        values = request.COOKIES['pos'].split(';')
+        return values[0], values[1]
+    else:
+        return None, None
+
 
 class GetUserView(TemplateView):
     """ User identification """
@@ -193,10 +251,21 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
         self.request.session['people_ids'] = []
         person = Person.objects.get(pk=self.request.session['person_id'])
         context['person'] = person
-        context['exit_menu'] = person.auth.is_staff or person.auth.groups.filter(name='pos').exists()
+        context['admin'] = person.auth.is_staff or person.auth.groups.filter(name='pos').exists()
+        context['admin_record'] = PosAdmin.record()
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = self.timeout
         return context
+
+    def post(self, request, *args, **kwargs):
+        record = PosAdmin.record()
+        if 'admin_on' in request.POST:
+            record.attended_mode = True
+            record.save()
+        elif 'admin_off' in request.POST:
+            record.attended_mode = False
+            record.save()
+        return redirect('pos_menu')
 
 
 class PosView(LoginRequiredMixin, TemplateView):
@@ -212,6 +281,7 @@ class PosView(LoginRequiredMixin, TemplateView):
         context['items_url'] = reverse('pos_ajax_items')
         context['post_url'] = reverse('pos_run')
         context['exit_url'] = reverse('pos_start' if self.request.session['attended'] else 'pos_menu')
+        context['terminal'] = self.request.session['terminal']
         if self.request.session['attended']:
             context['is_attended'] = 'true'
         else:
@@ -228,12 +298,14 @@ class PosView(LoginRequiredMixin, TemplateView):
         if request.is_ajax():
             receipt = json.loads(request.body)
             pay_record = receipt.pop()
-            create_transaction_from_receipt(request.user.id,
-                                            request.session['layout_id'],
-                                            receipt,
-                                            pay_record['total'],
-                                            pay_record['people'],
-                                            )
+            trans = create_transaction_from_receipt(request.user.id,
+                                                    request.session['layout_id'],
+                                                    receipt,
+                                                    pay_record['total'],
+                                                    pay_record['people'],
+                                                    )
+            request.session['last_person'] = trans[0]
+            request.session['last_total'] = trans[1]
             if self.request.session['attended']:
                 return HttpResponse(reverse('pos_menu'))
             else:

@@ -10,10 +10,21 @@
         <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block stop-timer">Purchase items from bar</a></p>
         <p><a href="{% url 'pos_transactions_person' person_id=person.id %}" class="btn btn-success btn-lg btn-block stop-timer">View my transactions</a></p>
         <p><a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block stop-timer">Log out</a></p>
-        {% if exit_menu %}
-         <p><a href="{% url 'home' %}" class="btn btn-warning btn-lg btn-block stop-timer">Exit Pos</a></p>
+        {% if admin %}
+         <p><a href="{% url 'home' %}" class="btn btn-warning btn-lg btn-block stop-timer">Exit POS</a></p>
+          <form method="post">{% csrf_token %}
+            {% if admin_record.attended_mode %}
+              <input class="btn btn-warning btn-lg btn-block stop-timer" type="submit" name="admin_off" value="Disable attended mode">
+            {%  else %}
+              <input class="btn btn-warning btn-lg btn-block stop-timer" type="submit" name="admin_on" value="Enable attended mode">
+            {%  endif %}
+          </form>
         {% endif %}
-      </div>
+        <br><br>
+        {% if request.session.last_person == person.fullname %}
+          <h3>Last transaction: £ {{ request.session.last_total }}</h3>
+        {% endif %}
+        </div>
       </div>
     </div>
 {% endblock %}

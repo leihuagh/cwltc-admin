@@ -1,0 +1,7 @@
+{% extends 'pos/base.html' %}
+<!DOCTYPE html>
+{% block content %}
+  <h1>This device is not enabled to run as a POS terminal</h1>
+<br>
+<a href="{% url 'public-home' %}" class="posbutton">Home</a>
+{% endblock %}

@@ -11,7 +11,7 @@
     <div class="row">
 
     </div>
-    <h1>Honesty Bar System</h1>
+    <h1><strong>Honesty Bar System</strong></h1>
     <p>All adult members can use this system once they have registered. </p>
     <br/><br/>
     <form method="post">
@@ -24,4 +24,8 @@
     </form>
   </div>
 </div>
+    <div class="terminal">Terminal: {{ terminal }}</div>
+    <div class="last-transaction">
+      Last transaction: {{ request.session.last_person }}: £{{ request.session.last_total }}
+    </div>
 {% endblock %}

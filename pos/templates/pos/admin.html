@@ -14,6 +14,7 @@
       {% for layout in layouts %}
         <input class="btn btn-success" type="submit" name="layout" value="{{ layout.name }}">
       {% endfor %}
+        <input class="btn btn-success" type="submit" name="start" value="Start POS">
       <br><br>
       {%  if admin_record.attended_mode %}
         <input class="btn btn-warning" type="submit" name="admin_off" value="Disable attended mode">
