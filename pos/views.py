@@ -11,7 +11,7 @@ from braces.views import GroupRequiredMixin
 from public.views import RegisterView, RegisterTokenView, ConsentTokenView
 from mysite.common import Button
 from .tables import *
-from .forms import ItemForm, LayoutForm
+from .forms import ItemForm, LayoutForm, ColourForm
 from .services import *
 from .filters import LineItemFilter
 
@@ -355,6 +355,8 @@ class ItemListView(LoginRequiredMixin, SingleTableView):
     def post(self, request):
         if 'new' in request.POST:
             return redirect('pos_item_create')
+        if 'admin' in request.POST:
+            return redirect('pos_admin')
         return redirect('pos_item_list')
 
 
@@ -520,3 +522,57 @@ def pos_layout_context(layout_id, locations, items=None):
         return rows, items
     return rows
 
+
+class ColourCreateView(LoginRequiredMixin, CreateView):
+    """ Create new POS layout """
+    model = Colour
+    form_class = ColourForm
+    success_url = reverse_lazy('pos_colour_list')
+    template_name = 'pos/colour_form.html'
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['title'] = 'Create new colour scheme'
+        return context
+
+
+class ColourUpdateView(LoginRequiredMixin, UpdateView):
+    model = Colour
+    form_class = ColourForm
+    template_name = 'pos/colour_form.html'
+    success_url = reverse_lazy('pos_colour_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        layout = self.get_object()
+        locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col')
+        items = Item.objects.all().order_by('button_text')
+        context['rows'], context['items'] = pos_layout_context(layout.id, locations, items)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        colour = self.get_object()
+        if 'cancel' in request.POST:
+            return redirect('pos_colour_list')
+        if 'delete' in request.POST:
+            colour.delete()
+            return redirect('pos_colour_list')
+        return super().post(request, *args, **kwargs)
+
+
+class ColourListView(LoginRequiredMixin, SingleTableView):
+    model = Colour
+    table_class = ColourTable
+    template_name = 'pos/colour_list.html'
+
+    def post(self, request):
+        if 'new' in request.POST:
+            return redirect('pos_colour_create')
+        if 'admin' in request.POST:
+            return redirect('pos_admin')
+        return redirect('pos_colour_list')

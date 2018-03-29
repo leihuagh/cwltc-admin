@@ -50,14 +50,19 @@ class ItemTable(tables.Table):
 
     class Meta:
         model = LineItem
-        fields = ('id', 'button_text', 'description', 'sale_price', 'cost_price', 'item_type')
+        fields = ('id', 'button_text', 'description', 'sale_price', 'cost_price', 'margin', 'item_type', 'colour')
         attrs = {'class': 'table'}
 
-    id = tables.LinkColumn('pos_item_update', text='Edit', args=[A('pk')], orderable=True)
+    id = tables.LinkColumn('pos_item_update', verbose_name='', text='Edit', args=[A('pk')], orderable=True)
     item_type = tables.Column(accessor='item_type.description',
                               verbose_name='Charge to',
                               order_by='item_type.description',
                               orderable=True)
+    margin = tables.Column(accessor=A('margin_formatted'),
+                           verbose_name='Margin',
+                           )
+    colour = tables.Column(accessor='colour.name', verbose_name='Colour')
+
 
 class LayoutTable(tables.Table):
 
@@ -69,4 +74,18 @@ class LayoutTable(tables.Table):
     edit = tables.TemplateColumn('<a href="{% url "pos_layout_update" record.id %}" class="btn btn-primary btn-xs">Edit</a>', verbose_name = u'Edit',)
     default = tables.TemplateColumn('<input type="submit" name="{{ record.id }}" class="btn btn-primary btn-xs" value="Set as default"></form>', verbose_name = u'',)
 
+
+class ColourTable(tables.Table):
+
+    class Meta:
+        model = Colour
+        fields = ('id', 'name', 'fore_colour', 'back_colour', 'outline_colour', 'sample')
+        attrs = {'class': 'table'}
+
+    id = tables.LinkColumn('pos_colour_update', verbose_name='', text='Edit', args=[A('pk')], orderable=True)
+    sample = tables.TemplateColumn(
+            '''<button class="posbutton" style="color: {{ record.fore_colour }};
+                background-color: {{ record.back_colour }};
+                border: {{ record.outline_colour }};">Sample</button>'''
+    )
 

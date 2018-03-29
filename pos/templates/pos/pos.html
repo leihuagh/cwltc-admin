@@ -17,9 +17,15 @@
 
           <div class="col col-md-2">
             {% if loc.2 %}
-              <button class="posbutton timed" id="{{ loc.2.id }}">
-                <span>{{ loc.2.button_text }}</span>
-              </button>
+{#              <button class="posbutton timed" id="{{ loc.2.id }}"#}
+{#                      style="background-color: {{ loc.2.colour.back_colour }};#}
+{#                          color: {{ loc.2.colour.fore_colour }}">#}
+{#                <span>{{ loc.2.button_text }}</span>#}
+{#              </button>#}
+              <input type="submit" class="posbutton timed" id="{{ loc.2.id }}"
+                      style="background-color: {{ loc.2.colour.back_colour }};
+                          color: {{ loc.2.colour.fore_colour }};"
+                value="{{ loc.2.button_text }}">
             {% endif %}
           </div>
         {% endif %}

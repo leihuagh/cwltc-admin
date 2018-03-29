@@ -182,7 +182,6 @@
 }
 
 .posbutton {
-    -webkit-user-select: none;
     background-color: #008800; /* Green */
     cursor: pointer;
     border: none;
@@ -199,7 +198,13 @@
     white-space: normal;
 }
 .posbutton:active {
-    background-color: #006600;
+    filter: brightness(85%);!important
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.4);
+    transform: translateY(2px) translateX(1px);
+}
+
+.posbutton-down[style] {
+    filter: brightness(85%);!important
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.4);
     transform: translateY(2px) translateX(1px);
 }

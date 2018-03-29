@@ -38,15 +38,24 @@ PosCode = (function () {
         payClass.hide();
         exitClass.hide();
         loadItems();
-
+        var flag = false;
         $(".posbutton").on('touchstart', function(event) {
             Pos.itemAdd(Number(event.currentTarget.id));
+            event.currentTarget.flag=true;
+            event.currentTarget.classList.add('posbutton-down');
             event.preventDefault();
         });
         // Click event for testing
         $(".posbutton").on('click', function(event) {
-            Pos.itemAdd(Number(event.currentTarget.id));
-            console.log("click");
+            if (!event.currentTarget.flag) {
+                Pos.itemAdd(Number(event.currentTarget.id));
+                console.log("click");
+            }
+            event.currentTarget.flag=false;
+        });
+        $(".posbutton").on('touchend', function(event) {
+            event.currentTarget.flag=true;
+            event.currentTarget.classList.remove('posbutton-down');
         });
 
         newReceipt();

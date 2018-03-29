@@ -65,24 +65,16 @@ class ItemFactory(factory.DjangoModelFactory):
 class PosTestCase(TestCase):
 
 
-    def test_item_to_dict(self):
-        item = ItemFactory.create()
-        dict = item.to_dict()
-        dict = item.to_dict()
-        self.assertEqual(dict['id'], item.id)
-        self.assertEqual(dict['description'], item.description)
-        self.assertIn(str(item.sale_price), dict['total'] )
-
-    def test_create_transaction(self):     
+    def test_create_transaction(self):
         receipt = []
         for i in range(10):
             item = ItemFactory.create()
             receipt.append(item.to_dict())
         layout = LayoutFactory.create()
-        person = PersonFactory.create()
+        person_list = [PersonFactory.create()]
         user = UserFactory.create()
         user.save()
-        transaction = create_transaction_from_receipt(user.id, person.id, layout.id, receipt) 
+        transaction = create_transaction_from_receipt(user.id, layout.id, receipt, 15, person_list)
         qs = Transaction.objects.all()
         self.assertEqual(len(qs),1)
         t1 = qs[0]

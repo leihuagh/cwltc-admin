@@ -1,6 +1,18 @@
+from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import User
 from members.models import Person, ItemType
+
+TWO_PLACES = Decimal(10) ** -2
+
+
+class Colour(models.Model):
+    name = models.CharField(max_length=20, blank=False)
+    fore_colour = models.CharField(max_length=7, default="#ffffff")
+    back_colour = models.CharField(max_length=7, default="#008800")
+
+    def __str__(self):
+        return self.name
 
 
 class Item(models.Model):
@@ -9,10 +21,19 @@ class Item(models.Model):
     sale_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     cost_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     item_type = models.ForeignKey(ItemType, default=4, null=False)
+    colour = models.ForeignKey(Colour, null=True)
 
     def __str__(self):
         return self.button_text
     
+    def margin(self):
+        if self.sale_price != 0:
+            return Decimal((self.sale_price - self.cost_price)/self.sale_price * 100)
+        return Decimal(0)
+
+    def margin_formatted(self):
+        return str(self.margin().quantize(TWO_PLACES))+'%'
+
     def to_dict(self):
         '''
         Create a dictionary item used while transaction is being created
@@ -111,5 +132,4 @@ class PosAdmin(models.Model):
             return records[0]
         else:
             return PosAdmin.objects.create(attended_mode=False, default_layout=None)
-
 
