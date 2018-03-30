@@ -219,20 +219,19 @@ class PersonCreateView(StaffuserRequiredMixin, PersonActionMixin, CreateView):
 class PersonUpdateView(StaffuserRequiredMixin, PersonActionMixin, UpdateView):
     model = Person
     template_name = 'members/generic_crispy_form_well.html'
-    success_msg = "Person updated"
-    form_class = NameForm
-
-    def get_context_data(self, **kwargs):
-        context = super(PersonUpdateView, self).get_context_data(**kwargs)
-        # context['buttons'] = [
-        #     ('go', 'Go', 'btn-success'),
-        #     ('cancel', 'Cancel', 'btn-danger')
-        #     ]
-        return context
+    success_msg = 'Person updated'
+    form_class = PersonNameForm
 
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk': self.kwargs['pk']})
 
+    def form_valid(self, form):
+        result = super().form_valid(form)
+        return result
+
+    def form_invalid(self, form):
+        result = super().form_invalid(form)
+        return result
 
 class PersonLinkView(StaffuserRequiredMixin, TemplateView):
     template_name = 'members/person_link_merge.html'

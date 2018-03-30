@@ -20,7 +20,7 @@ SHORT_TIMEOUT = 30000
 
 class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     template_name = 'pos/admin.html'
-    group_required = 'pos'
+    group_required = 'Pos'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -50,7 +50,7 @@ class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
 class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
     template_name = 'pos/set_terminal.html'
     form_class = TerminalForm
-    group_required = 'pos'
+    group_required = 'Pos'
 
     def get_initial(self):
         initial = super().get_initial()
@@ -331,9 +331,9 @@ class TransactionListView(SingleTableView):
     def get_table_data(self):
         person_id = self.kwargs.get('person_id', None)
         if person_id:
-            self.qs = Transaction.objects.filter(person_id=person_id).order_by('-creation_date')
+            self.qs = Transaction.objects.filter(person_id=person_id, billed=False).order_by('-creation_date')
         else:
-            self.qs = Transaction.objects.all().order_by('-creation_date')
+            self.qs = Transaction.objects.filter(billed=False).order_by('-creation_date')
         return self.qs
 
     def get_context_data(self, **kwargs):
@@ -381,6 +381,7 @@ class LineItemListView(SingleTableView):
     table_class = LineItemTable
     template_name = 'pos/lineitems.html'
     filter_class = LineItemFilter
+    table_pagination = {'per_page': 10}
 
     def get_table_data(self):
         trans_id = self.kwargs.get('trans_id', None)
@@ -418,11 +419,16 @@ class TransactionDetailView(DetailView):
         return context
 
 
-class ItemListView(LoginRequiredMixin, SingleTableView):
+class ItemListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
     """ POS items List """
     model = Item
     table_class = ItemTable
     template_name = 'pos/item_list.html'
+    table_pagination = {'per_page': 10}
+    group_required = 'Pos'
+
+    def get_table_data(self):
+        return Item.objects.filter().order_by('button_text')
 
     def post(self, request):
         if 'new' in request.POST:
@@ -432,11 +438,12 @@ class ItemListView(LoginRequiredMixin, SingleTableView):
         return redirect('pos_item_list')
 
 
-class ItemUpdateView(LoginRequiredMixin, UpdateView):
+class ItemUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     """ Edit POS items"""
     model = Item
     form_class = ItemForm
     success_url = reverse_lazy('pos_item_list')
+    group_required = 'Pos'
 
     def get_form_kwargs(self):
         kwargs = super(ItemUpdateView, self).get_form_kwargs()
@@ -458,11 +465,12 @@ class ItemUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
 
-class ItemCreateView(LoginRequiredMixin, CreateView):
+class ItemCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
     """ Create POS items"""
     model = Item
     form_class = ItemForm
     success_url = reverse_lazy('pos_item_list')
+    group_required = 'Pos'
 
     def post(self, request, *args, **kwargs):
         if 'cancel' in request.POST:
@@ -475,11 +483,12 @@ class ItemCreateView(LoginRequiredMixin, CreateView):
         return context
     
 
-class LayoutListView(LoginRequiredMixin, SingleTableView):
+class LayoutListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
     """ Summary of available POS layouts """
     model = Layout
     table_class = LayoutTable
     template_name = 'pos/layout_list.html'
+    group_required = 'Pos'
 
     def get_queryset(self, **kwargs):
         qs = super().get_queryset()
@@ -505,11 +514,15 @@ class LayoutListView(LoginRequiredMixin, SingleTableView):
         return redirect('pos_layout_list')
 
 
-class LayoutCreateView(LoginRequiredMixin, CreateView):
-    """ Create new POS layout """
+class LayoutCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
+    """
+    Create new POS layout then redirect to edit it
+    """
     model = Layout
     form_class = LayoutForm
     success_url = reverse_lazy('pos_layout_list')
+    group_required = 'Pos'
+    template_name = 'pos/layout_new.html'
 
     def post(self, request, *args, **kwargs):
         if 'cancel' in request.POST:
@@ -521,19 +534,26 @@ class LayoutCreateView(LoginRequiredMixin, CreateView):
         context['title'] = 'Create new POS Layout'
         return context
 
+    def form_valid(self, form):
+        new_layout = form.save()
+        return redirect('pos_layout_update', pk=new_layout.id)
 
-class LayoutUpdateView(LoginRequiredMixin, UpdateView):
+
+
+class LayoutUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     """ Edit a POS layout """
     model = Layout
     form_class = LayoutForm
     template_name = 'pos/layout_form.html'
+    group_required = 'Pos'
 
     def get_context_data(self, **kwargs):
         context = super(LayoutUpdateView, self).get_context_data(**kwargs)
         layout = self.get_object()
         locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col')
-        items = Item.objects.all().order_by('button_text')
+        items = Item.objects.filter(item_type_id=layout.item_type_id).order_by('button_text')
         context['rows'], context['items'] = pos_layout_context(layout.id, locations, items)
+        context['layout'] = layout
         return context
 
     def post(self, request, *args, **kwargs):
@@ -595,12 +615,13 @@ def pos_layout_context(layout_id, locations, items=None):
     return rows
 
 
-class ColourCreateView(LoginRequiredMixin, CreateView):
+class ColourCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
     """ Create new POS layout """
     model = Colour
     form_class = ColourForm
     success_url = reverse_lazy('pos_colour_list')
     template_name = 'pos/colour_form.html'
+    group_required = 'Pos'
 
     def post(self, request, *args, **kwargs):
         if 'cancel' in request.POST:
@@ -613,11 +634,12 @@ class ColourCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-class ColourUpdateView(LoginRequiredMixin, UpdateView):
+class ColourUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     model = Colour
     form_class = ColourForm
     template_name = 'pos/colour_form.html'
     success_url = reverse_lazy('pos_colour_list')
+    group_required = 'Pos'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -637,10 +659,11 @@ class ColourUpdateView(LoginRequiredMixin, UpdateView):
         return super().post(request, *args, **kwargs)
 
 
-class ColourListView(LoginRequiredMixin, SingleTableView):
+class ColourListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
     model = Colour
     table_class = ColourTable
     template_name = 'pos/colour_list.html'
+    group_required = 'Pos'
 
     def post(self, request):
         if 'new' in request.POST:

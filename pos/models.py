@@ -20,8 +20,8 @@ class Item(models.Model):
     button_text = models.CharField(max_length=25)
     sale_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     cost_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
-    item_type = models.ForeignKey(ItemType, default=4, null=False)
-    colour = models.ForeignKey(Colour, null=True)
+    item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
+    colour = models.ForeignKey(Colour, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.button_text
@@ -51,7 +51,7 @@ class Item(models.Model):
 
 class Layout(models.Model):
     name = models.CharField(max_length=25)
-
+    item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
 
     def __str__(self):
         return self.name
@@ -64,9 +64,9 @@ class Location(models.Model):
     row = models.IntegerField()
     col = models.IntegerField()
     visible = models.BooleanField()
-    item = models.ForeignKey(Item, blank=True, null=True)
-    layout = models.ForeignKey(Layout, blank=True, null=True)
-    description = models.CharField(max_length=50, blank=True) # row description when col=0
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, blank=True, null=True)
+    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, blank=True, null=True)
+    description = models.CharField(max_length=50, blank=True) # holds the row description when col=0
 
     def __str__(self):
         name = "Layout: {}, Row: {}, Col: {}, ".format(str(self.layout.name),
@@ -88,10 +88,10 @@ class Transaction(models.Model):
     split = models.BooleanField(default=False)
     
     def __str__(self):
-        return "{} {} {} {}".format(str(self.id),
-                                    str(self.person.first_name),
-                                    str(self.person.last_name),
-                                    str(self.total)) 
+        name = self.person.fullname if self.person else "Cash"
+        return "{} {} {}".format(str(self.id),
+                                 name,
+                                 str(self.total))
 
 
 class LineItem(models.Model):

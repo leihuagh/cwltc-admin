@@ -70,7 +70,7 @@ class LayoutForm(ModelForm):
 
     class Meta:
         model = Layout
-        fields = ['name']
+        fields = ['name', 'item_type']
 
     def __init__(self, *args, **kwargs):
         delete = kwargs.pop('delete', None)
@@ -79,7 +79,7 @@ class LayoutForm(ModelForm):
         self.helper.layout = CrispyLayout(
             Div(
             'name',
-            'invoice_itemtype',
+            'item_type',
                 css_class="well"
             ),
             FormActions(

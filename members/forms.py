@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 from bootstrap3_datetime.widgets import DateTimePicker
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder, BaseInput
+from crispy_forms.layout import Layout, Div, Submit, HTML, MultiField, Fieldset, ButtonHolder, BaseInput
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
 from .widgets import MySelectDate
 from .models import (Person, Address, AdultApplication, Subscription, Membership, Invoice, InvoiceItem,
@@ -62,6 +62,46 @@ class FilterMemberAjaxForm(Form):
         self.fields['categories'].choices = Membership.FILTER_CHOICES + [
             (x.id, x.description) for x in Membership.objects.all()
         ]
+
+
+class PersonNameForm(ModelForm):
+
+    class Meta:
+        model = Person
+        fields = [
+                  'first_name',
+                  'last_name',
+                  'gender',
+                  'dob',
+                  'state',
+                  'email',
+                  'mobile_phone',
+                  'british_tennis',
+                  'pays_own_bill',
+                  'notes'
+                  ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            Fieldset('',
+                'first_name',
+                'last_name',
+                'gender',
+                'dob',
+                'state',
+                'email',
+                'mobile_phone',
+                'british_tennis',
+                'pays_own_bill',
+                'notes'
+            ),
+            FormActions(
+                SubmitButton('submit', 'Save', css_class='btn-primary'),
+                SubmitButton('cancel', 'Cancel', css_class='btn-default')
+            )
+        )
 
 
 class PersonForm(ModelForm):
