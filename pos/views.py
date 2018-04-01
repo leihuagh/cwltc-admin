@@ -184,7 +184,7 @@ class PosRegisterView(RegisterView):
         return initial
 
     def get_form_kwargs(self):
-        """ set form kwargs so the name is hidden """
+        """ set form kwargs so the name fields are hidden """
         kwargs = super().get_form_kwargs()
         kwargs.update({'hide_name': True})
         return kwargs
@@ -381,7 +381,7 @@ class LineItemListView(SingleTableView):
     table_class = LineItemTable
     template_name = 'pos/lineitems.html'
     filter_class = LineItemFilter
-    table_pagination = {'per_page': 10}
+    table_pagination = {'per_page': 100}
 
     def get_table_data(self):
         trans_id = self.kwargs.get('trans_id', None)

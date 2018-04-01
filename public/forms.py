@@ -51,6 +51,7 @@ class RegisterForm(Form):
         self.helper.help_text_inline = True
         self.person = None
 
+
     def clean(self):
         cleaned_data = super(RegisterForm, self).clean()
         first_name = cleaned_data.get('first_name')
@@ -97,15 +98,18 @@ class RegisterTokenForm(Form):
     Stage 2 - user defines a username and password
     """
     username = forms.CharField(max_length=30, min_length=8,
-                               help_text="We have made your username your email address."
+                               help_text="Your default username is your email address."
                                          " You can change it but it must contain at least 8 characters.")
-    password = forms.CharField(max_length=30, min_length=8, widget=forms.PasswordInput,
-                               help_text="Your password must be 8 characters or more and contain"
-                                         " at least 1 letter and 1 number.")
-    password_again = forms.CharField(max_length=30, min_length=8, widget=forms.PasswordInput)
     pin = forms.CharField(max_length=8, min_length=4, widget=forms.PasswordInput,
                           required=False, label="PIN",
-                          help_text="The PIN is optional and is 4 to 8 digits long.")
+                          help_text="The PIN is optional. It is only used to log on to the bar system. It can be 4 to 8 digits long.")
+    password1 = forms.CharField(max_length=30, min_length=8, widget=forms.PasswordInput,
+                                label='Password',
+                               help_text="Your password must be 8 characters or longer and contain"
+                                         " at least 1 letter and 1 number.")
+    password2 = forms.CharField(max_length=30, min_length=8, widget=forms.PasswordInput,
+                                label='Password again')
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -121,10 +125,10 @@ class RegisterTokenForm(Form):
             raise forms.ValidationError('Sorry, that user name is already taken', code='invalid_user')
         if len(username) < 8:
             raise forms.ValidationError('Your user name must be at least 8 characters long', code='invalid_user')
-        password = cleaned_data.get('password')       
+        password = cleaned_data.get('password1')
         if len(password) < 8:
             raise forms.ValidationError("Your password must be at least 8 characters long", code='invalid_password')
-        if password != cleaned_data.get('password_again'):
+        if password != cleaned_data.get('password2'):
             raise forms.ValidationError('Passwords do not match', code='invalid_password')
        
         # Password must have at least 1 character and 1 number     

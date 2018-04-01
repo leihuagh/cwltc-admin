@@ -76,7 +76,7 @@ class RegisterTokenView(FormView):
         person = self.get_person()
         if person:
             person.create_user(username=form.cleaned_data['username'],
-                               password=form.cleaned_data['password'],
+                               password=form.cleaned_data['password1'],
                                pin=form.cleaned_data['pin'])
             return redirect(self.get_success_url_name(), token=self.kwargs['token'])
         else:

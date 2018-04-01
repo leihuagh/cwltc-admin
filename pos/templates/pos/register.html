@@ -1,26 +1,32 @@
 {% extends 'pos/base.html' %}
 {% load staticfiles %}
 {% load crispy_forms_tags %}
+{% load ipad_field %}
 {% block content %}
-  <h4 class="text-center">You have not yet registered on the members web site, but you can do that now.</h4>
+  <h3 class="text-center">You have not registered to use this system or the members' web site.<br>
+  You can register now.</h3>
+  <br>
   <h3 class="text-center">Enter these details to confirm that you are {{ person.fullname }}:</h3>
 {% if message %}
     <p>{{ message }}</p>
 {% endif %}
-  <div class="row justify-content-center">
-    <div class="col-md-4 col-md-offset-4">
-      <form method="POST">
-        <div class="well">
-          {% crispy form %}
+  <form method="POST" >{% csrf_token %}
+    {% for field in form %}
+      {% ipad_field field %}
+      <br>
+    {% endfor %}
+    <div class="row">
+      <div class="col-md-4"></div>
+      {% for button in buttons %}
+        <div class="col-md-2">
+        <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} btn-block"
+               id="id-{{ button.name }}" value="{{ button.value }}"
+               {% if button.no_validate %}formnovalidate=""{% endif %}>
         </div>
-          {% for button in buttons %}
-            <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} mb-1"
-                   id="id-{{ button.name }}" value="{{ button.value }}"
-                   {% if button.no_validate %}formnovalidate=""{% endif %}>
-        {% endfor %}
-      </form>
+      {% endfor %}
     </div>
-  </div>
+  </form>
+
 {% endblock content %}
 {% block scripts %}
   <script src="{% static 'pos/js/timeout.js' %}"></script>
