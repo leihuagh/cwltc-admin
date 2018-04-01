@@ -381,7 +381,7 @@ class LineItemListView(SingleTableView):
     table_class = LineItemTable
     template_name = 'pos/lineitems.html'
     filter_class = LineItemFilter
-    table_pagination = {'per_page': 100}
+    table_pagination = {'per_page': 10}
 
     def get_table_data(self):
         trans_id = self.kwargs.get('trans_id', None)
@@ -424,7 +424,7 @@ class ItemListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
     model = Item
     table_class = ItemTable
     template_name = 'pos/item_list.html'
-    table_pagination = {'per_page': 10}
+    table_pagination = {'per_page': 100}
     group_required = 'Pos'
 
     def get_table_data(self):
