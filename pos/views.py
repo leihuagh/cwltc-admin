@@ -428,7 +428,7 @@ class ItemListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
     group_required = 'Pos'
 
     def get_table_data(self):
-        return Item.objects.filter().order_by('button_text')
+        return Item.objects.filter().order_by('item_type', 'button_text')
 
     def post(self, request):
         if 'new' in request.POST:
