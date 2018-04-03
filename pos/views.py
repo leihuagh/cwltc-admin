@@ -1,4 +1,5 @@
 import json
+import datetime
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.views.generic import DetailView, CreateView, UpdateView, TemplateView, View, FormView
@@ -135,10 +136,13 @@ class GetUserView(TemplateView):
     def post(self, request, *args, **kwargs):
         if request.POST['person_id']:
             request.session['person_id'] = request.POST['person_id']
-            person = Person.objects.get(pk=request.POST['person_id'])
-            if person.auth_id:
+            if int(request.POST['person_id']) > 0:
+                person = Person.objects.get(pk=request.POST['person_id'])
+                if person.auth_id:
+                    return redirect('pos_password')
+                return redirect('pos_register')
+            else:
                 return redirect('pos_password')
-            return redirect('pos_register')
         return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
@@ -154,18 +158,27 @@ class GetPasswordView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         if request.POST['submit']:
-            person = Person.objects.get(pk=request.session['person_id'])
-            if check_password(request.POST['pin'], person.pin):
-                return redirect('pos_menu')
-            user = User.objects.get(pk=person.auth_id)
-            if user.check_password(request.POST['password']):
-                return redirect('pos_menu')
+            id = int(request.session['person_id'])
+            if id > 0:
+                person = Person.objects.get(pk=id)
+                if check_password(request.POST['pin'], person.pin):
+                    return redirect('pos_menu')
+                user = User.objects.get(pk=person.auth_id)
+                if user.check_password(request.POST['password']):
+                    return redirect('pos_menu')
+            else:
+                if request.POST['pin'] == str(datetime.now().year):
+                    return redirect('pos_run')
         return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
         context = super(GetPasswordView, self).get_context_data(**kwargs)
-        person = Person.objects.get(pk=self.request.session['person_id'])
-        context['full_name'] = person.fullname
+        id=int(self.request.session['person_id'])
+        if id > 0:
+            person = Person.objects.get(pk=self.request.session['person_id'])
+            context['full_name'] = person.fullname
+        else:
+            context['full_name'] = 'Complimentary'
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
@@ -211,11 +224,13 @@ class PosRegisterView(RegisterView):
 
 
 class PosRegisterTokenView(RegisterTokenView):
+    """
+    Get usernaem, PIN and password
+    """
     template_name = 'pos/register_token.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['pos'] = True
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
@@ -229,6 +244,7 @@ class PosRegisterTokenView(RegisterTokenView):
 
 class PosConsentView(ConsentTokenView):
     template_name = 'pos/consent.html'
+    success_url = reverse_lazy('pos_menu')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -236,9 +252,6 @@ class PosConsentView(ConsentTokenView):
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
-
-    def get_success_url(self, **kwargs):
-        return 'pos-menu'
 
 
 class MemberMenuView(LoginRequiredMixin, TemplateView):
@@ -249,9 +262,15 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.request.session['people_ids'] = []
-        person = Person.objects.get(pk=self.request.session['person_id'])
-        context['person'] = person
-        context['admin'] = person.auth.is_staff or person.auth.groups.filter(name='pos').exists()
+        id = int(self.request.session['person_id'])
+        if id > 0:
+            person = Person.objects.get(pk=self.request.session['person_id'])
+            context['person_id'] = id
+            context['full_name'] = person.fullname
+            context['admin'] = person.auth.is_staff or person.auth.groups.filter(name='Pos').exists()
+        else:
+            context['person_id'] = -1
+            context['full_name'] = 'Complimentary'
         context['admin_record'] = PosAdmin.record()
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = self.timeout
@@ -277,17 +296,25 @@ class PosView(LoginRequiredMixin, TemplateView):
         layout_id = self.request.session['layout_id']
         locations = Location.objects.filter(layout_id=layout_id).order_by('row', 'col')
         context['rows'] = pos_layout_context(layout_id, locations)
-        context['timeout_url'] = reverse('pos_start')
         context['items_url'] = reverse('pos_ajax_items')
         context['post_url'] = reverse('pos_run')
         context['exit_url'] = reverse('pos_start' if self.request.session['attended'] else 'pos_menu')
         context['terminal'] = self.request.session['terminal']
+        context['complimentary'] = False
         if self.request.session['attended']:
             context['is_attended'] = 'true'
+            context['full_name'] = 'Attended mode'
         else:
             context['is_attended'] = 'false'
-            person = Person.objects.get(pk=self.request.session['person_id'])
-            context['person'] = person
+            id = int(self.request.session['person_id'])
+            context['person_id'] = id
+            if id > 0:
+                person = Person.objects.get(pk=id)
+                context['full_name'] = person.fullname
+            else:
+                context['complimentary'] = True
+                context['full_name'] = 'Complimentary'
+
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
@@ -298,8 +325,10 @@ class PosView(LoginRequiredMixin, TemplateView):
         if request.is_ajax():
             receipt = json.loads(request.body)
             pay_record = receipt.pop()
+            layout, terminal = read_cookie(request)
             trans = create_transaction_from_receipt(request.user.id,
-                                                    request.session['layout_id'],
+                                                    terminal,
+                                                    layout,
                                                     receipt,
                                                     pay_record['total'],
                                                     pay_record['people'],
@@ -307,7 +336,7 @@ class PosView(LoginRequiredMixin, TemplateView):
             request.session['last_person'] = trans[0]
             request.session['last_total'] = trans[1]
             if self.request.session['attended']:
-                return HttpResponse(reverse('pos_menu'))
+                return HttpResponse(reverse('pos_start'))
             else:
                 return HttpResponse(reverse('pos_menu_timeout'))
         # should not get here - all posts are ajax
@@ -327,11 +356,17 @@ class TransactionListView(SingleTableView):
     template_name = 'pos/transactions.html'
     table_pagination = {'per_page': 10}
     main_menu = False
+    cash = False
+    comp = False
  
     def get_table_data(self):
         person_id = self.kwargs.get('person_id', None)
         if person_id:
             self.qs = Transaction.objects.filter(person_id=person_id, billed=False).order_by('-creation_date')
+        elif self.cash:
+            self.qs = Transaction.objects.filter(cash=True, billed=False).order_by('-creation_date')
+        elif self.comp:
+            self.qs = Transaction.objects.filter(complimentary=True, billed=False).order_by('-creation_date')
         else:
             self.qs = Transaction.objects.filter(billed=False).order_by('-creation_date')
         return self.qs

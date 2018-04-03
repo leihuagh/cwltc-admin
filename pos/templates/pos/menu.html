@@ -5,23 +5,33 @@
   <div class="container bg">
     <div class="row">
       <div class="col-md-4 col-md-push-4 text-center">
-        <h2 class="text-center">{{ person.first_name }} {{ person.last_name}}</h2>
+        <h2 class="text-center">{{ full_name }}</h2>
+        {% if messages %}
+          {% for message in messages %}
+            <h4>{{ message }}</h4>
+          {% endfor %}
+        {% endif %}
         <br>
         <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block stop-timer">Purchase items from bar</a></p>
-        <p><a href="{% url 'pos_transactions_person' person_id=person.id %}" class="btn btn-success btn-lg btn-block stop-timer">View my transactions</a></p>
+        {% if person_id > 0 %}
+          <p><a href="{% url 'pos_transactions_person' person_id=person_id %}" class="btn btn-success btn-lg btn-block stop-timer">View my transactions</a></p>
+        {% else %}
+          <p><a href="{% url 'pos_transactions_comp' %}" class="btn btn-success btn-lg btn-block stop-timer">View transactions</a></p>
+        {% endif %}
         <p><a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block stop-timer">Log out</a></p>
         {% if admin %}
-         <p><a href="{% url 'home' %}" class="btn btn-warning btn-lg btn-block stop-timer">Exit POS</a></p>
+          <p><a href="{% url 'pos_admin' %}" class="btn btn-warning btn-lg btn-block stop-timer">POS admin</a></p>
+          <p><a href="{% url 'pos_transactions' %}" class="btn btn-warning btn-lg btn-block stop-timer">All transactions</a></p>
           <form method="post">{% csrf_token %}
             {% if admin_record.attended_mode %}
-              <input class="btn btn-warning btn-lg btn-block stop-timer" type="submit" name="admin_off" value="Disable attended mode">
+              <input class="btn btn-danger btn-lg btn-block stop-timer" type="submit" name="admin_off" value="Disable attended mode">
             {%  else %}
               <input class="btn btn-warning btn-lg btn-block stop-timer" type="submit" name="admin_on" value="Enable attended mode">
             {%  endif %}
           </form>
         {% endif %}
         <br><br>
-        {% if request.session.last_person == person.fullname %}
+        {% if request.session.last_person == full_name %}
           <h3>Last transaction: £ {{ request.session.last_total }}</h3>
         {% endif %}
         </div>

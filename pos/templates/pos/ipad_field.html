@@ -1,10 +1,10 @@
-<!-- Used by template tag -->
+<!-- template tag ipad-field -->
 {% if field.is_hidden %}
   <input type="hidden" name="{{ field.name }}"
           {% if field.value %}value="{{ field.value }}"{% endif %}>
 {% else %}
   <div class="row">
-    <div class="col-md-4 prompt">{{ field.label }}:</div>
+    <div class="col-md-4 ipad-prompt">{{ field.label }}:</div>
     <div class="col-md-4 input-group-lg">
       <input type="{{ field.field.widget.input_type }}" class="form-control timed"
              name="{{ field.name }}"
@@ -14,7 +14,7 @@
           {% if field.field.min_length %} minlength="{{ field.field.min_length }}"{% endif %}>
       {% if field.errors %}
         {% for error in field.errors %}
-          <span style="color: red;">{{ error }}</span><br>
+          <span class="ipad-error">{{ error }}</span><br>
         {% endfor %}
       {% endif %}
     </div>

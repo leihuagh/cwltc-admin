@@ -4,5 +4,7 @@ admin.site.register(Item)
 admin.site.register(Layout)
 admin.site.register(Location)
 admin.site.register(Transaction)
-admin.site.register(LineItem)
-# Register your models here.
+admin.site.register(PosPayment)
+admin.site.register(PosAdmin)
+admin.site.register(Colour)
+

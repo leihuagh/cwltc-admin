@@ -19,7 +19,7 @@
       <div class="col-md-4"></div>
       {% for button in buttons %}
         <div class="col-md-2">
-        <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} btn-block"
+        <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} btn-lg btn-block"
                id="id-{{ button.name }}" value="{{ button.value }}"
                {% if button.no_validate %}formnovalidate=""{% endif %}>
         </div>

@@ -37,7 +37,7 @@
 
   <div class="flex-right">
     <div class="name-area">
-      {% if person %}{{ person.fullname }}{% else %}Attended mode{% endif %}
+      {{ full_name }}
     </div>
     <div id="receipt-area">
       <table id="id_table">
@@ -47,17 +47,17 @@
     <div id="total-area"></div>
     <div id="id_payment">
       <div class="col-md-6 buttons-active">
-        <button class="btn btn-warning btn-lg btn-block timed" id="id_pay" onclick="Pos.pay()">
+        <button class="btn btn-warning btn-lg btn-block timed" id="id_pay" onclick="posCode.pay()">
           Payment
         </button>
       </div>
       <div class="col-md-6 buttons-active">
-        <button class="btn btn-danger btn-lg btn-block timed" id="id_cancel" onclick="Pos.newReceipt()">
+        <button class="btn btn-danger btn-lg btn-block timed" id="id_cancel" onclick="posCode.newReceipt()">
           Cancel all
         </button>
       </div>
       <div class="col-md-12 button-exit">
-        <button class="btn btn-lg btn-block btn-warning" id="id_exit" onclick="Pos.exitPos()">
+        <button class="btn btn-lg btn-block btn-warning" id="id_exit" onclick="posCode.exitPos()">
           Exit
         </button>
       </div>
@@ -79,13 +79,13 @@
           <h4>Total is <span id="attended_total">xxx</span></h4>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-lg btn-success" id="account" data-dismiss="modal" onclick="Pos.account()">
+          <button class="btn btn-lg btn-success" id="account" data-dismiss="modal" onclick="posCode.account()">
             Charge to member account
           </button>
-          <button class="btn btn-lg btn-success" id="cash" data-dismiss="modal" onclick="Pos.cash()">
+          <button class="btn btn-lg btn-success" id="cash" data-dismiss="modal" onclick="posCode.cash()">
             Cash sale
           </button>
-          <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back" onclick="Pos.resume()">
+          <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back" onclick="posCode.resume()">
             Back
           </button>
         </div>
@@ -105,13 +105,15 @@
         <h3>Confirm charge of <span id="member_total"></span> to <span id="member_name"></span></h3>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="Pos.commitSingle()">
+        <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="posCode.commitSingle()">
           Charge to account
         </button>
-        <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="Pos.split()">
+        {% if person_id != -1 %}
+        <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="posCode.split()">
           Split account
         </button>
-        <button class="btn btn-lg btn-danger" data-dismiss="modal" onclick="Pos.resume()">
+        {% endif %}
+        <button class="btn btn-lg btn-danger" data-dismiss="modal" onclick="posCode.resume()">
           Back
         </button>
       </div>
@@ -135,7 +137,7 @@
       </div>
       <div class="modal-footer">
         <div id="add_member_typeahead" class="row">
-          <div class="col-md-4 prompt">Select member:</div>
+          <div class="col-md-4 ipad-prompt">Select member:</div>
           <div class="col-md-5">
             <div class="input-group input-group-lg">
               <input type="text" class="form-control  timed"
@@ -144,19 +146,19 @@
             </div>
           </div>
           <div class="col-md-3">
-            <button class="btn btn-lg btn-danger" onclick="Pos.back1()">
+            <button class="btn btn-lg btn-danger" onclick="posCode.back1()">
               Back
             </button>
           </div>
         </div>
         <div id="pay_buttons">
-          <button class="btn btn-lg btn-success"  data-dismiss="modal" id="chargeMemberBtn" onclick="Pos.commit()">
+          <button class="btn btn-lg btn-success"  data-dismiss="modal" id="chargeMemberBtn" onclick="posCode.commit()">
             Charge to account
           </button>
-          <button class="btn btn-lg btn-success" id="add_member_btn" onclick="Pos.addMember()">
+          <button class="btn btn-lg btn-success" id="add_member_btn" onclick="posCode.addMember()">
             Add another member
           </button>
-          <button class="btn btn-lg btn-danger" data-dismiss="modal" onclick="Pos.back1()">
+          <button class="btn btn-lg btn-danger" data-dismiss="modal" onclick="posCode.back1()">
             Back
           </button>
         </div>
@@ -176,10 +178,9 @@
             xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
         }
     });
-    Pos = PosCode;
-    Pos.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }}, '{{ person.id}}', '{{ person.fullname }}');
+    posCode.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }}, '{{ person_id }}', '{{ full_name }}');
     startTimer({{ timeout }}, "{{ timeout_url }}");
-    bind_typeahead('#member_search', Pos.selectedPerson);
+    bind_typeahead('#member_search', posCode.selectedPerson);
 });
 </script>
 {% endblock %}

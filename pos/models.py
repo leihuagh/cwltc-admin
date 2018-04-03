@@ -81,12 +81,13 @@ class Transaction(models.Model):
     creator = models.ForeignKey(User)
     person = models.ForeignKey(Person, blank=True, null=True)
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
-    complementary = models.BooleanField(default=False)
+    complimentary = models.BooleanField(default=False)
     cash = models.BooleanField(default=False)
     billed = models.BooleanField()
-    layout = models.ForeignKey(Layout, blank=True, null=True)
     split = models.BooleanField(default=False)
-    
+    terminal = models.IntegerField(default=1)
+    item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
+
     def __str__(self):
         name = self.person.fullname if self.person else "Cash"
         return "{} {} {}".format(str(self.id),
@@ -99,14 +100,14 @@ class LineItem(models.Model):
     sale_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     cost_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     quantity = models.IntegerField()
-    transaction = models.ForeignKey(Transaction, blank=True, null=True)
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, blank=True, null=True)
     
     def __str__(self):
         return "{} {}".format(self.item.description, self.transaction_id)
 
 
 class PosPayment(models.Model):
-    transaction = models.ForeignKey(Transaction, blank=True, null=True)
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, blank=True, null=True)
     person = models.ForeignKey(Person)
     billed = models.BooleanField()
     amount = models.DecimalField(max_digits=5, decimal_places=2, null=False)

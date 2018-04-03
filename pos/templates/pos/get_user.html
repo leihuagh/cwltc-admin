@@ -3,14 +3,14 @@
 {% block content %}
   {%  include '_logo_banner.html' %}
 <div class="container bg">
-  <h1 class="text-center">Member login</h1>
+  <h2 class="text-center">Member login</h2>
 
   <br/>
   <div class="row">
     <div class="col-md-2">
       <a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block">Back</a>
     </div>
-    <div class="col-md-3 prompt"> Search for name:</div>
+    <div class="col-md-3 ipad-prompt"> Search for name:</div>
     <form id="form_member" role="form" method="POST" >{% csrf_token %}
       <div class="col-md-3 input-group input-group-lg">
         <input type="text" class="form-control typeahead tt-query timed bsfix"

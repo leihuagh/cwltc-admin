@@ -4,33 +4,28 @@
 <div class="container">
   <div class="jumbotron">
   <h1>Point Of Sale Administration</h1>
-  </div>
-  <form method="post">
-    <div class="well">
-      <h3>Choose a layout to start on this screen</h3><br/>
-
-      <input name="csrfmiddlewaretoken" type="hidden" value="{{ csrf_token }}"/>
-      <input class="btn btn-success" type="submit" name="default" value="default">
-      {% for layout in layouts %}
-        <input class="btn btn-success" type="submit" name="layout" value="{{ layout.name }}">
-      {% endfor %}
+  <form method="post">{% csrf_token %}
+<br><br>
         <input class="btn btn-success" type="submit" name="start" value="Start POS">
-      <br><br>
+
       {%  if admin_record.attended_mode %}
         <input class="btn btn-warning" type="submit" name="admin_off" value="Disable attended mode">
       {%  else %}
         <input class="btn btn-success" type="submit" name="admin_on" value="Enable attended mode">
       {%  endif %}
-    </div>
-    <div class="well">
+        <a href="{% url 'pos_transactions_main' %}" class="btn btn-success">Review POS transactions</a>
+  </form>
+  </div>
+
+    <div class="jumbotron">
       <h3>Management menu</h3><br/>
       <a href="{% url 'pos_item_list' %}" class="btn btn-info">Manage POS items</a>
       <a href="{% url 'pos_layout_list' %}" class="btn btn-info">Manage POS layouts</a>
       <a href="{% url 'pos_colour_list' %}" class="btn btn-info">Manage button colours</a>
-      <a href="{% url 'pos_transactions_main' %}" class="btn btn-info">Review POS transactions</a>
+
       <a href="{% url 'home' %}" class="btn btn-info">Exit</a>
     </div>
-  </form>
+
 </div>
 
 {% endblock %}

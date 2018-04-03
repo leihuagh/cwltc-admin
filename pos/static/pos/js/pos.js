@@ -1,8 +1,8 @@
-var PosCode;
-PosCode = (function () {
+
+var posCode = (function () {
     "use strict";
 
-    var Pos = {};
+    var pos = {};
 
     // DOM objects
     var totalArea = document.getElementById('total-area');
@@ -28,7 +28,7 @@ PosCode = (function () {
     var personList;
 
     /* Public methods*/
-    Pos.init = function (items_url, post_url, exit_url, is_attended, person_id, person_name) {
+    pos.init = function (items_url, post_url, exit_url, is_attended, person_id, person_name) {
         itemsUrl = items_url;
         postUrl = post_url;
         exitUrl = exit_url;
@@ -40,7 +40,7 @@ PosCode = (function () {
         loadItems();
         var flag = false;
         $(".posbutton").on('touchstart', function(event) {
-            Pos.itemAdd(Number(event.currentTarget.id));
+            pos.itemAdd(Number(event.currentTarget.id));
             event.currentTarget.flag=true;
             event.currentTarget.classList.add('posbutton-down');
             event.preventDefault();
@@ -48,7 +48,7 @@ PosCode = (function () {
         // Click event for testing
         $(".posbutton").on('click', function(event) {
             if (!event.currentTarget.flag) {
-                Pos.itemAdd(Number(event.currentTarget.id));
+                pos.itemAdd(Number(event.currentTarget.id));
                 console.log("click");
             }
             event.currentTarget.flag=false;
@@ -61,7 +61,7 @@ PosCode = (function () {
         newReceipt();
     };
 
-    Pos.itemAdd = function (id) {
+    pos.itemAdd = function (id) {
         // Add item to receipt array
         var obj = lookup(id);
         var item = {};
@@ -75,11 +75,11 @@ PosCode = (function () {
         createTable(receipt);
     }
 
-    Pos.newReceipt = function () {
+    pos.newReceipt = function () {
         newReceipt();
     };
 
-    Pos.itemRemove = function (target) {
+    pos.itemRemove = function (target) {
         var index;
         for (index = 0; index < receipt.length; ++index) {
             if (receipt[index].lineId === target) {
@@ -91,7 +91,7 @@ PosCode = (function () {
     };
 
 
-    Pos.pay = function () {
+    pos.pay = function () {
         // initiate payment sequence
         var myTotal = '£ ' + Number(total).toFixed(2);
         if (isAttended) {
@@ -108,31 +108,31 @@ PosCode = (function () {
         $('.typeahead').typeahead('val', '');
     };
 
-    Pos.exitPos = function () {
+    pos.exitPos = function () {
         window.location.replace(exitUrl);
     };
 
-    Pos.selectMember = function () {
+    pos.selectMember = function () {
         console.log('selected');
     };
 
-    Pos.cash = function () {
+    pos.cash = function () {
         personList = [];
         sendTransaction('cash');
     };
 
-    Pos.commitSingle = function () {
+    pos.commitSingle = function () {
         // charge to single logged on member
         personList = [{'id': personId, 'name': personName, 'amount': Math.floor(total*100)}];
         sendTransaction('account');
     };
 
-    Pos.commit = function () {
+    pos.commit = function () {
         // charge to list of members
         sendTransaction('account');
     };
 
-    Pos.account = function () {
+    pos.account = function () {
         // Select first member in attended mode
         personList = [];
         showSplit(true);
@@ -142,19 +142,19 @@ PosCode = (function () {
 
     };
 
-    Pos.split = function () {
+    pos.split = function () {
         // initiate a split across members
         personList = [{'id': personId, 'name': personName}];
         showSplit(false);
     };
 
-    Pos.addMember = function() {
+    pos.addMember = function() {
         // add member button on split sale modal
         showSplit(true);
         $('.typeahead').typeahead('val', '');
     };
 
-    Pos.selectedPerson = function (p) {
+    pos.selectedPerson = function (p) {
         // user selected a person through the type ahead
         person = p;
         personList.push({'id': p.id, 'name': p.value});
@@ -166,7 +166,7 @@ PosCode = (function () {
         }
     };
 
-    Pos.back1 = function() {
+    pos.back1 = function() {
         // back from select member dialog
         $('#select_modal').modal('hide');
         switch(personList.length) {
@@ -175,7 +175,7 @@ PosCode = (function () {
                 break;
             case 1:
                 if (isAttended) {
-                    Pos.resume();
+                    pos.resume();
                 } else {
                     $('#member_modal').modal('show');
                 }
@@ -185,7 +185,7 @@ PosCode = (function () {
         }
     };
 
-    Pos.resume = function () {
+    pos.resume = function () {
         $('#pay_modal').modal('hide');
     };
 
@@ -326,7 +326,7 @@ PosCode = (function () {
                 button.id = item.lineId;
                 button.innerHTML = "X";
                 button.addEventListener("click", function (event) {
-                    Pos.itemRemove(event.currentTarget.id);
+                    pos.itemRemove(event.currentTarget.id);
                 }, false);
                 cell.appendChild(button);
                 row.appendChild(cell);
@@ -340,5 +340,5 @@ PosCode = (function () {
         }
         totalArea.innerHTML = "Total : £ " + Number(total).toFixed(2);
     }
-    return Pos;
+    return pos;
 })();

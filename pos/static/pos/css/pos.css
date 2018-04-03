@@ -3,7 +3,7 @@
   background-color: #dde5e5;
 }
 
-.logoStrip {
+.logo-strip {
   background-color: white;
   height:85px;
   padding: 0px;
@@ -22,15 +22,15 @@
   font-weight: bold;
 }
 
-.logoOrange {
+.logo-orange {
   color: #8b3d00;
 }
 
-.logoGreen {
+.logo-green {
   color: #00564f;
- }
+}
 
-.logoStrap {
+.logo-strap {
   color: #6f8f8b;
   position: absolute;
   font-size: 1.5em;
@@ -38,17 +38,23 @@
   top: 45px;
 }
 
-.prompt {
-  color: black;
+.ipad-prompt {
+  color: #2b2b2b;
+  font-size: 1.5em;
+  font-weight: normal;
+  text-align: right;
+  padding-top: 6px;
+}
+
+.ipad-error {
+  color: red;
   font-size: 1.5em;
   font-weight: bold;
-  text-align: right;
-  padding-top: 4px;
 }
 
 .hint {
   color: #444444;
-  font-size: 1.5em;
+  font-size: 1.4em;
 }
 
 .flex-container {

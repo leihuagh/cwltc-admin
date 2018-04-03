@@ -1,23 +1,24 @@
 {% extends 'pos/base.html' %}
 {% load staticfiles %}
 {% load crispy_forms_tags %}
-{% block head %}
-  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
-{% endblock %}
+
 {% block content %}
   <h2 class="text-center">Consent</h2>
-  <h4 class="text-center">New data protection regulations mean that we need your explicit consent for the points below.</h4>
-  <div class="row justify-content-center">
-    <div class="col-md-8 col-md-offset-2">
+  <h4 class="text-center">Data protection regulations mean that we need your explicit consent for the points below.</h4>
+  <div class="row justify-content-center" >
+    <div class="col-md-8 col-md-offset-2" style="background-color: white">
       <form method="POST" novalidate>
         {% csrf_token %}
-        <div class="well">
-          {%  include 'public/_club_email_consent.html' %}
-          {%  include 'public/_members_database.html' %}
-        </div>
-        <input type="submit" name="submit" value="Continue" class="btn-success btn-lg">
+        {%  include 'public/_club_email_consent.html' %}
+        {%  include 'public/_members_database.html' %}
       </form>
       <br/>
+    </div>
+  </div>
+  <br>
+  <div class="row>">
+    <div class="col-md-8 col-md-offset-2">
+          <input type="submit" name="submit" value="Finish registration" class="btn-success btn-lg">
     </div>
   </div>
 {% endblock content %}

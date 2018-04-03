@@ -6,17 +6,14 @@ class TransactionTable(tables.Table):
     
     class Meta:
         model = Transaction
-        fields = ('creation_date', 'id', 'person.fullname', 'total', 'split', 'billed')
+        fields = ('creation_date', 'id', 'name', 'total', 'complimentary', 'cash', 'split', 'billed')
         attrs = {'class': 'table'}
          
-    total = tables.Column(
-        attrs={
-            'td':{'style':'text-align: right;'}
-            }
-        )
-
+    total = tables.Column(attrs={'td':{'style':'text-align: right;'}})
     detail = tables.LinkColumn('pos_transaction_detail', text='Detail', args=[A('pk')], orderable=False)
-
+    name = tables.Column(accessor='person.fullname',
+                         order_by=('person.first_name', 'person.last_name')
+                         )
 
 class PosPaymentTable(tables.Table):
 
@@ -25,12 +22,7 @@ class PosPaymentTable(tables.Table):
         fields = ('transaction.creation_date', 'person.fullname', 'transaction.person.fullname' 'amount', 'billed')
         attrs = {'class': 'table'}
 
-    amount = tables.Column(
-        attrs={
-            'td': {'style': 'text-align: right;'}
-        }
-    )
-
+    amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
     detail = tables.LinkColumn('pos_transaction_detail', text='Detail', args=[A('transaction.pk')], orderable=False)
 
 

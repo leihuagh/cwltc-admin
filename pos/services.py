@@ -1,34 +1,36 @@
-from datetime import datetime
+import datetime
 from decimal import Decimal
 from django.db.models import Sum
 from django.db import transaction
-from django.forms.models import model_to_dict
-from .models import Transaction, LineItem, Layout, PosPayment
+from .models import Transaction, LineItem, Layout, PosPayment, TWO_PLACES
 from members.models import InvoiceItem, ItemType
 
-TWO_PLACES = Decimal(10) ** -2
-
-
 @transaction.atomic
-def create_transaction_from_receipt(creator_id, layout_id, receipt, total, people,
-                                    complementary=False):
+def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, total, people):
     """
     Create Transaction, LineItem and PosPayment records in the database
     Return a description of it
     """
+    complimentary = False
     count = len(people)
+    dec_total = Decimal(total).quantize(TWO_PLACES)
+    item_type = Layout.objects.get(pk=layout_id).item_type
     if count > 0:
-        person_id = people[0]['id']
+        person_id = int(people[0]['id'])
+        if person_id == -1:
+            complimentary = True
+            person_id = None
     else:
         person_id = None
     trans = Transaction(
         creator_id=creator_id,
         person_id=person_id,
-        layout_id=layout_id,
-        total=Decimal(total).quantize(TWO_PLACES),
+        terminal=terminal,
+        item_type=item_type,
+        total=dec_total,
         billed=False,
-        cash=person_id == None,
-        complementary=complementary,
+        cash=person_id == None and not complimentary,
+        complimentary=complimentary,
         split=count > 1
         )
     trans.save()
@@ -43,6 +45,9 @@ def create_transaction_from_receipt(creator_id, layout_id, receipt, total, peopl
             )
         line_item.save()
 
+    if complimentary:
+        return ('Complimentary', dec_total)
+
     for person in people:
         pos_payment = PosPayment(
             transaction=trans,
@@ -52,60 +57,55 @@ def create_transaction_from_receipt(creator_id, layout_id, receipt, total, peopl
         )
         pos_payment.save()
     if people:
-        return (people[0]['name'], Decimal(total).quantize(TWO_PLACES))
+        return (people[0]['name'], dec_total)
     else:
-        return ('Cash', Decimal(total).quantize(TWO_PLACES))
+        return ('Cash', dec_total)
 
 
-def create_invoiceitems_from_transactions():
-    """ create invoiceitem records from the transaction total record """
-    
-    # cache the item types in a dictionary indexed by layout for performance
-    itemTypes = ItemType.objects.all().select_related("invoice_item") 
-    layoutDict = {}
-    layouts = Layout.objects.all()
-    for layout in layouts:
-        layoutDict[layout.id]=[layout.invoice_itemtype_id, layout.invoice_itemtype.description]
+def create_invoiceitems_from_payments(item_type_id):
+    """
+    Create invoiceitem records from the payment records
+    """
+    dict = {}
+    records = PosPayment.objects.filter(transaction__item_type_id=item_type_id, billed=False).order_by('person_id')
+    last_id = 0
+    count = 0
+    for record in records:
+        if record.person_id:
+            count += 1
+            if record.person_id != last_id:
+                last_id = record.person_id
+                dict[record.person_id] = Decimal(record.amount)
+            else:
+                dict[record.person_id] += record.amount
 
-    trans_records = Transaction.objects.filter(
-        billed=False).values('person_id','layout_id').annotate(inv_total=Sum('total'))
-    description = ItemType.objects.get(pk=ItemType.BAR)
-    for record in trans_records:
-        itemData = layoutDict[record['layout_id']]
-        inv_item = InvoiceItem(
-            item_date=datetime.today(),
-            item_type_id=itemData[0],
-            description=itemData[1],
-            amount=record['inv_total'],
-            person_id=record['person_id'],
-            paid=False                      
+    description = ItemType.objects.get(pk=item_type_id)
+    with transaction.atomic():
+        for id, total in dict.items():
+            inv_item = InvoiceItem(
+                item_date=datetime.date.today(),
+                item_type_id=item_type_id,
+                description=description,
+                amount=total,
+                person_id=id,
+                paid=False
             )
-        inv_item.save()
-    return Transaction.objects.filter(billed=False).update(billed=True)
+            inv_item.save()
+        records.update(billed=True)
+        Transaction.objects.filter(item_type_id=item_type_id, billed=False) .update(billed=True)
+    return count, len(dict)
 
 
-def create_invoiceitems_from_payments():
-    """ Create invoiceitem records from the payment records """
+def delete_billed_transactions(before_date):
+    """
+    Delete transactions and linked items and payments
+    """
+    trans = Transaction.objects.filter(billed=True, creation_date__lt=before_date)
+    count = trans.count()
+    trans.delete()
+    return count
 
-    # cache the item types in a dictionary indexed by layout for performance
-    itemTypes = ItemType.objects.all().select_related("invoice_item")
-    layoutDict = {}
-    layouts = Layout.objects.all()
-    for layout in layouts:
-        layoutDict[layout.id] = [layout.invoice_itemtype_id, layout.invoice_itemtype.description]
 
-    payment_records = PosPayment.objects.filter(
-        billed=False).values('person_id', 'transaction__layout_id').annotate(inv_total=Sum('amount'))
-    description = ItemType.objects.get(pk=ItemType.BAR)
-    for record in payment_records:
-        itemData = layoutDict[record['layout_id']]
-        inv_item = InvoiceItem(
-            item_date=datetime.today(),
-            item_type_id=itemData[0],
-            description=itemData[1],
-            amount=record['inv_total'],
-            person_id=record['person_id'],
-            paid=False
-        )
-        inv_item.save()
-    return PosPayment.objects.filter(billed=False).update(billed=True)
+def fix_tea_transactions():
+    Transaction.objects.filter(creation_date__gt=datetime.date(2018, 3, 1)).filter(
+        creation_date__lt=datetime.date(2018, 3, 15)).update(item_type_id=ItemType.TEAS)

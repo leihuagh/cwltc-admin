@@ -4,7 +4,7 @@ from pos.views import *
 # POS App URLs
 
 urlpatterns = [
-    url(r'^$', AdminView.as_view(), name='pos_admin'),
+    url(r'^admin/$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
     url(r'^start/(?P<layout_id>\d+)/$', StartView.as_view(), name='pos_start_layout'),
     url(r'^start/default$', StartDefaultView.as_view(), name='pos_start_default'),
@@ -24,8 +24,9 @@ urlpatterns = [
 
     url(r'^transactions/$', TransactionListView.as_view(), name='pos_transactions'),
     url(r'^transactions/main/$', TransactionListView.as_view(main_menu=True), name='pos_transactions_main'),
-    url(r'^transactions/person/(?P<person_id>\d+)/$', TransactionListView.as_view(),
-        name='pos_transactions_person'),
+    url(r'^transactions/person/(?P<person_id>\d+)/$', TransactionListView.as_view(),name='pos_transactions_person'),
+    url(r'^transactions/comp/$', TransactionListView.as_view(comp=True),name='pos_transactions_comp'),
+    url(r'^transactions/cash/$', TransactionListView.as_view(cash=True),name='pos_transactions_cash'),
     url(r'^transaction/(?P<pk>\d+)/$', TransactionDetailView.as_view(), name='pos_transaction_detail'),
 
     url(r'^payments/$', PaymentListView.as_view(), name='pos_payments'),

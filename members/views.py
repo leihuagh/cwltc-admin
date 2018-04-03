@@ -12,7 +12,7 @@ from braces.views import StaffuserRequiredMixin
 
 from report_builder.models import Report
 from django_tables2 import SingleTableView
-from pos.services import create_invoiceitems_from_transactions
+from pos.services import create_invoiceitems_from_payments
 from public.forms import NameForm, AddressForm
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group, MailCampaign)
@@ -422,25 +422,31 @@ def ajax_people(request):
         results = []
         q = request.GET.get('term', '')
         keys = q.split(" ", 1)
-        if len(keys) == 1:
-            if q.isdigit():
-                people = Person.objects.filter(pk=q)
-            else:
-                people = Person.objects.filter(Q(first_name__istartswith=q) |
-                                               Q(last_name__istartswith=q))
+        if q.lower() == 'comp':
+            results.append({'id': -1, 'value': 'Complimentary'})
         else:
-            people = Person.objects.filter(first_name__istartswith=keys[0],
-                                           last_name__istartswith=keys[1]
-                                           )
-        if request.GET.get('adult', ""):
-            people = people.filter(membership__is_adult=True, state=Person.ACTIVE, sub__paid=True)[:9]
-        for person in people:
-            person_json = {}
-            person_json['id'] = person.id
-            person_json['value'] = person.fullname
-            if request.GET.get('id',''):
-                person_json['value'] += ' (id = {})'.format(person.id)
-            results.append(person_json)
+            if len(keys) == 1:
+                if q.isdigit():
+                    people = Person.objects.filter(pk=q)
+                else:
+                    people = Person.objects.filter(Q(first_name__istartswith=q) |
+                                                   Q(last_name__istartswith=q))
+                    if len(people) == 0:
+                        people = Person.objects.filter(Q(first_name__istartswith=q[0]) &
+                                                       Q(last_name__istartswith=q[1:]))
+            else:
+                people = Person.objects.filter(first_name__istartswith=keys[0],
+                                               last_name__istartswith=keys[1]
+                                               )
+            if request.GET.get('adult', ""):
+                people = people.filter(membership__is_adult=True, state=Person.ACTIVE, sub__paid=True)[:9]
+            for person in people:
+                person_json = {}
+                person_json['id'] = person.id
+                person_json['value'] = person.fullname
+                if request.GET.get('id',''):
+                    person_json['value'] += ' (id = {})'.format(person.id)
+                results.append(person_json)
         return JsonResponse(results, safe=False)
     else:
         data = 'error'
@@ -875,8 +881,8 @@ class YearEndView(StaffuserRequiredMixin, FormView):
             return redirect('year-end')
 
         elif 'bar' in form.data:
-            count = create_invoiceitems_from_transactions()
-            message = '{} invoice items generated'.format(count)
+            count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.BAR)
+            message = f'{count1} POS records processed and {count2} invoice item records generated'
             messages.success(self.request, message)
             return redirect('year-end')
 

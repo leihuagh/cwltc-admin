@@ -1,6 +1,7 @@
 import logging
 from django.shortcuts import redirect
 from django.core.signing import Signer
+from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.views.generic.edit import FormView
@@ -90,9 +91,12 @@ class RegisterTokenView(FormView):
 
 
 class ConsentTokenView(FormView):
-    """ Update consent flags in the Person record """
+    """
+    Update consent flags in the Person record
+    """
     template_name = 'public/consent.html'
     form_class = ConsentForm
+    success_url = reverse_lazy('public-home')
 
     def get_person(self):
         person_id = Signer().unsign(self.kwargs['token'])
@@ -103,7 +107,7 @@ class ConsentTokenView(FormView):
 
     def get_context_data(self, **kwargs):
         kwargs['person'] = self.get_person()
-        kwargs['form_title'] = 'Choose your password'
+        kwargs['form_title'] = 'Consent'
         kwargs['buttons'] = [Button('Next', css_class='btn-success')]
         return super().get_context_data(**kwargs)
 
@@ -114,11 +118,9 @@ class ConsentTokenView(FormView):
             database = form.cleaned_data['database'] == 'yes'
             person.allow_email = database
             person.allow_phone = database
-            return redirect(self.get_success_url_name())
-        messages.error('Invalid token')
+            messages.success(self.request, 'You have successfully registered')
+            return super().form_valid(form)
+        messages.error(self.request, 'Invalid token')
         return redirect('public-home')
-
-    def get_success_url_name(self, **kwargs):
-        return 'public-home'
 
 

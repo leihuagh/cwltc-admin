@@ -5,7 +5,7 @@ body {
     min-height: 100vh;
 }
 
-.logoStrip {
+.logo-strip {
   background-color: white;
   height:85px;
   padding: 0px;
@@ -24,15 +24,15 @@ body {
   font-weight: bold;
 }
 
-.logoOrange {
+.logo-orange {
   color: #8b3d00;
 }
 
-.logoGreen {
+.logo-green {
   color: #00564f;
  }
 
-.logoStrap {
+.logo-strap {
   color: #6f8f8b;
   position: absolute;
   font-size: 1em;
@@ -47,7 +47,7 @@ body {
   .logo {
   font-size: 2em;
   }
-  .logoStrap {
+  .logo-strap {
     font-size: 1em;
     top: 40px
   }
@@ -60,7 +60,7 @@ body {
   .logo {
   font-size: 2em;
   }
-  .logoStrap {
+  .logo-strap {
     font-size: 1em;
     top: 40px
   }
@@ -72,7 +72,7 @@ body {
   .logo {
   font-size: 2.3em;
   }
-  .logoStrap {
+  .logo-strap {
     font-size: 1.1em;
     top: 45px
   }
@@ -84,7 +84,7 @@ body {
   .logo {
   font-size: 2.5em;
   }
-  .logoStrap {
+  .logo-strap {
     font-size: 1.25em;
     top: 52px
   }
@@ -96,7 +96,7 @@ body {
   .logo {
     font-size: 3em;
   }
-  .logoStrap {
+  .logo-strap {
     font-size: 1.45em;
     top: 52px
   }
