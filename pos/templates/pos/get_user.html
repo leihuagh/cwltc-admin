@@ -14,7 +14,7 @@
     <form id="form_member" role="form" method="POST" >{% csrf_token %}
       <div class="col-md-3 input-group input-group-lg">
         <input type="text" class="form-control typeahead tt-query timed bsfix"
-               id = "search_id" autocomplete="on" spellcheck="false">
+               id = "search_id" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
       </div>
       <input name="person_id" id="person_id" type="hidden" value="">
                 <input type="submit" class="button" id ="submit_id"
