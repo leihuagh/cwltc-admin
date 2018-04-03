@@ -55,7 +55,6 @@ class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
         context = super().get_context_data(**kwargs)
         context['title'] = "Start POS on this screen"
         context['layouts'] = Layout.objects.all()
-        context['admin_record'] = PosAdmin.record()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -89,6 +88,11 @@ class StartView(LoginRequiredMixin, TemplateView):
             return super().get(request, *args, **kwargs)
         return redirect('pos_disabled')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['layout_name'] = Layout.objects.get(pk=self.request.session['layout_id']).name
+        return context
+
     def post(self, request, *args, **kwargs):
         if 'login' in request.POST:
             request.session['attended'] = False
@@ -97,7 +101,6 @@ class StartView(LoginRequiredMixin, TemplateView):
             request.session['attended'] = True
             return redirect('pos_run')
         return redirect('pos_start')
-
 
 def read_cookie(request):
     if 'pos' in request.COOKIES:

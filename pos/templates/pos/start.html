@@ -23,7 +23,7 @@
     </form>
   </div>
 </div>
-    <div class="terminal">Terminal: {{ request.session.terminal }}</div>
+    <div class="terminal">Terminal: {{ request.session.terminal }} Layout: {{ layout_name }}</div>
     <div class="last-transaction">
       Last transaction: {{ request.session.last_person }}: £{{ request.session.last_total }}
     </div>
