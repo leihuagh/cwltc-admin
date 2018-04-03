@@ -6,8 +6,6 @@ from pos.views import *
 urlpatterns = [
     url(r'^admin/$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
-    url(r'^start/(?P<layout_id>\d+)/$', StartView.as_view(), name='pos_start_layout'),
-    url(r'^start/default$', StartDefaultView.as_view(), name='pos_start_default'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
 

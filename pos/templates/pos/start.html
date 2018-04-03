@@ -4,28 +4,39 @@
 
   {%  include '_logo_banner.html' %}
 
-
   <div class="container">
-
   <div class="jumbotron text-center bg">
     <div class="row">
 
     </div>
     <h1><strong>Honesty Bar System</strong></h1>
     <p>All adult members can use this system once they have registered. </p>
+    <p>You can register on this device.</p>
     <br/><br/>
     <form method="post">
       {% csrf_token %}
       <button class="posbutton btn-large" type="submit" name="login">Member log in</button>
-      {% if attended_mode %}
+      {% if request.session.attended_allowed %}
         <br/><br/><br/>
         <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
       {% endif %}
     </form>
   </div>
 </div>
-    <div class="terminal">Terminal: {{ terminal }}</div>
+    <div class="terminal">Terminal: {{ request.session.terminal }}</div>
     <div class="last-transaction">
       Last transaction: {{ request.session.last_person }}: £{{ request.session.last_total }}
     </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  $(document).ready(function () {
+      $(".posbutton").on('touchstart', function(event) {
+        event.currentTarget.classList.add('posbutton-down');
+      });
+        $(".posbutton").on('touchend', function(event) {
+        event.currentTarget.classList.remove('posbutton-down');
+      });
+});
+</script>
 {% endblock %}

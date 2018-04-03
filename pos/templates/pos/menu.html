@@ -23,10 +23,10 @@
           <p><a href="{% url 'pos_admin' %}" class="btn btn-warning btn-lg btn-block stop-timer">POS admin</a></p>
           <p><a href="{% url 'pos_transactions' %}" class="btn btn-warning btn-lg btn-block stop-timer">All transactions</a></p>
           <form method="post">{% csrf_token %}
-            {% if admin_record.attended_mode %}
-              <input class="btn btn-danger btn-lg btn-block stop-timer" type="submit" name="admin_off" value="Disable attended mode">
+            {% if request.session.attended_allowed %}
+              <input class="btn btn-danger btn-lg btn-block stop-timer" type="submit" name="attended_off" value="Disable attended mode">
             {%  else %}
-              <input class="btn btn-warning btn-lg btn-block stop-timer" type="submit" name="admin_on" value="Enable attended mode">
+              <input class="btn btn-warning btn-lg btn-block stop-timer" type="submit" name="attended_on" value="Enable attended mode">
             {%  endif %}
           </form>
         {% endif %}

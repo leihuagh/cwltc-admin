@@ -6,9 +6,10 @@ class TransactionTable(tables.Table):
     
     class Meta:
         model = Transaction
-        fields = ('creation_date', 'id', 'name', 'total', 'complimentary', 'cash', 'split', 'billed')
+        fields = ('creation_date', 'id', 'name', 'total', 'type', 'complimentary', 'cash', 'split', 'billed')
         attrs = {'class': 'table'}
          
+    type = tables.Column(accessor='item_type.description', verbose_name='Charge to')
     total = tables.Column(attrs={'td':{'style':'text-align: right;'}})
     detail = tables.LinkColumn('pos_transaction_detail', text='Detail', args=[A('pk')], orderable=False)
     name = tables.Column(accessor='person.fullname',
@@ -33,7 +34,6 @@ class LineItemTable(tables.Table):
         fields = ('transaction.creation_date', 'item.description', 'quantity', 'sale_price', 'item.item_type.description',
                   'transaction.person.first_name', 'transaction.person.last_name', 'transaction_id' )
         attrs = {'class': 'table table-condensed'}
-
 
     transaction_id = tables.LinkColumn('pos_transaction_detail', text='view', args=[A('transaction.id')], orderable=False)
 

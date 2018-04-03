@@ -8,10 +8,10 @@
 <br><br>
         <input class="btn btn-success" type="submit" name="start" value="Start POS">
 
-      {%  if admin_record.attended_mode %}
-        <input class="btn btn-warning" type="submit" name="admin_off" value="Disable attended mode">
+      {%  if request.session.attended_allowed%}
+        <input class="btn btn-warning" type="submit" name="attended_off" value="Disable attended mode">
       {%  else %}
-        <input class="btn btn-success" type="submit" name="admin_on" value="Enable attended mode">
+        <input class="btn btn-success" type="submit" name="attended_on" value="Enable attended mode">
       {%  endif %}
         <a href="{% url 'pos_transactions_main' %}" class="btn btn-success">Review POS transactions</a>
   </form>

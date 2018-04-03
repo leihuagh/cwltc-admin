@@ -38,26 +38,18 @@ var posCode = (function () {
         payClass.hide();
         exitClass.hide();
         loadItems();
-        var flag = false;
         $(".posbutton").on('touchstart', function(event) {
             pos.itemAdd(Number(event.currentTarget.id));
-            event.currentTarget.flag=true;
             event.currentTarget.classList.add('posbutton-down');
             event.preventDefault();
         });
         // Click event for testing
         $(".posbutton").on('click', function(event) {
-            if (!event.currentTarget.flag) {
-                pos.itemAdd(Number(event.currentTarget.id));
-                console.log("click");
-            }
-            event.currentTarget.flag=false;
+            pos.itemAdd(Number(event.currentTarget.id));
         });
         $(".posbutton").on('touchend', function(event) {
-            event.currentTarget.flag=true;
             event.currentTarget.classList.remove('posbutton-down');
         });
-
         newReceipt();
     };
 

@@ -23,20 +23,11 @@ class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     template_name = 'pos/admin.html'
     group_required = 'Pos'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['layouts'] = Layout.objects.all()
-        context['admin_record'] = PosAdmin.record()
-        return context
-
     def post(self, request, *args, **kwargs):
-        record = PosAdmin.record()
-        if 'admin_on' in request.POST:
-            record.attended_mode = True
-            record.save()
-        elif 'admin_off' in request.POST:
-            record.attended_mode = False
-            record.save()
+        if 'attended_on' in request.POST:
+            request.session['attended_allowed'] = True
+        elif 'attended_off' in request.POST:
+            request.session['attended_allowed'] = False
         elif 'start' in request.POST:
             return redirect('pos_set_terminal')
         elif 'default' in request.POST:
@@ -87,29 +78,16 @@ class DisabledView(TemplateView):
     template_name = 'pos/disabled.html'
 
 
-class StartDefaultView(LoginRequiredMixin, View):
-
-    def get(self, request, *args, **kwargs):
-        request.session['layout_id'] = PosAdmin.record().default_layout_id
-        return redirect('pos_start')
-
-
 class StartView(LoginRequiredMixin, TemplateView):
     """ Member login or attended mode selection """
     template_name = 'pos/start.html'
 
     def get(self, request, *args, **kwargs):
+        self.request.session['person_id'] = None
         request.session['layout_id'], request.session['terminal'] = read_cookie(request)
         if request.session['layout_id']:
             return super().get(request, *args, **kwargs)
         return redirect('pos_disabled')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['attended_mode'] = PosAdmin.record().attended_mode
-        context['terminal'] = self.request.session['terminal']
-        self.request.session['person_id'] = None
-        return context
 
     def post(self, request, *args, **kwargs):
         if 'login' in request.POST:
@@ -225,7 +203,7 @@ class PosRegisterView(RegisterView):
 
 class PosRegisterTokenView(RegisterTokenView):
     """
-    Get usernaem, PIN and password
+    Get username, PIN and password
     """
     template_name = 'pos/register_token.html'
 
@@ -261,7 +239,6 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.request.session['people_ids'] = []
         id = int(self.request.session['person_id'])
         if id > 0:
             person = Person.objects.get(pk=self.request.session['person_id'])
@@ -271,19 +248,15 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
         else:
             context['person_id'] = -1
             context['full_name'] = 'Complimentary'
-        context['admin_record'] = PosAdmin.record()
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = self.timeout
         return context
 
     def post(self, request, *args, **kwargs):
-        record = PosAdmin.record()
-        if 'admin_on' in request.POST:
-            record.attended_mode = True
-            record.save()
-        elif 'admin_off' in request.POST:
-            record.attended_mode = False
-            record.save()
+        if 'attended_on' in request.POST:
+            request.session['attended_allowed'] = True
+        elif 'attended_off' in request.POST:
+            request.session['attended_allowed'] = False
         return redirect('pos_menu')
 
 
