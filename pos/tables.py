@@ -60,11 +60,10 @@ class LayoutTable(tables.Table):
 
     class Meta:
         model = Layout
-        fields = ('edit', 'name', 'item_type', 'is_default', 'default')
+        fields = ('edit', 'name', 'item_type')
         attrs = {'class': 'table'}
 
     edit = tables.TemplateColumn('<a href="{% url "pos_layout_update" record.id %}" class="btn btn-primary btn-xs">Edit</a>', verbose_name = u'Edit',)
-    default = tables.TemplateColumn('<input type="submit" name="{{ record.id }}" class="btn btn-primary btn-xs" value="Set as default"></form>', verbose_name = u'',)
     item_type = tables.Column(accessor='item_type.description',
                               verbose_name='Charge to',
                               order_by='item_type.description',

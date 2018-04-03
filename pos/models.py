@@ -117,20 +117,3 @@ class PosPayment(models.Model):
                                     str(self.person.fullname),
                                     str(self.amount),
                                     str(self.billed))
-
-class PosAdmin(models.Model):
-    attended_mode = models.BooleanField(default=False)
-    default_layout = models.ForeignKey(Layout, blank=True, null=True)
-
-
-    def __str__(self):
-        return f'Admin: {self.admin_mode}, Layout: {self.default_layout.name}'\
-
-    @classmethod
-    def record(cls):
-        records = PosAdmin.objects.all()
-        if records:
-            return records[0]
-        else:
-            return PosAdmin.objects.create(attended_mode=False, default_layout=None)
-

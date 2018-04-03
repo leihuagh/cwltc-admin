@@ -5,6 +5,5 @@ admin.site.register(Layout)
 admin.site.register(Location)
 admin.site.register(Transaction)
 admin.site.register(PosPayment)
-admin.site.register(PosAdmin)
 admin.site.register(Colour)
 

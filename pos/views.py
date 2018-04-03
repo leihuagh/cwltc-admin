@@ -498,27 +498,11 @@ class LayoutListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
     template_name = 'pos/layout_list.html'
     group_required = 'Pos'
 
-    def get_queryset(self, **kwargs):
-        qs = super().get_queryset()
-        default_id = ""
-        default_layout = PosAdmin.record().default_layout
-        if default_layout:
-            default_id=default_layout.id
-        for item in qs:
-            item.is_default = default_id == item.id
-        return qs
-
     def post(self, request):
         if 'new' in request.POST:
             return redirect('pos_layout_create')
         if 'admin' in request.POST:
             return redirect('pos_admin')
-        admin = PosAdmin.record()
-        for key in request.POST:
-            if key.isnumeric():
-                admin.default_layout_id = key
-                admin.save()
-                break
         return redirect('pos_layout_list')
 
 
