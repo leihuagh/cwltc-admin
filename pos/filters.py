@@ -11,8 +11,6 @@ def item_type_choices():
 
 class LineItemFilter(django_filters.FilterSet):
 
-
-
     item_type_id = django_filters.ChoiceFilter(name='item__item_type_id',
                                             label='Item type',
                                             choices=item_type_choices(),

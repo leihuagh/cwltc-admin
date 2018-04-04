@@ -5,7 +5,7 @@ from enum import IntEnum
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.dispatch import receiver
 

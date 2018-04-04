@@ -37,6 +37,11 @@ var posCode = (function () {
         personName = person_name;
         payClass.hide();
         exitClass.hide();
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            }
+        });
         loadItems();
         $(".posbutton").on('touchstart', function(event) {
             pos.itemAdd(Number(event.currentTarget.id));

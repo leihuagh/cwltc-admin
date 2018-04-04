@@ -1,5 +1,6 @@
 from django.conf.urls import url
-from pos.views import *
+from pos.views.ipad_views import *
+from pos.views.analysis_views import *
 
 # POS App URLs
 
@@ -29,7 +30,7 @@ urlpatterns = [
 
     url(r'^payments/$', PaymentListView.as_view(), name='pos_payments'),
     url(r'^payments/main$', PaymentListView.as_view(main_menu=True), name='pos_payments_main'),
-    url(r'^payments/person/(?P<person_id>\d+)/$', PaymentListView.as_view(), name='pos_payments_main'),
+    url(r'^payments/person/(?P<person_id>\d+)/$', PaymentListView.as_view(), name='pos_payments_person'),
 
     url(r'^lineitems/$', LineItemListView.as_view(), name='pos_lineitems'),
     url(r'^lineitems/(?P<trans_id>\d+)/$', LineItemListView.as_view(), name='pos_lineitems2'),
@@ -37,6 +38,7 @@ urlpatterns = [
     url(r'^item/list/$', ItemListView.as_view(), name='pos_item_list'),
     url(r'^item/(?P<pk>\d+)/$', ItemUpdateView.as_view(), name='pos_item_update'),
     url(r'^item/create/$', ItemCreateView.as_view(), name='pos_item_create'),
+    url(r'^item/price_list/$', PriceListView.as_view(), name='pos_price_list'),
     
     url(r'^layout/list/$', LayoutListView.as_view(), name='pos_layout_list'),
     url(r'^layout/(?P<pk>\d+)/$', LayoutUpdateView.as_view(), name='pos_layout_update'),

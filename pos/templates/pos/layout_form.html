@@ -5,8 +5,8 @@
 <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
 {% endblock %}
 {% block content %}
-<div class="container bg-light">
-  <form method="post" id="form-main">
+<form method="post" id="form-main">
+  <div class="container bg-light">
     {% csrf_token %}
     <div class="row">
       <h4 class="col col-md-3">Layout: {{ layout.name }}</h4>
@@ -72,29 +72,49 @@
 
     <input type="hidden" name="filename" id="filename">
     <input type="hidden" name="save_as" id="save_as" value="">
-    <input type="submit" class="btn btn-primary" name="save" value="Save">
-    <button type="button" class="btn btn-info " data-toggle="modal" data-target="#saveAsModal">Save as</button>
-    <input type="submit" class="btn btn-danger"  name="delete" value="Delete">
-    <input type="submit" class="btn btn-default" name="cancel" value="Cancel">
-  </form>
-<br>
-  <!-- Modal for Save as dialog -->
-  <div class="modal fade" id="saveAsModal" role="dialog">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Save layout with new name</h4>
+    <input type="submit" class="btn btn-primary" name="save" value="Save and exit">
+    <button type="button" class="btn btn-primary " data-toggle="modal" data-target="#saveAsModal">Save as</button>
+    <input type="submit" class="btn btn-primary"  name="price_list" value="Save and download price list">
+    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
+    <input type="submit" class="btn btn-info" name="cancel" value="Exit without saving">
+    <br><br>
+  </div>
+</form>
+<!-- Modal for Save as dialog - submits using javascript -->
+<div class="modal fade" id="saveAsModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Save layout with new name</h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="name">Layout name</label>
+          <input type="text" class="form-control" id="modal_name" placeholder="Enter layout name">
         </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="name">Layout name</label>
-            <input type="text" class="form-control" id="modal_name" placeholder="Enter layout name">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button id="submitBtn" class="btn btn-primary" data-dismiss="modal">Save as</button>
+      </div>
+      <div class="modal-footer">
+        <button id="save-as-btn" class="btn btn-primary" data-dismiss="modal">Save as</button>
+        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal for Delete -->
+<div class="modal fade" id="deleteModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Delete this layout</h4>
+      </div>
+      <div class="modal-body">
+        <h4>Are you sure?</h4>
+      </div>
+      <div class="modal-footer">
+        <form method="post">{% csrf_token %}
+          <button type="submit" name="delete" class="btn btn-danger">Delete</button>
           <button class="btn btn-default" data-dismiss="modal">Cancel</button>
-        </div>
+        </form>
       </div>
     </div>
   </div>
@@ -106,7 +126,7 @@
   <script src="{% static 'pos/js/layout_form.js' %}"></script>
   <script>
   $(document).ready(function(){
-     $('#submitBtn').click(function() {
+     $('#save-as-btn').click(function() {
          $('#filename').val($('#modal_name').val());
          $('#save_as').val("save_as");
          $('#form-main').submit();

@@ -140,9 +140,8 @@
           <div class="col-md-4 ipad-prompt">Select member:</div>
           <div class="col-md-5">
             <div class="input-group input-group-lg">
-              <input type="text" class="form-control  timed"
-                     id = "member_search"
-                     autocomplete="on" spellcheck="false">
+              <input type="text" class="form-control  timed" id = "member_search"
+                     autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
             </div>
           </div>
           <div class="col-md-3">
@@ -173,14 +172,9 @@
 <script src="{% static 'pos/js/pos.js' %}"></script>
 <script>
   $(document).ready(function () {
-    $.ajaxSetup({
-        beforeSend: function (xhr, settings) {
-            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
-        }
-    });
     posCode.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }}, '{{ person_id }}', '{{ full_name }}');
     startTimer({{ timeout }}, "{{ timeout_url }}");
-    bind_typeahead('#member_search', posCode.selectedPerson);
+    bind_typeahead('#member_search', posCode.selectedPerson, true);
 });
 </script>
 {% endblock %}

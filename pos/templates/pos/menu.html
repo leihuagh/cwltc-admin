@@ -14,7 +14,7 @@
         <br>
         <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block stop-timer">Purchase items from bar</a></p>
         {% if person_id > 0 %}
-          <p><a href="{% url 'pos_transactions_person' person_id=person_id %}" class="btn btn-success btn-lg btn-block stop-timer">View my transactions</a></p>
+          <p><a href="{% url 'pos_payments_person' person_id=person_id %}" class="btn btn-success btn-lg btn-block stop-timer">View my transactions</a></p>
         {% else %}
           <p><a href="{% url 'pos_transactions_comp' %}" class="btn btn-success btn-lg btn-block stop-timer">View transactions</a></p>
         {% endif %}

@@ -1,15 +1,19 @@
-function bind_typeahead(typeahead_id, setPerson) {
+function bind_typeahead(typeahead_id, setPerson, adult) {
 
-    var people = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.whitespace,
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        remote: {
-            url: '/ajax/people/?term=%QUERY&adult=true',
-            wildcard: '%QUERY'
-        }
-    });
+    // var people = new Bloodhound({
+    //     datumTokenizer: Bloodhound.tokenizers.whitespace,
+    //     queryTokenizer: Bloodhound.tokenizers.whitespace,
+    //     remote: {
+    //         url: '/ajax/people/?term=%QUERY&adult=true',
+    //         wildcard: '%QUERY'
+    //     }
+    // });
 
     var lastItem;
+    var qualifier = '';
+    if (adult){
+        qualifier = '&adult=true';
+    }
 
     // Initializing the typeahead with remote dataset
     $(typeahead_id).typeahead({
@@ -20,7 +24,12 @@ function bind_typeahead(typeahead_id, setPerson) {
         {
             name: 'people',
             displayKey: "value",
-            source: people.ttAdapter(),
+            // source: people.ttAdapter(),
+            source: function(query, syncResults, asyncResults) {
+                $.get('/ajax/people/?term=' + query + qualifier, function (data) {
+                    asyncResults(data);
+                });
+            },
             limit: 10
         }).focus();
 
