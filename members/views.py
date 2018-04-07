@@ -233,6 +233,7 @@ class PersonUpdateView(StaffuserRequiredMixin, PersonActionMixin, UpdateView):
         result = super().form_invalid(form)
         return result
 
+
 class PersonLinkView(StaffuserRequiredMixin, TemplateView):
     template_name = 'members/person_link_merge.html'
 
@@ -882,6 +883,12 @@ class YearEndView(StaffuserRequiredMixin, FormView):
 
         elif 'bar' in form.data:
             count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.BAR)
+            message = f'{count1} POS records processed and {count2} invoice item records generated'
+            messages.success(self.request, message)
+            return redirect('year-end')
+
+        elif 'teas' in form.data:
+            count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.TEAS)
             message = f'{count1} POS records processed and {count2} invoice item records generated'
             messages.success(self.request, message)
             return redirect('year-end')

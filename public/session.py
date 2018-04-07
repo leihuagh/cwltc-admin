@@ -249,15 +249,14 @@ def get_family(request):
     family = []
     if exists(request):
         posts = request.session['posts']
-        i = 1
-        # first entries can be adult + membership + profile OR parent + child
+        # first entries can be adult(0) + membership(1) + profile(2) OR parent(0) + child(1)
         name = posts[0]['first_name'] + " " + posts[0]['last_name']
         if is_membership_form(posts[1]):
             membership = Membership.objects.get(pk=posts[1]['membership_id']).description
             i = 3
         else:
             membership = 'Parent or guardian'
-            i = 2
+            i = 1
         family.append([name, membership])
         while i < len(posts):
             if is_valid(posts[i]):

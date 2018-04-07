@@ -10,7 +10,7 @@ from .models import Transaction, LineItem, Layout, PosPayment, Item, TWO_PLACES
 from members.models import InvoiceItem, ItemType
 
 @transaction.atomic
-def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, total, people):
+def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, total, people, attended):
     """
     Create Transaction, LineItem and PosPayment records in the database
     Return a description of it
@@ -35,7 +35,8 @@ def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, to
         billed=False,
         cash=person_id == None and not complimentary,
         complimentary=complimentary,
-        split=count > 1
+        split=count > 1,
+        attended=attended
         )
     trans.save()
 

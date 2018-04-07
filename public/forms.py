@@ -190,11 +190,12 @@ class NameForm(ModelForm):
         return clean_mobile(self.cleaned_data['mobile_phone'])
 
     def clean_dob(self):
-        age = membership_age(self.cleaned_data['dob'])
-        if age < 18:
-            raise forms.ValidationError("Not an adult age")
-        if age > 90:
-            raise forms.ValidationError("Invalid age")
+        if self.cleaned_data['dob']:
+            age = membership_age(self.cleaned_data['dob'])
+            # if age < 18:
+            #     raise forms.ValidationError("Not an adult age")
+            if age > 90:
+                raise forms.ValidationError("Invalid age")
         return self.cleaned_data['dob']
 
 class AddressForm(ModelForm):
@@ -208,7 +209,8 @@ class AddressForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.initial = {'town': 'Kingston upon Thames'}
+        if len(self.initial) == 0:
+            self.initial = {'town': 'Kingston upon Thames'}
         self.helper = FormHelper(self)
         self.helper.form_tag = False
         self.helper.disable_csrf = True

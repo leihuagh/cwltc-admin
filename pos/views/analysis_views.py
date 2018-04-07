@@ -9,7 +9,8 @@ from pos.tables import *
 from pos.forms import ItemForm, LayoutForm, ColourForm
 from pos.filters import LineItemFilter
 from pos.views.ipad_views import build_pos_array
-from pos.services import dump_items_to_excel, dump_layout_to_excel
+from pos.services import dump_layout_to_excel
+
 
 class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     template_name = 'pos/admin.html'
@@ -29,6 +30,7 @@ class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
             request.session['layout_id'] = layout.id
             return redirect('pos_start')
         return redirect('pos_admin')
+
 
 class TransactionListView(SingleTableView):
     """List transactions with filtering"""
@@ -61,8 +63,12 @@ class TransactionListView(SingleTableView):
             context['person'] = Person.objects.get(pk=person_id)
         return context
 
+
 class PaymentListView(SingleTableView):
-    """ List payments with filter"""
+    """
+     This is used to show the transactions for a single user as it reflects what will be billed
+     whereas the TransactionListView shows the transaction total
+     """
     model = PosPayment
     table_class = PosPaymentTable
     template_name = 'pos/transactions.html'
@@ -72,7 +78,7 @@ class PaymentListView(SingleTableView):
     def get_table_data(self):
         person_id = self.kwargs.get('person_id', None)
         if person_id:
-            self.qs = PosPayment.objects.filter(person_id=person_id).select_related('transaction').order_by(
+            self.qs = PosPayment.objects.filter(person_id=person_id, transaction__billed=True).select_related('transaction').order_by(
                 '-transaction.creation_date')
         else:
             self.qs = PosPayment.objects.all().select_related('transaction').order_by('-transaction.creation_date')
@@ -86,6 +92,7 @@ class PaymentListView(SingleTableView):
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)
         return context
+
 
 class LineItemListView(SingleTableView):
     """

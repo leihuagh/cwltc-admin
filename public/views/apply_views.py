@@ -69,7 +69,7 @@ class ApplyMain(TemplateView):
         kwargs['form_title'] = "Adult Application Form" if session.is_adult_application(self.request) else\
             "Details of parent or guardian"
         kwargs['buttons'] = [Button('Next', css_class='btn-success')]
-        return super(ApplyMain, self).get_context_data(**kwargs)
+        return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         self.name_form = NameForm(request.POST, adult=session.is_adult_application(request))

@@ -6,12 +6,12 @@ class TransactionTable(tables.Table):
     
     class Meta:
         model = Transaction
-        fields = ('creation_date', 'id', 'name', 'total', 'type', 'complimentary', 'cash', 'split', 'billed')
+        fields = ('creation_date', 'id', 'name', 'total', 'type', 'complimentary', 'cash', 'split', 'attended', 'billed')
         attrs = {'class': 'table'}
          
     type = tables.Column(accessor='item_type.description', verbose_name='Charge to')
     total = tables.Column(attrs={'td':{'style':'text-align: right;'}})
-    detail = tables.LinkColumn('pos_transaction_detail', text='Detail', args=[A('pk')], orderable=False)
+    detail = tables.LinkColumn('pos_transaction_detail', text='View detail', args=[A('pk')], orderable=False)
     name = tables.Column(accessor='person.fullname',
                          order_by=('person.first_name', 'person.last_name')
                          )
@@ -20,11 +20,12 @@ class PosPaymentTable(tables.Table):
 
     class Meta:
         model = PosPayment
-        fields = ('transaction.creation_date', 'person.fullname', 'transaction.person.fullname' 'amount', 'billed')
+        fields = ('transaction.creation_date', 'person.fullname', 'amount', 'split')
         attrs = {'class': 'table'}
 
-    amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
-    detail = tables.LinkColumn('pos_transaction_detail', text='Detail', args=[A('transaction.pk')], orderable=False)
+    #amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
+    split = tables.BooleanColumn(accessor='transaction.split', verbose_name='Split transaction')
+    detail = tables.LinkColumn('pos_transaction_detail', text='View detail', args=[A('transaction.pk')], orderable=False)
 
 
 class LineItemTable(tables.Table):

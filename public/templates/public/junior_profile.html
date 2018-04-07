@@ -3,51 +3,49 @@
 {% load crispy_forms_tags %}
 {% load members_extras %}
 {% block content %}
-  <div class="container bg-light flex-sm-grow" style="height: 100%">
-    <h3> {{ title }}</h3>
-    <div class="row justify-content-center">
-      <div class="col-sm-12 col-md-8 col-lg-8">
-        <form method="POST" novalidate="">
-          {% csrf_token %}
-          {{ form.membership_id|as_crispy_field }}
-          <div class="card my-2">
-            {% if form_title %}
-              <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>
-            {% endif %}
-
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
-            {% endfor %}
+  <h3> {{ title }}</h3>
+  <div class="row justify-content-center">
+    <div class="col-sm-12 col-md-8 col-lg-8">
+      <form method="POST" novalidate="">
+        {% csrf_token %}
+        {{ form.membership_id|as_crispy_field }}
+        <div class="card my-2">
+          {% if form_title %}
+            <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>
           {% endif %}
 
-            <div class="card-body pt-0">
-              {%  if form.errors %}
-              <div class="text-danger">
-                <strong>Please correct the errors in red below.</strong>
-              </div>
-              {% endif %}
-            <h5 class="card-title bg-success text-white p-1">Membership</h5>
-              <p class="mb-0">
-              Membership category: <strong>{{ membership.description }}</strong> (Under {{ membership.cutoff_age }} on 1 May {{ year }})
-              <br>
-              Annual membership: <strong>&pound;{{ sub }}</strong> (1st May {{ year }} to 30th April {{ end_year }})
-              </p>
-              The fee due is calculated on a pro-rata basis from 1 August.
-              {% include 'public/_coaching.html' %}
-              {% include 'public/_special_needs.html' %}
-              {% include 'public/_emergency.html' %}
-              {% include 'public/_photo_consent.html' %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+          <div class="card-body pt-0">
+            {%  if form.errors %}
+            <div class="text-danger">
+              <strong>Please correct the errors in red below.</strong>
             </div>
-            <div class="card-footer">
-              {% for button in buttons %}
-                <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} mb-1"
-                       id="id-{{ button.name }}" value="{{ button.value }}">
-              {% endfor %}
-            </div>
+            {% endif %}
+          <h5 class="card-title bg-success text-white p-1">Membership</h5>
+            <p class="mb-0">
+            Membership category: <strong>{{ membership.description }}</strong> (Under {{ membership.cutoff_age }} on 1 May {{ year }})
+            <br>
+            Annual membership: <strong>&pound;{{ sub }}</strong> (1st May {{ year }} to 30th April {{ end_year }})
+            </p>
+            The fee due is calculated on a pro-rata basis from 1 August.
+            {% include 'public/_coaching.html' %}
+            {% include 'public/_special_needs.html' %}
+            {% include 'public/_emergency.html' %}
+            {% include 'public/_photo_consent.html' %}
           </div>
-        </form>
-      </div>
+          <div class="card-footer">
+            {% for button in buttons %}
+              <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} mb-1"
+                     id="id-{{ button.name }}" value="{{ button.value }}">
+            {% endfor %}
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 {% endblock content %}

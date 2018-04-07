@@ -205,7 +205,6 @@ class PosRegisterTokenView(RegisterTokenView):
 
 class PosConsentView(ConsentTokenView):
     template_name = 'pos/consent.html'
-    success_url = reverse_lazy('pos_menu')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -213,6 +212,9 @@ class PosConsentView(ConsentTokenView):
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
+
+    def get_success_url(self):
+        return reverse('pos_menu')
 
 
 class MemberMenuView(LoginRequiredMixin, TemplateView):
@@ -287,6 +289,7 @@ class PosView(LoginRequiredMixin, TemplateView):
                                                     receipt,
                                                     pay_record['total'],
                                                     pay_record['people'],
+                                                    request.session['attended']
                                                     )
             request.session['last_person'] = trans[0]
             request.session['last_total'] = trans[1]

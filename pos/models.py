@@ -87,6 +87,7 @@ class Transaction(models.Model):
     split = models.BooleanField(default=False)
     terminal = models.IntegerField(default=1)
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
+    attended = models.BooleanField(default=False)
 
     def __str__(self):
         name = self.person.fullname if self.person else "Cash"

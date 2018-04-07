@@ -20,6 +20,11 @@ class ThankyouView(TemplateView):
 class PublicHomeView(TemplateView):
     template_name = 'public/home.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['no_container'] = True
+        return context
+
 
 class LoginView(FormView):
     template_name = 'authentication/login.html'

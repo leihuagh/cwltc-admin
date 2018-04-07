@@ -6,14 +6,9 @@ from .views import *
 urlpatterns = [
     url(r'login/$', CustomLoginView.as_view(), name='login'),
     url(r'login/(?P<token>.+)/$', CustomLoginView.as_view(), name='login-token'),
-    url(r'logout$',
-        auth_views.LogoutView.as_view(
-            next_page='/public/'),
-        name='logout'),
-    url(r'password_change/$',
-        auth_views.PasswordChangeView.as_view(
-            template_name='authentication/password_change_form.html',
-            form_class=CrispyPasswordChangeForm),
+    url(r'logout$', auth_views.LogoutView.as_view(next_page='/public/'),name='logout'),
+    url(r'password_change/$', auth_views.PasswordChangeView.as_view(
+        template_name='authentication/password_change_form.html',form_class=CrispyPasswordChangeForm),
         name='password_change'),
     url(r'password_change/done/$',
         auth_views.PasswordChangeDoneView.as_view(

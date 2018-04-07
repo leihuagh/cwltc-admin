@@ -5,6 +5,14 @@ body {
     min-height: 100vh;
 }
 
+.margin-bg {
+  background-color: #2c3c2c;
+}
+
+.content-bg {
+  background-color: #ddffee;
+}
+
 .logo-strip {
   background-color: white;
   height:85px;
@@ -20,6 +28,7 @@ body {
 }
 
 .logo {
+  font-family: Archivo Black;
   font-size: 2em;
   font-weight: bold;
 }
@@ -38,6 +47,10 @@ body {
   font-size: 1em;
   font-style: oblique;
   top: 40px;
+}
+
+.club-66 {
+  height: 66vh;
 }
 
 @media only screen and (min-width: 300px) {
@@ -82,11 +95,11 @@ body {
     width: 60em;
   }
   .logo {
-  font-size: 2.5em;
+  font-size: 2.3em;
   }
   .logo-strap {
     font-size: 1.25em;
-    top: 52px
+    top: 48px
   }
  }
 @media only screen and (min-width: 74.9em) {
@@ -94,7 +107,7 @@ body {
     width: 71em;
   }
   .logo {
-    font-size: 3em;
+    font-size: 2.7em;
   }
   .logo-strap {
     font-size: 1.45em;

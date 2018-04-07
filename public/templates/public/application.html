@@ -4,7 +4,6 @@
 {% load members_extras %}
 {% block content %}
   <div style="">
-  <div class="container bg-light" style="min-height: 80vh">
     <h3></h3>
     <form action="{% url 'public-apply-main' %}" method="POST">
       {% csrf_token %}
@@ -39,6 +38,5 @@
         </div>
       </div>
     </form>
-  </div>
   </div>
 {% endblock %}

@@ -1,5 +1,5 @@
 import logging
-from django.shortcuts import redirect
+from django.shortcuts import redirect, reverse
 from django.core.signing import Signer
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -96,7 +96,6 @@ class ConsentTokenView(FormView):
     """
     template_name = 'public/consent.html'
     form_class = ConsentForm
-    success_url = reverse_lazy('public-home')
 
     def get_person(self):
         person_id = Signer().unsign(self.kwargs['token'])
@@ -107,20 +106,25 @@ class ConsentTokenView(FormView):
 
     def get_context_data(self, **kwargs):
         kwargs['person'] = self.get_person()
-        kwargs['form_title'] = 'Consent'
-        kwargs['buttons'] = [Button('Next', css_class='btn-success')]
+        if kwargs['person'].sub:
+            kwargs['member'] = True
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):
-        person = self.get_person()
-        if person:
-            person.allow_marketing = form.cleaned_data['marketing'] == 'yes'
-            database = form.cleaned_data['database'] == 'yes'
-            person.allow_email = database
-            person.allow_phone = database
-            messages.success(self.request, 'You have successfully registered')
+        self.person = self.get_person()
+        if self.person:
+            self.person.allow_marketing = form.cleaned_data['marketing'] == 'yes'
+            if self.person.sub:
+                database = form.cleaned_data['database'] == 'yes'
+                self.person.allow_email = database
+                self.person.allow_phone = database
+            messages.success(self.request, 'You have successfully registered.')
             return super().form_valid(form)
         messages.error(self.request, 'Invalid token')
         return redirect('public-home')
 
-
+    def get_success_url(self):
+        if self.person.sub:
+            return reverse('login')
+        else:
+            return reverse('public-home')

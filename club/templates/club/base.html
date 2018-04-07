@@ -1,0 +1,50 @@
+{% extends "base_new.html" %}
+{% load staticfiles %}
+{% block head %}
+  <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
+{% endblock %}
+{% block header %}
+  {%  include '_logo_banner.html' %}
+{% endblock %}
+{% block navbar %}
+<div class="container-fluid bg-success">
+  <div class="container p-0">
+    <nav class="navbar navbar-expand-sm navbar-dark bg-success">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav mr-auto">
+          <a class="nav-item nav-link" href="{% url 'club_home' %}">Home</a>
+          <a class="nav-item nav-link" href="{% url 'club_magazine' %}">UK Tennis magazine</a>
+          {% if user.is_staff %}
+            <a class="nav-item nav-link" href="{% url 'home' %}">Administration</a>
+          {% endif %}
+        </div>
+        <div class="navbar-nav">
+          {% if user.is_authenticated %}
+            <span class="navbar-text text-white">{{ request.user.first_name }} {{ request.user.last_name }}</span>
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Account
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="{% url 'club_person' %}">Edit personal details</a>
+                <a class="dropdown-item" href="{% url 'password_change' %}">Change password</a>
+                <a class="dropdown-item" href="#">Invoices and payments</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="javascript:document.getElementById('logoutForm').submit()">Log out</a>
+              </div>
+            </div>
+            <form id="logoutForm" action="/logout" method="post" class="form-inline mr-auto">
+              {% csrf_token %}
+            </form>
+          {% else %}
+            <a href="{% url 'login' %}">Log in</a>
+           {% endif %}
+        </div>
+      </div>
+    </nav>
+  </div>
+</div>
+{% endblock %}

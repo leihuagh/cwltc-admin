@@ -1,0 +1,80 @@
+{% extends "club/base.html" %}
+{% load staticfiles %}
+{% block content %}
+  <h4 class="pt-2">{{ person.fullname }} </h4>
+  {% if person.sub %}<h5>Membership: {{ person.membership.description }}</h5>{%  endif %}
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card"><div class="card-header bg-success text-white text-center p-1">{{ person.fullname }}</div>
+        <div class="card-body">
+          <div class="row"><div class="col-5 text-success">First name:</div><div class="col">{{ person.first_name }}</div></div>
+          <div class="row"><div class="col-5 text-success">Last name:</div><div class="col">{{ person.last_name }}</div></div>
+          <div class="row"><div class="col-5 text-success">Gender:</div><div class="col">
+            {% if person.gender == 'F' %}Female{% else %}Male{% endif %}</div></div>
+          <div class="row"><div class="col-5 text-success">Date of birth:</div><div class="col">
+            {% if person.dob %}{{ person.dob|date }}{% else %}Unknown - please add{% endif %}</div></div>
+          <div class="row"><div class="col-5 text-success">Mobile:</div><div class="col">{{ person.mobile }}</div></div>
+          <div class="row"><div class="col-5 text-success">Email:</div><div class="col">{{ person.email }}</div></div>
+          <div class="row"><div class="col-5 text-success">British tennis:</div><div class="col">{{ person.british_tennis }}</div></div>
+        </div>
+        <div class="card-footer py-1">
+          <a href="{% url "club_person_update" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a>
+        </div>
+      </div>
+
+      <div class="card my-2">
+        <div class="card-body">
+          <div class="row"><div class="col-5 text-success">Address:</div>
+            <div class="col">
+              {{ address.address1 }}<br />
+              {% if address.address2 %}{{ address.address2 }}<br />{% endif %}
+              {{ address.town }}<br />
+              {{ address.post_code }}
+            </div>
+          </div>
+          <div class="row"><div class="col-5 text-success">Home phone:</div><div class="col">{{ address.home_phone }}</div></div>
+        </div>
+        <div class="card-footer py-1">
+          <a href="{% url "club_address_update" person_id=person.id %}" class="btn btn-primary btn-sm">Edit address</a>
+        </div>
+      </div>
+    </div>
+    {% if parent %}
+      <!-- Family panel -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header bg-success text-white text-center p-1">Family members</div>
+          <div class="card-body">
+            <div class="row {% if parent.id == person.id %}}} bg-light {% endif %}">
+              <div class="col-8"><a href="{% url "club_person_pk" pk=parent.id %}">{{ parent.fullname }}</a></div>
+                <div class="col">
+                  {%  if parent.sub %}
+                    {{ parent.membership.description }}
+                    {% if parent.state == 0 %}
+                      {% if not parent.sub.paid %}(unpaid){% endif %}
+                    {% endif %}
+                  {% else %}non member
+                  {%  endif %}
+                </div>
+              </div>
+            {% for child in children %}
+              <div class="row {% if child.id == person.id %}}} bg-light {% endif %}">
+                <div class="col-8"><a href="{% url "club_person_pk" pk=child.id %}">{{ child.fullname }}</a></div>
+                <div class="col">
+                  {%  if child.sub %}
+                    {{ child.membership.description }}
+                    {% if child.state == 0 %}
+                      {% if not child.sub.paid %}(unpaid){% endif %}
+                    {% endif %}
+                  {% else %}(no sub)
+                  {%  endif %}
+                </div>
+              </div>
+            {% endfor child %}
+          </div>
+          <div class="card-footer py-1">Click a family member name to edit</div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
