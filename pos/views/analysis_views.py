@@ -78,7 +78,7 @@ class PaymentListView(SingleTableView):
     def get_table_data(self):
         person_id = self.kwargs.get('person_id', None)
         if person_id:
-            self.qs = PosPayment.objects.filter(person_id=person_id, transaction__billed=True).select_related('transaction').order_by(
+            self.qs = PosPayment.objects.filter(person_id=person_id, transaction__billed=False).select_related('transaction').order_by(
                 '-transaction.creation_date')
         else:
             self.qs = PosPayment.objects.all().select_related('transaction').order_by('-transaction.creation_date')
