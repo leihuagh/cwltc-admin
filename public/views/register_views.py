@@ -62,13 +62,14 @@ class RegisterTokenView(FormView):
     def get_person(self):
         person_id = Signer().unsign(self.kwargs['token'])
         try:
-            return Person.objects.get(pk=person_id)
+            self.person = Person.objects.get(pk=person_id)
+            return self.person
         except Person.DoesNotExist:
             return None
 
     def get_context_data(self, **kwargs):
         kwargs['person'] = self.get_person()
-        kwargs['form_title'] = 'Choose your password'
+        kwargs['form_title'] = "Registration for " + self.person.fullname
         kwargs['buttons'] = [Button('Next', css_class='btn-success')]
         return super().get_context_data(**kwargs)
 

@@ -1,12 +1,12 @@
 /* padding after navbar */
 body {
-    padding-top: 0px;
+    padding-top: 0;
     font-family: 'Roboto', sans-serif;
     min-height: 100vh;
 }
 
 .margin-bg {
-  background-color: #2c3c2c;
+  background-color: #495057;
 }
 
 .content-bg {
@@ -16,7 +16,7 @@ body {
 .logo-strip {
   background-color: white;
   height:85px;
-  padding: 0px;
+  padding: 0;
 }
 
 .logo-content {
@@ -28,7 +28,7 @@ body {
 }
 
 .logo {
-  font-family: 'Montserrat';
+  font-family: 'Montserrat', 'sans-serif';
   font-size: 2em;
   font-weight: bold;
 }
@@ -42,7 +42,7 @@ body {
  }
 
 .logo-strap {
-  font-family: 'Roboto';
+  font-family: 'Roboto', 'sans-serif';
   color: #6f8f8b;
   position: absolute;
   font-size: 1em;
@@ -63,7 +63,7 @@ body {
   }
   .logo-strap {
     font-size: 1em;
-    top:
+    top: 30em;
   }
 }
 

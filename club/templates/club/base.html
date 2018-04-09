@@ -9,7 +9,7 @@
 {% block navbar %}
 <div class="container-fluid bg-success">
   <div class="container p-0">
-    <nav class="navbar navbar-expand-sm navbar-dark bg-success">
+    <nav class="navbar navbar-expand-sm navbar-dark">
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -17,6 +17,7 @@
         <div class="navbar-nav mr-auto">
           <a class="nav-item nav-link" href="{% url 'club_home' %}">Home</a>
           <a class="nav-item nav-link" href="{% url 'club_magazine' %}">UK Tennis magazine</a>
+          <a class="nav-item nav-link" href="{% url 'club_history' %}">Club history</a>
           <a class="nav-item nav-link" href="{% url 'club_policies' %}">Rules & policies</a>
           {% if user.is_staff %}
             <a class="nav-item nav-link" href="{% url 'home' %}">Administration</a>
@@ -32,7 +33,7 @@
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                 <a class="dropdown-item" href="{% url 'club_person' %}">Edit personal details</a>
                 <a class="dropdown-item" href="{% url 'password_change' %}">Change password</a>
-                <a class="dropdown-item" href="#">Invoices and payments</a>
+                <a class="dropdown-item" href="{% url 'club_invoices' %}">Invoices and payments</a>
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="javascript:document.getElementById('logoutForm').submit()">Log out</a>
               </div>

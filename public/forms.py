@@ -126,8 +126,10 @@ class RegisterTokenForm(Form):
         if len(username) < 8:
             raise forms.ValidationError('Your user name must be at least 8 characters long', code='invalid_user')
         password = cleaned_data.get('password1')
+        if password == None:
+            raise forms.ValidationError('You must enter a password', code='invalid_password')
         if len(password) < 8:
-            raise forms.ValidationError("Your password must be at least 8 characters long", code='invalid_password')
+            raise forms.ValidationError('Your password must be at least 8 characters long', code='invalid_password')
         if password != cleaned_data.get('password2'):
             raise forms.ValidationError('Passwords do not match', code='invalid_password')
        

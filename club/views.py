@@ -14,6 +14,11 @@ from django.forms import modelform_factory
 class ClubHomeView(LoginRequiredMixin, TemplateView):
     template_name = 'club/home.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['bg_class']='bg-white'
+        return context
+
 
 class PersonView(LoginRequiredMixin, DetailView):
     '''
@@ -52,7 +57,7 @@ class PersonUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         kwargs['form_title'] = 'Edit personal details'
         kwargs['buttons'] = (Button('Save', css_class='btn-success'),
-                             Button('Cancel', css_class='btn-default'))
+                             Button('Cancel', css_class='btn-outline-success'))
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -80,7 +85,7 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         kwargs['form_title'] = 'Edit address details'
         kwargs['buttons'] = (Button('Save', css_class='btn-success'),
-                             Button('Cancel', css_class='btn-default'))
+                             Button('Cancel', css_class='btn-outline-success'))
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -119,3 +124,16 @@ class ClubMagazineView(LoginRequiredMixin, TemplateView):
 
 class PoliciesView(LoginRequiredMixin, TemplateView):
     template_name = 'club/policies.html'
+
+
+class InvoicesView(LoginRequiredMixin, TemplateView):
+    template_name = 'club/invoices.html'
+
+
+class HistoryView(LoginRequiredMixin, TemplateView):
+    template_name = 'club/history.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['bg_class']='bg-white'
+        return context
