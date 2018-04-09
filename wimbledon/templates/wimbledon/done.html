@@ -1,0 +1,41 @@
+{% extends "club/base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+  <div class="row mt-2">
+  <div class="col-md-6">
+    <a href="{% url 'wimbledon_ballot' %}">
+     <img src="{% static 'club/images/ballot2018.png' %}" class="img-fluid">
+    </a>
+  </div>
+  <div class="col py-4">
+    <a href="{% url 'wimbledon_choice' %}" class="btn btn-lg btn-primary float-right">Select your opt out days</a>
+  </div>
+</div>
+<h3 class="mt-2">Opt out selection</h3>
+  <div class="row">
+  <div class="col align-content-center">
+  <p>
+  {% if all_days %}
+  You have opted out of all tickets. Your name will not be included in the ballot.
+  {% elif opt_out %}
+
+  You have opted out of these tickets:
+     </p>
+    <ul>
+    {% for ticket in tickets %}
+      {% if ticket.id in opt_out %}
+      <li>
+        {{ ticket.court }} Court, {{ ticket.date|date:"l j F Y" }}
+      </li>
+      {% endif %}
+
+    {% endfor %}
+    </ul>
+   {% else %}
+    You will be included for all tickets.
+  {% endif %}
+  </div>
+  </div>
+
+{% endblock %}

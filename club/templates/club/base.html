@@ -17,6 +17,7 @@
         <div class="navbar-nav mr-auto">
           <a class="nav-item nav-link" href="{% url 'club_home' %}">Home</a>
           <a class="nav-item nav-link" href="{% url 'club_magazine' %}">UK Tennis magazine</a>
+          <a class="nav-item nav-link" href="{% url 'club_policies' %}">Rules & policies</a>
           {% if user.is_staff %}
             <a class="nav-item nav-link" href="{% url 'home' %}">Administration</a>
           {% endif %}

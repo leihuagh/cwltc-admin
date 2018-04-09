@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^pos/', include('pos.urls')),
     url(r'^club/', include('club.urls')),
     url(r'^cardless/', include('cardless.urls')),
+    url(r'^wimbledon/', include('wimbledon.urls')),
 
     url(r'^home/',
         HomeView.as_view(),

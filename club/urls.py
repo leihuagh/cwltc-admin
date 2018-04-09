@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^account/$', ClubAccountView.as_view(), name='club_account'),
     url(r'^search/$', ClubSearchView.as_view(), name='club_search'),
     url(r'^magazine/$', ClubMagazineView.as_view(), name='club_magazine'),
+    url(r'^policies/$', PoliciesView.as_view(), name='club_policies'),
     ]

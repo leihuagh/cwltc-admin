@@ -9,7 +9,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
 {#  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"#}
 {#      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">#}
-  <link href="https://fonts.googleapis.com/css?family=Roboto|Archivo+Black" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:700" rel="stylesheet">
   <link rel="stylesheet" type="text/css"  href="{% static 'css/custom.css' %}">
   <link rel="stylesheet" type="text/css"  href="{% static 'css/bootstrap-datetimepicker.css' %}">
 
@@ -26,7 +26,7 @@
   {% block content-wide %}
   {% endblock %}
   <div class="container-fluid p-0 margin-bg">
-    {% if not no_container %}<div class="container content-bg flex-grow" style="min-height: 68vh;">{% endif %}
+    {% if not no_container %}<div class="container {% if bg_class %}{{ bg_class }}{% else %}content-bg{% endif %} flex-grow" style="min-height: 68vh;">{% endif %}
     {% cookielaw_banner %}
     {% block content %}
     {% endblock %}

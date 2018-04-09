@@ -1,7 +1,6 @@
 import logging
 from django.shortcuts import redirect, reverse
 from django.core.signing import Signer
-from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.views.generic.edit import FormView

@@ -1,0 +1,31 @@
+{% extends "club/base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+  <h3 class="mt-2">Club Rules and Policy Documents</h3>
+  <p>These documents are downloadable in pdf format.</p>
+  <ul>
+    <li><a href="{% static 'club/documents/CWLTC RULES November 2007.pdf' %}" target="_blank">
+      Club Rules
+    </a></li>
+    <li><a href="{% static 'club/documents/CWLTC 1 Safeguarding Policy Statement 26Mar18.pdf' %}" target="_blank">
+      Safeguarding Policy Statement
+    </a></li>
+    <li><a href="{% static 'club/documents/CWLTC 2 Safeguarding Policy 04Apr18 v02.pdf' %}" target="_blank">
+      Safeguarding Policy
+    </a></li>
+    <li><a href="{% static 'club/documents/CWLTC 3 Diversity and Inclusion Policy 05Apr18.pdf' %}" target="_blank">
+      Diversity and Inclusion Policy
+    </a></li>
+    <li><a href="{% static 'club/documents/CWLTC 4 Complaints Policy 04Apr18.pdf' %}" target="_blank">
+      Complaints Policy
+    </a></li>
+    <li><a href="{% static 'club/documents/CWLTC 5 COOMBE WOOD LTC JUNIOR POSTER 04APR18.pdf' %}" target="_blank">
+      Information for Juniors
+    <li><a href="{% static 'club/documents/CWLTC 9 Whistleblowing Policy 04Apr18.pdf' %}" target="_blank">
+      Whistleblowing Policy
+    <li><a href="{% static 'club/documents/CWLTC 10 Safe and Inclusive Tennis – Reporting a Concern Form 24Mar18.pdf' %}" target="_blank">
+      Safe and Inclusive Tennis – Reporting a Concern Form
+    </a></li>
+  </ul>
+ {% endblock %}

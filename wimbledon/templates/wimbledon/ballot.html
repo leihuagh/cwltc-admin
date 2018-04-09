@@ -1,0 +1,67 @@
+{% extends "club/base.html" %}
+{% load staticfiles %}
+{% block content %}
+<div class="row mt-2">
+  <div class="col-md-6">
+     <img src="{% static 'club/images/ballot2018.png' %} " class="img-fluid">
+  </div>
+  <div class="col py-4">
+    <a href="{% url 'wimbledon_choice' %}" class="btn btn-lg btn-primary float-right">Select your opt out days</a>
+  </div>
+</div>
+
+
+  <h2 class="text-center text-primary my-3"><strong>Saturday 21 April, 5pm</strong></h2>
+  <p>
+  This year's Wimbledon ballot is different from recent years. There will be no signup sheet on the noticeboard.
+  Instead, the draw will be made in an event open to all members on Saturday 21 April, starting at 5pm in the clubhouse.
+  </p>
+<p>
+  We have 37 pairs of tickets spread across all 13 days of the tournament - 14 pairs for centre court, 16 pairs for
+  court 1 and 7 pairs for court 2. The price per pair ranges from £60 to £420.
+</p>
+  <h4>Eligibility</h4>
+<p>
+  You are eligible if you are an adult or junior member of the club, hold an active Lite or Team British Tennis
+  Membership and opted in to the Wimbledon ballot on the LTA site before the deadline in February.
+</p>
+  <p>
+    The <a href="https://www.lta.org.uk/globalassets/major-events/grand-slams/wimbledon/ballots/opt-in-2018/wimbledon-ballot-rules-2018-members.pdf" target="_blank">
+    LTA ballot rules</a> state that all opted-in members must have an equal chance of winning a ticket whether they attend
+  the event or not. This will be the case in our ballot, but if you attend you will have more choice over which tickets
+  you are allocated if you win.
+  </p>
+<h4>The ballot process</h4>
+  <p></p>
+The names of all eligible members will go into a hat and will be drawn in turn.
+If your name is drawn and you are present at the event, you can choose a pair of tickets from any that remain unallocated.</p>
+If you are not present at the event, you have 3 options:
+  <ol>
+    <li>You can appoint a proxy who can choose tickets on your behalf.</li>
+    <li>You can use the button at the top of this page to specify any tickets/dates that you do not want.</li>
+    <li>You can simply do nothing.</li>
+  </ol>
+  <p>
+In cases 2 and 3, you will be allocated the next available ticket from a predefined sequence,
+  ignoring any that you have said that you do not want.
+  If there are no remaining tickets that meet your requirements you will go on a standby list for tickets that are returned.
+  </p>
+<h4>Purchasing tickets</h4>
+  <p></p>
+  If you are allocated a pair of tickets you will receive an email from the LTA and will have 14 days to pay for them.
+  Payment is made direct to the LTA. If you reject the tickets or do not pay for them in time,
+  they will be returned to the club and will be allocated to someone on the standby list or redrawn.
+  </p>
+  <h4>Conditions</h4>
+<p>
+  You must use any tickets that you win for yourself with a guest of your choosing, who does not have to be a member
+  of the club. If any tickets are won by a junior under the age of 16 they must attend the Championships with an adult
+  and be supervised appropriately. Under no circumstances can you sell the tickets.
+</p>
+  <h4>Parking</h4>
+  <p>
+The ballot event on 21 April is likely to be busy and,  bearing in mind it will take place at the end of social tennis,
+  the car park will inevitably be full. Please share cars, cycle, walk or use public transport as far as possible.
+  </p>
+  <br>
+{% endblock %}

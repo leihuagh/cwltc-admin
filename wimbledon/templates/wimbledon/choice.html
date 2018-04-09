@@ -1,0 +1,72 @@
+{% extends "club/base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+  <div class="row mt-2">
+  <div class="col-md-6">
+    <a href="{% url 'wimbledon_ballot' %}">
+     <img src="{% static 'club/images/ballot2018.png' %}" class="img-fluid">
+    </a>
+  </div>
+</div>
+    <h2 class="text-center text-primary my-2 p-3">Opt Out Selection</h2>
+  <form method="post">{% csrf_token %}
+    <p>By default, everyone who opted in to the ballot will be included in the draw for all days.<br>
+      If you plan to be at the event, you do not need to complete this form - you can choose your tickets on the day.
+    <br>If you will not be at the event and <strong>do not</strong> want to win tickets for specific courts / days,
+      tick the boxes in the table below to opt out.
+      Note that we have 2 pairs of tickets for the same court on some days.
+      <br>
+    Press Save when you are done. You can come back and change your selection up until Friday 20 April.
+    </p>
+    <p>If you want to opt out of all days, tick this box:
+      <input type="checkbox" name="all" id="all" {% if all_days %}checked{% endif %}></p>
+    <input type="submit" name="submit" class="btn btn-success my-2" value="Save">
+    <input type="submit" name="cancel" class="btn btn-outline-success my-2" value="Cancel">
+    <div class="card">
+      <table class="table table-sm" id="table">
+        <thead class="table-success">
+          <tr>
+            <td>Court</td><td>Date</td><td>Event day</td><td>Price per pair</td><td>Opt out</td>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ticket in tickets %}
+            <tr>
+              <td>{{ ticket.court }}</td><td>{{ ticket.date|date:"l j F Y" }}</td><td>{{ ticket.day }}</td><td>£ {{ ticket.price }}</td>
+              <td><input type="checkbox" name="ticket_{{ ticket.id }}" class="ticket"
+                         {% if ticket.id in opt_out %}checked{% endif %}></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <input type="submit" name="submit" class="btn btn-success my-2" value="Save">
+    <input type="submit" name="cancel" class="btn btn-outline-success my-2" value="Cancel">
+  </form>
+{% endblock %}
+{% block scripts %}
+  <script>
+  $(document).ready(function () {
+    if ($('#all').is(":checked")) {
+      tableOff()
+    }
+    $('#all').click(function() {
+        if ($('#all').is(":checked")) {
+          tableOff()
+        } else {
+          tableOn()
+        }
+    })});
+    function tableOn(){
+      $('.ticket').attr('disabled', false);
+      $('.ticket').attr('checked', false);
+      $('#table').removeClass('bg-light');
+    }
+    function tableOff(){
+      $('.ticket').attr('disabled', true);
+      $('.ticket').attr('checked', true);
+      $('#table').addClass('bg-light');
+    }
+  </script>
+{% endblock %}

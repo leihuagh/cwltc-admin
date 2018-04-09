@@ -115,3 +115,7 @@ class ClubMagazineView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         super().get_context_data(**kwargs)
+
+
+class PoliciesView(LoginRequiredMixin, TemplateView):
+    template_name = 'club/policies.html'

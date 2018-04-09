@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'club',
     'authentication',
     'cardless',
+    'wimbledon',
 )
 
 MIDDLEWARE_CLASSES = (

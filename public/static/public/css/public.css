@@ -28,7 +28,7 @@ body {
 }
 
 .logo {
-  font-family: Archivo Black;
+  font-family: 'Montserrat';
   font-size: 2em;
   font-weight: bold;
 }
@@ -42,6 +42,7 @@ body {
  }
 
 .logo-strap {
+  font-family: 'Roboto';
   color: #6f8f8b;
   position: absolute;
   font-size: 1em;
@@ -62,7 +63,7 @@ body {
   }
   .logo-strap {
     font-size: 1em;
-    top: 40px
+    top:
   }
 }
 
