@@ -3,6 +3,10 @@
   background-color: #dde5e5;
 }
 
+.bg-white {
+  background-color: white;
+}
+
 .logo-strip {
   background-color: white;
   height:85px;
