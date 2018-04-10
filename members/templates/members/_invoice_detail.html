@@ -1,7 +1,7 @@
 ﻿<table width="650"  border="0">
     <tr><td>
 
-<p style="font-family: 'Arial'; font-size:18px;" ><strong>Coombe Wood LTC Invoice</strong>  
+<p style="font-family: 'Arial'; font-size:18px;" ><strong>Coombe Wood LTC Invoice</strong>
 <p style="font-family: 'Arial'; font-size:14px; color:#020202;">
 Reference: {{ person.id }}/{{ invoice.id }}<br />
 Date: {{ invoice.date }}
@@ -38,11 +38,10 @@ Date: {{ invoice.date }}
 
 <tr>
     <td></td>
-    <td align="right"><b>Total now due</b></td>
-    <td align="right"><b>£{{ invoice.total }}</b></td>
+    <td align="right"><b>Total now due:</b></td>
+    <td align="right"><b>£ {{ invoice.total }}</b></td>
 </tr>
 </table>
         </td>
     </tr>
 </table>
-

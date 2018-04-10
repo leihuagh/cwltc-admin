@@ -356,11 +356,8 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
             return redirect(reverse('sub-renew-list'))
 
         elif 'deregister' in request.POST:
-            user = person.auth
-            user.delete()
-            person.auth = None
-            person.pin = None
-            person.save()
+            person_deregister(person)
+
 
         elif 'invoice' in request.POST:
             return redirect('invoice-generate', pk=person.id)

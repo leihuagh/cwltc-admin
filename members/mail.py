@@ -90,7 +90,7 @@ def send_template_mail(request, person, text,
     child = None
     if person.linked:
         # Get the current sub but deal with case in 
-        # April when year is chnaged by sub is not yet there
+        # April when year is changed but sub is not yet there
         sub = person.active_sub(year)
         if not sub:
             sub = person.active_sub(year-1)
@@ -99,17 +99,18 @@ def send_template_mail(request, person, text,
                 recipient = person.linked
                 child = person
     to = recipient.email
-    positive = False
-    negative = False
 
-    for mail_type in mail_types:
-        if mail_type.person_set.filter(id=recipient.id):
-            negative = True
-        else:
-            positive = True
+    if mail_types:
+        positive = False
+        negative = False
+        for mail_type in mail_types:
+            if mail_type.person_set.filter(id=recipient.id):
+                negative = True
+            else:
+                positive = True
 
-    if negative and not positive:
-        return 'unsubscribed'
+        if negative and not positive:
+            return 'unsubscribed'
 
     if recipient.email not in sent_list:
         sent_list.append(recipient.email)
@@ -141,7 +142,7 @@ def send_template_mail(request, person, text,
         token = signer.sign(recipient.id)
         unsub_url = request.build_absolute_uri(reverse('mailtype-subscribe-public', args=(token,)))
         html_body += '<p><a href="' + unsub_url + '">Unsubscribe</a></p>'
-        if u'@' in to: 
+        if '@' in to:
             try:          
                 send_htmlmail(from_email='Coombe Wood LTC <' + from_email + '>',
                                 to=recipient.email,
@@ -159,7 +160,7 @@ def send_template_mail(request, person, text,
         
 def send_htmlmail(from_email, to, cc=None, bcc=None, subject="", html_body=""):
     '''
-    Send HTML and plain test mail
+    Send HTML and plain text mail
     '''
     text_plain = strip_tags(html_body)
     msg = EmailMultiAlternatives(from_email=from_email,

@@ -604,7 +604,19 @@ def person_resign(person):
         person.sub.no_renewal = True 
         person.sub.save()       
         person.state = Person.RESIGNED
-        person.save()
+        person_deregister(person)
+
+
+def person_deregister(person):
+    user = person.auth
+    user.delete()
+    person.auth = None
+    person.pin = None
+    person.allow_phone = False
+    person.allow_email = False
+    person.allow_marketing = False
+    person.consent_date = None
+    person.save()
 
 
 @nottest

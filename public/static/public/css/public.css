@@ -81,7 +81,7 @@ body {
 }
 @media only screen and (min-width: 47.9em) {
   .logo-content {
-    width: 45em;
+    width: 45px;
   }
   .logo {
   font-size: 2.3em;
@@ -178,17 +178,16 @@ body {
     /*border-radius: 1px;*/
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
-/*.card-body {*/
-    /*background: rgb(195, 224, 186);*/
-/*}*/
 
-/*.card-footer {*/
-    /*border-top-color: #006600;*/
-/*}*/
+.table-borderless td,
+.table-borderless th {
+    border: 0;
+}
+
 
 .form-control-label {
     font-weight: bold;
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
 /*

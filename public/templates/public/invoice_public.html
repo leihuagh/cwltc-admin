@@ -1,6 +1,7 @@
 ﻿{% extends "public/base.html" %}
 {% block content %}
-{% include "members/_invoice_detail.html" %}
+  <h2></h2>
+{% include "members/_invoice_detail_bs4.html" %}
   <hr />
   {% if invoice %}
     {% if payments_paid %}
@@ -18,18 +19,37 @@
       </ul>
     {% endif %}
     {% if not payments_paid and not payments_pending %}
-      <form action="{% url 'invoice-public' token %}" method="post" class="form-inline" id="post-form">
-      {% csrf_token %}
+      <form action="{% url 'invoice-public' token %}" method="post" class="form" id="post-form">
+        {% csrf_token %}
       <input type="hidden" name="token" value="{{ token }}">
-      Make a payment to Coombe Wood through GoCardless: <br />
-      <input type="submit" name="pay" value="Pay in full" class="btn btn-primary"><br /><br />
-      If you have a query about the bill or want to change your membership:<br />
-      <input type="submit" name="query" value="Query bill" class="btn btn-primary"><br /><br />
-      If you want to resign from the club please let us know:<br />
-      <input type="submit" name="resign" value="Resign " class="btn btn-primary"><br /><br />
+      <div class="row mb-2">
+        <div class="col-sm-4 col-md-2">
+          <input type="submit" name="pay" value="Pay in full" class="btn btn-primary btn-block">
+        </div>
+        <div class="col mt-2">
+          Make a payment to Coombe Wood through GoCardless.
+        </div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-sm-4 col-md-2">
+          <input type="submit" name="query" value="Query bill" class="btn btn-primary btn-block">
+        </div>
+        <div class="col mt-2">
+          If you have a query about the bill or want to change your membership.<br />
+        </div>
+      </div>
+      <div class="row mb-2 pb-4">
+        <div class="col-sm-4 col-md-2">
+          <input type="submit" name="resign" value="Resign " class="btn btn-primary btn-block">
+        </div>
+        <div class="col mt-2">
+          If you want to resign from the club please let us know.<br />
+        </div>
+      </div>
       </form>
     {% endif %}
   {% else %}
       <h3>Invoice token {{ token }} is invalid!</h3>
   {% endif %}
-{% endblock %} 
+
+{% endblock %}

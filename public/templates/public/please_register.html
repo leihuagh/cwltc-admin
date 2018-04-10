@@ -1,0 +1,21 @@
+{% extends "public/base.html" %}
+{% block content %}
+  <h4>Please register</h4>
+  <p>
+    We have launched a new web site for club members and parents where we will be posting all sorts of information about
+    the club including tournaments, social events, coaching and holiday camp information.
+  </p>
+  <p>
+  Registration on the site is optional, but highly recommended if you want to get the most out of the club.
+  </p>
+  <p>For adult members, registration is required if you want to enter the club tournament, buy teas on a Saturday,
+    or use the club's new bar system</p>
+  <p>
+    Registration through this link is very quick because we already have most of your details.
+    If you skip registration you can always register later at www.coombewoodltc.com/public.
+   </p>
+  <form method="post">{% csrf_token %}
+    <input type="submit" class="btn btn-primary" name="register" value="Register now">
+    <input type="submit" class="btn btn-primary" name="skip" value="Skip registration">
+  </form>
+{% endblock %}

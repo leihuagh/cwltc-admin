@@ -87,6 +87,13 @@ class InvoicePublicView(DetailView):
     model = Invoice
     template_name = 'public/invoice_public.html'
 
+    def get(self, request, *args, **kwargs):
+        self.get_object()
+        if self.invoice.person.consent_date:
+            return super().get(request, *args, **kwargs)
+        if not self.invoice.person.auth:
+            return redirect('public-register-invoice-token', token=kwargs['token'])
+
     def get_object(self, queryset=None):
         self.invoice = detokenise(self.kwargs['token'], Invoice)
         return self.invoice
@@ -161,3 +168,7 @@ class ContactView(FormView):
 
 class ResignedView(TemplateView):
     template_name = 'public/resigned.html'
+
+
+class PleaseRegisterView(TemplateView):
+    template_name = 'public/please_register.html'

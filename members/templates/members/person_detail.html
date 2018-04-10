@@ -35,6 +35,10 @@
                       <a href="{% url 'junior-profile' pk=person.id %}">View</a>
                       {% else %}
                       No profile{% endif %}</td></tr>
+                    <tr><td>Database-email</td><td>{{ person.allow_email }}</td></tr>
+                    <tr><td>Database-phone</td><td>{{ person.allow_phone }}</td></tr>
+                    <tr><td>Allow marketing</td><td>{{ person.allow_marketing }}</td></tr>
+                    <tr><td>Consent-date</td><td>{{ person.consent_date }}</td></tr>
                   </table>
    
                   <div class="panel-footer">

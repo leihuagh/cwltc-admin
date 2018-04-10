@@ -21,14 +21,23 @@ urlpatterns = [
         name='public-apply-child-profile'),
     url(r'^apply/submit/$', ApplySubmitView.as_view(), name='public-apply-submit'),
     url(r'^apply/thank-you/$', ApplyThankYouView.as_view(), name='public-apply-thank-you'),
+
+    url(r'^please_register/(?P<token>.+)/$', PleaseRegisterView.as_view(), name='public-please-register-token'),
     url(r'^register/$', RegisterView.as_view(), name='public-register'),
+    url(r'^register/invoice/(?P<token>.+)/$', RegisterTokenView.as_view(invoice=True), name='public-register-invoice-token'),
     url(r'^register/token/(?P<token>.+)/$', RegisterTokenView.as_view(), name='public-register-token'),
+
+    url(r'^consent/invoice/(?P<token>.+)/$', ConsentTokenView.as_view(invoice=True),
+        name='public-consent-invoice-token'),
     url(r'^consent/(?P<token>.+)/$', ConsentTokenView.as_view(), name='public-consent-token'),
+
     url(r'^contact/$', ContactView.as_view(), name='public-contact'),
     url(r'^contact/(?P<person_id>\d+)/$', ContactView.as_view(), name='public-contact-person'),
     url(r'^thank_you/$', ThankyouView.as_view(), name='public-thank-you'),
     url(r'^resigned/$', ResignedView.as_view(), name='public-resigned'),
+
     url(r'^privacy_policy/$', PrivacyPolicyView.as_view(), name='privacy-policy'),
+
     url(r'^camp/$', CampHomeView.as_view(), name='camp-home'),
     url(r'^camp/register/$', CampRegisterView.as_view(), name='camp-register'),
     url(r'^camp/register/new/$', CampRegisterNewView.as_view(), name='camp-register-new'),

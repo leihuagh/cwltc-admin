@@ -1,0 +1,44 @@
+﻿
+<h4><strong>Invoice</strong></h4>
+<p>
+Reference: {{ person.id }}/{{ invoice.id }}<br>
+Date: {{ invoice.date }}
+</p>
+<p>
+{% if unknown %}
+    {{ unknown }}
+{% else %}
+  {{ addressee }}
+{% endif %}
+<br>
+{% include "members/_address_block.html" %}</p>
+<div class="row">
+  <div class="col-sm-12 col-md-8">
+  <table class="table table-sm table-borderless">
+  <trhead><tr><th>Member</th><th>Description</th><th class="text-right">Amount</th></trhead></thead>
+  {% for item in items %}
+    <tr>
+        <td>{{ item.person.fullname }}</td>
+        <td>
+        {% if item.description %}
+            {{ item.description }}
+        {% else %}
+            {{ item.item_type.description }}
+        {% endif %}
+        </td>
+        <td class="text-right">£ {{ item.amount }}</td>
+        {% if show_buttons %}
+            <td>{% if item.paid %}&nbsp; Paid {% else %}&nbsp; Unpaid {% endif %}</td>
+        {% endif %}
+    </tr>
+  {% endfor %}
+  <tr>
+      <td></td>
+      <td align="right"><b>Total now due:</b></td>
+      <td align="right"><b>£ {{ invoice.total }}</b></td>
+  </tr>
+</table>
+  </div>
+</div>
+
+
