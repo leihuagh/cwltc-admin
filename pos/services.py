@@ -5,8 +5,7 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
-from .views.ipad_views import build_pos_array
-from .models import Transaction, LineItem, Layout, PosPayment, Item, TWO_PLACES
+from .models import Transaction, LineItem, Layout, PosPayment, Item, Location, TWO_PLACES
 from members.models import InvoiceItem, ItemType
 
 @transaction.atomic
@@ -189,3 +188,30 @@ def dump_layout_to_excel(layout):
                     row_num += 1
     wb.save(response)
     return response
+
+
+def build_pos_array(layout):
+    """
+    Build an array of rows and columns
+    Col[0] is the description for a row
+    Cells contain items
+    Returns the used items for managing the layout
+    """
+    locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col')
+    items = Item.objects.filter(item_type_id=layout.item_type_id).order_by('button_text')
+    rows = []
+    for r in range(1, Location.ROW_MAX + 1):
+        cols = []
+        for c in range(0, Location.COL_MAX + 1):
+            cols.append([r, c])
+        rows.append(cols)
+    for loc in locations:
+        if loc.col == 0:
+            rows[loc.row - 1][loc.col].append(loc.description)
+        else:
+            rows[loc.row - 1][loc.col].append(loc.item)
+            if items:
+                item = [item for item in items if item.button_text == loc.item.button_text]
+                if item:
+                    item[0].used = True
+    return rows, items

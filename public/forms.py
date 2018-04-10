@@ -120,17 +120,19 @@ class RegisterTokenForm(Form):
 
     def clean(self):
         cleaned_data = super(RegisterTokenForm, self).clean()
-        username = cleaned_data.get('username')
+        username = cleaned_data.get('username', None)
+        if username == None:
+            raise forms.ValidationError('You must enter a username', code='invalid_user')
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError('Sorry, that user name is already taken', code='invalid_user')
         if len(username) < 8:
             raise forms.ValidationError('Your user name must be at least 8 characters long', code='invalid_user')
-        password = cleaned_data.get('password1')
+        password = cleaned_data.get('password1', None)
         if password == None:
             raise forms.ValidationError('You must enter a password', code='invalid_password')
         if len(password) < 8:
             raise forms.ValidationError('Your password must be at least 8 characters long', code='invalid_password')
-        if password != cleaned_data.get('password2'):
+        if password != cleaned_data.get('password2', None):
             raise forms.ValidationError('Passwords do not match', code='invalid_password')
        
         # Password must have at least 1 character and 1 number     

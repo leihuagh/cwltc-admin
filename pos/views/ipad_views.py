@@ -1,5 +1,6 @@
 import json
 import logging
+import datetime
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.views.generic import TemplateView, FormView
@@ -12,7 +13,7 @@ from public.views import RegisterView, RegisterTokenView, ConsentTokenView
 from mysite.common import Button
 from pos.tables import *
 from pos.forms import TerminalForm
-from pos.services import *
+from pos.services import create_transaction_from_receipt, build_pos_array
 
 LONG_TIMEOUT = 120000
 SHORT_TIMEOUT = 30000
@@ -307,28 +308,4 @@ def ajax_items_view(request):
     return JsonResponse(data, safe=False)
 
 
-def build_pos_array(layout):
-    """
-    Build an array of rows and columns
-    Col[0] is the description for a row
-    Cells contain items
-    Returns the used items for managing the layout
-    """
-    locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col')
-    items = Item.objects.filter(item_type_id=layout.item_type_id).order_by('button_text')
-    rows = []
-    for r in range(1, Location.ROW_MAX + 1):
-        cols = []
-        for c in range(0, Location.COL_MAX + 1):
-            cols.append([r, c])
-        rows.append(cols)
-    for loc in locations:
-        if loc.col == 0:
-            rows[loc.row - 1][loc.col].append(loc.description)
-        else:
-            rows[loc.row - 1][loc.col].append(loc.item)
-            if items:
-                item = [item for item in items if item.button_text == loc.item.button_text]
-                if item:
-                    item[0].used = True
-    return rows, items
+

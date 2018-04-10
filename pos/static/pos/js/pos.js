@@ -28,7 +28,7 @@ var posCode = (function () {
     var personList;
 
     /* Public methods*/
-    pos.init = function (items_url, post_url, exit_url, is_attended, person_id, person_name) {
+    pos.init = function (items_url, post_url, exit_url, is_attended, person_id, person_name, csrf_token) {
         itemsUrl = items_url;
         postUrl = post_url;
         exitUrl = exit_url;
@@ -39,7 +39,7 @@ var posCode = (function () {
         exitClass.hide();
         $.ajaxSetup({
             beforeSend: function (xhr, settings) {
-                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                xhr.setRequestHeader('X-CSRFToken', csrf_token);
             }
         });
         loadItems();
