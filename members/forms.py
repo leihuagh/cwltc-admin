@@ -983,21 +983,29 @@ class PaymentFilterForm(Form):
 
 
 class CreditNoteForm(ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(CreditNoteForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper(self)
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
-        self.helper.form_show_errors = True
-        self.helper.form_error_title = 'Errors'
-        self.helper.error_text_inline = True
-        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
 
     class Meta:
         model = CreditNote
         fields = ['membership_year', 'amount', 'reference']
+
+    def __init__(self, *args, **kwargs):
+        super(CreditNoteForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-sm-2'
+        self.helper.field_class = 'col-sm-4'
+        self.helper.form_error_title = 'Errors'
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+
+    def clean_membership_year(self):
+        if self.cleaned_data['membership_year'] < 2017:
+            raise forms.ValidationError('Invalid year')
+        return self.cleaned_data['membership_year']
+
+    def clean_amount(self):
+        if self.cleaned_data['amount'] < 0:
+            raise forms.ValidationError('Amount should not be negative')
+        return self.cleaned_data['amount']
 
 
 class TextBlockForm(ModelForm):

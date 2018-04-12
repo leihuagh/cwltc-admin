@@ -36,7 +36,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'widget_tweaks',
     'rest_framework',
-    'report_builder',
+#    'report_builder',
     'anymail',
     'django_mail_viewer',
     'django_tables2',
@@ -163,6 +163,7 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/club/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+DJANGO_TABLES2_TEMPLATE = 'django_tables2/bootstrap.html'
 
 # EMAIL_BACKEND is defined in site specific settings
 

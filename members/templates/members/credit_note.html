@@ -15,7 +15,7 @@
         <td>Year:</td><td>{{ cnote.membership_year }}</td>
     </tr>
      <tr>
-        <td>Created:</td><td>{{ cnote.creation_date|date }}</td>
+        <td>Created:</td><td>{{ cnote.creation_date|date }} by {{ cnote.user }}</td>
     </tr>
     <tr>
         <td>Invoice:</td><td><a href="{% url "invoice-detail" cnote.invoice_id %}">{{ cnote.invoice.id }}</a></td>

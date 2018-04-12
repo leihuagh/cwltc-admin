@@ -6,5 +6,8 @@
 {% if message %}
   <p>{{ message }}</p>
 {% endif %}
+  {% if form.errors %}
+    <div class="text-danger">Please correct the errors in the form</div>
+  {% endif %}
   {% crispy form %}
 {% endblock content %}

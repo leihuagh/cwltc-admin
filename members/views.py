@@ -9,8 +9,6 @@ from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from braces.views import StaffuserRequiredMixin
 
-
-from report_builder.models import Report
 from django_tables2 import SingleTableView
 from pos.services import create_invoiceitems_from_payments
 from public.forms import NameForm, AddressForm
@@ -1751,7 +1749,8 @@ class CreditNoteCreateView(StaffuserRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.person = Person.objects.get(pk=self.kwargs['person_id'])
         form.instance.detail = "Manually created"
-        return super(CreditNoteCreateView, self).form_valid(form)
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('person-detail',

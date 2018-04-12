@@ -78,8 +78,8 @@ class Location(models.Model):
 
 class Transaction(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
-    creator = models.ForeignKey(User)
-    person = models.ForeignKey(Person, blank=True, null=True)
+    creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     complimentary = models.BooleanField(default=False)
     cash = models.BooleanField(default=False)
@@ -109,7 +109,7 @@ class LineItem(models.Model):
 
 class PosPayment(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, blank=True, null=True)
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     billed = models.BooleanField()
     amount = models.DecimalField(max_digits=5, decimal_places=2, null=False)
 

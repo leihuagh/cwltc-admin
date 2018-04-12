@@ -255,6 +255,7 @@
           {% if items %}
             <button type="submit" name="invoice" class="btn btn-primary btn-sm">Generate an invoice</button>
           {% endif %}
+          <a href="{% url "creditnote-create" person_id=person.id %}" class="btn btn-warning btn-sm">Create manual credit note</a>
         </div>
       </div>
     {% else %}
