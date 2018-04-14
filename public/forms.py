@@ -437,7 +437,10 @@ class ConsentForm(Form):
         widget=forms.RadioSelect)
 
     def __init__(self, *args, **kwargs):
+        non_member = kwargs.pop('non_member', False)
         super().__init__(*args, **kwargs)
+        if non_member:
+            self.fields.pop('database')
         self.helper = FormHelper(self)
         self.helper.form_tag = False
 

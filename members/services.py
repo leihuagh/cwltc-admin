@@ -193,6 +193,7 @@ def invoice_create_from_items(person, year):
         subs_total = 0
         has_adult = False
         has_junior = False
+        has_cadet = False
         is_family = False
         items = person.invoiceitem_set.filter(
             invoice=None
@@ -217,6 +218,7 @@ def invoice_create_from_items(person, year):
                 is_family = True
                 has_adult = has_adult or fam_member.membership_id == Membership.FULL
                 has_junior = has_junior or fam_member.membership_id == Membership.JUNIOR
+                has_cadet = has_cadet or fam_member.membership_id == Membership.CADET
                 item.invoice = invoice
                 invoice.total += item.amount
                 subs_total += item.amount
@@ -228,7 +230,7 @@ def invoice_create_from_items(person, year):
                 item.save()
             
         # test for family discount
-        if is_family and has_adult and has_junior:
+        if is_family and has_adult and (has_junior or has_cadet):
             disc_item = InvoiceItem.objects.create(
                 person=person,
                 invoice=invoice,
@@ -472,7 +474,7 @@ def subscription_renew_list(sub_year, sub_month, id_list):
     return count
 
 
-def subscription_renew_batch(sub_year, sub_month, size=100000):
+def subscription_renew_batch(sub_year, sub_month):
     """
     Renew a batch of subscriptions.
     Size determines how many to renew.
@@ -482,26 +484,18 @@ def subscription_renew_batch(sub_year, sub_month, size=100000):
     Else return the number remaining
     """
     expiry_date = datetime(sub_year, sub_month, 1)
-    expired_subs = Subscription.objects.filter(
-        active=True
-    ).filter(
-        no_renewal=False
-    ).filter(
-        end_date__lt=expiry_date)
-    remaining = expired_subs.count()
+    expired_subs = Subscription.objects.filter(sub_year=sub_year - 1, active=True, paid=True,
+                                               no_renewal=False, end_date__lt=expiry_date)
     count = 0
-    if size > 0:
-        for sub in expired_subs:
-            subscription_renew(sub,
-                               sub_year,
-                               sub_month,
-                               generate_item=True,
-                               activate=False,
-                               age_list=create_age_list())
-            count += 1
-            if count == size:
-                break
-    return remaining - count
+    for sub in expired_subs:
+        subscription_renew(sub,
+                           sub_year,
+                           sub_month,
+                           generate_item=True,
+                           activate=False,
+                           age_list=create_age_list())
+        count += 1
+    return count
 
 
 def subscription_create_invoiceitems(sub, month):

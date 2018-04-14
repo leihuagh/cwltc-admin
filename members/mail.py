@@ -16,13 +16,12 @@ mailgun_api_url = 'https://api.mailgun.net/v3/mg.coombewoodltc.co.uk'
 def do_mail(request, invoice, option):
     count = 0
     family = invoice.person.person_set.all()
-    context={}
+    context = {}
     TextBlock.add_email_context(context)
     invoice.add_context(context)
-    signer = Signer()
-    token = signer.sign(invoice.id)
-    context['gc_bill_create'] = request.build_absolute_uri(reverse('invoice-public', args=(token,)))
-    context['resign'] = request.build_absolute_uri(reverse('public-resigned'))
+    token = Signer().sign(invoice.id)
+    context['gc_bill_create'] = request.build_absolute_uri(reverse('public-online-token', args=(token,)))
+    context['resign'] = request.build_absolute_uri(reverse('public-resign-token', args=(token,)))
     if invoice.email_count > 0:
         context['reminder'] = True
 
@@ -48,6 +47,7 @@ def do_mail(request, invoice, option):
             count += 1
         invoice.save()
     return count
+
 
 def send_multiple_mails(request, person_queryset, text, from_email,
                         cc=None, bcc=None, subject="", mail_types=None):
@@ -78,6 +78,7 @@ def send_multiple_mails(request, person_queryset, text, from_email,
             count_bad += 1
     return u'Sent: {}, Unsubscribed: {}, Duplicates: {}, No email address: {}'.format(
             count, count_unsub, count_dups, count_bad)
+
 
 def send_template_mail(request, person, text,
                        from_email, cc=None, bcc=None, subject="",

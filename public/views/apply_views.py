@@ -540,6 +540,7 @@ class JuniorProfileView(UpdateView):
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk': self.kwargs['pk']})
 
+
 class CampHomeView(TemplateView):
     template_name='public/camp_home.html'
 

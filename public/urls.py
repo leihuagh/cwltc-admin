@@ -22,6 +22,9 @@ urlpatterns = [
     url(r'^apply/submit/$', ApplySubmitView.as_view(), name='public-apply-submit'),
     url(r'^apply/thank-you/$', ApplyThankYouView.as_view(), name='public-apply-thank-you'),
 
+    url(r'^invoice/public/(?P<token>.+)/$',InvoicePublicView.as_view(), name='public-invoice-token'),
+
+    url(r'^online/(?P<token>.+)/$', GoOnlineView.as_view(), name='public-online-token'),
     url(r'^please_register/(?P<token>.+)/$', PleaseRegisterView.as_view(), name='public-please-register-token'),
     url(r'^register/$', RegisterView.as_view(), name='public-register'),
     url(r'^register/invoice/(?P<token>.+)/$', RegisterTokenView.as_view(invoice=True), name='public-register-invoice-token'),
@@ -30,10 +33,12 @@ urlpatterns = [
     url(r'^consent/invoice/(?P<token>.+)/$', ConsentTokenView.as_view(invoice=True),
         name='public-consent-invoice-token'),
     url(r'^consent/(?P<token>.+)/$', ConsentTokenView.as_view(), name='public-consent-token'),
+    url(r'^consent/junior/(?P<token>.+)/(?P<person_id>.+)$', ConsentJuniorTokenView.as_view(),
+        name='public-consent-junior-token'),
 
-    url(r'^contact/$', ContactView.as_view(), name='public-contact'),
-    url(r'^contact/(?P<person_id>\d+)/$', ContactView.as_view(), name='public-contact-person'),
+    url(r'^contact/(?P<token>.+)/$', ContactView.as_view(), name='public-contact-token'),
     url(r'^thank_you/$', ThankyouView.as_view(), name='public-thank-you'),
+    url(r'^resign/(?P<token>.+)/$', ResignView.as_view(), name='public-resign-token'),
     url(r'^resigned/$', ResignedView.as_view(), name='public-resigned'),
 
     url(r'^privacy_policy/$', PrivacyPolicyView.as_view(), name='privacy-policy'),

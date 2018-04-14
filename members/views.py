@@ -10,6 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from braces.views import StaffuserRequiredMixin
 
 from django_tables2 import SingleTableView
+from mysite.common import Button
 from pos.services import create_invoiceitems_from_payments
 from public.forms import NameForm, AddressForm
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
@@ -523,11 +524,13 @@ class GroupListView(StaffuserRequiredMixin, ListView):
 class GroupDetailView(StaffuserRequiredMixin, DetailView):
     model = Group
     template_name = 'members/group_detail.html'
+    context_object_name = 'group'
 
     def get_context_data(self, **kwargs):
         context = super(GroupDetailView, self).get_context_data(**kwargs)
         context['url'] = reverse('group-detail', kwargs={'slug': kwargs['object'].slug})
         add_membership_context(context)
+        return context
 
     def post(self, request, *args, **kwargs):
         group = self.get_object()
@@ -811,103 +814,109 @@ class SubRenewSelectionView(StaffuserRequiredMixin, FormView):
         return reverse('home')
 
 
-class SubRenewBatch(StaffuserRequiredMixin, FormView):
-    form_class = XlsMoreForm
-    template_name = 'members/import_more.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(SubRenewBatch, self).get_context_data(**kwargs)
-        context['title'] = 'Generate subs'
-        context['remaining'] = subscription_renew_batch(2015, 5, 0)
-        return context
-
-    def form_valid(self, form):
-        subscription_renew_batch(2015, 5, 100)
-        return HttpResponseRedirect(reverse('sub-renew-batch'))
-
 # ============ Year end
 
-
-class YearEndView(StaffuserRequiredMixin, FormView):
-    """ Manage setting """
+class ChangeYearView(StaffuserRequiredMixin, FormView):
+    """
+    Change membership year in Setting File
+    """
     form_class = SettingsForm
     template_name = 'members/generic_crispy_form.html'
 
-    def get_context_data(self, **kwargs):
-        context = super(YearEndView, self).get_context_data(**kwargs)
-        context['title'] = 'Settings'
-        return context
-
     def get_initial(self):
-        initial = super(YearEndView, self).get_initial()
-        qset = Settings.objects.all()
-        if qset:
-            year = qset[0].membership_year
-        else:
-            year = 2015
-        initial['membership_year'] = year
+        initial = super().get_initial()
+        initial['membership_year'] = Settings.current_year()
         return initial
-
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Change membership year'
+        return context
+    
     def form_valid(self, form):
-        year = form.cleaned_data['membership_year']
-        if 'cancel' in form.data:
-            return redirect('home')
-
-        elif 'submit' in form.data:
+        if 'submit' in form.data:
             qset = Settings.objects.all()
             if qset:
                 record = qset[0]
             else:
                 record = Settings()
-            record.membership_year = year
+            record.membership_year = form.cleaned_data['membership_year']
             record.save()
+        return redirect('home')
+        
+        
+class YearEndView(StaffuserRequiredMixin, TemplateView):
+    """
+    Year end requires that the year has been changed and the fees set
+    """
+    template_name = 'members/year_end.html'
+    year = 0
+
+    def get(self, request, *args, **kwargs):
+        self.year = Settings.current_year()
+        if datetime.now().year != self.year:
+            messages.warning(request, f'Please change the membership year before running year end')
+            return redirect('yearend-year')
+        if not Fees.objects.filter(sub_year=self.year).exists():
+            messages.warning(request, f'Please set fees for {self.year} before running year end')
+            return redirect('fees-list')
+        return super().get(request, *args, **kwargs)
+
+        
+
+    def get_context_data(self, **kwargs):
+        context = super(YearEndView, self).get_context_data(**kwargs)
+        context['year'] = self.year
+        context['buttons'] = [
+            Button('Cancel', css_class='btn-default'),
+            Button('Renew subs', name='renew', css_class='btn-danger'),
+            Button('Create bar invoice items', name='bar', css_class='btn-danger'),
+            Button('Create teas invoice items', name='teas', css_class='btn-danger'),
+            Button('Create invoices', name='invoices', css_class='btn-danger'),
+            Button('Count mail invoices', name='count', css_class='btn-primary'),
+            Button('Mail invoices', name='mail', css_class='btn-danger')
+            ]        
+        return context
+
+    def post(self, request):
+        year = Settings.current_year()
+        if 'cancel' in request.POST:
             return redirect('home')
 
-        elif 'consolidate' in form.data:
-            counts = consolidate(year)
-            message = '{} people processed, {} unpaid  and {} credit notes carried forward'.format(
-                counts[0], counts[1], counts[2])
-            messages.success(self.request, message)
-            return redirect('year-end')
 
-        elif 'renew' in form.data:
+        # elif 'consolidate' in request.POST:
+        #     counts = consolidate(year)
+        #     message = '{} people processed, {} unpaid  and {} credit notes carried forward'.format(
+        #         counts[0], counts[1], counts[2])
+        #     messages.success(self.request, message)
+        #     return redirect('year-end')
+
+        elif 'renew' in request.POST:
             count = subscription_renew_batch(year, Subscription.START_MONTH)
             message = '{} subscriptions generated'.format(count)
             messages.success(self.request, message)
-            return redirect('year-end')
+            return redirect('yearend')
 
-        elif 'bar' in form.data:
+        elif 'bar' in request.POST:
             count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.BAR)
             message = f'{count1} POS records processed and {count2} invoice item records generated'
             messages.success(self.request, message)
-            return redirect('year-end')
+            return redirect('yearend')
 
-        elif 'teas' in form.data:
+        elif 'teas' in request.POST:
             count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.TEAS)
             message = f'{count1} POS records processed and {count2} invoice item records generated'
             messages.success(self.request, message)
-            return redirect('year-end')
+            return redirect('yearend')
 
-        elif 'invoices' in form.data:
+        elif 'invoices' in request.POST:
             counts = invoice_create_batch(exclude_slug='2015UnpaidInvoices')
             people = "person" if counts[0] == 1 else "people"
             message = '{} invoices created from {} {}'.format(counts[1], counts[0], people)
             messages.success(self.request, message)
-            return redirect('year-end')
+            return redirect('yearend')
 
-        elif 'mail' in form.data:
-            group = group_get_or_create('2015UnpaidInvoices')
-            invs = self.get_unpaid_invoices()
-            count = 0
-            for inv in invs:
-                if not group.person_set.filter(id=inv.person.id).exists():
-                    count += 1
-                    do_mail(self.request, inv, option='send')
-            message = "Sent {} mails for {} invoices".format(count, invs.count())
-            messages.success(self.request, message)
-            return redirect('year-end')
-
-        elif 'count' in form.data:
+        elif 'count' in request.POST:
             inv_group = group_get_or_create('invoiceTest')
             inv_group.person_set.clear()
             invs = self.get_unpaid_invoices()
@@ -920,7 +929,20 @@ class YearEndView(StaffuserRequiredMixin, FormView):
             message = "Will send {} mails for {} invoices".format(count, invs.count())
             messages.success(self.request, message)
 
-        return redirect('year-end')
+        elif 'mail' in request.POST:
+            group = group_get_or_create(f'{year}_UnpaidInvoices')
+            invs = self.get_unpaid_invoices()
+            count = 0
+            for inv in invs:
+                if not group.person_set.filter(id=inv.person.id).exists():
+                    count += 1
+                    do_mail(self.request, inv, option='send')
+            message = "Sent {} mails for {} invoices".format(count, invs.count())
+            messages.success(self.request, message)
+            return redirect('yearend')
+
+
+        return redirect('yearend')
 
     def get_unpaid_invoices(self):
         year = Settings.current_year()

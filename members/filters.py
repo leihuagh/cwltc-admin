@@ -3,6 +3,7 @@ from django.db.models import Q
 from .models import Person, Membership, Settings, Subscription, Invoice, InvoiceItem, Payment
 import django_filters
 
+
 def year_choices(withNone = False):
     choices = []
     if withNone:
@@ -11,6 +12,7 @@ def year_choices(withNone = False):
     for y in range(year, year-5, -1):
         choices.append([y, str(y)])
     return choices
+
 
 class SubsBaseFilter(django_filters.FilterSet):
 
@@ -52,9 +54,6 @@ class SubsBaseFilter(django_filters.FilterSet):
                                          )
 
 
-
-
-                                     
 class JuniorFilter(SubsBaseFilter):
 
     dob1 = django_filters.DateFilter(name='person_member__dob',
@@ -90,7 +89,7 @@ class SubsFilter(SubsBaseFilter):
 class InvoiceFilter(django_filters.FilterSet):
     class Meta:
         model = Invoice
-        fields = ['membership_year','state']
+        fields = ['membership_year', 'state']
 
     STATE_CHOICES = Invoice.STATE.choices()
 

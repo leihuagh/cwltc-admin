@@ -10,17 +10,57 @@ from django.template.loader import get_template
 from mysite.common import Button
 from members.models import Person, Invoice
 from members.mail import send_template_mail
-from public.forms import RegisterForm, RegisterTokenForm, ConsentForm
-
+from public.forms import RegisterForm, RegisterTokenForm, ConsentForm, JuniorProfileForm
+from cardless.services import person_from_token
 logger = logging.getLogger(__name__)
 
 
 class PleaseRegisterView(TemplateView):
+    """
+    External link asking unregistered people to register
+    """
     template_name = 'public/please_register.html'
 
     def post(self, request):
         if 'register' in request.POST:
             return redirect('public-register-invoice-token')
+        return redirect('public-consent-invoice-token')
+
+
+class GoOnlineView(TemplateView):
+    """
+    User has clicked the link in an invoice
+    """
+    template_name = 'public/go_online.html'
+    person = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.token = kwargs.pop('token')
+        self.person = person_from_token(self.token, is_invoice_token=True)
+        if self.person.auth:
+            kwargs['token'] = self.token
+            return ConsentTokenView.as_view(invoice=True)(request, *args, **kwargs)
+        else:
+            return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['person'] = self.person
+        return context
+
+    def post(self, request):
+        if 'register' in request.POST:
+            return redirect('public-register-invoice-token', token=self.token)
+        if 'skip' in request.POST:
+            return redirect('public-consent-invoice-token', token=self.token)
+        if 'resign' in request.POST:
+            self.person.consent_for_marketing(False)
+            return redirect('public-resigned')
+        if 'resign_marketing' in request.POST:
+            self.person.consent_for_marketing(True)
+            return redirect('public-resigned')
+        if not self.person.auth:
+            return redirect('public-register-invoice-token', token=self.token)
         return redirect('public-consent-invoice-token')
 
 
@@ -34,7 +74,7 @@ class RegisterView(FormView):
     form_class = RegisterForm
 
     def get_context_data(self, **kwargs):
-        context = super(RegisterView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['form_title'] = 'Register for the club website and bar system'
         context['info'] = 'Enter these details to confirm you are a club member:'
         context['buttons'] = [Button('Register', css_class='btn-success')]
@@ -120,52 +160,100 @@ class RegisterTokenView(FormView):
 class ConsentTokenView(FormView):
     """
     Update consent flags in the Person record
-    if Invoice is True token is an invoice token and afterwards we redirect to show the invoice
+    if Invoice is True token is an invoice token and afterwards we redirect back to this view
+    This view redirects to get each junior profile until all are done
+    Then redirects to invoice public.
     """
     template_name = 'public/consent.html'
     form_class = ConsentForm
     invoice = False
+    person = None
 
-    def get_person(self):
-        if self.invoice:
-            invoice_id = Signer().unsign(self.kwargs['token'])
-            try:
-                person_id= Invoice.objects.get(pk=invoice_id).person_id
-            except Invoice.DoesNotExist:
-                return None
-        else:
-            person_id = Signer().unsign(self.kwargs['token'])
-        try:
-            return Person.objects.get(pk=person_id)
-        except Person.DoesNotExist:
-            return None
+    def dispatch(self, request, *args, **kwargs):
+        self.token = kwargs['token']
+        self.person = person_from_token(self.token, is_invoice_token=self.invoice)
+        if self.person:
+            return super().dispatch(request, *args, **kwargs)
+        messages.error(self.request, 'Invalid token')
+        return redirect('public-home')
+
+    def get(self, request, *args, **kwargs):
+        if self.person.has_consented():
+            for person in self.person.person_set.all():
+                if person.sub and not person.sub.membership.is_adult and person.juniorprofile_set.count() == 0:
+                    return redirect('public-consent-junior-token', person_id=person.id, token=self.token)
+            if self.invoice:
+                return redirect('public-invoice-token', token=self.token)
+        return super().get(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if not self.person.sub:
+            kwargs.update({'non_member': True})
+        return kwargs
 
     def get_context_data(self, **kwargs):
-        kwargs['person'] = self.get_person()
+        kwargs['person'] = self.person
         if kwargs['person'].sub:
             kwargs['member'] = True
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):
-        self.person = self.get_person()
-        if self.person:
-            self.person.allow_marketing = form.cleaned_data['marketing'] == 'yes'
-            if self.person.sub:
-                database = form.cleaned_data['database'] == 'yes'
-                self.person.allow_email = database
-                self.person.allow_phone = database
-            self.person.consent_date = datetime.datetime.now()
-            self.person.save()
-            if self.invoice:
-                return redirect('invoice-public', token=self.kwargs['token'])
-
-            messages.success(self.request, 'You have successfully registered.')
-            return super().form_valid(form)
-        messages.error(self.request, 'Invalid token')
-        return redirect('public-home')
+        self.person.consent_for_marketing(form.cleaned_data['marketing'] == 'yes')
+        if self.person.sub:
+            self.person.consent_for_database(form.cleaned_data['database'] == 'yes')
+        self.person.save()
+        messages.success(self.request, 'You have successfully registered.')
+        if self.invoice:
+            return redirect('public-consent-invoice-token', token=self.token)
+        return super().form_valid(form)
 
     def get_success_url(self):
         if self.person.sub:
             return reverse('login')
         else:
             return reverse('public-home')
+
+
+class ConsentJuniorTokenView(FormView):
+    """
+    Capture the junior profile
+    The token is an invoice token
+    The junior id is passed in the url as person-id
+    """
+    template_name = 'public/junior_member_profile.html'
+    form_class = JuniorProfileForm
+    parent = None
+    person = None
+    token = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.person = Person.objects.get(pk=kwargs['person_id'])
+        self.token = kwargs['token']
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        self.initial = super().get_initial()
+        parent = self.person.linked
+        if parent.mobile_phone:
+            phone = parent.mobile_phone
+        else:
+            phone = parent.address.home_phone
+        self.initial.update({'contact0': parent.fullname, 'phone0': parent.mobile_phone})
+        return self.initial
+
+    def get_context_data(self, **kwargs):
+        kwargs['person'] = self.person
+        kwargs['buttons'] = [Button('Next', css_class='btn-success')]
+        return super().get_context_data(**kwargs)
+
+    def form_valid(self, form):
+        profile = form.save(commit=False)
+        profile.has_needs = form.cleaned_data['rad_has_needs'] == '2'
+        profile.photo_consent = form.cleaned_data['photo'] == 'yes'
+        profile.person = self.person
+        profile.save()
+        return redirect('public-consent-invoice-token', token=self.token)
+
+
+

@@ -138,7 +138,19 @@ class Person(models.Model):
         return self.active_sub(year)
 
     def invoices(self, state):
-        return self.invoice_set.filter(state=state).order_by('update_date')                           
+        return self.invoice_set.filter(state=state).order_by('update_date')
+
+    def consent_for_marketing(self, flag):
+        self.allow_marketing = flag
+        self.consent_date = datetime.now()
+
+    def consent_for_database(self, flag):
+        self.allow_email = flag
+        self.allow_phone = flag
+        self.consent_date = datetime.now()
+
+    def has_consented(self):
+        return self.consent_date != None
 
 
 class Membership(models.Model):

@@ -1,0 +1,21 @@
+{% extends "members/layout.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+<h2>Year end actions</h2>
+  <h4>Membership year = {{ year }}</h4>
+{% if message %}
+  <p>{{ message }}</p>
+{% endif %}
+  <form method="post">{% csrf_token %}
+    {% for button in buttons %}
+      <div class="row">
+        <div class="col-sm-6 col-md-3">
+        <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} btn-block mb-1"
+           id="id-{{ button.name }}" value="{{ button.value }}">
+        <br>
+        </div>
+      </div>
+  {% endfor %}
+  </form>
+{% endblock content %}

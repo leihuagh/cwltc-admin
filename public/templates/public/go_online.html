@@ -1,0 +1,53 @@
+{% extends "public/base.html" %}
+{% block content %}
+  <h4 class="mt-2 pt-2">{{ person.fullname }} - Please register</h4>
+  <p>
+    Before we take you to the page where you can pay your invoice, there are some short steps to
+    complete to comply with data protection legislation.
+  </p>
+  <p>
+    We have launched a new web site for club members and parents where we will be posting all sorts of information about
+    the club including tournaments, social events, coaching and holiday camp information.
+  </p>
+  <p>
+    Registration on the site is optional, but highly recommended if you want to get the most out of the club.
+  </p>
+  <p>
+    For adult members, registration is required if you want to enter the club tournament, buy teas on a Saturday,
+    or use the club's new bar system.
+  </p>
+  <form method="post">{% csrf_token %}
+    <div class="row pt-4">
+      <p class="col-sm-12 col-md-6">
+        Registration through this link is very quick because we already have most of your details.
+      </p>
+      <div class="col col-sm-12, col-md-6">
+         <input type="submit" class="btn btn-primary" name="register" value="Register now">
+      </div>
+    </div>
+    <div class="row">
+      <p class="col-sm-12 col-md-6">
+        If you skip registration you can always register later at www.coombewoodltc.com/public.
+      </p>
+      <div class="col col-sm-12, col-md-6">
+        <input type="submit" class="btn btn-primary" name="skip" value="Skip registration">
+      </div>
+    </div>
+    <div class="row">
+      <p class="col">
+        If you want to resign and do not want any marketing mails in the future, use this button:
+      </p>
+      <div class="col">
+        <input type="submit" class="btn btn-primary" name="resign" value="Resign - no mails">
+      </div>
+    </div>
+    <div class="row">
+      <p class="col">
+        If you want to resign, but do want to hear about future tennis camps and junior activities, use this button:
+      </p>
+      <div class="col col-sm-12, col-md-6">
+        <input type="submit" class="btn btn-primary" name="resign_marketing" value="Resign - with mails">
+      </div>
+    </div>
+  </form>
+{% endblock %}

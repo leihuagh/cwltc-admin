@@ -5,10 +5,10 @@ from django.core.signing import Signer
 from django.core.mail import send_mail
 from django.contrib import messages
 from django.views.generic.edit import FormView
-from members.models import Invoice, MailType
+from members.models import Invoice, MailType, Settings
 from members.services import group_get_or_create
 from public.forms import *
-from cardless.services import detokenise, invoice_payments_list
+from cardless.services import detokenise, person_from_token, invoice_payments_list
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +30,7 @@ class LoginView(FormView):
     template_name = 'authentication/login.html'
 
 # ================= Public Views accessed through a token
+
 
 class MailTypeSubscribeView(TemplateView):
     """
@@ -86,13 +87,7 @@ class MailTypeSubscribeView(TemplateView):
 class InvoicePublicView(DetailView):
     model = Invoice
     template_name = 'public/invoice_public.html'
-
-    def get(self, request, *args, **kwargs):
-        self.get_object()
-        if self.invoice.person.consent_date:
-            return super().get(request, *args, **kwargs)
-        if not self.invoice.person.auth:
-            return redirect('public-register-invoice-token', token=kwargs['token'])
+    invoice = None
 
     def get_object(self, queryset=None):
         self.invoice = detokenise(self.kwargs['token'], Invoice)
@@ -108,31 +103,49 @@ class InvoicePublicView(DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
+        year = Settings.current_year()
         invoice = self.get_object()
+        person_token = Signer().sign(invoice.person.id)
         if 'pay' in request.POST:
             return redirect('cardless_payment_create', kwargs['token'])
         if 'query' in request.POST:
-            group = group_get_or_create("2017Query")
+            group = group_get_or_create(f'{year}_subs_query')
             invoice.person.groups.add(group)
-            return redirect('public-contact-person', person_id=invoice.person.id)
+            return redirect('public-contact-token', token=person_token)
         elif 'resign' in request.POST:
-            group = group_get_or_create("2017Resign")
+            group = group_get_or_create(f'{year}_resignation')
             invoice.person.groups.add(group)
-            return redirect('public-resigned')
+            return redirect('public-resign-token', token=person_token)
 
 
 class ContactView(FormView):
+    """
+    Send a message. None token is a person token
+    """
     form_class = ContactForm
     template_name = 'public/crispy_form.html'
-    resigned = False
+    resign = False
+    token = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.token = kwargs.pop('token', None)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.token:
+            person = person_from_token(self.token, is_invoice_token=False)
+            initial.update({'email': person.email})
+        return initial
 
     def get_context_data(self, **kwargs):
         context = super(ContactView, self).get_context_data(**kwargs)
-        if self.resigned:
+        if self.resign:
             context['title'] = "Resignation"
-            context['message'] = "Please tell us briefly why you have resigned"
+            context['message'] = "Please tell us briefly why you have resigned."
         else:
-            context['title'] = "Send message to club management"
+            context['title'] = "Query your bill"
+            context['message'] = "Please type your query below"
         return context
 
     def form_valid(self, form):
@@ -147,7 +160,7 @@ class ContactView(FormView):
             message = ""
         message += form.cleaned_data['email']
         message += '  '
-        if self.resigned:
+        if self.resign:
             message += 'Resignation:  '
         else:
             message += 'Query:  '
@@ -157,7 +170,7 @@ class ContactView(FormView):
                   message=message,
                   recipient_list=["subs.cwltc@gmail.com", "is@ktconsultants.co.uk"]
                   )
-        if self.resigned:
+        if self.resign:
             return redirect('public-resigned')
         else:
             return redirect('public-thank-you')
@@ -166,9 +179,10 @@ class ContactView(FormView):
         return super(ContactView, self).form_invalid(form)
 
 
+class ResignView(ContactView):
+    resign = True
+
+
 class ResignedView(TemplateView):
     template_name = 'public/resigned.html'
 
-
-class PleaseRegisterView(TemplateView):
-    template_name = 'public/please_register.html'

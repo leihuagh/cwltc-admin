@@ -45,10 +45,9 @@ urlpatterns = [
         ),
 
     # YEAR END
-    url(r'^yearend/$',
-        YearEndView.as_view(),
-        name='year-end'
-        ),
+    url(r'^yearend/$', YearEndView.as_view(), name='yearend'),
+    url(r'^yearend/year$',ChangeYearView.as_view(), name='yearend-year'),
+
 
     # GROUPS
     url(r'^group/create/$',
@@ -124,7 +123,7 @@ urlpatterns = [
         name='sub-history'
         ),
 
-    #   INVOICES
+    #   INVOICES (excludes public invoice view)
     url(r'^sub/invoicecancel/(?P<pk>\d+)/$',
         SubInvoiceCancel.as_view(),
         name='sub-invoice-cancel'
@@ -137,6 +136,8 @@ urlpatterns = [
         InvoiceDetailView.as_view(),
         name='invoice-detail'
         ),
+    # This url temporarily retained for compatibility with pre 2018 invoices
+    # now replaced by public-invoice-token in public app
     url(r'^invoice/public/(?P<token>.+)/$',
         InvoicePublicView.as_view(),
         name='invoice-public'

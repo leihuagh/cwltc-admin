@@ -154,7 +154,7 @@ def invoice_payments_list(invoice: Invoice, pending=False, paid=False):
                 payment.charge_date = gc_payment.charge_date
                 payment.status = gc_payment.status
                 update_payment(payment, gc_payment)
-            except Exception:
+            except:
                 logger.warning("Payment {} for invoice {} not found in GoCardless".format(
                     payment.cardless_id, payment.invoice.id)
                 )
@@ -202,10 +202,29 @@ def get_payout(id):
 
 def detokenise(token, model_class):
     """ Decode an invoice or person token """
-    pk = Signer().unsign(token)
+    try:
+        pk = Signer().unsign(token)
+    except:
+        return None
     try:
         return model_class.objects.get(pk=pk)
     except model_class.DoesNotExist:
+        return None
+
+
+def person_from_token(token, is_invoice_token):
+    try:
+        id = Signer().unsign(token)
+    except:
+        return None
+    if is_invoice_token:
+        try:
+            id = Invoice.objects.get(pk=id).person_id
+        except Invoice.DoesNotExist:
+            return None
+    try:
+        return Person.objects.get(pk=id)
+    except Person.DoesNotExist:
         return None
 
 
@@ -214,12 +233,12 @@ def iso_date(in_date):
 
 
 def unpack_date_helper(date_string):
-    '''
+    """
     Unpack a date string separated by - or / into parts
     original gocardless file uses yyyy-mm-dd
     If its been through Excel it will be dd/mm/yyyy
     always return list [yyyy, mm, dd]
-    '''
+    """
     date_parts = date_string.split('-')
     if len(date_parts) == 3:
         return date_parts
@@ -230,22 +249,22 @@ def unpack_date_helper(date_string):
 
 
 def unpack_date(date_string):
-    '''
+    """
     Unpack a date string separated by - or / to a date
-    '''
+    """
     date_parts = unpack_date_helper(date_string)
-    return  date(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))
+    return  datetime.date(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))
 
 
 def unpack_datetime(datetime_string):
-    '''
+    """
     Unpack a datetime string separated by - or / to a datetime
-    '''
+    """
     parts = datetime_string.split(' ')
     if len(parts) == 2:
         date_parts = unpack_date_helper(parts[0])
         time_parts = parts[1].split(':')
         if len(time_parts) == 3:
-            return datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]),
-                            int(time_parts[0]), int(time_parts[1]), int(time_parts[2]))
+            return datetime.datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]),
+                                     int(time_parts[0]), int(time_parts[1]), int(time_parts[2]))
     raise ValueError("Cannot parse time from ", datetime_string)

@@ -2,36 +2,39 @@
 {% load members_extras %}
 {% block content %}
 <h2>Fees for {{ year }}</h2>
-<table id="fees" class="table table-condensed" >
-<thead>
-        <tr>
-        <th>Membership category</th>
-        <th class = "text-right">Annual</th>
-        <th class = "text-right">Monthly</th>
-        <th class = "text-right">Joining fee</th>
-        <th class = "text-right">Edit</th>
-    </tr>
-</thead>
-{% for fee in object_list %}
-<tr>
-    <td>{{ fee.membership.description }}</td>
-    <td class = "text-right">£{{ fee.annual_sub }}</td>
-    <td class = "text-right">£{{ fee.monthly_sub }}</td> 
-    <td class = "text-right">£{{ fee.joining_fee }}</td>
-    <td class = "text-right"><a href="{% url "fees-update" fee.id %}" class="btn btn-primary btn-xs">Edit</a></td>
-</tr>
-{% endfor sub %}
-</table>
+  {% if message %}
+  <p>{{ message }}</p>
+  {% endif %}
+  <table id="fees" class="table table-condensed" >
+  <thead>
+          <tr>
+          <th>Membership category</th>
+          <th class = "text-right">Annual</th>
+          <th class = "text-right">Monthly</th>
+          <th class = "text-right">Joining fee</th>
+          <th class = "text-right">Edit</th>
+      </tr>
+  </thead>
+  {% for fee in object_list %}
+  <tr>
+      <td>{{ fee.membership.description }}</td>
+      <td class = "text-right">£{{ fee.annual_sub }}</td>
+      <td class = "text-right">£{{ fee.monthly_sub }}</td>
+      <td class = "text-right">£{{ fee.joining_fee }}</td>
+      <td class = "text-right"><a href="{% url "fees-update" fee.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+  </tr>
+  {% endfor sub %}
+  </table>
 
-<form action="." method="post" class="form-inline" id="post-form">
-    {% csrf_token %}
-    <input type="submit" name="back" value="{{ back }}" class="btn btn-default"/>
-    {% if latest %}
-        <input type="submit" name="copy" value="Copy to year {{ forward }}" class="btn btn-primary"/>
-        <input type="submit" name="delete" value="Delete this year" class="btn btn-danger" onclick="return confirm('Are you sure?')"/>
-    {% else %}
-        <input type="submit" name="forward" value="{{ forward }}" class="btn btn-default"/>
-    {% endif %}
-    <input type="hidden" name="year" value="{{ year }}"/>
-</form>
+  <form action="." method="post" class="form-inline" id="post-form">
+      {% csrf_token %}
+      <input type="submit" name="back" value="{{ back }}" class="btn btn-default"/>
+      {% if latest %}
+          <input type="submit" name="copy" value="Copy to year {{ forward }}" class="btn btn-primary"/>
+          <input type="submit" name="delete" value="Delete this year" class="btn btn-danger" onclick="return confirm('Are you sure?')"/>
+      {% else %}
+          <input type="submit" name="forward" value="{{ forward }}" class="btn btn-default"/>
+      {% endif %}
+      <input type="hidden" name="year" value="{{ year }}"/>
+  </form>
 {% endblock %}
