@@ -1,13 +1,15 @@
 from django.shortcuts import reverse, redirect
 from django.views.generic import DetailView, TemplateView, UpdateView
+from django.core.signing import Signer
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.http import Http404, HttpResponseRedirect
 from braces.views import LoginRequiredMixin
 from mysite.common import Button
-from members.models import Person, Address
+from members.models import Person, Address, Settings, Invoice, Payment
 from members.views import set_person_context, add_membership_context
+from members.services import person_statement
 from public.forms import NameForm, AddressForm
-from django.forms import modelform_factory
+from public.views import InvoicePublicView
+
 # Club Members views
 
 
@@ -99,20 +101,13 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('club_person')
 
 
-class ClubAccountView(LoginRequiredMixin, DetailView):
-    model = Person
-    template_name = 'members/person_detail.html'
-
-    def get_object(self, queryset = None):
-        try:
-            obj = Person.objects.get(auth_id = self.request.user.id)
-        except ObjectDoesNotExist:
-            raise Http404                    
-        return obj
-
-
 class ClubSearchView(LoginRequiredMixin, TemplateView):
     template_name = 'club/search.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['person'] = person_from_user(self.request)
+        return context
 
 
 class ClubMagazineView(LoginRequiredMixin, TemplateView):
@@ -126,8 +121,33 @@ class PoliciesView(LoginRequiredMixin, TemplateView):
     template_name = 'club/policies.html'
 
 
-class InvoicesView(LoginRequiredMixin, TemplateView):
-    template_name = 'club/invoices.html'
+class InvoiceListView(LoginRequiredMixin, TemplateView):
+    """ List all invoices associated with the user"""
+    template_name = 'club/account_overview.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        person = person_from_user(self.request)
+        year = Settings.current_year()
+        context['person'] = person
+        context['year'] = year
+        context['statement'] = person_statement(person, year)
+        context['invoice_states'] = Invoice.STATES
+        context['payment_types'] = Payment.TYPES
+        context['payment_states'] = Payment.STATES
+        return context
+
+    def post(self, request):
+        for key in request.POST:
+            if key[:4] == 'inv-':
+                token = Signer().sign(key[4:])
+                return redirect('club_invoice', token=token)
+        return redirect('club_invoice_list')
+
+
+class ClubInvoiceView(LoginRequiredMixin, InvoicePublicView):
+    """ Show detail of 1 invoice """
+    template_name = 'club/invoice_club.html'
 
 
 class HistoryView(LoginRequiredMixin, TemplateView):
@@ -137,3 +157,10 @@ class HistoryView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data()
         context['bg_class']='bg-white'
         return context
+
+
+def person_from_user(request):
+    try:
+        return Person.objects.get(auth_id=request.user.id)
+    except ObjectDoesNotExist:
+        raise PermissionDenied

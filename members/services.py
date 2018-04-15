@@ -476,12 +476,8 @@ def subscription_renew_list(sub_year, sub_month, id_list):
 
 def subscription_renew_batch(sub_year, sub_month):
     """
-    Renew a batch of subscriptions.
-    Size determines how many to renew.
     Invoice items are automatically generated for each subscription
     But person.sub is not changed
-    If size = 0 just return the count
-    Else return the number remaining
     """
     expiry_date = datetime(sub_year, sub_month, 1)
     expired_subs = Subscription.objects.filter(sub_year=sub_year - 1, active=True, paid=True,

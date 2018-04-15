@@ -40,7 +40,7 @@ def process_payments_list(gc_payments):
                     if payment.cardless_id == gc_payment.id:
                         if update_payment(payment, gc_payment):
                             updated_invoices.append(invoice.id)
-                            break
+                        break
                 else:
                     # This will only happen if we create a manual payment on Go Cardless
                     # when there will not be a payment record
@@ -49,7 +49,7 @@ def process_payments_list(gc_payments):
                     payout_date = None
                     if banked:
                         try:
-                            payout = get_payout(gc_payment.links['payout'])
+                            payout = get_payout(gc_payment.links.payout)
                             payout_date = unpack_date(payout.arrival_date)
                         except Exception:
                             logger.warning("Could not get payout date creating payment for invoice {0}".format(invoice.id))

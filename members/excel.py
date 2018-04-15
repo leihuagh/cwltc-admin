@@ -313,9 +313,11 @@ def import_items(sheet, save_data):
                     count += 1
                     if save_data:
                         new_item = InvoiceItem(person_id=person_id,
-                                                item_type_id=item_id,
-                                                description=description,
-                                                amount=amount)
+                                               item_type_id=item_id,
+                                               description=description,
+                                               amount=amount,
+                                               item_date=datetime.now()
+                                               )
                         new_item.save()
                     else:
                         person = Person.objects.get(id=person_id)

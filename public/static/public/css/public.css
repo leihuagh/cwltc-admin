@@ -6,7 +6,8 @@ body {
 }
 
 .margin-bg {
-  background-color: #495057;
+  /*background-color: #495057;*/
+  background-color: #0e2d26;
 }
 
 .content-bg {
@@ -183,6 +184,13 @@ body {
 .table-borderless th {
     border: 0;
 }
+
+table.dark-header > thead > tr > th{
+  background-color: #06857b;
+  color: white;
+  font-weight: normal;
+}
+
 
 
 .form-control-label {

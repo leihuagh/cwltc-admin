@@ -185,12 +185,20 @@ class MandateListView(LoginRequiredMixin, ListView):
     template_name = 'cardless/mandate_list.html'
     model = Mandate
     context_object_name = 'mandates'
+    person_id = None
+
+    def get_queryset(self):
+        self.person_id = self.kwargs.get('person_id', None)
+        if self.person_id:
+            qs = Mandate.objects.filter(person_id=self.person_id)
+        else:
+            qs = Mandate.objects.all()
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super(MandateListView, self).get_context_data(**kwargs)
-        person_id = self.kwargs.get('person_id', None)
-        if person_id:
-            context['person'] = Person.objects.get(id=person_id)
+        if self.person_id:
+            context['person'] = Person.objects.get(id=self.person_id)
         return context
 
 

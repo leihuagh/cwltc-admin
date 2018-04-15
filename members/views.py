@@ -862,8 +862,6 @@ class YearEndView(StaffuserRequiredMixin, TemplateView):
             return redirect('fees-list')
         return super().get(request, *args, **kwargs)
 
-        
-
     def get_context_data(self, **kwargs):
         context = super(YearEndView, self).get_context_data(**kwargs)
         context['year'] = self.year
@@ -882,7 +880,6 @@ class YearEndView(StaffuserRequiredMixin, TemplateView):
         year = Settings.current_year()
         if 'cancel' in request.POST:
             return redirect('home')
-
 
         # elif 'consolidate' in request.POST:
         #     counts = consolidate(year)

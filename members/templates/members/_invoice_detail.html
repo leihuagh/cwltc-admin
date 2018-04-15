@@ -17,7 +17,7 @@ Date: {{ invoice.date }}
 {% include "members/_address_block.html" %}
 </p>
 
-<table style="height: 40px;" width="650" cellpadding="10">
+<table style="height: 40px;" width="650" cellpadding="8">
 <tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
 {% for item in items %}
 <tr>
@@ -35,7 +35,6 @@ Date: {{ invoice.date }}
     {% endif %}
 </tr>
 {% endfor %}
-
 <tr>
     <td></td>
     <td align="right"><b>Total now due:</b></td>

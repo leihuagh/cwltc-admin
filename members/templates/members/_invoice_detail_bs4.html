@@ -1,4 +1,4 @@
-﻿
+﻿<!-- Invoice contents with actions for public or club site -->
 <h4><strong>Invoice</strong></h4>
 <p>
 Reference: {{ person.id }}/{{ invoice.id }}<br>
@@ -40,5 +40,55 @@ Date: {{ invoice.date }}
 </table>
   </div>
 </div>
+<hr />
+{% if invoice %}
+  {% if payments_paid %}
+    Thank you. This invoice has already been paid.
+    {% for payment in payments_paid %}
+      {{ payment.id}} created at {{ payment.creation_date }} <br/>
+    {% endfor %}
+  {% endif %}
+  {% if payments_pending %}
+    <h5>This invoice has these pending GoCardless payments:</h5>
+    <ul>
+    {% for payment in payments_pending %}
+      <li>Payment number: {{ payment.id}} Amount: £{{ payment.amount }} Created on {{ payment.creation_date }} </li>
+    {% endfor %}
+    <br>
+    </ul>
+  {% endif %}
+  {% if not payments_paid and not payments_pending %}
+    <form action="{% url 'invoice-public' token %}" method="post" class="form" id="post-form">
+      {% csrf_token %}
+    <input type="hidden" name="token" value="{{ token }}">
+    <div class="row mb-2">
+      <div class="col-sm-4 col-md-2">
+        <input type="submit" name="pay" value="Pay in full" class="btn btn-primary btn-block">
+      </div>
+      <div class="col mt-2">
+        Make a payment to Coombe Wood through GoCardless.
+      </div>
+    </div>
+    <div class="row mb-2">
+      <div class="col-sm-4 col-md-2">
+        <input type="submit" name="query" value="Query bill" class="btn btn-primary btn-block">
+      </div>
+      <div class="col mt-2">
+        If you have a query about the bill or want to change your membership.<br />
+      </div>
+    </div>
+    <div class="row mb-2 pb-4">
+      <div class="col-sm-4 col-md-2">
+        <input type="submit" name="resign" value="Resign " class="btn btn-primary btn-block">
+      </div>
+      <div class="col mt-2">
+        If you want to resign from the club please let us know.<br />
+      </div>
+    </div>
+    </form>
+  {% endif %}
+{% else %}
+    <h3>Invoice token {{ token }} is invalid!</h3>
+{% endif %}
 
 

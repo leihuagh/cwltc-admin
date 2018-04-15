@@ -20,8 +20,8 @@ def do_mail(request, invoice, option):
     TextBlock.add_email_context(context)
     invoice.add_context(context)
     token = Signer().sign(invoice.id)
-    context['gc_bill_create'] = request.build_absolute_uri(reverse('public-online-token', args=(token,)))
-    context['resign'] = request.build_absolute_uri(reverse('public-resign-token', args=(token,)))
+    context['invoice_url'] = request.build_absolute_uri(reverse('public-online-token', args=(token,)))
+    context['resign_url'] = request.build_absolute_uri(reverse('public-resign-token', args=(token,)))
     if invoice.email_count > 0:
         context['reminder'] = True
 

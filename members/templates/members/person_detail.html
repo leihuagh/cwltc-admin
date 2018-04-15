@@ -2,7 +2,7 @@
 {% block content %}
 {% load members_extras %}
 <h3>{{ person.fullname }}</h3>
- <form action="." method="post" class="form-inline" id={{confirm_form_id}}>
+ <div action="." method="post" class="form-inline" id={{confirm_form_id}}>
     {% csrf_token %}
       
       <div class="row">
@@ -261,13 +261,7 @@
     {% else %}
       No statement of account
     {% endif %}
-
-    
-
-
-</form>
-
-
+  </form>
 {% endblock %}
 
 
