@@ -13,9 +13,9 @@
   The payment will be identified on your statement as 'GoCardless Ltd'<br>
 </p>
   {%  if user.is_authenticated %}
-    Click below to return to your account page.<br/>
-    <a href="{% url 'club_account' %}" class="btn btn-success">My account</a>
+    Click below to return to view account page.<br/>
+    <a href="{% url 'club_invoice_list' %}" class="btn btn-success">My account</a>
   {% else %}
-    <a href="{% url 'public-home' %}" class="btn btn-success">My account</a>
+    <a href="{% url 'public-home' %}" class="btn btn-success">Home page</a>
   {% endif %}
 {% endblock %}
