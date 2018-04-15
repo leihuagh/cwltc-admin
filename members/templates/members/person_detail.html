@@ -2,7 +2,7 @@
 {% block content %}
 {% load members_extras %}
 <h3>{{ person.fullname }}</h3>
- <div action="." method="post" class="form-inline" id={{confirm_form_id}}>
+ <form action="." method="post" class="form-inline" id={{confirm_form_id}}>
     {% csrf_token %}
       
       <div class="row">
@@ -257,7 +257,7 @@
           {% endif %}
           <a href="{% url "creditnote-create" person_id=person.id %}" class="btn btn-warning btn-sm">Create manual credit note</a>
         </div>
-      </div>
+      </form>
     {% else %}
       No statement of account
     {% endif %}
