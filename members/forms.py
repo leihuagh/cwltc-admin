@@ -996,10 +996,10 @@ class CreditNoteForm(ModelForm):
             raise forms.ValidationError('Invalid year')
         return self.cleaned_data['membership_year']
 
-    def clean_amount(self):
-        if self.cleaned_data['amount'] < 0:
-            raise forms.ValidationError('Amount should not be negative')
-        return self.cleaned_data['amount']
+    # def clean_amount(self):
+    #     if self.cleaned_data['amount'] < 0:
+    #         raise forms.ValidationError('Amount should not be negative')
+    #     return self.cleaned_data['amount']
 
 
 class TextBlockForm(ModelForm):
