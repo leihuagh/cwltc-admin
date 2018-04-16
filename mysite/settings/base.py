@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'django_tables2',
     'djcelery_email',
     'cookielaw',
+    'taggit',
     'members',
     'pos',
     'public',
