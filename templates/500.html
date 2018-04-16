@@ -1,18 +1,7 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>CWLTC</title>
-</head>
-<body>
-<img  src="{% static "images/CWLTC logo small.png" %}"/>
-<h2>Server error</h2>
-<p>Sorry, an error has ocurred while processing your request.</p>
-<p>It has been logged and the administrator has been informed.</p>
 
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"
-      integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
-      crossorigin="anonymous"></script>
-</body>
-</html>
+{% extends 'base_error.html' %}
+{% block content %}
+  <h3>Server error</h3>
+    <p>Sorry, something caised an error while processing your request.</p>
+    <p>It has been logged and the administrator has been informed.</p>
+{% endblock %}

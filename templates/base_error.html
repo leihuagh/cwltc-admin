@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Error</title>
+    <link rel="stylesheet" type="text/css"  href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" type="text/css"  href="{% static 'public/public.css' %}">
+</head>
+<body>
+{% include '_logo_banner.html' %}
+<div class="container">
+  {% block content %}
+  {% endblock %}
+  </div>
+</body>
+</html>
