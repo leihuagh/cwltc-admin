@@ -138,7 +138,7 @@ class InvoiceItemFilter(django_filters.FilterSet):
 class PaymentFilter(django_filters.FilterSet):
     class Meta:
         model = Payment
-        fields = ['membership_year', 'type']
+        fields = ['membership_year', 'type', 'state']
 
     membership_year = django_filters.ChoiceFilter(name='membership_year',
                                                   label='Year',
@@ -150,4 +150,8 @@ class PaymentFilter(django_filters.FilterSet):
                                        empty_label='All',
                                        choices=Payment.TYPES
                                        )
-                                    
+    state = django_filters.ChoiceFilter(name='state',
+                                       label='State',
+                                       empty_label='All',
+                                   choices=Payment.STATES
+                                       )
