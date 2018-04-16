@@ -445,6 +445,10 @@ class Invoice(models.Model):
     def unpaid_amount(self):
         return self.total - self.paid_amount
 
+    @property
+    def state_text(self):
+        return self.STATES[self.state][1]
+
     def number(self):
         return '{}/{}'.format(self.person.id, self.id)
 
@@ -550,6 +554,14 @@ class Payment(models.Model):
             self.credited,
             Payment.STATE.choices()[self.state][1]
         )
+
+    @property
+    def state_text(self):
+        return self.STATES[self.state][1]
+
+    @property
+    def type_text(self):
+        return self.TYPES[self.type][1]
 
 
 class CreditNote(models.Model):
