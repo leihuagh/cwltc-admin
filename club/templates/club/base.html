@@ -16,6 +16,17 @@
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <div class="navbar-nav mr-auto">
           <a class="nav-item nav-link" href="{% url 'club_home' %}">Home</a>
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarTournament" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Tournaments
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarTournament">
+              <a class="dropdown-item" href="{% url 'events:list' %}">Club Tournament</a>
+              {% if user.is_staff %}
+                <a class="dropdown-item" href="{% url 'events:create' %}">Create tournament</a>
+              {% endif %}
+            </div>
+          </div>
           <a class="nav-item nav-link" href="{% url 'club_magazine' %}">UK Tennis magazine</a>
           <a class="nav-item nav-link" href="{% url 'club_history' %}">Club history</a>
           <a class="nav-item nav-link" href="{% url 'club_policies' %}">Rules & policies</a>
