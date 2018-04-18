@@ -43,19 +43,19 @@ class Event(models.Model):
         Check that gender of person and partner(if any) is correct
         Return None if OK else return an error message
         """
-        err_male = 'Person must be male'
-        err_female = 'Person must be female'
+        err_male = 'Entrant must be male'
+        err_female = 'Entrant must be female'
         err_partner_male = 'Your partner must be male'
         err_partner_female = 'Your partner must be female'
         err_no_partner = 'You must specify a partner'
 
-        if self.event_type == Event.EventType.MENS_SINGLES:
+        if self.event_type == Event.EventType.MENS_SINGLES.value:
             if person.gender != 'M':
                 return err_male
         elif self.event_type == Event.EventType.LADIES_SINGLES:
             if person.gender != 'F':
                 return err_female
-        elif self.event_type == Event.EventType.MENS_DOUBLES:
+        elif self.event_type == Event.EventType.MENS_DOUBLES.value:
             if person.gender != 'M':
                 return err_male
             if partner:
@@ -63,7 +63,7 @@ class Event(models.Model):
                     return err_partner_male
             else:
                 return err_no_partner
-        elif self.event_type == Event.EventType.LADIES_DOUBLES:
+        elif self.event_type == Event.EventType.LADIES_DOUBLES.value:
             if person.gender != 'F':
                 return err_female
             if partner:
@@ -72,7 +72,7 @@ class Event(models.Model):
             else:
                 return err_no_partner
 
-        elif self.event_type == Event.EventType.MIXED_DOUBLES:
+        elif self.event_type == Event.EventType.MIXED_DOUBLES.value:
             if partner:
                 if person.gender == 'F':
                     if partner.gender != 'M':
@@ -82,9 +82,9 @@ class Event(models.Model):
                         return err_partner_female
             else:
                 return err_no_partner
-        elif self.event_type == Event.EventType.OPEN_SINGLES:
+        elif self.event_type == Event.EventType.OPEN_SINGLES.value:
             pass
-        elif self.event_type == Event.EventType.OPEN_DOUBLES:
+        elif self.event_type == Event.EventType.OPEN_DOUBLES.value:
             if not partner:
                 return err_no_partner
         return None

@@ -430,10 +430,10 @@ urlpatterns = [
         PersonExportView.as_view(),
         name='export-option'
         ),
-    url(r'^reports/$',
-        reports,
-        name='reports'
-        ),
+    # url(r'^reports/$',
+    #     reports,
+    #     name='reports'
+    #     ),
     url(r'^bee/$',
         bee_test,
         name='bee'

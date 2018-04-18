@@ -23,11 +23,11 @@
   {% endblock %}
   {% block navbar %}
   {% endblock %}
+  {% cookielaw_banner %}
   {% block content-wide %}
   {% endblock %}
   <div class="container-fluid p-0 margin-bg">
     {% if not no_container %}<div class="container {% if bg_class %}{{ bg_class }}{% else %}content-bg{% endif %} flex-grow" style="min-height: 68vh;">{% endif %}
-    {% cookielaw_banner %}
     {% block content %}
     {% endblock %}
     {% if not no_container %}</div>{% endif %}
