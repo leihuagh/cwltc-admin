@@ -1,0 +1,19 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+  <h4>Tournaments</h4>
+  {% include "members/_messages.html" %}
+<ul class="list-group">
+  {% for tour in tournament_list %}
+    <li class="list-group-item list-group-action-item">{{ tour.name }}
+      <a href="{% url 'events:tournament_detail' pk=tour.id %}">View</a>
+      {% if request.user.is_staff %}
+      <a href="{% url 'events:tournament_update' pk=tour.id %}">Update</a>
+      {%  endif %}
+    </li>
+  {% endfor %}
+</ul>
+  {% if request.user.is_staff %}
+    <a href="{% url 'events:tournament_create' %}" class="btn btn-success">Create tournament</a>
+  {% endif %}
+{% endblock %}

@@ -9,11 +9,11 @@
   <div class="row">
     <div class="col-md-9">
       <h1></h1>
-      <h1 class="text-center"><strong>Welcome</strong><br>
+      <h1 class="text-center py-4"><strong>Welcome</strong><br>
         <small>to your new club web site</small></h1>
       <p>
 This is the first incarnation of a new site for club members. Right now it has limited content, but over the next few weeks
-      and months we will be expanding the range of features and information that we publish
+      and months we will be expanding the range of features and information that we publish,
         making the site an indispensible part of club life.</p>
       <h5 class="logo-orange bold"><strong>Live on the site now</strong></h5>
       <p> If you opted in to the Wimbledon ballot earlier in the year but can't attend the event on 21st April you
@@ -26,11 +26,10 @@ Behind the scenes, the committee has been hard at work revising the club's polic
       <p>With new General Data Protection Regulations (GDPR) coming into force in May, we have given you the ability to directly maintain
         the information that we hold about you and your family through the Account link on the top left of every page.
       </p>
-      <h5 class="logo-orange bold"><strong>Coming soon</strong></h5>
-      <p> From Monday 16 April you will be able to sign up for the annual club tournament that kicks off in May.</p>
-      <p>You will also be able to sign up for the Eric Smith memorial charity tournament that will be held on 29 April.
+      <h5 class="logo-orange bold"><strong>Summer Tournament</strong></h5>
+      <p>This year for the first time entry for the Summer Tournament is exclusively online. Please sign up before the deadline of
+        Saturday 6 May.
       </p>
-      <p> Once we have issued the subscription renewals you will be able to view your account and pay your subs online.<p>
     </div>
     <div class="col-md-3">
       <div class="row bg-white">
@@ -55,9 +54,10 @@ Behind the scenes, the committee has been hard at work revising the club's polic
           <p>Invite your friends!</p>
         </div>
         <div class="col-12 border border-top-0 border-info py-1">
-          <img src="{% static 'club/images/trophies.jpg' %}" class="img-fluid">
-          <h6 class="text-center pt1">Club Tournament</h6>
-          <p>Entry forms will be posted here soon.</p>
+          <a href="{% url 'events:tournament_active' %}">
+            <img src="{% static 'club/images/trophies.jpg' %}" class="img-fluid">
+            <h5 class="text-center pt1">Summer Tournament<br>Enter online</h5>
+          </a>
         </div>
 
       </div>

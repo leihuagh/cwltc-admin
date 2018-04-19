@@ -1,0 +1,21 @@
+{% extends 'club/base.html' %}
+{% block content %}
+  <h2 class="pt-2">Help on tournament entry</h2>
+  <h4>Singles events</h4>
+  <p>To enter a singles event, just press <b>Enter event</b>.</p>
+  <p>You can cancel your entry at any time with the <b>Cancel event</b> button.</p>
+  <h4>Doubles events</h4>
+  <p>To enter, first choose your partner with the <b>Select partner</b> button. Enter a few characters of your
+    intended partner's first name, a space, then a few characters of their last name until their name appears
+  in the list. Then click their name to select them. The <b>Enter with partner</b> button will then be visible.</p>
+  <h4>Entering without a partner</h4>
+<p>If you have no agreed partner for a doubles tournament but would like to play, you can enter as a single.
+The tournament director will pair you up with another single if there is one available, before the draw. <p>
+  <p>
+  Alternatively, if you see a single in the list of entrants with whom you would like to partner,
+    cancel any single entry that you have already made, then select them as your partner and press <b>Enter with partner</b>.
+  They will automatically be removed from the singles list and assigned as your partner.
+</p>
+<a href="javascript:history.back()">Go Back</a>
+
+{% endblock %}

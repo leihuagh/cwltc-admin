@@ -1,0 +1,34 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+{% if messages %}
+{% for message in messages %}
+  <div class="alert alert-secondary text-center" role="alert">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+  <div class="text-center">
+    <img src="{% static 'club/images/trophies.jpg' %}">
+  <h2 class="pt-3 pb-2">{{ tournament.name }}</h2>
+  <h5>Entry deadline: {{ tournament.draw_date }}
+  <h5>Finals day: {{  tournament.finals_date }}</h5>
+  <h5><a href = "{% static 'club/documents/Rules2018.pdf' %}">Tournament Rules</a></h5>
+
+  <p>Select an event to enter or to view the entrants</p>
+
+  <div class="row justify-content-center">
+    <div class="col-sm-12 col-md-6 col-lg-4">
+    <div class="card my-2">
+      <div class="list-group">
+        {% for event in event_list %}
+          <a class="list-group-item text-primary" href="{% url 'events:detail' pk=event.id %}">{{ event.name }}</a>
+        {% endfor %}
+      </div>
+  </div>
+
+
+  </div>
+
+
+</div>
+{% endblock %}
