@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^club/', include('club.urls')),
     url(r'^cardless/', include('cardless.urls')),
     url(r'^wimbledon/', include('wimbledon.urls')),
+    url(r'^events/', include('events.urls')),
 
     url(r'^home/',
         HomeView.as_view(),
@@ -429,10 +430,10 @@ urlpatterns = [
         PersonExportView.as_view(),
         name='export-option'
         ),
-    url(r'^reports/$',
-        reports,
-        name='reports'
-        ),
+    # url(r'^reports/$',
+    #     reports,
+    #     name='reports'
+    #     ),
     url(r'^bee/$',
         bee_test,
         name='bee'

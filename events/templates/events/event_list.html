@@ -1,0 +1,12 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+  <h4>Club Tournament 2018</h4>
+  <h5>Deadline for sign up is 5th May</h5>
+  {% include "members/_messages.html" %}
+<ul class="list-group">
+  {% for event in event_list %}
+    <li class="list-group-item"><a href="{% url 'events:detail' pk=event.id %}">{{ event.name }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}

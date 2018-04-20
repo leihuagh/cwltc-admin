@@ -446,8 +446,11 @@ class Invoice(models.Model):
         return self.total - self.paid_amount
 
     @property
-    def state_text(self):
-        return self.STATES[self.state][1]
+    def payment_state(self):
+        """ assumes only 1 payment """
+        for payment in self.payment_set.all():
+            return payment.state
+        return "No payment"
 
     def number(self):
         return '{}/{}'.format(self.person.id, self.id)

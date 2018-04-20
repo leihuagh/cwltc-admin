@@ -380,9 +380,9 @@ def set_person_context(context, person):
     statements = []
     for year in range(year, year-3, -1):
         years.append(year)
-        statements.append(person_statement(person, year)) 
+        statements.append(person_statement(person, year))
     context['years'] = years
-    context['statements'] = statements      
+    context['statements'] = statements
     context['person'] = person
     context['state'] = Person.STATES[person.state][1]
     context['address'] = person.address
@@ -2218,15 +2218,15 @@ def export(request):
     return export_all()
 
 
-def reports(request):
-    report=Report.objects.all()[0]
-    qset = report.get_query()
-    list = report.report_to_list(queryset=qset)
-    fields = report.displayfield_set.all()
-    html = ""
-    for f in fields:
-        html += "<br \>" + f.name
-    return HttpResponse(html)
+# def reports(request):
+#     report=Report.objects.all()[0]
+#     qset = report.get_query()
+#     list = report.report_to_list(queryset=qset)
+#     fields = report.displayfield_set.all()
+#     html = ""
+#     for f in fields:
+#         html += "<br \>" + f.name
+#     return HttpResponse(html)
 
 
 def bee_test(request):

@@ -66,10 +66,12 @@ class InvoiceTable(tables.Table):
     class Meta:
         model = Invoice
         fields = ('id', 'person.first_name', 'person.last_name',
-                  'person.membership.description','email_count', 'payment_state')
+                  'person.membership.description','email_count', 'state')
         sequence = ('selection','...')
         attrs = {'class': 'table table-condensed'} 
     
+
+    payment = tables.Column(accessor='payment_state')
     id = tables.LinkColumn('invoice-detail',
                         verbose_name="Number",
                         args=[A('id')])
@@ -106,7 +108,7 @@ class PaymentTable(tables.Table):
 
     class Meta:
         model = Payment
-        fields = ('update_date', 'person.first_name', 'person.last_name', 'person.membership.description', 'type', 'amount', 'banked','invoice')
+        fields = ('update_date', 'person.first_name', 'person.last_name', 'person.membership.description', 'type', 'amount', 'state', 'banked','invoice')
         attrs = {'class': 'table table-condensed'} 
 
     amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})

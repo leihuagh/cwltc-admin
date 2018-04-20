@@ -1,0 +1,102 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+  <div class="text-center">
+    <h2 class="py-3">{{ event.name }}</h2>
+    <div class ="row justify-content-center">
+      <div class={% if with_partner %}"col-sm-12 col-md-8 col-lg-6"{% else %}"col-sm-12 col-md-6 col-lg-4"{% endif %}>
+
+      <form method="post"> {% csrf_token %}
+        <input name="partner_id" id="partner_id" type="hidden" value="">
+
+        {% if entered %}
+          <p>You have entered this tournament{% if with_partner %}
+            {% if partner_name %}with {{ partner_name }}.{% else %}
+              without a partner.{% endif %}
+            {% endif %}</p>
+          <input type="submit" name="events" class="btn btn-success mt-1" value="Event list">
+          <input type="submit" name="remove" class="btn btn-success mt-1" value="Cancel entry">
+        {% else %}
+          {% if can_enter %}
+            <p class="text-danger">{{ error }}</p>
+            {% if with_partner %}
+              <h5 id='partner' class="d-none">Partner: <span id="partner_name"></span></h5>
+              <input type="submit" name="events" class="btn btn-success mt-1" value="Event list">
+              <button type="button" class="btn btn-success mt-1" data-toggle="modal" data-target="#partnerModal">
+                Select partner
+              </button>
+              <input type="submit" name="add" id='add' class="btn btn-success d-none mt-1" value="Enter with partner">
+              <input type="submit" name="single" id='single' class="btn btn-success mt-1" value="Enter without partner">
+            {% else %}
+              <input type="submit" name="events" class="btn btn-success mt-1" value="Event list">
+              <input type="submit" name="add" class="btn btn-success mt-1" value="Enter this event">
+            {% endif %}
+          {% else %}
+            <input type="submit" name="events" class="btn btn-success mt-1" value="Event list">
+          {% endif %}
+        {% endif %}
+          <a href="{% url 'events:help' %}" class="btn btn-outline-success mt-1">Help</a>
+        {% if request.user.is_staff %}
+          <a href = "{% url 'events:update' pk=event.pk %}" class="btn btn-warning mt-1">Update event</a>
+        {% endif %}
+      </form>
+
+      <div class="card my-4">
+        <div class="card-header bg-success p-1">
+          <h5 class="py-0 text-white">Entrants</h5>
+        </div>
+        <div class="list-group">
+          {% if participants.count == 0 %}
+            <p class="my-2">There are no entrants for this event.{%  if can_enter %}<br>Be the first!{% endif %}</p>
+          {% else %}
+              {% for p in participants %}
+                <li class="list-group-item">
+                  {{ p.person.fullname }}
+                  {% if with_partner %}{% if p.partner.fullname %} & {{ p.partner.fullname }}
+                    {% else %} (no partner) {% endif %}{% endif %}
+                </li>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal" tabindex="-1" role="dialog" id="partnerModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Select your partner</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Search for your partner by entering some of their first name, last name or a bit of both separated by space.</p>
+        <input type="text" class="form-control typeahead tt-query" id = "member_search"
+               autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src= {% static 'js/typeahead.bundle.js' %}></script>
+    <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
+<script>
+  $(document).ready(function () {
+    bind_typeahead('#member_search', go, true);
+    $('.typeahead').typeahead('val', '');
+  });
+  function go(person) {
+      $('#partner_id').val(person.id);
+      $('#partner_name').text(person.value);
+      $('#partner').removeClass('d-none');
+      $('#add').removeClass('d-none');
+      $('#single').addClass('d-none');
+      $('#partnerModal').modal('hide');
+  }
+</script>
+{% endblock %}

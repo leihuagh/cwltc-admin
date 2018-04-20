@@ -598,9 +598,8 @@ def person_resign(person):
 
 
 def person_deregister(person):
-    user = person.auth
-    if user:
-        user.delete()
+    if person.auth:
+        person.auth.delete()
     person.auth = None
     person.pin = None
     person.allow_phone = False
