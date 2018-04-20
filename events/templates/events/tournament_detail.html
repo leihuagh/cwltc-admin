@@ -8,7 +8,7 @@
 {% endif %}
 
   <div class="text-center">
-    <img src="{% static 'club/images/trophies.jpg' %}">
+
   <h2 class="pt-3 pb-2">{{ tournament.name }}</h2>
   <h5>Entry deadline: {{ tournament.draw_date }}
   <h5>Finals day: {{  tournament.finals_date }}</h5>
@@ -21,7 +21,7 @@
     <div class="card my-2">
       <div class="list-group">
         {% for event in event_list %}
-          <a class="list-group-item text-primary" href="{% url 'events:detail' pk=event.id %}">{{ event.name }}</a>
+          <a class="list-group-item list-group-item-action" href="{% url 'events:detail' pk=event.id %}">{{ event.name }}</a>
         {% endfor %}
       </div>
   </div>

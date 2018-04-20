@@ -15,19 +15,19 @@
 This is the first incarnation of a new site for club members. Right now it has limited content, but over the next few weeks
       and months we will be expanding the range of features and information that we publish,
         making the site an indispensible part of club life.</p>
-      <h5 class="logo-orange bold"><strong>Live on the site now</strong></h5>
+      <h4><strong>Live on the site now</strong></h4>
       <p> If you opted in to the Wimbledon ballot earlier in the year but can't attend the event on 21st April you
       can <a href="{% url 'wimbledon_ballot' %}">indicate your ticket preferences.</a><p>
-      <p>You have unlimited access to the current and back issues of <a href="{% url 'club_magazine' %}">UK Tennis magazine.</a>
+      <p>You have unlimited access to the current and back issues of <a href="{% url 'club_magazine' %}" class="text-info">UK Tennis magazine.</a>
       <p> We have a <a href="/static/club/documents/Surrey Tennis Discount Ticket Offers.pdf">special offer for tickets</a> to a competition at Roehampton, just before Wimbledon.</p>
 <p>
 Behind the scenes, the committee has been hard at work revising the club's policies to conform to the LTA's best practice.
-      These documents are now all online.</p>
+  These documents are now all <a href="{% url 'club_policies' %}">online</a>.</p>
       <p>With new General Data Protection Regulations (GDPR) coming into force in May, we have given you the ability to directly maintain
-        the information that we hold about you and your family through the Account link on the top left of every page.
+        the information that we hold about you and your family through the Account menu on the top right of every page.
       </p>
-      <h5 class="logo-orange bold"><strong>Summer Tournament</strong></h5>
-      <p>This year for the first time entry for the Summer Tournament is exclusively online. Please sign up before the deadline of
+      <h4 ><strong>Summer Tournament</strong></h4>
+      <p>This year for the first time entry for the Summer Tournament is exclusively online. Please <a href="{% url 'events:tournament_active' %}">sign up before the deadline of
         Saturday 6 May.
       </p>
     </div>
