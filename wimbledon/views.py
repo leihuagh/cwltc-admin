@@ -1,6 +1,9 @@
+import calendar
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from braces.views import LoginRequiredMixin
+from django.http import HttpResponse
+from braces.views import LoginRequiredMixin, StaffuserRequiredMixin
+from openpyxl import Workbook
 from .models import *
 
 class BallotView(LoginRequiredMixin, TemplateView):
@@ -52,3 +55,34 @@ def common_context(context, request):
     context['tickets'] = list(Tickets.objects.order_by('id'))
     context['bg_class'] = 'bg-white'
     return context
+
+
+class ExportView(StaffuserRequiredMixin, TemplateView):
+    template_name= 'wimbledon/export.html'
+
+    def post(self, request):
+
+        """ https://djangotricks.blogspot.co.uk/2013/12/how-to-export-data-as-excel.html """
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=Wimbledon opt out.xlsx'
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Wimbledon Opt Out'
+
+        data = OptOut.objects.all().order_by('person__first_name', 'ticket__day')
+        row = 1
+        for dat in data:
+            person = Person.objects.get(pk=dat.person_id)
+            ws.cell(row, 1, person.fullname)
+            if dat.all_days:
+                ws.cell(row, 2, 'Opt out')
+            else:
+                ticket = Tickets.objects.get(pk=dat.ticket_id)
+                ws.cell(row, 3, ticket.court)
+                ws.cell(row, 4, ticket.day)
+                ws.cell(row, 5, calendar.day_name[ticket.date.weekday()])
+                ws.cell(row, 6, ticket.date)
+
+            row += 1
+        wb.save(response)
+        return response

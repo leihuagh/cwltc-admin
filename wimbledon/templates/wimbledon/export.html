@@ -1,0 +1,8 @@
+{% extends "club/base.html" %}
+{% block content %}
+  <h3 class="pt-3">Wimbledon ballot</h3>
+  <h4 class="my-3">Export opt out data to Excel</h4>
+  <form method="post">{% csrf_token %}
+    <input type="submit" class="btn btn-success" value="Download opt out data">
+  </form>
+{% endblock %}

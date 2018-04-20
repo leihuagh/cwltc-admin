@@ -6,7 +6,11 @@
      <img src="{% static 'club/images/ballot2018.png' %} " class="img-fluid">
   </div>
   <div class="col py-4">
+    {% if request.user.is_staff %}
+      <a href="{% url 'wimbledon_export' %}" class="btn btn-lg btn-danger float-right">Export</a>
+    {% endif %}
     <a href="{% url 'wimbledon_choice' %}" class="btn btn-lg btn-primary float-right">Select your opt out days</a>
+
   </div>
 </div>
 
