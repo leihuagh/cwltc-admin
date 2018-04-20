@@ -5,13 +5,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from braces.views import StaffuserRequiredMixin
-from events.models import Event, Participant
+from events.models import Event, Participant, Tournament
 from club.views import person_from_user
 from members.models import Person
-from events.forms import *
+from events.forms import EventForm, TournamentForm
 from mysite.common import Button
 
 stdlogger = logging.getLogger(__name__)
+
 
 class EventHelpView(LoginRequiredMixin, TemplateView):
     template_name = 'events/event_help.html'
@@ -39,8 +40,16 @@ class EventUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form_title'] = 'Update event'
-        context['buttons'] = [Button('Save', css_class='btn-success')]
+        context['buttons'] = [Button('Save', css_class='btn-success'),
+                              Button('Delete', css_class='btn-danger')]
         return context
+
+    def post(self, request, *args, **kwargs):
+        if 'delete' in request.POST:
+            event = self.get_object(request)
+            event.delete()
+            return redirect('events:list')
+        return super().post(request, *args, **kwargs)
 
 
 class EventDetailView(LoginRequiredMixin, DetailView):
@@ -66,7 +75,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
             elif len(partner) and partner[0].person:
                 context['partner_name'] = partner[0].person.fullname
         else:
-            context['can_enter'] = ((event.is_male_only() and self.person.gender =='M') or (
+            context['can_enter'] = ((event.is_male_only() and self.person.gender == 'M') or (
                 event.is_female_only() and self.person.gender == 'F') or event.is_mixed()) and event.online_entry
         context['participants'] = participants
         context['entered'] = entered
@@ -91,7 +100,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
                     if partner:
                         participant = event.participant_from_person(partner)
                         if participant:
-                            if participant.partner == None:
+                            if participant.partner is None:
                                 # assign a single to us
                                 participant.delete()
                             else:
@@ -118,6 +127,11 @@ class EventDetailView(LoginRequiredMixin, DetailView):
 class EventListView(ListView):
     model = Event
     template_name = 'events/event_list.html'
+
+
+class EventAdminView(ListView):
+    model = Event
+    template_name = 'events/event_admin.html'
 
 
 class TournamentCreateView(StaffuserRequiredMixin, CreateView):
@@ -175,14 +189,14 @@ class TournamentListView(LoginRequiredMixin, ListView):
     template_name = 'events/tournament_list.html'
 
 
+class TournamentAdminView(StaffuserRequiredMixin, ListView):
+    model = Tournament
+    template_name = 'events/tournament_admin.html'
+
+
 class TournamentActiveView(View):
 
     def get(self, request):
-
-        if request.user.is_staff:
-            tours = Tournament.objects.all()
-            return redirect('events:tournament_list')
-
         tours = Tournament.objects.filter(active=True)
         if len(tours) == 1:
             return redirect('events:tournament_detail', pk=tours[0].pk)

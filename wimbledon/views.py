@@ -69,7 +69,7 @@ class ExportView(StaffuserRequiredMixin, TemplateView):
         ws = wb.active
         ws.title = 'Wimbledon Opt Out'
 
-        data = OptOut.objects.all().order_by('person__first_name', 'ticket__day')
+        data = OptOut.objects.all().order_by('person__first_name', 'person__last_name', 'ticket__day')
         row = 1
         for dat in data:
             person = Person.objects.get(pk=dat.person_id)

@@ -36,9 +36,6 @@
           {% endif %}
         {% endif %}
           <a href="{% url 'events:help' %}" class="btn btn-outline-success mt-1">Help</a>
-        {% if request.user.is_staff %}
-          <a href = "{% url 'events:update' pk=event.pk %}" class="btn btn-warning mt-1">Update event</a>
-        {% endif %}
       </form>
 
       <div class="card my-4">
