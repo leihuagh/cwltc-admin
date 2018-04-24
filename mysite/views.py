@@ -1,10 +1,10 @@
-from django.shortcuts import redirect, render_to_response
-from django.template import RequestContext
+from django.shortcuts import redirect
 from .tasks import addxy
 
+
 def index_view(request):
-    if request.user.is_authenticated():
-        return redirect('public-home')
+    if request.user and request.user.is_authenticated():
+        return redirect('club_home')
     return redirect('http://www.coombewoodltc.co.uk/')
 
 
