@@ -3,7 +3,7 @@ from .tasks import addxy
 
 
 def index_view(request):
-    if request.user and request.user.is_authenticated():
+    if request.user.is_authenticated:
         return redirect('club_home')
     return redirect('http://www.coombewoodltc.co.uk/')
 
