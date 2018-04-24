@@ -17,30 +17,12 @@
       Membership year: {{ membership_year }}
       </p>
   </div>
-  {% include 'members/_invoice_summary.html' %}
+
   <div class="row">
-      <div class="col-md-4">
+      <div class="col-md-12">
         <div class="well">
-          <h2>News</h2>
-          <p>This site has been moved.</p>
-          <p>GoCardless functionality has been updated.</p>
-          <p>The members site is coming soon.</p>
+  {% include 'members/_invoice_summary.html' %}
         </div>
-      </div>
-      <div class="col-md-4">
-        <div class="well">
-          <h2>Juniors</h2>
-          Membership applications can now be done online.
-          <br/><br/>
-          <a class="btn btn-primary" href="{% url 'public-apply-child' %}">Online application form</a>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="well">
-          <h2>Admin (restricted)</h2>
-         <br/><br/>
-        <p><a href="/admin/" class="btn btn-primary">Administration</a></p>
-      </div>
       </div>
 
   </div>
