@@ -23,7 +23,7 @@ STATIC_URL = '/static/'
 # This is where the static files get served from
 STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -38,7 +38,6 @@ INSTALLED_APPS = (
     'rest_framework',
 #    'report_builder',
     'anymail',
-    'django_mail_viewer',
     'django_tables2',
     'djcelery_email',
     'cookielaw',
@@ -51,9 +50,9 @@ INSTALLED_APPS = (
     'cardless',
     'wimbledon',
     'events'
-)
+]
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -61,7 +60,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-)
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
@@ -72,10 +71,10 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 ROOT_URLCONF = 'mysite.urls'
 
-STATICFILES_FINDERS = (
+STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder'
-)
+]
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]

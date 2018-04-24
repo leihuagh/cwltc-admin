@@ -197,7 +197,7 @@ def build_pos_array(layout):
     Cells contain items
     Returns the used items for managing the layout
     """
-    locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col')
+    locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col').prefetch_related('item').prefetch_related('item__colour')
     items = Item.objects.filter(item_type_id=layout.item_type_id).order_by('button_text')
     rows = []
     for r in range(1, Location.ROW_MAX + 1):

@@ -25,6 +25,7 @@ from .tables import InvoiceTable, InvoiceItemTable, PaymentTable, ApplicantTable
 
 stdlogger = logging.getLogger(__name__)
 
+
 def permission_denied(view, request):
     """
     Redirect to login with error message when user has not got staff permission
@@ -151,6 +152,7 @@ class HomeView(StaffuserRequiredMixin, TemplateView):
         context['title'] = 'Home Page'
         context['membership_year'] = Settings.current_year()
         context['db_name'] = settings.DATABASES['default']['NAME']
+        add_invoice_summary(context)
         return context
 
 
@@ -870,6 +872,7 @@ class YearEndView(StaffuserRequiredMixin, TemplateView):
             Button('Renew subs', name='renew', css_class='btn-danger'),
             Button('Create bar invoice items', name='bar', css_class='btn-danger'),
             Button('Create teas invoice items', name='teas', css_class='btn-danger'),
+            Button('Create visitors invoice items', name='visitors', css_class='btn-danger'),
             Button('Create invoices', name='invoices', css_class='btn-danger'),
             Button('Count mail invoices', name='count', css_class='btn-primary'),
             Button('Mail invoices', name='mail', css_class='btn-danger')
@@ -902,6 +905,12 @@ class YearEndView(StaffuserRequiredMixin, TemplateView):
 
         elif 'teas' in request.POST:
             count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.TEAS)
+            message = f'{count1} POS records processed and {count2} invoice item records generated'
+            messages.success(self.request, message)
+            return redirect('yearend')
+
+        elif 'visitors' in request.POST:
+            count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.VISITORS)
             message = f'{count1} POS records processed and {count2} invoice item records generated'
             messages.success(self.request, message)
             return redirect('yearend')
@@ -1152,7 +1161,7 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
     template_name = 'members/invoice_table.html'
 
     def get_queryset(self, **kwargs):
-        qs = Invoice.objects.all().select_related('person').select_related('person__membership')
+        qs = Invoice.objects.all().prefetch_related('payment_set').select_related('person').select_related('person__membership')
         
         # set defaults for first time
         data = self.request.GET.copy()
@@ -1203,6 +1212,101 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
             return redirect('email-selection')
 
         return redirect('home')
+
+class InvoiceSummaryView(TemplateView):
+    template_name = 'members/invoice_summary.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['paid'] = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.PAID
+                                                 ).aggregate(total=Sum('total'))['total']
+        unpaid = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.UNPAID
+                                        ).prefetch_related('payment_set')
+        no_payment = 0
+        no_payment_total = Decimal(0)
+        pending = 0
+        pending_total = Decimal(0)
+        confirmed = 0
+        confirmed_total = Decimal(0)
+        failed = 0
+        failed_total= Decimal(0)
+        cancelled = 0
+        cancelled_total = Decimal(0)
+        for record in unpaid:
+            if record.payment_state == -1:
+                no_payment += 1
+                no_payment_total += record.total
+            elif record.payment_state == Payment.STATE.PENDING:
+                pending += 1
+                pending_total += record.total
+            elif record.payment_state == Payment.STATE.CONFIRMED:
+                confirmed += 1
+                confirmed_total += record.total
+            elif record.payment_state == Payment.STATE.FAILED:
+                failed += 1
+                failed_total += record.total
+            elif record.payment_state == Payment.STATE.CANCELLED:
+                cancelled += 1
+                cancelled_total += record.total
+        context['no_payment'] = no_payment
+        context['no_payment_total'] = no_payment_total
+        context['pending'] = pending
+        context['pending_total'] = pending_total
+        context['confirmed'] = confirmed
+        context['confirmed_total'] = confirmed_total
+        context['failed'] = failed
+        context['failed_total'] = failed_total
+        context['cancelled'] = cancelled
+        context['cancelled_total'] = cancelled_total
+        return context
+
+def add_invoice_summary(context):
+    year = 2018
+    qs = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.PAID)
+    paid = qs.count()
+    paid_total = qs.aggregate(total=Sum('total'))['total']
+    unpaid = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.UNPAID
+                                    ).prefetch_related('payment_set')
+    no_payment = 0
+    no_payment_total = Decimal(0)
+    pending = 0
+    pending_total = Decimal(0)
+    confirmed = 0
+    confirmed_total = Decimal(0)
+    failed = 0
+    failed_total= Decimal(0)
+    cancelled = 0
+    cancelled_total = Decimal(0)
+    for record in unpaid:
+        if record.payment_state == -1:
+            no_payment += 1
+            no_payment_total += record.total
+        elif record.payment_state == Payment.STATE.PENDING:
+            pending += 1
+            pending_total += record.total
+        elif record.payment_state == Payment.STATE.CONFIRMED:
+            confirmed += 1
+            confirmed_total += record.total
+        elif record.payment_state == Payment.STATE.FAILED:
+            failed += 1
+            failed_total += record.total
+        elif record.payment_state == Payment.STATE.CANCELLED:
+            cancelled += 1
+            cancelled_total += record.total
+
+    context['paid'] = paid
+    context['paid_total'] = paid_total
+    context['no_payment'] = no_payment
+    context['no_payment_total'] = no_payment_total
+    context['pending'] = pending
+    context['pending_total'] = pending_total
+    context['confirmed'] = confirmed
+    context['confirmed_total'] = confirmed_total
+    context['failed'] = failed
+    context['failed_total'] = failed_total
+    context['cancelled'] = cancelled
+    context['cancelled_total'] = cancelled_total
+    return context
 
 
 # class InvoiceListViewx(StaffuserRequiredMixin, FormMixin, ListView):

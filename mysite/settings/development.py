@@ -3,18 +3,22 @@ import logging
 
 SITE_NAME = "Development"
 DEBUG = True
+DEBUG_TOOLBAR = True
 # We could use the default path but make it explicit for clarity
 env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
 
-INSTALLED_APPS += (
+INSTALLED_APPS += [
+    'django_mail_viewer',
     'raven.contrib.django.raven_compat',
     'coverage',
 #    'django-nose',
-#    'debug_toolbar',
-    )
+    ]
 
-# MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INTERNAL_IPS = ['127.0.0.1']
 
 DATABASES = {'default': env.db_url('DATABASE_URL_DEV')}
 

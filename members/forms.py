@@ -8,10 +8,10 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 from django.template.defaultfilters import slugify
-from bootstrap3_datetime.widgets import DateTimePicker
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, MultiField, Fieldset, ButtonHolder, BaseInput
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
+from mysite.widgets import DateTimePicker
 from .widgets import MySelectDate
 from .models import (Person, Address, AdultApplication, Subscription, Membership, Invoice, InvoiceItem,
                      Payment, CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings)

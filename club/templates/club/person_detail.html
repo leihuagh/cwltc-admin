@@ -61,13 +61,16 @@
               <div class="row {% if child.id == person.id %}}} bg-light {% endif %}">
                 <div class="col-8"><a href="{% url "club_person_pk" pk=child.id %}">{{ child.fullname }}</a></div>
                 <div class="col">
-                  {%  if child.sub %}
-                    {{ child.membership.description }}
-                    {% if child.state == 0 %}
-                      {% if not child.sub.paid %}(unpaid){% endif %}
-                    {% endif %}
-                  {% else %}(no sub)
-                  {%  endif %}
+                  {% if child.state == 3 %} (resigned)
+                  {% else %}
+                    {%  if child.sub %}
+                      {{ child.membership.description }}
+                      {% if child.state == 0 %}
+                        {% if not child.sub.paid %}(unpaid){% endif %}
+                      {% endif %}
+                    {% else %}(no sub)
+                    {%  endif %}
+                  {% endif %}
                 </div>
               </div>
             {% endfor child %}

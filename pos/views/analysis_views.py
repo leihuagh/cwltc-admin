@@ -51,7 +51,9 @@ class TransactionListView(SingleTableView):
         elif self.comp:
             self.qs = Transaction.objects.filter(complimentary=True, billed=False).order_by('-creation_date')
         else:
-            self.qs = Transaction.objects.filter(billed=False).order_by('-creation_date')
+            self.qs = Transaction.objects.filter(billed=False).order_by(
+                '-creation_date').select_related('person').select_related('item_type')
+
         return self.qs
 
     def get_context_data(self, **kwargs):

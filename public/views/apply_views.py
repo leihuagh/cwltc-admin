@@ -1,10 +1,9 @@
 import logging
 from datetime import datetime
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from django.views.generic import TemplateView, CreateView, View, UpdateView
 from django.core.mail import send_mail
 from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404
 from django.views.generic.edit import FormView
 from django.db import transaction

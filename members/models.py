@@ -446,11 +446,18 @@ class Invoice(models.Model):
         return self.total - self.paid_amount
 
     @property
+    def payment_state_text(self):
+        """ assumes only 1 payment """
+        for payment in self.payment_set.all():
+            return payment.state_text
+        return "No payment"
+
+    @property
     def payment_state(self):
         """ assumes only 1 payment """
         for payment in self.payment_set.all():
             return payment.state
-        return "No payment"
+        return -1
 
     def number(self):
         return '{}/{}'.format(self.person.id, self.id)
@@ -617,7 +624,7 @@ class InvoiceItem(models.Model):
     amount = models.DecimalField(max_digits=7, decimal_places=2)
     paid = models.BooleanField(default=False)
     #
-    item_type = models.ForeignKey(ItemType)
+    item_type = models.ForeignKey(ItemType, on_delete=models.SET_NULL, blank=True, null=True)
     person = models.ForeignKey(Person,  on_delete=models.SET_NULL, blank=True, null=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, blank=True, null=True, related_name='invoice_items')
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, blank=True, null=True)

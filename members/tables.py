@@ -71,7 +71,7 @@ class InvoiceTable(tables.Table):
         attrs = {'class': 'table table-condensed'} 
     
 
-    payment = tables.Column(accessor='payment_state')
+    payment = tables.Column(accessor='payment_state_text')
     id = tables.LinkColumn('invoice-detail',
                         verbose_name="Number",
                         args=[A('id')])

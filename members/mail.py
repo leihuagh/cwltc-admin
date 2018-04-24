@@ -1,12 +1,10 @@
 from django.core.mail import EmailMultiAlternatives
 from django.template import Template, Context
 from django.template.loader import render_to_string
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, reverse
 from django.utils.html import strip_tags
 from django.core.signing import Signer
-from django.core.urlresolvers import reverse
-from django.http import HttpRequest
-import requests 
+
 from .models import Invoice, TextBlock, MailType, Membership, Settings
 
 mailgun_api_key = 'key-44e941ede1264ea215021bb0b3634eb4'
