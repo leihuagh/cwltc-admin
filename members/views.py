@@ -1218,20 +1218,21 @@ class InvoiceSummaryView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['paid'] = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.PAID
-                                                 ).aggregate(total=Sum('total'))['total']
+        year = Settings.current_year()
+        paid = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.PAID).count()
+        paid_total = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.PAID
+                                            ).aggregate(total=Sum('total'))
         unpaid = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.UNPAID
                                         ).prefetch_related('payment_set')
         no_payment = 0
         no_payment_total = Decimal(0)
         pending = 0
         pending_total = Decimal(0)
-        confirmed = 0
-        confirmed_total = Decimal(0)
         failed = 0
         failed_total= Decimal(0)
         cancelled = 0
         cancelled_total = Decimal(0)
+
         for record in unpaid:
             if record.payment_state == -1:
                 no_payment += 1
@@ -1239,25 +1240,24 @@ class InvoiceSummaryView(TemplateView):
             elif record.payment_state == Payment.STATE.PENDING:
                 pending += 1
                 pending_total += record.total
-            elif record.payment_state == Payment.STATE.CONFIRMED:
-                confirmed += 1
-                confirmed_total += record.total
             elif record.payment_state == Payment.STATE.FAILED:
                 failed += 1
                 failed_total += record.total
             elif record.payment_state == Payment.STATE.CANCELLED:
                 cancelled += 1
                 cancelled_total += record.total
+        context['paid'] = paid
+        context['paid_total'] = paid_total
         context['no_payment'] = no_payment
         context['no_payment_total'] = no_payment_total
         context['pending'] = pending
         context['pending_total'] = pending_total
-        context['confirmed'] = confirmed
-        context['confirmed_total'] = confirmed_total
         context['failed'] = failed
         context['failed_total'] = failed_total
         context['cancelled'] = cancelled
         context['cancelled_total'] = cancelled_total
+        context['count'] = paid + no_payment + pending + failed
+        context['total'] = context['paid'] + no_payment_total + pending_total + failed_total
         return context
 
 def add_invoice_summary(context):
@@ -1271,12 +1271,11 @@ def add_invoice_summary(context):
     no_payment_total = Decimal(0)
     pending = 0
     pending_total = Decimal(0)
-    confirmed = 0
-    confirmed_total = Decimal(0)
     failed = 0
     failed_total= Decimal(0)
     cancelled = 0
     cancelled_total = Decimal(0)
+
     for record in unpaid:
         if record.payment_state == -1:
             no_payment += 1
@@ -1284,9 +1283,6 @@ def add_invoice_summary(context):
         elif record.payment_state == Payment.STATE.PENDING:
             pending += 1
             pending_total += record.total
-        elif record.payment_state == Payment.STATE.CONFIRMED:
-            confirmed += 1
-            confirmed_total += record.total
         elif record.payment_state == Payment.STATE.FAILED:
             failed += 1
             failed_total += record.total
@@ -1300,12 +1296,12 @@ def add_invoice_summary(context):
     context['no_payment_total'] = no_payment_total
     context['pending'] = pending
     context['pending_total'] = pending_total
-    context['confirmed'] = confirmed
-    context['confirmed_total'] = confirmed_total
     context['failed'] = failed
     context['failed_total'] = failed_total
     context['cancelled'] = cancelled
     context['cancelled_total'] = cancelled_total
+    context['count'] = paid + no_payment + pending + failed
+    context['total'] = paid_total + no_payment_total + pending_total + failed_total
     return context
 
 
