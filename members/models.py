@@ -22,7 +22,7 @@ class Address(models.Model):
     town = models.CharField(max_length=30)
     post_code = models.CharField(max_length=15)
     home_phone = models.CharField(max_length=20, blank=True)
-    
+
     def __str__(self):
         return self.post_code
 
@@ -43,7 +43,7 @@ class Group(models.Model):
     description = models.CharField(max_length=80)
 
     def __str__(self):
-        return self.slug 
+        return self.slug
 
 
 class Person(models.Model):
@@ -52,7 +52,7 @@ class Person(models.Model):
         ('F', 'Female'),
     )
     ACTIVE = 0
-    APPLIED = 1  
+    APPLIED = 1
     REJECTED = 2
     RESIGNED = 3
     STATES = (
@@ -69,7 +69,7 @@ class Person(models.Model):
     email = models.EmailField(max_length=75)
     dob = models.DateField(null=True, blank=True, verbose_name='Date of birth')
     british_tennis = models.IntegerField(null=True, blank=True)
-    notes = models.TextField(blank=True)  
+    notes = models.TextField(blank=True)
     pays_own_bill = models.BooleanField(default=False)
     state = models.SmallIntegerField(choices=STATES, default=ACTIVE)
     date_joined = models.DateField(null=True, blank=True)
@@ -102,15 +102,19 @@ class Person(models.Model):
         return self.fullname
 
     def get_absolute_url(self):
-        return reverse("person-detail", kwargs={"pk": self.pk})   
-      
+        return reverse("person-detail", kwargs={"pk": self.pk})
+
     def age(self, dat):
         """ Return the age in years on given date """
         if self.dob:
             return dat.year - self.dob.year - ((dat.month, dat.day) < (self.dob.month, self.dob.day))
-    
+
     def age_today(self):
         return self.age(date.today())
+
+    def age_for_membership(self):
+        year = Settings.current_year()
+        return self.age(date(year, Subscription.START_MONTH, 1))
 
     def create_user(self, username, password, pin):
         """ Register a member as a Django user """
@@ -121,11 +125,17 @@ class Person(models.Model):
                                              last_name=self.last_name)
         self.pin = make_password(pin)
         self.save()
-    
+
     @property
     def fullname(self):
-        return self.first_name + " " + self.last_name    
-    
+        return self.first_name + " " + self.last_name
+
+    def is_parent(self):
+        return self.person_set.all().count() > 0
+
+    def is_active_parent(self):
+        return self.person_set.filter(state=Person.ACTIVE).exists()
+
     def active_sub(self, year):
         """ Return the active subscription for a year if one exists. """
         subs = self.subscription_set.filter(sub_year=year, active=True)
@@ -176,7 +186,7 @@ class Membership(models.Model):
     FAMILIES = 102
     ALL_NONPLAYING = 103
     PLAYING_LIST = [FULL, UNDER_26, COUNTRY, HON_LIFE, LIFE, MIDWEEK, OFF_PEAK, PARENT, COACH]
-    JUNIORS_LIST = [JUNIOR, CADET]   
+    JUNIORS_LIST = [JUNIOR, CADET]
     ALL_NONPLAYING_LIST = [BRIDGE, NON_PLAYING]
 
     FILTER_CHOICES = [
@@ -185,14 +195,14 @@ class Membership(models.Model):
         (JUNIORS, 'Juniors & cadets'),
         (FAMILIES, 'Families'),
         (ALL_NONPLAYING, 'All non-playing')
-        ]
+    ]
 
     JUNIOR_CHOICES = [
         (JUNIORS, 'Juniors & cadets'),
         (JUNIOR, 'Juniors'),
         (CADET, 'Cadets')
-        ]
-    
+    ]
+
     NO_BAR_ACCOUNT = [JUNIOR, CADET, RESIGNED, NON_MEMBER, PARENT]
     ADULT_CHOICES = [
         (FULL, "Full"),
@@ -205,7 +215,7 @@ class Membership(models.Model):
         (UNDER_26, "Under 26"),
         (HON_LIFE, "Honorary life"),
         (COACH, "Coach")
-        ]
+    ]
 
     JOIN_CHOICES = [
         (NON_MEMBER, 'No membership (parent)'),
@@ -213,7 +223,9 @@ class Membership(models.Model):
         (OFF_PEAK, "Off peak (Mon - Fri to 6pm)"),
         (PARENT, 'Parent - to play with children'),
         (UNDER_26, 'Under 26'),
-        ]
+    ]
+
+    REGISTRATION_AGE = 14
 
     description = models.CharField(max_length=20, verbose_name='Membership')
     long_description = models.CharField(max_length=300, verbose_name='Description', blank=True)
@@ -221,7 +233,7 @@ class Membership(models.Model):
     is_playing = models.BooleanField(default=True)
     apply_online = models.BooleanField(default=True)
     cutoff_age = models.IntegerField(default=0)
-    
+
     def __str__(self):
         return self.description
 
@@ -270,7 +282,7 @@ class AdultApplication(models.Model):
         (RUSTY, 'Rusty - Returning to tennis'),
         (INTERMEDIATE, 'Intermediate - average club player'),
         (ADVANCED, 'Advanced  - club team player'),
-        ]
+    ]
 
     MEMBER = 0
     SCHOOL = 1
@@ -288,7 +300,7 @@ class AdultApplication(models.Model):
         (FLYER, 'Leaflet'),
         (AD, 'Advertisement'),
         (OTHER, 'Other'),
-        ]
+    ]
     membership_id = models.SmallIntegerField('Membership type',
                                              choices=Membership.ADULT_CHOICES, default=Membership.FULL)
     ability = models.SmallIntegerField('Judge your tennis ability',
@@ -306,7 +318,7 @@ class AdultApplication(models.Model):
     club = models.CharField('Name of previous tennis club (if any)',
                             max_length=80, blank=True)
     source = models.SmallIntegerField('How did you hear about us?',
-                                      choices=SOURCES, default=WEB,)
+                                      choices=SOURCES, default=WEB, )
     person = models.ForeignKey(Person, on_delete=models.CASCADE, blank=True, null=True)
 
 
@@ -338,7 +350,7 @@ class Fees(models.Model):
     annual_sub = models.DecimalField(max_digits=7, decimal_places=2, default=0)
     monthly_sub = models.DecimalField(max_digits=7, decimal_places=2, default=0)
     joining_fee = models.DecimalField(max_digits=7, decimal_places=2, null=True)
- 
+
     def __str__(self):
         return u'%s %s %s' % (self.sub_year, self.membership, self.annual_sub)
 
@@ -359,7 +371,7 @@ class Fees(models.Model):
             if months > 10:
                 amount = self.annual_sub
             else:
-                amount = months * self.monthly_sub          
+                amount = months * self.monthly_sub
         elif period == Subscription.QUARTERLY:
             if months == 3:
                 amount = months * self.monthly_sub
@@ -379,7 +391,7 @@ class Fees(models.Model):
             if months > 10:
                 amount = self.annual_sub
             else:
-                amount = months * self.monthly_sub 
+                amount = months * self.monthly_sub
         else:
             amount = months * self.monthly_sub
         return amount
@@ -393,7 +405,6 @@ class ModelEnum(IntEnum):
 
 
 class Invoice(models.Model):
-
     class STATE(ModelEnum):
         UNPAID = 0
         PART_PAID = 1
@@ -618,18 +629,18 @@ class ItemType(models.Model):
 
 class InvoiceItem(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)      
+    update_date = models.DateTimeField(auto_now=True)
     item_date = models.DateField(null=True, blank=True)
     description = models.CharField(max_length=100, blank=True, null=True)
     amount = models.DecimalField(max_digits=7, decimal_places=2)
     paid = models.BooleanField(default=False)
     #
     item_type = models.ForeignKey(ItemType, on_delete=models.SET_NULL, blank=True, null=True)
-    person = models.ForeignKey(Person,  on_delete=models.SET_NULL, blank=True, null=True)
+    person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, blank=True, null=True, related_name='invoice_items')
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, blank=True, null=True)
     subscription = models.ForeignKey('Subscription', on_delete=models.SET_NULL, blank=True, null=True)
-    
+
     def __str__(self):
         return u'%s %d' % (self.description, self.amount)
 
@@ -650,7 +661,7 @@ class InvoiceItem(models.Model):
             item_date=datetime.today(),
             description=description,
             amount=amount
-            )
+        )
         item.save()
 
 
@@ -684,9 +695,9 @@ class Subscription(models.Model):
     active = models.BooleanField(default=False)
     resigned = models.BooleanField(default=False)
     invoiced_month = models.SmallIntegerField()
-    no_renewal = models.BooleanField(default=False)       
+    no_renewal = models.BooleanField(default=False)
 
-    def __str__(self):  
+    def __str__(self):
         return u'Sub {} {} {} {}'.format(
             self.person_member,
             self.membership,
@@ -752,7 +763,6 @@ class Settings(models.Model):
 
 
 class Editor(models.Model):
-
     text = MarkdownxField()
 
 
@@ -765,7 +775,7 @@ class TextBlock(models.Model):
         (BLOCK, "Text block"),
         (BEE_HTML, "HTML document"),
         (BEE_TEMPLATE, "Bee editor template"),
-        )
+    )
 
     name = models.CharField(max_length=30, null=False, blank=False)
     type = models.SmallIntegerField(choices=TYPES, default=BLOCK)
@@ -783,7 +793,7 @@ class TextBlock(models.Model):
             context['text_notes'] = TextBlock.objects.get(pk=blocks[1])
         if int(blocks[2]) > 0:
             context['text_closing'] = TextBlock.objects.get(pk=blocks[2])
-    
+
     @classmethod
     def exists(cls, name):
         if len(TextBlock.objects.filter(name=name)) == 1:
@@ -796,11 +806,11 @@ class TextBlock(models.Model):
         blocks = TextBlock.objects.filter(name='_invoice_mail')
         if len(blocks) == 1:
             try:
-                ids = blocks[0].text.split("|")         
+                ids = blocks[0].text.split("|")
                 for i in range(0, len(ids) - 1):
                     ids[i] = int(ids[i])
                     if len(TextBlock.objects.filter(pk=ids[i])) == 0:
-                        ids[i] = -1  
+                        ids[i] = -1
                 return ids
             except ValueError:
                 pass
@@ -810,16 +820,15 @@ class TextBlock(models.Model):
 class MailTemplate(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     json = models.TextField(null=False, blank=False)
-    
+
     def __str__(self):
         return self.name
 
 
 class MailCampaign(models.Model):
-
     class Meta:
         ordering = ['-update_date']
-    
+
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     sent_date = models.DateTimeField(null=True)
@@ -864,11 +873,11 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
     if instance.file:
         if os.path.isfile(instance.file.path):
-            os.remove(instance.file.path)             
+            os.remove(instance.file.path)
 
 
 def diff_month(end, start):
-    return (end.year - start.year)*12 + end.month - start.month
+    return (end.year - start.year) * 12 + end.month - start.month
 
 
 def bill_month(m):

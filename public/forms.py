@@ -78,17 +78,22 @@ class RegisterForm(Form):
                 raise forms.ValidationError('No matching person found', code='invalid')
             if not self.person.address.post_code.replace(' ', '').lower() == post_code:
                 self.add_error('post_code','Post code is wrong')
-            if self.person.state == Person.RESIGNED:
+            parent = self.person.is_active_parent()
+            if self.person.state == Person.RESIGNED and not parent:
                 raise forms.ValidationError('You cannot register because you have resigned from the club', code='invalid')
             if self.person.state != Person.ACTIVE:
-                raise forms.ValidationError('You must be an active member to register', code='invalid')
+                raise forms.ValidationError('You must be an active member or parent to register', code='invalid')
             sub = self.person.sub
-            if not sub:
-                raise forms.ValidationError('You must have a membership subscription to register', code='invalid')
-            if not sub.paid:
-                raise forms.ValidationError('You must have a current paid subscription to register', code='invalid')
-            if not sub.membership.is_adult:
-                raise forms.ValidationError('Only adult members can register', code='invalid')
+
+            if not sub and not parent:
+                raise forms.ValidationError('You must have a membership subscription or be a parent to register', code='invalid')
+            if (sub and not sub.paid) and not parent:
+                raise forms.ValidationError('You must have a current paid subscription or be a parent to register', code='invalid')
+            if not parent:
+                age_limit = Membership.REGISTRATION_AGE
+                age = self.person.age_for_membership()
+                if not ((sub and sub.membership.is_adult) or (age and age >= age_limit)):
+                    raise forms.ValidationError(f'Only adult members and juniors {age} and over can register', code='invalid')
             self.cleaned_data['person'] = self.person
         return self.cleaned_data
             

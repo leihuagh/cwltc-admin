@@ -84,7 +84,7 @@
     <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
 <script>
   $(document).ready(function () {
-    bind_typeahead('#member_search', go, true);
+    bind_typeahead('#member_search', go, false);
     $('.typeahead').typeahead('val', '');
   });
   function go(person) {

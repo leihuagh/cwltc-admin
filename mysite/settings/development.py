@@ -3,7 +3,7 @@ import logging
 
 SITE_NAME = "Development"
 DEBUG = True
-DEBUG_TOOLBAR = True
+DEBUG_TOOLBAR = False
 # We could use the default path but make it explicit for clarity
 env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)

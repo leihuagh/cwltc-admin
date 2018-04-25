@@ -1,6 +1,6 @@
 from django.db import models
 from taggit.managers import TaggableManager
-from members.models import ItemType, Person, ModelEnum
+from members.models import ItemType, Person, ModelEnum, Membership, Settings
 
 
 class Tournament(models.Model):
@@ -72,12 +72,26 @@ class Event(models.Model):
         """
         Check that gender of person and partner(if any) is correct
         Return None if OK else return an error message
+        Note some of the checks are redundant because gender checks are now handled when setting up the context
         """
         err_male = 'Entrant must be male'
         err_female = 'Entrant must be female'
         err_partner_male = 'Your partner must be male'
         err_partner_female = 'Your partner must be female'
         err_no_partner = 'You must specify a partner'
+        err_same = 'You cannot partner yourself!'
+        err_invalid = 'You are not eligible to enter'
+        err_young = f'You must be {Membership.REGISTRATION_AGE} or over'
+        err_invalid_partner = 'Selected partner is not eligible'
+        err_young_partner = f'Partner must be {Membership.REGISTRATION_AGE} or over'
+
+        if not Event.eligible(person):
+            return err_invalid
+        if partner:
+            if not Event.eligible(partner):
+                return err_invalid_partner
+            if person == partner:
+                return err_same
 
         if self.event_type == EventType.MENS_SINGLES.value:
             if person.gender != 'M':
@@ -101,7 +115,6 @@ class Event(models.Model):
                     return err_female
             else:
                 return err_no_partner
-
         elif self.event_type == EventType.MIXED_DOUBLES.value:
             if partner:
                 if person.gender == 'F':
@@ -118,6 +131,25 @@ class Event(models.Model):
             if not partner:
                 return err_no_partner
         return None
+
+    @classmethod
+    def eligible(cls, person):
+        """ Must be active with a paid, playing subscription for this or previous year and 14 or over """
+        year = Settings.current_year()
+        if not person.state == Person.ACTIVE:
+            return False
+        if not person.sub:
+            return False
+        if not person.sub.paid:
+            return False
+        if person.sub.sub_year < year - 1:
+            return False
+        if not person.membership.is_playing:
+            return False
+        age = person.age_for_membership()
+        if age and age < Membership.REGISTRATION_AGE:
+            return False
+        return True
 
     def is_male_only(self):
         return self.event_type in [EventType.MENS_SINGLES.value, EventType.MENS_DOUBLES.value]
