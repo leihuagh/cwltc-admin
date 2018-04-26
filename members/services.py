@@ -101,7 +101,7 @@ def payment_state(gc_status):
         new_state = Payment.STATE.CONFIRMED
         new_banked = True
     else:
-        return None, False
+        raise ServicesError(f'Undefined GoCardless payment status: {gc_status}')
     return new_state, new_banked
 
 
@@ -111,13 +111,12 @@ def payment_update_state(payment, gc_status):
     Return True if state changed and new_banked state
     """
     new_state, new_banked = payment_state(gc_status)
-    if new_state:
-        if payment.state != new_state or payment.banked != new_banked:
-            payment.state = new_state
-            payment.banked = new_banked
-            payment.save()
-            invoice_update_state(payment.invoice)
-            return True
+    if payment.state != new_state or payment.banked != new_banked:
+        payment.state = new_state
+        payment.banked = new_banked
+        payment.save()
+        invoice_update_state(payment.invoice)
+        return True
     return False
 
 

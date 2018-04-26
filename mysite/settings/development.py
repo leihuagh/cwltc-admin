@@ -4,6 +4,9 @@ import logging
 SITE_NAME = "Development"
 DEBUG = True
 DEBUG_TOOLBAR = False
+LIVE_GO_CARDLESS = True
+
+
 # We could use the default path but make it explicit for clarity
 env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
@@ -36,9 +39,18 @@ BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
 ANYMAIL = env.dict('ANYMAIL')
 
-CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_SANDBOX_TOKEN')
-CARDLESS_ENVIRONMENT = 'sandbox'
-CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
+
+if LIVE_GO_CARDLESS:
+    CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_PRODUCTION_TOKEN')
+    CARDLESS_ENVIRONMENT = 'live'
+    CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
+    print('WARNING - LIVE Go Cardless site')
+else:
+    CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_SANDBOX_TOKEN')
+    CARDLESS_ENVIRONMENT = 'sandbox'
+    CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
+
+
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 

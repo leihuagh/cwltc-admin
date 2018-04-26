@@ -98,6 +98,7 @@ class InvoicePublicView(DetailView):
         if self.invoice:
             self.invoice.add_context(context)
             context['token'] = self.kwargs['token']
+            context['cancelled'] = self.invoice.state == Invoice.STATE.CANCELLED.value
             context['payments_pending'] = invoice_payments_list(self.invoice, pending=True)
             context['payments_paid'] = invoice_payments_list(self.invoice, paid=True)
         return context
