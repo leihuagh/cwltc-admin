@@ -171,6 +171,7 @@ def payments_list(start_date=None, end_date=None):
     Return a list of cardless payments optionally between inclusive dates
     """
     params = {}
+    params['limit'] = 500
     if start_date:
         params['created_at[gte]'] = iso_date(start_date)
     if end_date:

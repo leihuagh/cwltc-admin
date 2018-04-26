@@ -109,15 +109,16 @@ def payment_update_state(payment, gc_status):
     """
     Update the payment state from the corresponding go cardless payment
     Return True if state changed and new_banked state
+    TODO reinstate conditional update of invoice
     """
     new_state, new_banked = payment_state(gc_status)
-    if payment.state != new_state or payment.banked != new_banked:
-        payment.state = new_state
-        payment.banked = new_banked
-        payment.save()
-        invoice_update_state(payment.invoice)
-        return True
-    return False
+    #if payment.state != new_state or payment.banked != new_banked:
+    payment.state = new_state
+    payment.banked = new_banked
+    payment.save()
+    invoice_update_state(payment.invoice)
+    return True
+    #return False
 
 
 def invoice_pay(invoice, payment):
