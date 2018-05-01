@@ -5,7 +5,7 @@ from .tasks import addxy
 def index_view(request):
     if request.user.is_authenticated:
         return redirect('club_home')
-    return redirect('http://www.coombewoodltc.co.uk/')
+    return redirect('public-home')
 
 
 def test_celery_view(request):

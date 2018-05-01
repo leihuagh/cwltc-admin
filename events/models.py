@@ -23,11 +23,11 @@ class Tournament(models.Model):
                              item_type_id=ItemType.TOURNAMENT, tournament=self)
         Event.objects.create(name="Mixed Doubles", event_type=EventType.MIXED_DOUBLES, cost=self.event_cost,
                              item_type_id=ItemType.TOURNAMENT, tournament=self)
-        Event.objects.create(name="Men's Plate", event_type=EventType.MENS_DOUBLES, cost=self.event_cost,
+        Event.objects.create(name="Men's Plate", event_type=EventType.MENS_DOUBLES, cost=0,
                              item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
-        Event.objects.create(name="Ladies' Plate", event_type=EventType.LADIES_DOUBLES, cost=self.event_cost,
+        Event.objects.create(name="Ladies' Plate", event_type=EventType.LADIES_DOUBLES, cost=0,
                              item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
-        Event.objects.create(name="Mixed Plate", event_type=EventType.MIXED_DOUBLES, cost=self.event_cost,
+        Event.objects.create(name="Mixed Plate", event_type=EventType.MIXED_DOUBLES, cost=0,
                              item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
 
       

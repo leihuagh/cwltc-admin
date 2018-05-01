@@ -5,7 +5,10 @@
   {% include "members/_messages.html" %}
 <ul class="list-group">
   {% for event in event_list %}
-    <li class="list-group-item"><a href="{% url 'events:update' pk=event.id %}">{{ event.name }}</a>
+    <li class="list-group-item">
+      <a href="{% url 'events:update' pk=event.id %}" class="btn btn-sm btn-outline-danger">Edit</a>
+      <a href="{% url 'events:participant_list' pk=event.id %}" class="btn btn-sm btn-outline-success">Participants</a>
+      {{ event.name }}
       <span class="float-right">{{ event.tournament.name }}</span></li>
   {% endfor %}
 </ul>

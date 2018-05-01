@@ -15,14 +15,16 @@ stdlogger = logging.getLogger(__name__)
 
 
 class EventHelpView(LoginRequiredMixin, TemplateView):
+    """ Just shows help screen """
     template_name = 'events/event_help.html'
 
 
 class EventCreateView(LoginRequiredMixin, CreateView):
+    """ Creates an event NOT linked to a tournament """
     model = Event
     form_class = EventForm
     template_name = 'events/event_form.html'
-    success_url = reverse_lazy('events:list')
+    success_url = reverse_lazy('events:admin')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -32,10 +34,11 @@ class EventCreateView(LoginRequiredMixin, CreateView):
 
 
 class EventUpdateView(LoginRequiredMixin, UpdateView):
+    """ update event details - date etc"""
     model = Event
     form_class = EventForm
     template_name = 'events/event_form.html'
-    success_url = reverse_lazy('events:list')
+    success_url = reverse_lazy('events:admin')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -48,12 +51,12 @@ class EventUpdateView(LoginRequiredMixin, UpdateView):
         if 'delete' in request.POST:
             event = self.get_object(request)
             event.delete()
-            return redirect('events:list')
+            return redirect('events:admin')
         return super().post(request, *args, **kwargs)
 
 
 class EventDetailView(LoginRequiredMixin, DetailView):
-    """ Shows participants and allows entry or cancellation """
+    """ Shows participants and allows user to enter or cancel"""
     model = Event
     template_name = 'events/event_detail.html'
     person = None
@@ -124,17 +127,115 @@ class EventDetailView(LoginRequiredMixin, DetailView):
         return redirect('events:tournament_detail', pk=event.tournament.id)
 
 
+class ParticipantListView(LoginRequiredMixin, DetailView):
+    """
+    Admin view: List participants in an event
+    Template has buttons to add or edit
+    """
+    model = Event
+    template_name = 'events/participant_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        participants = Participant.objects.filter(event=self.object).select_related('person')
+        context['with_partner'] = self.object.with_partner()
+        context['participants'] = participants
+        return context
+
+
+class ParticipantAddView(LoginRequiredMixin, DetailView):
+    """ Admin view: Add a participant or doubles pair to an event """
+    model = Event
+    template_name = 'events/participant_edit.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['event'] = self.object
+        context['with_partner'] = self.object.with_partner()
+        context['can_delete'] = False
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        participant = Participant(event=self.object)
+        error = handle_participant_post(request, participant)
+        if error:
+            context = self.get_context_data(**kwargs)
+            context['error'] = error
+            return render(request, self.template_name, context)
+        else:
+            return redirect('events:participant_list', pk=self.object.id)
+
+
+class ParticipantEditView(LoginRequiredMixin, DetailView):
+    """ Admin view: Edit or delete a participant in an event """
+    model = Participant
+    template_name = 'events/participant_edit.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        participant = self.object
+        context['event'] = participant.event.name
+        context['player1'] = participant.person
+        context['player2'] = participant.partner
+        context['with_partner'] = participant.event.with_partner()
+        context['can_delete'] = True
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        error = handle_participant_post(request, self.object)
+        if error:
+            context = self.get_context_data(**kwargs)
+            context['error'] = error
+            return render(request, self.template_name, context)
+        else:
+            return redirect('events:participant_list', pk=self.object.event.id)
+
+def handle_participant_post(request, participant):
+    """ Common handler for create and edit participants
+        return None or error message """
+    event = participant.event
+    person = None
+    partner = None
+    person_id = request.POST.get('player1', None)
+    if person_id:
+        person = Person.objects.get(pk=person_id)
+    partner_id = request.POST.get('player2', None)
+    if partner_id:
+        partner = Person.objects.get(pk=partner_id)
+    if 'save' in request.POST:
+        if person:
+            error = event.validate_entrants(person, partner)
+            if error:
+                return error
+            if person.gender == 'M' and partner and partner.gender == 'F':
+                person, partner = partner, person
+            participant.person = person
+            participant.partner = partner
+            participant.save()
+        else:
+            return "Player 1 is not defined"
+    elif 'delete' in request.POST:
+        if participant.id:
+            participant.delete()
+    return None
+
+
 class EventListView(ListView):
+    """ Currently redundant """
     model = Event
     template_name = 'events/event_list.html'
 
 
 class EventAdminView(ListView):
+    """ Show list of events with button to edit or add participants"""
     model = Event
     template_name = 'events/event_admin.html'
 
 
 class TournamentCreateView(StaffuserRequiredMixin, CreateView):
+    """ Create a standard club tournament set of events"""
     model = Tournament
     form_class = TournamentForm
     template_name = 'events/event_form.html'
@@ -149,7 +250,7 @@ class TournamentCreateView(StaffuserRequiredMixin, CreateView):
     def form_valid(self, form):
         tournament = form.save()
         tournament.add_standard_events()
-        return redirect('events:tournament_list')
+        return redirect('events:tournament_admin')
 
 
 class TournamentUpdateView(StaffuserRequiredMixin, UpdateView):
@@ -168,7 +269,7 @@ class TournamentUpdateView(StaffuserRequiredMixin, UpdateView):
     def form_valid(self, form):
         if 'delete' in self.request.POST:
             self.object.delete()
-            return redirect('events:tournament_list')
+            return redirect('events:tournament_admin')
         else:
             return super().form_valid(form)
 

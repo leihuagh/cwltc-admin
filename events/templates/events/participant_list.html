@@ -1,0 +1,32 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+  <div class="text-center">
+    <h2 class="py-3">{{ event.name }} Admin</h2>
+    <div class ="row justify-content-center">
+      <div class={% if with_partner %}"col-sm-12 col-md-8 col-lg-6"{% else %}"col-sm-12 col-md-6 col-lg-4"{% endif %}>
+      <a href="{% url 'events:admin' %}" class="btn btn-success">Events admin</a>
+      <a href="{% url 'events:participant_add' pk=event.id %}" class="btn btn-success">Add entrant</a>
+      <div class="card my-4">
+        <div class="card-header bg-success p-1">
+          <h5 class="py-0 text-white">Entrants</h5>
+        </div>
+        <div class="list-group">
+          {% if participants.count == 0 %}
+            <p class="my-2">There are no entrants for this event.</p>
+          {% else %}
+              {% for p in participants %}
+                <li class="list-group-item">
+                  <a href="{% url 'events:participant_edit' p.id %}">
+                    {{ p.person.fullname }}
+                    {% if with_partner %}{% if p.partner.fullname %} & {{ p.partner.fullname }}
+                      {% else %} (no partner) {% endif %}{% endif %}
+                  </a>
+                </li>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
