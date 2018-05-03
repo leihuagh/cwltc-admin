@@ -240,16 +240,20 @@ class PersonLinkView(StaffuserRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(PersonLinkView, self).get_context_data(**kwargs)
+        person = Person.objects.get(pk=self.kwargs['pk'])
         context['title'] = 'Link person'
-        context['person'] = Person.objects.get(pk=self.kwargs['pk']).fullname
+        context['person'] = person
         context['info'] = "All invoices, payments and credit notes will be transferred to the person you select below." 
-        context['action'] = "Link"
+        context['action1'] = "Link"
+        if person.linked:
+            context['action2'] = "UnLink"
+            context['title'] = 'Link / unlink person'
         return context
 
     def post(self, request, *args, **kwargs):
         child = Person.objects.get(pk=self.kwargs['pk'])
        
-        if 'submit' in request.POST:
+        if 'action1' in request.POST:
             id = request.POST['person_id']
             if id.isdigit():
                 target = Person.objects.get(pk=request.POST['person_id'])
@@ -263,7 +267,12 @@ class PersonLinkView(StaffuserRequiredMixin, TemplateView):
                     return redirect(target)
             else:
                 messages.error(request, "No person selected")
-        return redirect('person-link', pk=child.id)
+                return redirect('person-link', pk=child.id)
+        elif 'action2' in request.POST:
+            child.linked = None
+            child.save()
+
+        return redirect(child)
 
 
 class PersonMergeView(StaffuserRequiredMixin, TemplateView):
@@ -272,10 +281,10 @@ class PersonMergeView(StaffuserRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(PersonMergeView, self).get_context_data(**kwargs)
         context['title'] = 'Merge person with another'
-        context['person'] = Person.objects.get(pk=self.kwargs['pk']).fullname
+        context['person'] = Person.objects.get(pk=self.kwargs['pk'])
         context['info'] = "All linked records of {} will be transferred to the person you select below.".format(
             context['person']) 
-        context['action'] = "Merge"
+        context['action1'] = "Merge"
         return context
 
     def post(self, request, *args, **kwargs):
@@ -287,12 +296,6 @@ class PersonMergeView(StaffuserRequiredMixin, TemplateView):
             messages.success(request, '{} has been merged with this record'.format(person.fullname))
             return redirect(target)
         return redirect(person)
-
-
-class PersonUnlinkView(StaffuserRequiredMixin, View):
-
-    def get(self, request, *args, **kwargs):
-        person = Person.objects.get(pk=self.kwargs['pk'])
 
 
 class JuniorCreateView(StaffuserRequiredMixin, PersonActionMixin, CreateView):

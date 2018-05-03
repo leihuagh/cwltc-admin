@@ -252,10 +252,6 @@ urlpatterns = [
         PersonUpdateView.as_view(),
         name='person-edit'
         ),
-    url(r'^person/unlink/(?P<pk>\d+)/$',
-        PersonUnlinkView.as_view(),
-        name='person-unlink'
-        ),
     url(r'^person/merge/(?P<pk>\d+)/$',
         PersonMergeView.as_view(),
         name='person-merge'
