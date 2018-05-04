@@ -1,4 +1,4 @@
-from datetime import *
+from datetime import datetime, timedelta
 from django.db.models import Q
 from .models import Person, Membership, Settings, Subscription, Invoice, InvoiceItem, Payment
 import django_filters
@@ -91,22 +91,35 @@ class InvoiceFilter(django_filters.FilterSet):
         model = Invoice
         fields = ['membership_year', 'state']
 
-    STATE_CHOICES = Invoice.STATE.choices()
 
     membership_year = django_filters.ChoiceFilter(name='membership_year',
                                                   label='Year',
                                                   empty_label=None,
                                                   choices=year_choices(withNone=True))
-                                   
+
+    state_choices = [(-1, 'All not cancelled')] + Invoice.STATES
     state = django_filters.ChoiceFilter(name='state',
                                         label='State',
-                                        choices=STATE_CHOICES,
+                                        choices=state_choices,
                                         method ='state_filter',
                                         empty_label=None)
 
+    pending = django_filters.BooleanFilter(name='pending',
+                                           label='Payment pending'
+                                           )
+
+    age = django_filters.Filter(name='aged',
+                                label='Aged',
+                                method='aged_filter')
+
+
+    def aged_filter(self, queryset, name, value):
+        before_date = datetime.now() - timedelta(days=int(value))
+        return queryset.filter(creation_date__lte=before_date)
+
     def state_filter(self, queryset, name, value):
-        # if value == str(Invoice.STATE.NOT_CANCELLED):
-        #     return queryset.filter(~Q(state=Invoice.STATE.CANCELLED.value))
+        if value == '-1':
+            return queryset.filter(~Q(state=Invoice.STATE.CANCELLED.value))
         # elif value == str(Invoice.PENDING_GC):
         #     return queryset.filter(Q(state=Invoice.STATE.UNPAID.value) & ~Q(gocardless_bill_id=""))
         # elif value == str(Invoice.UNPAID):

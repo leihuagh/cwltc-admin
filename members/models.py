@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 import os
 from decimal import *
 from enum import IntEnum
@@ -6,6 +6,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.urls import reverse
+from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from django.dispatch import receiver
 
@@ -401,7 +402,7 @@ class ModelEnum(IntEnum):
 
     @classmethod
     def choices(cls):
-        return tuple((x.value, x.name.lower().capitalize().replace("_", " ")) for x in cls)
+        return list((x.value, x.name.lower().capitalize().replace("_", " ")) for x in cls)
 
 
 class Invoice(models.Model):
@@ -441,6 +442,10 @@ class Invoice(models.Model):
             self.invoice_items.count(),
             self.total
         )
+
+    @property
+    def age(self):
+        return (timezone.now() - self.creation_date).days
 
     @property
     def paid_amount(self):
@@ -745,21 +750,6 @@ class Settings(models.Model):
             return record.membership_year
         except ObjectDoesNotExist:
             return 1900
-
-
-# class BarTransaction(models.Model):
-#     id = models.IntegerField(primary_key=True)
-#     date = models.DateField()
-#     time = models.TimeField()
-#     member_id = models.ForeignKey('Person')
-#     member_split = models.IntegerField()
-#     product = models.CharField(max_length=20)
-#     description = models.CharField(max_length=20)
-#     price = models.DecimalField(max_digits=7, decimal_places = 2)
-#     total = models.DecimalField(max_digits=7, decimal_places = 2)
-#
-#     def __str__(self):
-#         return str(self.id) + " " + self.description + self.total
 
 
 class Editor(models.Model):

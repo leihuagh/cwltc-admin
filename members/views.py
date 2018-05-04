@@ -1216,6 +1216,7 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
 
         return redirect('home')
 
+
 class InvoiceSummaryView(TemplateView):
     template_name = 'members/invoice_summary.html'
 

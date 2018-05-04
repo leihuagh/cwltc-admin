@@ -66,7 +66,7 @@ class InvoiceTable(tables.Table):
     class Meta:
         model = Invoice
         fields = ('id', 'person.first_name', 'person.last_name',
-                  'person.membership.description','email_count', 'state')
+                  'person.membership.description', 'age', 'email_count', 'state')
         sequence = ('selection','...')
         attrs = {'class': 'table table-condensed'} 
     
@@ -84,6 +84,7 @@ class InvoiceTable(tables.Table):
                                                         "class": "rowcheckbox"}
                                         },
                                     orderable=False)
+    age = tables.Column(accessor='age', order_by=('-creation_date'))
 
 
 class InvoiceItemTable(tables.Table):
