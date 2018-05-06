@@ -56,5 +56,8 @@ def dump_event(event, worksheet):
         row_num += 1
         row = [part.person_id, part.person.fullname]
         if event.with_partner():
-            row += [part.partner_id, part.partner.fullname, f'{part.person.fullname} & {part.partner.fullname}']
+            if part.partner:
+                row += [part.partner_id, part.partner.fullname, f'{part.person.fullname} & {part.partner.fullname}']
+            else:
+                row +=[0, 'No partner']
         worksheet.append(row)
