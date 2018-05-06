@@ -64,7 +64,6 @@ def invoice_update_state(invoice: Invoice):
     for payment in invoice.payment_set.all():
         if payment.state == Payment.STATE.PENDING:
             invoice.pending = True
-            invoice.state = Invoice.STATE.PENDING
         elif payment.state == Payment.STATE.CONFIRMED:
             total += payment.amount
 
