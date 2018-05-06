@@ -68,7 +68,7 @@ class Event(models.Model):
                                    EventType.MIXED_DOUBLES,
                                    EventType.OPEN_DOUBLES)
     
-    def validate_entrants(self, person, partner):
+    def validate_entrants(self, person, partner, skip_eligibility=False):
         """
         Check that gender of person and partner(if any) is correct
         Return None if OK else return an error message
@@ -85,13 +85,14 @@ class Event(models.Model):
         err_invalid_partner = 'Selected partner is not eligible'
         err_young_partner = f'Partner must be {Membership.REGISTRATION_AGE} or over'
 
-        if not Event.eligible(person):
-            return err_invalid
-        if partner:
-            if not Event.eligible(partner):
-                return err_invalid_partner
-            if person == partner:
-                return err_same
+        if not skip_eligibility:
+            if not Event.eligible(person):
+                return err_invalid
+            if partner:
+                if not Event.eligible(partner):
+                    return err_invalid_partner
+                if person == partner:
+                    return err_same
 
         if self.event_type == EventType.MENS_SINGLES.value:
             if person.gender != 'M':

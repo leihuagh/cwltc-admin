@@ -1,10 +1,6 @@
 {% extends 'club/base.html' %}
 {% load static %}
 {% block content %}
-{% if messages %}
-{% for message in messages %}
-  <div class="alert text-center bg-primary text-white" role="alert">{{ message }}</div>
-{% endfor %}
 {% endif %}
 
   <div class="text-center">
@@ -26,9 +22,7 @@
       </div>
   </div>
 
-
   </div>
-
 
 </div>
 {% endblock %}

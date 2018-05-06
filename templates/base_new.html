@@ -28,6 +28,11 @@
   {% endblock %}
   <div class="container-fluid p-0 margin-bg">
     {% if not no_container %}<div class="container {% if bg_class %}{{ bg_class }}{% else %}content-bg{% endif %} flex-grow" style="min-height: 68vh;">{% endif %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
+      {% endfor %}
+    {% endif %}
     {% block content %}
     {% endblock %}
     {% if not no_container %}</div>{% endif %}

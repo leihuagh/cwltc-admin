@@ -2,7 +2,6 @@
 {% load static %}
 {% block content %}
   <h4 class="py-3">Events list</h4>
-  {% include "members/_messages.html" %}
 <ul class="list-group">
   {% for event in event_list %}
     <li class="list-group-item"><a href="{% url 'events:detail' pk=event.id %}">{{ event.name }}</a>

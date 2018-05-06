@@ -3,14 +3,19 @@
 {% block content %}
   <h4 class="py-3">Events administration</h4>
   {% include "members/_messages.html" %}
-<ul class="list-group">
+<form method="post">{% csrf_token %}
+  <ul class="list-group">
   {% for event in event_list %}
     <li class="list-group-item">
       <a href="{% url 'events:update' pk=event.id %}" class="btn btn-sm btn-outline-danger">Edit</a>
       <a href="{% url 'events:participant_list' pk=event.id %}" class="btn btn-sm btn-outline-success">Participants</a>
+      <button type="submit" name="download" class="btn btn-sm btn-outline-success" value="{{ event.id }}">
+        Download participants
+      </button>
       {{ event.name }}
       <span class="float-right">{{ event.tournament.name }}</span></li>
   {% endfor %}
 </ul>
+</form>
   <a href="{% url 'events:create' %}" class="my-2 btn btn-success">Create event</a>
 {% endblock %}

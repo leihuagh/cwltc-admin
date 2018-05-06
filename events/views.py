@@ -5,11 +5,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from braces.views import StaffuserRequiredMixin
-from events.models import Event, Participant, Tournament
+from mysite.common import Button
 from club.views import person_from_user
 from members.models import Person
+from events.models import Event, Participant, Tournament
 from events.forms import EventForm, TournamentForm
-from mysite.common import Button
+from events.download import export_event, export_tournament
 
 stdlogger = logging.getLogger(__name__)
 
@@ -192,8 +193,11 @@ class ParticipantEditView(LoginRequiredMixin, DetailView):
         else:
             return redirect('events:participant_list', pk=self.object.event.id)
 
+
 def handle_participant_post(request, participant):
-    """ Common handler for create and edit participants
+    """ Common handler for create and edit participants in admin mode
+        Allows normally ineligible people to be saved with a warning so new
+        members can be included
         return None or error message """
     event = participant.event
     person = None
@@ -208,7 +212,11 @@ def handle_participant_post(request, participant):
         if person:
             error = event.validate_entrants(person, partner)
             if error:
-                return error
+                error2 = event.validate_entrants(person, partner, skip_eligibility=True)
+                if error2:
+                    return error2
+                else:
+                    messages.warning(request, f'Warning - Record saved but validation failed: {error}')
             if person.gender == 'M' and partner and partner.gender == 'F':
                 person, partner = partner, person
             participant.person = person
@@ -232,6 +240,11 @@ class EventAdminView(ListView):
     """ Show list of events with button to edit or add participants"""
     model = Event
     template_name = 'events/event_admin.html'
+
+    def post(self, request, **kwargs):
+        if 'download' in request.POST:
+            event = Event.objects.get(pk=request.POST['download'])
+            return export_event(event)
 
 
 class TournamentCreateView(StaffuserRequiredMixin, CreateView):
@@ -261,7 +274,7 @@ class TournamentUpdateView(StaffuserRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form_title'] = 'Update event'
+        context['form_title'] = 'Update tournament'
         context['buttons'] = [Button('Save', css_class='btn-success'),
                               Button('Delete', css_class='btn-danger')]
         return context
@@ -293,6 +306,11 @@ class TournamentListView(LoginRequiredMixin, ListView):
 class TournamentAdminView(StaffuserRequiredMixin, ListView):
     model = Tournament
     template_name = 'events/tournament_admin.html'
+
+    def post(self, request, **kwargs):
+        if 'download' in request.POST:
+            tournament = Tournament.objects.get(pk=request.POST['download'])
+            return export_tournament(tournament)
 
 
 class TournamentActiveView(View):
