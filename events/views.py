@@ -72,7 +72,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
         participants = Participant.objects.filter(event=self.object).select_related('person')
         participant = participants.filter(person=self.person)
         partner = participants.filter(partner=self.person)
-        entered = participant.exists() or partner.exists()
+        entered = (participant.exists() or partner.exists()) and event.online_entry
         if entered:
             if len(participant) and participant[0].partner:
                 context['partner_name'] = participant[0].partner.fullname
