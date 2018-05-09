@@ -29,7 +29,7 @@ urlpatterns = [
     url(r'^cardless/', include('cardless.urls')),
     url(r'^wimbledon/', include('wimbledon.urls')),
     url(r'^events/', include('events.urls')),
-
+    url(r'^diary/', include('diary.urls')),
     url(r'^home/',
         HomeView.as_view(),
         name='home'

@@ -1,0 +1,34 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+  {% if title %}<h3 class="text-center">{{ title }}</h3>{% endif %}
+  <div class="row justify-content-center">
+    <div class="col-sm-12 col-md-6">
+      <form method="POST" novalidate="">{% csrf_token %}
+        <div class="card my-2">
+          <h4 class="card-header card-title bg-success text-white mb-3" >Booking for court {{ court }}</h4>
+          <div class="card-body pt-0">
+            {%  if form.errors %}
+              <div class="text-danger">
+                <strong>Please correct the errors in red below:</strong>
+              </div>
+            {% endif %}
+
+            <h4>{{ date|date:"l d M Y"  }} at {{ time }}</h4>
+
+              <h4>{{ person.fullname }}</h4
+
+            {% crispy form %}
+          </div>
+          <div class="card-footer">
+            {% for button in buttons %}
+              <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} mb-1"
+                     id="id-{{ button.name }}" value="{{ button.value }}">
+            {% endfor %}
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock content %}

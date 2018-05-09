@@ -1,0 +1,9 @@
+{% extends 'club/base.html' %}
+{% block content %}
+  <h3 class="text-center">Bookings</h3>
+  <ul>
+    {% for booking in bookings %}
+      <li>{{ booking.date}} {{ booking.time }} {{ booking.court }} {{ booking.person.fullname }}</li>
+    {% endfor %}
+  </ul>
+{% endblock content %}

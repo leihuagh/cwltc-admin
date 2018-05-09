@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'authentication',
     'cardless',
     'wimbledon',
-    'events'
+    'events',
+    'diary',
 ]
 
 MIDDLEWARE = [

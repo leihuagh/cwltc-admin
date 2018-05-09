@@ -1,0 +1,54 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+
+
+  <div class="row justify-content-center">
+    <div class="col-sm-12 col-md-6">
+      <table class="table table-responsive">
+{#        {% for row in date_list %}#}
+{#          <tr>#}
+{#            <td>{{ row.0|date:"D d M Y" }}</td>#}
+{#            {% for times in row.1 %}#}
+{#              <td>{{ rows.1.0 }}</td>#}
+{#              {% for times in row.1.1 %}#}
+{#              {% for courts in times.1 %}#}
+{#                <td>{{ courts }}</td>#}
+{#              {% endfor %}#}
+{#              </tr><tr><td></td><td>#}
+{#            {% endfor %}#}
+{#          </tr>#}
+{#        {% endfor %}#}
+        <a href="{% url 'diary:week' date=week_back %}" class="m-2 btn btn-success"><< Back</a>
+        <a href="{% url 'diary:week' date=week_forward %}" class="m-2 btn btn-success">Forward >></a>
+        <tr>
+          <th>Date</th><th>Time</th><th>Court 1</th><th>Court 4</th>
+        </tr>
+        {% for row in date_list %}
+          <tr>
+            <td>{{ row.0|date:"D d M Y" }}</td>
+            <td>{{ row.1.0 }}</td>
+            {% for courts in row.1.1 %}
+              <td>
+              {% if courts.1 %}<a href="{% url 'diary:update' pk=courts.1.id %}">{{ courts.1.person.fullname }}</a>
+              {% else %} <a href="{% url 'diary:create' date=row.0 time=row.1.0 court=courts.0 %}">Book</a>
+              {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td></td>
+            <td>{{ row.2.0 }}</td>
+            {% for courts in row.2.1 %}
+              <td>
+              {% if courts.1 %}<a href="{% url 'diary:update' pk=courts.1.id %}">{{ courts.1.person.fullname }}</a>
+              {% else %} <a href="{% url 'diary:create' date=row.0 time=row.2.0 court=courts.0 %}">Book</a>
+              {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+{% endblock content %}
