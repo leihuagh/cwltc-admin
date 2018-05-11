@@ -11,23 +11,34 @@
     <div class="col-md-4 col-sm-12">
       <h5 class="mt-3 text-center">Bookings you own</h5>
       <ul class="list-group ml-4 my-6">
-        {% for booking in owned %}
+        {% if owned %}
+          {% for booking in owned %}
+            <li class="list-group-item list-group-item-action list-group-custom text-center">
+              <a href="{% url 'diary:update' pk=booking.id %}">
+                {{ booking.date }} at {{ booking.time }} on Court {{ booking.court }}
+              </a>
+            </li>
+          {% endfor %}
+        {% else %}
           <li class="list-group-item list-group-item-action list-group-custom text-center">
-            <a href="{% url 'diary:update' pk=booking.id %}">
-              {{ booking.date }} at {{ booking.time }} on Court {{ booking.court }}
-            </a>
+            You have no bookings
           </li>
-        {% endfor %}
-      </ul>
+        {% endif %}
       <h5 class="mt-3 text-center">Bookings that include you</h5>
          <ul class="list-group ml-4 my-6 mb-2">
-        {% for booking in included %}
+         {% if included %}
+          {% for booking in included %}
+            <li class="list-group-item list-group-item-action list-group-custom text-center">
+              <a href="{% url 'diary:update' pk=booking.id %}">
+                {{ booking.date }} at {{ booking.time }} on Court {{ booking.court }}
+              </a>
+            </li>
+          {% endfor %}
+        {% else %}
           <li class="list-group-item list-group-item-action list-group-custom text-center">
-            <a href="{% url 'diary:update' pk=booking.id %}">
-              {{ booking.date }} at {{ booking.time }} on Court {{ booking.court }}
-            </a>
+            No bookings
           </li>
-        {% endfor %}
+        {% endif %}
       </ul>
 
     </div>
