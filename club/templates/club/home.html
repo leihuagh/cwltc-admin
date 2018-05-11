@@ -12,12 +12,13 @@
       <h1 class="text-center py-4"><strong>Welcome</strong><br>
         <small>to your new club web site</small></h1>
       <p>
-This is the first incarnation of a new site for club members. Right now it has limited content, but over the next few weeks
-      and months we will be expanding the range of features and information that we publish,
-        making the site an indispensible part of club life.</p>
-      <h4><strong>Live on the site now</strong></h4>
-      <p> If you opted in to the Wimbledon ballot earlier in the year but can't attend the event on 21st April you
-      can <a href="{% url 'wimbledon_ballot' %}">indicate your ticket preferences.</a><p>
+      <img src="{% static 'club/images/EricAmerican.jpg' %}" class="img-fluid">
+      <h4><strong>Eric Smith Memorial Americal Tournament</strong></h4>
+      <p>Despite rather poor weather, 28 members competed in the American tournament in memory of Eric Smith, who was chairman of the club for many years.
+      We raised over £600 for the PSPA (Progressive Supranuclear Palsy) charity.</p>
+      <h4><strong>Summer Tournament</strong></h4>
+      <p> The <a href="/static/club/documents/Draw.pdf">draw</a> has been published and you can now <a href="{% url 'events:tournament_active' %}">book courts online.</a><p>
+      <h4><b>Other content</b></h4>
       <p>You have unlimited access to the current and back issues of <a href="{% url 'club_magazine' %}">UK Tennis magazine.</a>
       <p> We have a <a href="/static/club/documents/Surrey Tennis Discount Ticket Offers.pdf">special offer for tickets</a> to a competition at Roehampton, just before Wimbledon.</p>
 <p>
@@ -26,10 +27,7 @@ Behind the scenes, the committee has been hard at work revising the club's polic
       <p>With new General Data Protection Regulations (GDPR) coming into force in May, we have given you the ability to directly maintain
         the information that we hold about you and your family through the Account menu on the top right of every page.
       </p>
-      <h4 ><strong>Summer Tournament</strong></h4>
-      <p>This year for the first time entry for the Summer Tournament is exclusively online. Please <a href="{% url 'events:tournament_active' %}">sign up before the deadline of
-        Saturday 6 May.
-      </p>
+
     </div>
     <div class="col-md-3">
       <div class="row bg-white">
@@ -45,7 +43,7 @@ Behind the scenes, the committee has been hard at work revising the club's polic
         <div class="col-12 border border-top-0 border-info py-1">
           <img src="{% static 'club/images/EricSmith.jpg' %}" class="img-fluid">
           <h6 class="text-center pt-1">Eric Smith Memorial Tournament<br>
-          Sunday 29 April</h6>
+          We raised over £600!</h6>
         </div>
         <div class="col-12 border border-top-0 border-info py-1">
           <img src="{% static 'club/images/openday.png' %}" class="img-fluid">
@@ -56,7 +54,7 @@ Behind the scenes, the committee has been hard at work revising the club's polic
         <div class="col-12 border border-top-0 border-info py-1">
           <a href="{% url 'events:tournament_active' %}">
             <img src="{% static 'club/images/trophies.jpg' %}" class="img-fluid">
-            <h5 class="text-center pt1">Summer Tournament<br>Enter online</h5>
+            <h5 class="text-center pt1">Summer Tournament<br>Book courts online</h5>
           </a>
         </div>
 
