@@ -10,31 +10,31 @@
       <h4 class="py-3">{{ event }}</h4>
       <p class="text-danger">{{ error }}</p>
       <form method="post"> {% csrf_token %}
-          <input name="player1" id="player1" type="hidden" value="{{ player1.id }}">
-          <input name="player2" id="player2" type="hidden" value="{{ player2.id }}">
-          <h5>Player 1: <span id="player1_name">{{ player1.fullname }}</span></h5>
-          {% if with_partner %}
-            <h5>Player 2: <span id="player2_name">{{ player2.fullname }}</span></h5>
-          {% endif %}
-          <input type="submit" name="events" class="btn btn-success mt-1" value="Event list">
-          <button type="button" class="btn btn-success mt-1" data-toggle="modal" data-target="#player1_modal">
-            Select player 1
+        <input name="player1" id="player1" type="hidden" value="{{ player1.id }}">
+        <input name="player2" id="player2" type="hidden" value="{{ player2.id }}">
+        <h5>Player 1: <span id="player1_name">{{ player1.fullname }}</span></h5>
+        {% if with_partner %}
+          <h5>Player 2: <span id="player2_name">{{ player2.fullname }}</span></h5>
+        {% endif %}
+        <input type="submit" name="events" class="btn btn-success mt-1" value="Event list">
+        <button type="button" class="btn btn-success mt-1" data-toggle="modal" data-target="#player1_modal">
+          Select player 1
+        </button>
+        {% if with_partner %}
+          <button type="button" class="btn btn-success mt-1" data-toggle="modal" data-target="#player2_modal">
+            Select player 2
           </button>
-          {% if with_partner %}
-            <button type="button" class="btn btn-success mt-1" data-toggle="modal" data-target="#player2_modal">
-              Select player 2
-            </button>
-          {% endif %}
-          <input type="submit" name="save" class="btn btn-success mt-1" value="Save">
-          {% if can_delete %}
-            <input type="submit" name="delete" class="btn btn-warning mt-1" value="Delete entry">
-          {% endif %}
-        </form>
-      </div>
+        {% endif %}
+        <input type="submit" name="save" class="btn btn-success mt-1" value="Save">
+        {% if can_delete %}
+          <input type="submit" name="delete" class="btn btn-warning mt-1" value="Delete entry">
+        {% endif %}
+      </form>
     </div>
   </div>
 
-    <div class="modal" tabindex="-1" role="dialog" id="player1_modal">
+
+  <div class="modal" tabindex="-1" role="dialog" id="player1_modal">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">

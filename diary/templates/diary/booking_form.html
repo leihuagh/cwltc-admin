@@ -21,6 +21,11 @@
 
             {% crispy form %}
           </div>
+        {% if can_edit %}
+          <p class="mx-4">A confirmation email including any note that you add will be sent to all players.</p>
+        {% else %}
+          <p class="text-center text-danger">Only the person who made this booking can change or delete it.</p>
+        {% endif %}
           <div class="card-footer">
             {% for button in buttons %}
               <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} mb-1"
@@ -32,3 +37,20 @@
     </div>
   </div>
 {% endblock content %}
+{% block scripts %}
+<script>
+  $( document ).ready(function() {
+      if (!$('#id_doubles').is(":checked")){
+          $('#div_id_player_3_id').hide();
+          $('#div_id_player_4_id').hide();
+      }
+
+});
+    $(function() {
+        $('#id_doubles').on('change', function() {
+            $('#div_id_player_3_id').toggle();
+            $('#div_id_player_4_id').toggle();
+        });
+    });
+</script>
+{% endblock %}

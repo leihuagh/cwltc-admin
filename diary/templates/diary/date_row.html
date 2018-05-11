@@ -1,0 +1,21 @@
+{% load diary_tags %}
+<tr>
+  <td rowspan="{{ times|length }}">{{ date|date:"D d M" }}</td>
+  {% for entry in times %}
+    {% for booking in entry %}
+      {% if forloop.counter == 1 %}
+        <td>{{ booking }}</td>
+      {% else %}
+        <td>
+        {% if booking|is_integer %}
+          <a href="{% url 'diary:create' date=date_str time=entry.0 court=booking %}">Book</a>
+        {% else %}
+          <a href="{% url 'diary:update' pk=booking.id %}">{{ booking.person.fullname }}</a>
+        {% endif %}
+        </td>
+      {% endif %}
+    {% endfor %}
+    <tr>
+  {% endfor %}
+  </tr>
+</tr>

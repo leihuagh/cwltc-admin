@@ -1,9 +1,25 @@
 {% extends 'club/base.html' %}
+{% load static %}
 {% block content %}
-  <h3 class="text-center">Bookings</h3>
-  <ul>
-    {% for booking in bookings %}
-      <li>{{ booking.date}} {{ booking.time }} {{ booking.court }} {{ booking.person.fullname }}</li>
-    {% endfor %}
-  </ul>
+
+  <div class="row">
+    <div class="col-md-8 col-sm-12">
+     <h3 class="text-center pt-2">Tournament Bookings</h3>
+      <ul class="list-group ml-4 my-6">
+        {% for booking in bookings %}
+          <li class="list-group-item list-group-item-action list-group-custom">
+            <a href="{% url 'diary:update' pk=booking.id %}">{{ booking.date}} at {{ booking.time }} Court {{ booking.court }} </a>
+            {{ booking.person.fullname }}
+            {% if booking.player_2 %}, {{ booking.player_2 }} {% endif %}
+            {% if booking.player_3 %}, {{ booking.player_3 }} {% endif %}
+            {% if booking.player_4 %}, {{ booking.player_4 }} {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      <form method="post">{% csrf_token %}
+      <button type="submit" name="delete" class="my-2 mx-4 btn btn-sm btn-danger">Delete expired bookings</button>
+      </form>
+    </div>
+  </div>
+
 {% endblock content %}

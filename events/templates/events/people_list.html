@@ -1,0 +1,52 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+  <h4 class="py-3">Tournament player details</h4>
+  The list shows all players in the tournament in alphabetic order by first name.<br>
+  Click a name to see their contact details.
+<div class="row my-4">
+  <div class="col-md-3 col-sm-12">
+     <ul class="list-group ml-4 my-6">
+    {% for person in person_list %}
+      <li class="list-group-item list-group-item-action list-group-custom"
+          onclick="modal_show('{{ person.1 }}', '{{ person.2 }}', '{{ person.3 }}', '{{ person.4 }}')">{{ person.1 }}
+      </li>
+    {% endfor %}
+     </ul>
+  </div>
+</div>
+  <br>
+
+
+  <div class="modal" tabindex="-1" role="dialog" id="player_modal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><span id="name"></span></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h5><span id="mobile"></span></h5>
+          <h5><span id="phone"></span></h5>
+          <h5><span id="email"></span></h5>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+  modal_show = function(name, mobile, email, phone) {
+      $('#name').text(name);
+      $('#mobile').text(mobile);
+      $('#phone').text(phone);
+      $('#email').text(email);
+      $('#player_modal').modal('show');
+  }
+  </script>
+
+
+});
+{% endblock %}

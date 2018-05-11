@@ -1,54 +1,97 @@
 {% extends 'club/base.html' %}
 {% load static %}
+{% load diary_tags %}
+{% block head %}
+    <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
+    <link rel="stylesheet" type="text/css"  href="{% static 'diary/css/diary.css' %}">
+{% endblock %}
 {% block content %}
-
-
+  <h3 class="text-center pt-2">Court Booking System</h3>
   <div class="row justify-content-center">
-    <div class="col-sm-12 col-md-6">
-      <table class="table table-responsive">
-{#        {% for row in date_list %}#}
-{#          <tr>#}
-{#            <td>{{ row.0|date:"D d M Y" }}</td>#}
-{#            {% for times in row.1 %}#}
-{#              <td>{{ rows.1.0 }}</td>#}
-{#              {% for times in row.1.1 %}#}
-{#              {% for courts in times.1 %}#}
-{#                <td>{{ courts }}</td>#}
-{#              {% endfor %}#}
-{#              </tr><tr><td></td><td>#}
-{#            {% endfor %}#}
-{#          </tr>#}
-{#        {% endfor %}#}
-        <a href="{% url 'diary:week' date=week_back %}" class="m-2 btn btn-success"><< Back</a>
-        <a href="{% url 'diary:week' date=week_forward %}" class="m-2 btn btn-success">Forward >></a>
-        <tr>
-          <th>Date</th><th>Time</th><th>Court 1</th><th>Court 4</th>
-        </tr>
-        {% for row in date_list %}
-          <tr>
-            <td>{{ row.0|date:"D d M Y" }}</td>
-            <td>{{ row.1.0 }}</td>
-            {% for courts in row.1.1 %}
-              <td>
-              {% if courts.1 %}<a href="{% url 'diary:update' pk=courts.1.id %}">{{ courts.1.person.fullname }}</a>
-              {% else %} <a href="{% url 'diary:create' date=row.0 time=row.1.0 court=courts.0 %}">Book</a>
-              {% endif %}
-              </td>
-            {% endfor %}
-          </tr>
-          <tr>
-            <td></td>
-            <td>{{ row.2.0 }}</td>
-            {% for courts in row.2.1 %}
-              <td>
-              {% if courts.1 %}<a href="{% url 'diary:update' pk=courts.1.id %}">{{ courts.1.person.fullname }}</a>
-              {% else %} <a href="{% url 'diary:create' date=row.0 time=row.2.0 court=courts.0 %}">Book</a>
-              {% endif %}
-              </td>
-            {% endfor %}
-          </tr>
+    <div class="col-md-4 col-sm-12">
+      <h5 class="mt-3 text-center">Bookings you own</h5>
+      <ul class="list-group ml-4 my-6">
+        {% for booking in owned %}
+          <li class="list-group-item list-group-item-action list-group-custom text-center">
+            <a href="{% url 'diary:update' pk=booking.id %}">
+              {{ booking.date }} at {{ booking.time }} on Court {{ booking.court }}
+            </a>
+          </li>
         {% endfor %}
-      </table>
+      </ul>
+      <h5 class="mt-3 text-center">Bookings that include you</h5>
+         <ul class="list-group ml-4 my-6 mb-2">
+        {% for booking in included %}
+          <li class="list-group-item list-group-item-action list-group-custom text-center">
+            <a href="{% url 'diary:update' pk=booking.id %}">
+              {{ booking.date }} at {{ booking.time }} on Court {{ booking.court }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+
+    </div>
+    <div class="col-sm-12 col-md-6">
+{#      <div class="row">#}
+{#        <div class="col-sm-2">#}
+{#          <a href="{% url 'diary:week' date=week_back %}" class="m-2 btn btn-sm btn-success btn-block"><< Back</a>#}
+{#        </div>#}
+{#        <div class="col-sm-2 offset-sm-6">#}
+{#          <a href="{% url 'diary:week' date=week_back %}" class="m-2 btn btn-sm btn-success btn-block"><< Back</a>#}
+{#        </div>#}
+{#        <div class="col-sm-2 offset-sm-10">#}
+{#          <a href="{% url 'diary:week' date=week_back %}" class="m-2 btn btn-sm btn-success btn-block"><< Back</a>#}
+{#        </div>#}
+{#      </div>#}
+      <a href="{% url 'diary:week' date=week_back %}" class="m-2 btn btn-sm btn-success"><< Back</a>
+      {% if date_list %}
+        <a href="{% url 'diary:week' date=week_forward %}" class="m-2 btn btn-sm btn-success float-right">Forward >></a>
+        <table class="mb-2 week-table">
+          <tr>
+            <th>Date</th><th>Time</th><th>Court 1</th><th>Court 4</th>
+          </tr>
+          {% for row in date_list %}
+            <tr>
+              <td rowspan="{{ row.1|length }}">{{ row.0|date:"D d M" }}</td>
+              {% for entry in row.1 %}
+                {% for booking in entry %}
+                  {% if forloop.counter == 1 %}
+                    <td>{{ booking }}</td>
+                  {% else %}
+                    {% if booking|is_integer %}
+                      {% if booking == 0 %}
+                        <td class="past"></td>
+                      {% else %}
+                        <td class="free">
+                          <a href="{% url 'diary:create' date=row.0 time=entry.0 court=booking %}" class="free">Book</a>
+                        </td>
+                        {% endif %}
+                    {% else %}
+                      {% if booking.blocked %}
+                        <td class="blocked">
+                          <a href="{% url 'diary:update' pk=booking.id %}" class="blocked">Blocked</a>
+                        </td>
+                      {% else %}
+                        <td class="booked">
+                          <a href="{% url 'diary:update' pk=booking.id %}" class="booked">{{ booking.person.fullname }}</a>
+                        </td>
+                      {% endif %}
+
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+                <tr>
+              {% endfor %}
+              </tr>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p>Tournament is over</p>
+      {% endif %}
+      {% if user.is_staff %}
+        <a href="{% url 'diary:list' %}" class="mb-2 btn btn-sn btn-warning">All bookings</a>
+      {% endif %}
     </div>
   </div>
 {% endblock content %}

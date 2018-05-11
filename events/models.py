@@ -1,3 +1,4 @@
+from operator import itemgetter
 from django.db import models
 from taggit.managers import TaggableManager
 from members.models import ItemType, Person, ModelEnum, Membership, Settings
@@ -29,6 +30,26 @@ class Tournament(models.Model):
                              item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
         Event.objects.create(name="Mixed Plate", event_type=EventType.MIXED_DOUBLES, cost=0,
                              item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
+
+    def players_list(self, for_choice_field=False):
+        """ Returns a list of tuples containing player's fullname and id """
+        parts = Participant.objects.filter(event__tournament_id=self.id).select_related('person', 'partner', 'person__address', 'partner__address')
+        people_set = set()
+        for record in parts:
+            if for_choice_field:
+                people_set.add((record.person.id, record.person.fullname,))
+            else:
+                people_set.add((record.person.id, record.person.fullname, record.person.mobile_phone, record.person.email, record.person.address.home_phone))
+            if record.partner:
+                if for_choice_field:
+                    people_set.add((record.partner.id, record.partner.fullname,))
+                else:
+                    people_set.add((record.partner.id, record.partner.fullname, record.partner.mobile_phone, record.partner.email, record.partner.address.home_phone))
+        people_list = list(people_set)
+        people_list.sort(key=itemgetter(1))
+        if for_choice_field:
+            people_list.insert(0, (None, "-----"))
+        return people_list
 
       
 class EventType(ModelEnum):

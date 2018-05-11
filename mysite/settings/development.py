@@ -37,7 +37,9 @@ BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
 EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
+# EMAIL_BACKEND = "anymail.backends.mailgun.MailgunBackend"
 ANYMAIL = env.dict('ANYMAIL')
+
 
 
 if LIVE_GO_CARDLESS:

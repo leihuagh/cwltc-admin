@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^tournament/list/$', TournamentListView.as_view(), name='tournament_list'),
     url(r'^tournament/admin/$', TournamentAdminView.as_view(), name='tournament_admin'),
     url(r'^tournament/active/$', TournamentActiveView.as_view(), name='tournament_active'),
+    url(r'^tournament/people/(?P<pk>\d+)/$', TournamentPlayersView.as_view(), name='tournament_players'),
     url(r'^participant/list/(?P<pk>\d+)/$', ParticipantListView.as_view(), name='participant_list'),
     url(r'^participant/add/(?P<pk>\d+)/$', ParticipantAddView.as_view(), name='participant_add'),
     url(r'^participant/edit/(?P<pk>\d+)/$', ParticipantEditView.as_view(), name='participant_edit'),

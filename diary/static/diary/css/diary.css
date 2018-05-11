@@ -1,0 +1,46 @@
+.week-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.week-table, th, td {
+  border: 1px solid #7faaa5;
+  padding: 2px 10px;
+  text-align: center;
+  background-color: white;
+}
+
+.booked {
+  background-color: #e55f60;
+  color: black;
+}
+
+.booked:hover {
+  background-color: #ee070b;
+  color: white;
+}
+
+.week-table .free {
+  background-color: #8deeb1;
+  color: #2db65c;
+}
+
+.week-table .past {
+  background-color: #e2e1e0;
+  color: #2db65c;
+}
+
+.week-table .blocked{
+  background-color: #c4c3c2;
+  color: #2db65c;
+}
+
+.free:hover {
+  background-color: #26ee6f;
+  color:darkgreen;
+}
+
+.week-table.free a:hover {
+  background-color: #26ee6f;
+  color:darkgreen;
+}
