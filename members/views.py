@@ -290,7 +290,7 @@ class PersonMergeView(StaffuserRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         person = Person.objects.get(pk=self.kwargs['pk'])
        
-        if 'submit' in request.POST:
+        if 'action1' in request.POST:
             target = Person.objects.get(pk=request.POST['person_id'])
             person_merge(person, target)
             messages.success(request, '{} has been merged with this record'.format(person.fullname))
