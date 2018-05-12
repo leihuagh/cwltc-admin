@@ -24,8 +24,8 @@ SECRET_KEY = env.str('SECRET_KEY')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
-EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
-CELERY_EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+# Mails go to dummy
+EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 ANYMAIL = env.dict('ANYMAIL')
 
 CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_SANDBOX_TOKEN')

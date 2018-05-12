@@ -7,7 +7,11 @@
   {%  include '_logo_banner.html' %}
 {% endblock %}
 {% block navbar %}
-<div class="container-fluid bg-success">
+<div class="container-fluid
+      {% if site_name == 'Development' %}" style="background-color: darkmagenta;"
+      {% elif site_name == 'Sandbox1' %}" style="background-color: darkred;"
+      {% else %} bg-success"
+      {% endif %}>
   <div class="container p-0">
     <nav class="navbar navbar-expand-sm navbar-dark">
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
