@@ -24,7 +24,8 @@
 <p>
 Behind the scenes, the committee has been hard at work revising the club's policies to conform to the LTA's best practice.
   These documents are now all <a href="{% url 'club_policies' %}">online</a>.</p>
-      <p>With new General Data Protection Regulations (GDPR) coming into force in May, we have given you the ability to directly maintain
+      <p>With new General Data Protection Regulations (GDPR) coming into force in May, we have updated our
+        <a href="{% url 'privacy-policy' %}">Privacy policy</a> and given you the ability to directly maintain
         the information that we hold about you and your family through the Account menu on the top right of every page.
       </p>
 
@@ -45,12 +46,12 @@ Behind the scenes, the committee has been hard at work revising the club's polic
           <h6 class="text-center pt-1">Eric Smith Memorial Tournament<br>
           We raised over £600!</h6>
         </div>
-        <div class="col-12 border border-top-0 border-info py-1">
-          <img src="{% static 'club/images/openday.png' %}" class="img-fluid">
-          <h5 class="text-center pt-1">Club Open Day<br>
-          Saturday 12 May</h5>
-          <p>Invite your friends!</p>
-        </div>
+{#        <div class="col-12 border border-top-0 border-info py-1">#}
+{#          <img src="{% static 'club/images/openday.png' %}" class="img-fluid">#}
+{#          <h5 class="text-center pt-1">Club Open Day<br>#}
+{#          Saturday 12 May</h5>#}
+{#          <p>Invite your friends!</p>#}
+{#        </div>#}
         <div class="col-12 border border-top-0 border-info py-1">
           <a href="{% url 'events:tournament_active' %}">
             <img src="{% static 'club/images/trophies.jpg' %}" class="img-fluid">
