@@ -16,13 +16,13 @@ from .forms import BookingForm
 stdlogger = logging.getLogger(__name__)
 
 
-class WeekNowView(View):
+class WeekNowView(LoginRequiredMixin, View):
 
     def get(self, request):
         return redirect('diary:week', date=datetime.now().date())
 
 
-class WeekView(TemplateView):
+class WeekView(LoginRequiredMixin, TemplateView):
     template_name = 'diary/week_view.html'
 
     def get_context_data(self, **kwargs):

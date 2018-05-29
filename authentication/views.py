@@ -7,6 +7,7 @@ class CustomLoginView(LoginView):
     """ Login with person's id optionally passed as a token """
     template_name = 'authentication/login.html'
     form_class = CrispyAuthenticationForm
+    redirect_authenticated_user = True
     person = None
 
     def dispatch(self, request, *args, **kwargs):
@@ -19,7 +20,7 @@ class CustomLoginView(LoginView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
-        initial = {}
+        initial = super().get_initial()
         if self.person and self.person.auth:
             initial['username'] = self.person.auth.username
         return initial

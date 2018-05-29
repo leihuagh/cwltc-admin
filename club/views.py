@@ -18,19 +18,19 @@ class ClubHomeView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
-        context['bg_class']='bg-white'
+        context['bg_class'] = 'bg-white'
         return context
 
 
 class PersonView(LoginRequiredMixin, DetailView):
-    '''
+    """
     Display personal data for the logged in user
-    '''
+    """
     model = Person
     form_class = NameForm
     template_name = 'club/person_detail.html'
 
-    def get_object(self, queryset = None):
+    def get_object(self, queryset=None):
         if 'pk' in self.kwargs:
             obj = Person.objects.get(pk=self.kwargs['pk'])
         else:
@@ -78,11 +78,11 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
     model = Address
     form_class = AddressForm
     template_name = 'club/crispy_card.html'
+    person = None
 
     def get_object(self, queryset=None):
         self.person = Person.objects.get(pk=self.kwargs['person_id'])
         return Address.objects.get(pk=self.person.address_id)
-
 
     def get_context_data(self, **kwargs):
         kwargs['form_title'] = 'Edit address details'
@@ -95,7 +95,6 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
             self.get_object()
             return redirect('club_person_pk', pk=self.person.id)
         return super().post(request, *args, **kwargs)
-
 
     def get_success_url(self):
         return reverse('club_person')
@@ -155,12 +154,19 @@ class HistoryView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
-        context['bg_class']='bg-white'
+        context['bg_class'] = 'bg-white'
         return context
 
 
 def person_from_user(request):
-    try:
-        return Person.objects.get(auth_id=request.user.id)
-    except ObjectDoesNotExist:
-        raise PermissionDenied
+    """
+    Return a person object for the logged in user
+    Should be called by views that inherit LoginRequiredMixin but if
+    for any reason the user is not logged in return PermissionDenied
+    """
+    if request.user.is_authenticated:
+        try:
+            return Person.objects.get(auth_id=request.user.id)
+        except ObjectDoesNotExist:
+            pass
+    raise PermissionDenied
