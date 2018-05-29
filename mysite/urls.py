@@ -8,6 +8,8 @@ from public.views import *
 from members.tables import *
 from rest_framework import routers
 
+handler500 = 'mysite.views.custom_500'
+
 admin.autodiscover()
 
 router = routers.DefaultRouter()

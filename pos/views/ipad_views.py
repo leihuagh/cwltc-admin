@@ -1,6 +1,6 @@
 import json
 import logging
-import datetime
+from datetime import datetime
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.views.generic import TemplateView, FormView
@@ -104,6 +104,7 @@ class GetUserView(TemplateView):
                     return redirect('pos_password')
                 return redirect('pos_register')
             else:
+                # Complimentary sale, id = -1
                 return redirect('pos_password')
         return redirect('pos_start')
 
@@ -120,22 +121,27 @@ class GetPasswordView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         if request.POST['submit']:
-            id = int(request.session['person_id'])
-            if id > 0:
-                person = Person.objects.get(pk=id)
-                if check_password(request.POST['pin'], person.pin):
-                    return redirect('pos_menu')
-                user = User.objects.get(pk=person.auth_id)
-                if user.check_password(request.POST['password']):
-                    return redirect('pos_menu')
-            else:
-                if request.POST['pin'] == str(datetime.now().year):
-                    return redirect('pos_run')
+            if request.session['person_id']: # There is a bug where this is None
+                id = int("abc")
+                id = int(request.session['person_id'])
+                if id > 0:
+                    try:
+                        person = Person.objects.get(pk=request.session['person_id'])
+                    except Person.DoesNotExist:
+                        return redirect('pos_start')
+                    if check_password(request.POST['pin'], person.pin):
+                        return redirect('pos_menu')
+                    user = User.objects.get(pk=person.auth_id)
+                    if user.check_password(request.POST['password']):
+                        return redirect('pos_menu')
+                else: # Complimentary
+                    if request.POST['pin'] == str(datetime.now().year):
+                        return redirect('pos_run')
         return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
         context = super(GetPasswordView, self).get_context_data(**kwargs)
-        id=int(self.request.session['person_id'])
+        id = int(self.request.session['person_id'])
         if id > 0:
             person = Person.objects.get(pk=self.request.session['person_id'])
             context['full_name'] = person.fullname
