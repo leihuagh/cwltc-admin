@@ -55,15 +55,20 @@ def invoice_pay_by_gocardless(invoice,
 
 def invoice_update_state(invoice: Invoice):
     """
-    Calculate the invoice state from the state of its linked payments
-    Update the linked items state and any sub that is connected
+    Calculate the invoice state from the state of its linked payments.
+    Update the linked items state and any sub that is connected.
+    From 30 May 2018, if there is a pending GoCardless transaction the invoice state can be considered to be Paid.
+    The pending flag will be set until all payments are confirmed.
+
     """
     total = Decimal(0)
     invoice.pending = False
+    invoice.paid = False
 
     for payment in invoice.payment_set.all():
         if payment.state == Payment.STATE.PENDING:
             invoice.pending = True
+            total += payment.amount
         elif payment.state == Payment.STATE.CONFIRMED:
             total += payment.amount
 
