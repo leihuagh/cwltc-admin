@@ -1264,8 +1264,9 @@ class InvoiceSummaryView(TemplateView):
         context['total'] = context['paid'] + no_payment_total + pending_total + failed_total
         return context
 
+
 def add_invoice_summary(context):
-    year = 2018
+    year = Settings.current_year()
     qs = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.PAID)
     paid = qs.count()
     paid_total = qs.aggregate(total=Sum('total'))['total']
@@ -1278,8 +1279,6 @@ def add_invoice_summary(context):
                                     ).prefetch_related('payment_set')
     no_payment = 0
     no_payment_total = Decimal(0)
-    pending = 0
-    pending_total = Decimal(0)
     failed = 0
     failed_total= Decimal(0)
     cancelled = 0
