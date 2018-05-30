@@ -134,7 +134,6 @@ class GetPasswordView(TemplateView):
     def post(self, request, *args, **kwargs):
         if request.POST['submit']:
             if request.session['person_id']: # There is a bug where this is None
-                id = int("abc")
                 id = int(request.session['person_id'])
                 if id > 0:
                     try:
