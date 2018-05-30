@@ -408,9 +408,10 @@ def set_person_context(context, person):
     if parent:
         context['parent'] = parent
         context['children'] = parent.person_set.all()
-    context['state_list'] = Invoice.STATES
+    context['invoice_states'] = Invoice.STATES
+    context['payment_states'] = Payment.STATES
     context['types'] = Payment.TYPES
-    context['payment_states'] = Payment.TYPES
+    context['payment_types'] = Payment.TYPES
     context['payments'] = person.payment_set.all().order_by('update_date')
     return context
 
