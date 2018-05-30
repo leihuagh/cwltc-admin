@@ -63,11 +63,15 @@ class StartView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/start.html'
 
     def get(self, request, *args, **kwargs):
-        self.request.session['person_id'] = None
+        request.session['person_id'] = None
         request.session['layout_id'], request.session['terminal'] = read_cookie(request)
+        request.session['message'] = self.get_message()
         if request.session['layout_id']:
             return super().get(request, *args, **kwargs)
         return redirect('pos_disabled')
+
+    def get_message(self):
+        return ""
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -82,6 +86,14 @@ class StartView(LoginRequiredMixin, TemplateView):
             request.session['attended'] = True
             return redirect('pos_run')
         return redirect('pos_start')
+
+
+class RestartView(StartView):
+    """ Restart after error or bad password - show a message """
+
+    def get_message(self):
+        return self.request.session['message']
+
 
 def read_cookie(request):
     if 'pos' in request.COOKIES:
@@ -122,7 +134,7 @@ class GetPasswordView(TemplateView):
     def post(self, request, *args, **kwargs):
         if request.POST['submit']:
             if request.session['person_id']: # There is a bug where this is None
-                #id = int("abc")
+                id = int("abc")
                 id = int(request.session['person_id'])
                 if id > 0:
                     try:
@@ -137,6 +149,8 @@ class GetPasswordView(TemplateView):
                 else: # Complimentary
                     if request.POST['pin'] == str(datetime.now().year):
                         return redirect('pos_run')
+            request.session['message'] = "Incorrect PIN or password"
+            return redirect('pos_restart')
         return redirect('pos_start')
 
     def get_context_data(self, **kwargs):

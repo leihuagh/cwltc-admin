@@ -7,6 +7,7 @@ from pos.views.analysis_views import *
 urlpatterns = [
     url(r'^admin/$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
+    url(r'^restart/$', RestartView.as_view(), name='pos_restart'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
 

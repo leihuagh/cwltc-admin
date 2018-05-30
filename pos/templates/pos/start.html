@@ -20,6 +20,8 @@
         <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
       {% endif %}
     </form>
+  <br>
+    <p>{{ request.session.message }}</p>
   </div>
 </div>
     <div class="terminal">Terminal: {{ request.session.terminal }} Layout: {{ layout_name }}</div>
