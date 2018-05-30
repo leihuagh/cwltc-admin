@@ -29,7 +29,7 @@
             <td></td>
             <td>{{ entry.id }}</td>
             <td>{{ state_list|get_option:entry.state }}</td>
-            <td></td>
+            <td>{% if entry.pending %}(pending){% endif %} }}</td>
             <td class="text-right">£{{ entry.total }}</td>
             <td class="text-right">£{{ line.1 }}</td>
           </tr>
