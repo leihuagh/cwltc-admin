@@ -1269,6 +1269,11 @@ def add_invoice_summary(context):
     qs = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.PAID)
     paid = qs.count()
     paid_total = qs.aggregate(total=Sum('total'))['total']
+
+    pending_qs = Invoice.objects.filter(membership_year=year, pending=True)
+    pending = pending_qs.count()
+    pending_total = pending_qs.aggregate(total=Sum('total'))['total']
+
     unpaid = Invoice.objects.filter(membership_year=year, state=Invoice.STATE.UNPAID
                                     ).prefetch_related('payment_set')
     no_payment = 0
@@ -1284,9 +1289,6 @@ def add_invoice_summary(context):
         if record.payment_state == -1:
             no_payment += 1
             no_payment_total += record.total
-        elif record.payment_state == Payment.STATE.PENDING:
-            pending += 1
-            pending_total += record.total
         elif record.payment_state == Payment.STATE.FAILED:
             failed += 1
             failed_total += record.total
