@@ -28,8 +28,8 @@
             <td></td>
             <td></td>
             <td>{{ entry.id }}</td>
-            <td>{{ state_list|get_option:entry.state }}</td>
-            <td>{% if entry.pending %}(pending){% endif %} }}</td>
+            <td>{{ state_list|get_option:entry.state }} {% if entry.pending %}(pending){% endif %}</td>
+            <td></td>
             <td class="text-right">£{{ entry.total }}</td>
             <td class="text-right">£{{ line.1 }}</td>
           </tr>
@@ -38,7 +38,7 @@
             <td><a href="{% url "payment-detail" entry.id %}" class="btn btn-success btn-xs">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Payment</td>
-            <td>{{ payment_states|get_option:entry.type }}</td>
+            <td>{{ payment_states|get_option:entry.type }} {% if entry.pending %}(pending){% endif %}</td>
             <td>{% if entry.banked %}Yes{% endif %}</td>
             <td>{{ entry.invoice.id }}</td>
             <td></td>
