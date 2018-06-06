@@ -440,8 +440,22 @@ urlpatterns = [
         ),
 
     url(r'^admin/', admin.site.urls),
-    url(r'^favicon.ico/$', RedirectView.as_view(url=staticfiles_storage.url('favicons/favicon.ico'))),
-    url(r'^apple-touch-icon.png/$', RedirectView.as_view(url=staticfiles_storage.url('apple-touch-icon.png'))),
+    url(r'^favicon.ico/$',
+        RedirectView.as_view(url=staticfiles_storage.url('favicons/favicon.ico'))),
+    url(r'^apple-touch-icon.png/$',
+        RedirectView.as_view(url=staticfiles_storage.url('favicons/apple-touch-icon.png'))),
+    url(r'^site.webmanifest/$',
+        RedirectView.as_view(url=staticfiles_storage.url('favicons/site.webmanifest'))),
+    url(r'^android-chrome-192x192.png/$',
+        RedirectView.as_view(url=staticfiles_storage.url('favicons/android-chrome-192x192.png'))),
+    url(r'^android-chrome-256x256.png/$',
+        RedirectView.as_view(url=staticfiles_storage.url('favicons/android-chrome-256x256.png'))),
+    url(r'^browserconfig.xml/$',
+        RedirectView.as_view(url=staticfiles_storage.url('favicons/browserconfig.xml'))),
+    url(r'^mstile-150x150.png/$',
+        RedirectView.as_view(url=staticfiles_storage.url('favicons/mstile-150x150.png'))),
+    url(r'^safari-pinned-tab.svg/$',
+        RedirectView.as_view(url=staticfiles_storage.url('favicons/safari-pinned-tab.svg'))),
 ]
 
 if settings.DEBUG:
