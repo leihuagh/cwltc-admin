@@ -440,8 +440,12 @@ urlpatterns = [
         ),
 
     url(r'^admin/', admin.site.urls),
+
+    # https://realfavicongenerator.net
     url(r'^favicon.ico/$',
         RedirectView.as_view(url=staticfiles_storage.url('favicons/favicon.ico'))),
+    url(r'^favicon-32x32.ico/$',
+        RedirectView.as_view(url=staticfiles_storage.url('favicons/favicon-32x32.ico'))),
     url(r'^apple-touch-icon.png/$',
         RedirectView.as_view(url=staticfiles_storage.url('favicons/apple-touch-icon.png'))),
     url(r'^site.webmanifest/$',
