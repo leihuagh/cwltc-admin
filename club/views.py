@@ -1,5 +1,5 @@
 from django.shortcuts import reverse, redirect
-from django.views.generic import DetailView, TemplateView, UpdateView
+from django.views.generic import DetailView, TemplateView, UpdateView, FormView
 from django.core.signing import Signer
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from braces.views import LoginRequiredMixin
@@ -7,7 +7,7 @@ from mysite.common import Button
 from members.models import Person, Address, Settings, Invoice, Payment
 from members.views import set_person_context, add_membership_context
 from members.services import person_statement
-from public.forms import NameForm, AddressForm
+from public.forms import NameForm, AddressForm, ConsentForm
 from public.views import InvoicePublicView
 
 # Club Members views
@@ -27,8 +27,8 @@ class PersonView(LoginRequiredMixin, DetailView):
     Display personal data for the logged in user
     """
     model = Person
-    form_class = NameForm
     template_name = 'club/person_detail.html'
+    person = None
 
     def get_object(self, queryset=None):
         if 'pk' in self.kwargs:
@@ -38,14 +38,28 @@ class PersonView(LoginRequiredMixin, DetailView):
                 obj = Person.objects.get(auth_id=self.request.user.id)
             except ObjectDoesNotExist:
                 raise PermissionDenied
+        self.person = obj
         return obj
 
     def get_context_data(self, **kwargs):
-        person = self.get_object()
+        self.get_object()
         context = super().get_context_data()
-        set_person_context(context, person)
+        set_person_context(context, self.person)
         add_membership_context(context)
         return context
+
+    def post(self, request, *args, **kwargs):
+        self.get_object()
+        if 'change_phone' in request.POST:
+            self.person.allow_phone = not self.person.allow_phone
+        elif 'change_email' in request.POST:
+            self.person.allow_email = not self.person.allow_email
+        elif 'marketing' in request.POST:
+            self.person.allow_marketing = not self.person.allow_marketing
+        elif 'mail_subscribe' in request.POST:
+            return redirect('mailtype-subscribe', person=self.person.pk)
+        self.person.save()
+        return redirect('club_person_pk', pk=self.person.pk)
 
 
 class PersonUpdateView(LoginRequiredMixin, UpdateView):

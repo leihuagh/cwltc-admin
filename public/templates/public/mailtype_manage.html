@@ -2,63 +2,14 @@
 {% load staticfiles %}
 
 {% block content %}
-  <h2>Manage my emails</h2>
+  <h3 class="container">
+  <h2 class="mt-2">Manage email subscriptions</h2>
   {% if person %}
-    <p>Hi {{ person.first_name }} {{ person.last_name }}.</p>
-    <p> We send different types of email messages to our members as shown in the table below. Tick those that you want to receive.</p>
+    <h3>{{ person.first_name }} {{ person.last_name }}</h3>
 
-    <form action="." method="post" class="form-inline" id="unsub-form">
-      {% csrf_token %}
-                   
-
-      <table id="mailtypes" class="table table-condensed">
-        <thead>
-          <tr>
-            <th width="100">
-              <label class="checkbox-inline">
-                  <input name="select" onClick="toggleMaster(this)" value="all" type="checkbox">Select all
-              </label>     
-            </th>
-            <th width = "300">Message type</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-          {% for mailtype in mailtypes %}
-            <tr>
-              <td>
-                {% if mailtype.can_unsubscribe %}
-                    <label class="checkbox-inline">
-                        <input name="checks" value="{{ mailtype.id }}" type="checkbox" onClick="toggle(this)"
-                                {% if mailtype.subscribed %} checked{% endif %}/>
-                    </label>
-                {% endif %}
-              </td>
-              <td>{{ mailtype.name }}</td>
-              <td>{{ mailtype.description }}
-                  {% if not mailtype.can_unsubscribe %}
-                    <br /> Members cannot unsubscribe from this list.
-                  {% endif %}            
-              </td>
-            </tr>
-          {% endfor sub %}
-        </table>
-      <input type="submit" name="save" value="Save" class="btn btn-primary"/>
-  </form>
+    {% include 'members/_mailtype_manage.html' %}
   {% else %}
     Sorry, the link that you followed is no longer valid.
   {% endif %}
+  </div>
 {% endblock content %}
-{% block scripts %}
-<script type="text/javascript">
-    function toggleMaster(source) {
-        checkboxes = document.getElementsByName('checks');
-        for (var i = 0, n = checkboxes.length; i < n; i++) {
-            checkboxes[i].checked = source.checked;
-        }
-    }
-    function toggle(source) {
-        master = document.getElementsByName('select');
-        master[0].checked = false;
-    }
-</script>
-{% endblock scripts %}

@@ -22,12 +22,13 @@ urlpatterns = [
     url(r'^apply/submit/$', ApplySubmitView.as_view(), name='public-apply-submit'),
     url(r'^apply/thank-you/$', ApplyThankYouView.as_view(), name='public-apply-thank-you'),
 
-    url(r'^invoice/public/(?P<token>.+)/$',InvoicePublicView.as_view(), name='public-invoice-token'),
+    url(r'^invoice/public/(?P<token>.+)/$', InvoicePublicView.as_view(), name='public-invoice-token'),
 
     url(r'^online/(?P<token>.+)/$', GoOnlineView.as_view(), name='public-online-token'),
     url(r'^please_register/(?P<token>.+)/$', PleaseRegisterView.as_view(), name='public-please-register-token'),
     url(r'^register/$', RegisterView.as_view(), name='public-register'),
-    url(r'^register/invoice/(?P<token>.+)/$', RegisterTokenView.as_view(invoice=True), name='public-register-invoice-token'),
+    url(r'^register/invoice/(?P<token>.+)/$', RegisterTokenView.as_view(invoice=True),
+        name='public-register-invoice-token'),
     url(r'^register/token/(?P<token>.+)/$', RegisterTokenView.as_view(), name='public-register-token'),
 
     url(r'^consent/invoice/(?P<token>.+)/$', ConsentTokenView.as_view(invoice=True),

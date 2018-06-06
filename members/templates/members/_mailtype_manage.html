@@ -1,0 +1,50 @@
+<form action="." method="post" class="form" id="unsub-form">
+  {% csrf_token %}
+  <div class="card">
+    <div class="card-header bg-success text-white text-center p-1">Email message types</div>
+    <div class="card-body">
+    <p> We send different types of email messages as shown in the table below. Tick those that you want to receive.</p>
+    <p> If you deselect all mails then you will only receive membership-related mails.</p>
+  <div class="row ml-2 row-bordered" >
+    <div class="col-2">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="All" onClick="toggleMaster(this)">
+        <label class="" for="inlineCheckbox1">Select all</label>
+      </div>
+    </div>
+  </div>
+  {% for mailtype in mailtypes %}
+    <div class="row ml-2">
+      <div class="col-2">
+        {% if mailtype.can_unsubscribe %}
+          <div class="form-check">
+            <input class="form-check-input" name="checks" id="{{ mailtype.id }}" value="{{ mailtype.id }}" type="checkbox" onClick="toggle(this)"
+                    {% if mailtype.subscribed %} checked{% endif %}/>
+            <label class="" for="{{ mailtype.id }}">{{ mailtype.name }}</label>
+          </div>
+        {% endif %}
+      </div>
+      <div class="col">
+        {{ mailtype.description }}
+      </div>
+    </div>
+  {% endfor sub %}
+    </div>
+    <div class="card-footer py-1">
+      <input type="submit" name="save" value="Save" class="btn btn-primary"/>
+    </div>
+  </div>
+</form>
+
+<script type="text/javascript">
+  function toggleMaster(source) {
+      checkboxes = document.getElementsByName('checks');
+      for (var i = 0, n = checkboxes.length; i < n; i++) {
+          checkboxes[i].checked = source.checked;
+      }
+  }
+  function toggle(source) {
+      master = document.getElementsByName('select');
+      master[0].checked = false;
+  }
+</script>

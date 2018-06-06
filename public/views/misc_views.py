@@ -1,4 +1,5 @@
 import logging
+import datetime
 from django.shortcuts import render_to_response, redirect
 from django.views.generic import DetailView, TemplateView
 from django.core.signing import Signer
@@ -35,6 +36,7 @@ class LoginView(FormView):
 class MailTypeSubscribeView(TemplateView):
     """
     Displays a form with checkboxes that allows a user to unsubscribe
+    User can either be logged in (self.token=None) or get here direct from an Unsubscribe link
     """
     template_name = 'public/mailtype_manage.html'
 
@@ -42,8 +44,9 @@ class MailTypeSubscribeView(TemplateView):
         context = super(MailTypeSubscribeView, self).get_context_data(**kwargs)
         self.get_person()
         context['person'] = self.person
+        context['token'] = self.token
         if self.person:
-            mailtypes = MailType.objects.all().order_by('can_unsubscribe')
+            mailtypes = MailType.objects.filter(can_unsubscribe=True).order_by('description')
             for m in mailtypes:
                 if m.person_set.filter(id=self.person.id).exists():
                     m.subscribed = False
@@ -72,16 +75,23 @@ class MailTypeSubscribeView(TemplateView):
         self.get_person()
         checklist = request.POST.getlist('checks')
         mail_types = MailType.objects.all()
+        has_selection = False
         for m in mail_types:
-            if str(m.id) in checklist:
-                m.person_set.remove(self.person)
-            else:
-                m.person_set.add(self.person)
+            if m.can_unsubscribe:
+                if str(m.id) in checklist:
+                    has_selection = True
+                    m.person_set.remove(self.person)
+                else:
+                    m.person_set.add(self.person)
+        if has_selection:
+            self.person.allow_marketing = True
+            self.person.consent_date = datetime.datetime.now()
+            self.person.save()
         if self.token:
             return render_to_response('public/mailtype_done.html')
         else:
             messages.info(request, "Your mail choices have been saved")
-            return redirect(self.person)
+            return redirect('club_person_pk', pk=self.person.pk)
 
 
 class InvoicePublicView(DetailView):

@@ -1,5 +1,6 @@
 {% extends "club/base.html" %}
 {% load staticfiles %}
+{% load crispy_forms_tags %}
 {% block content %}
   <h4 class="pt-2">{{ person.fullname }} </h4>
   {% if person.sub %}<h5>Membership: {{ person.membership.description }}</h5>{%  endif %}
@@ -39,6 +40,40 @@
         </div>
       </div>
     </div>
+    <div class="col-md-4">
+      <form method="post">{% csrf_token %}
+        <div class="card"><div class="card-header bg-success text-white text-center p-1">Members database</div>
+          <div class="card-body">
+
+            <p class="text-success">
+    Allow members to look up your details for the purpose of arranging matches.<br>
+    This is required if you wish to enter club tournaments.
+            </p>
+            <div class="row">
+              <div class="col-6 text-success">Include phone:</div>
+              <div class="col">{% if person.allow_phone %}Yes{% else %} No {% endif %}</div>
+              <div class="col"><input type="submit" class="btn btn-sm btn-primary" name="change_phone" value="Change"></div>
+            </div>
+            <div class="row">
+              <div class="col-6 text-success">Include email:</div>
+              <div class="col">{% if person.allow_email %}Yes{% else %} No {% endif %}</div>
+              <div class="col"><input type="submit" class="btn btn-sm btn-primary mt-1" name="change_email" value="Change"></div>
+            </div>
+            <div class="row">
+              <div class="col-6 text-success">Marketing emails:</div>
+              <div class="col">{% if person.allow_marketing %}Yes{% else %} No {% endif %}</div>
+              <div class="col"><input type="submit" class="btn btn-sm btn-primary mt-1" name="marketing" value="Change"></div>
+            </div>
+          </div>
+          {% if person.allow_marketing %}
+            <div class="card-footer py-1">
+              <input type="submit" class="btn btn-sm btn-primary mt-1" name="mail_subscribe" value="Edit mail preferences">
+            </div>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
     {% if parent %}
       <!-- Family panel -->
       <div class="col-md-4">

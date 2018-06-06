@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^person/$', PersonView.as_view(), name='club_person'),
     url(r'^person/(?P<pk>\d+)/$', PersonView.as_view(), name='club_person_pk'),
     url(r'^person/update/(?P<pk>\d+)/$', PersonUpdateView.as_view(), name='club_person_update'),
+    url(r'^person/mailtypes/(?P<pk>\d+)/$', PersonUpdateView.as_view(), name='club_person_update'),
     url(r'^address/update/(?P<person_id>\d+)/$', AddressUpdateView.as_view(), name='club_address_update'),
     url(r'^search/$', ClubSearchView.as_view(), name='club_search'),
     url(r'^magazine/$', ClubMagazineView.as_view(), name='club_magazine'),
