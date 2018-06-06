@@ -1,6 +1,8 @@
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django_mail_viewer import urls as django_mail_viewer_urls
+from django.views.generic.base import RedirectView
 from mysite.views import *
 from members.views import *
 from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
@@ -438,6 +440,8 @@ urlpatterns = [
         ),
 
     url(r'^admin/', admin.site.urls),
+    url(r'^favicon.ico/$', RedirectView.as_view(url=staticfiles_storage.url('favicons/favicon.ico'))),
+    url(r'^apple-touch-icon.png/$', RedirectView.as_view(url=staticfiles_storage.url('apple-touch-icon.png'))),
 ]
 
 if settings.DEBUG:
