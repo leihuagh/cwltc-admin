@@ -73,18 +73,23 @@ def export_invoices(invoices):
     columns = [
         'Id',
         'State',
+        'Year',
         'Created',
         'Updated',
-        'Year', 
-        'Person_id',
+        'Person id',
         'Person',
+        'Email',
         'Total', 
         'Emailed',   
         'Reference',
-        'GoCardless Id',
-        'GC Action',
-        'Payment Id',
-        'Credit note Id'
+        'Payments',
+        '1st Payment id',
+        '1st Payment total',
+        'Payment state',
+        'Banked',
+        'Credit notes',
+        '1st Credit note id',
+        '1st Credit note total'
     ]
     for col_num in range(len(columns)):
         sheet.write(0, col_num, columns[col_num])
@@ -92,27 +97,46 @@ def export_invoices(invoices):
     row_num = 0
     for inv in invoices:
         row_num += 1
-        payment = ""
-        if inv.payment_set.count():
-            payment = inv.payment_set.all()[0].id
-        cnote = ""
-        if inv.creditnote_set.count():
-            cnote = inv.creditnote_set.all()[0].id
+
+        payment_id = ""
+        payment_amount = ""
+        payment_state = ""
+        payment_banked = ""
+        payment_count = inv.payment_set.count()
+        if payment_count:
+            payment = inv.payment_set.all()[0]
+            payment_id = payment.id
+            payment_amount = payment.amount
+            payment_state = Payment.STATES[payment.state][1],
+            payment_banked = payment.banked
+
+        c_note_id = ""
+        c_note_amount = ""
+        c_note_count = inv.creditnote_set.count()
+        if c_note_count:
+            c_note = inv.creditnote_set.all()[0]
+            c_note_amount = c_note.amount
+
         row = [
             inv.id,
             Invoice.STATES[inv.state][1],
+            inv.membership_year,
             inv.creation_date,
             inv.update_date,
-            inv.membership_year,
             inv.person_id,
             inv.person.fullname,
+            inv.person.email,
             inv.total,
             inv.email_count,    
             inv.reference,
-            inv.gocardless_bill_id,
-            inv.gocardless_action,
-            payment,
-            cnote          
+            payment_count,
+            payment_id,
+            payment_amount,
+            payment_state,
+            payment_banked,
+            c_note_count,
+            c_note_id,
+            c_note_amount
         ]
         for col_num in range(len(row)):
             data = row[col_num]
@@ -125,6 +149,7 @@ def export_invoices(invoices):
       
     book.save(response)
     return response
+
 
 def export_payments(payments):
     response = HttpResponse(content_type='application/vnd.ms-excel')

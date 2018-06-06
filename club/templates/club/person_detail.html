@@ -19,7 +19,7 @@
           <div class="row"><div class="col-5 text-success">British tennis:</div><div class="col">{{ person.british_tennis }}</div></div>
         </div>
         <div class="card-footer py-1">
-          <a href="{% url "club_person_update" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a>
+          <a href="{% url "club_person_update" pk=person.id %}" class="btn btn-success btn-sm">Edit details</a>
         </div>
       </div>
 
@@ -36,43 +36,53 @@
           <div class="row"><div class="col-5 text-success">Home phone:</div><div class="col">{{ address.home_phone }}</div></div>
         </div>
         <div class="card-footer py-1">
-          <a href="{% url "club_address_update" person_id=person.id %}" class="btn btn-primary btn-sm">Edit address</a>
+          <a href="{% url "club_address_update" person_id=person.id %}" class="btn btn-success btn-sm">Edit address</a>
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <form method="post">{% csrf_token %}
-        <div class="card"><div class="card-header bg-success text-white text-center p-1">Members database</div>
-          <div class="card-body">
-
-            <p class="text-success">
-    Allow members to look up your details for the purpose of arranging matches.<br>
-    This is required if you wish to enter club tournaments.
-            </p>
-            <div class="row">
-              <div class="col-6 text-success">Include phone:</div>
-              <div class="col">{% if person.allow_phone %}Yes{% else %} No {% endif %}</div>
-              <div class="col"><input type="submit" class="btn btn-sm btn-primary" name="change_phone" value="Change"></div>
-            </div>
-            <div class="row">
-              <div class="col-6 text-success">Include email:</div>
-              <div class="col">{% if person.allow_email %}Yes{% else %} No {% endif %}</div>
-              <div class="col"><input type="submit" class="btn btn-sm btn-primary mt-1" name="change_email" value="Change"></div>
-            </div>
-            <div class="row">
-              <div class="col-6 text-success">Marketing emails:</div>
-              <div class="col">{% if person.allow_marketing %}Yes{% else %} No {% endif %}</div>
-              <div class="col"><input type="submit" class="btn btn-sm btn-primary mt-1" name="marketing" value="Change"></div>
+    {% if person.membership.is_adult %}
+      <div class="col-md-4">
+        <form method="post">{% csrf_token %}
+          <div class="card"><div class="card-header bg-success text-white text-center p-1">Preferences</div>
+            <div class="card-body">
+              <h5>Members database</h5>
+              <p class="text-success">
+      Allow members to look up your details for the purpose of arranging matches.<br>
+      This is required if you wish to enter club tournaments.
+              </p>
+              <div class="row">
+                <div class="col-6 text-success">Include phone:</div>
+                <div class="col-3">{% if person.allow_phone %}Yes{% else %} No {% endif %}</div>
+                <div class="col-3"><input type="submit" class="btn btn-sm btn-success" name="change_phone" value="Change"></div>
+              </div>
+              <div class="row">
+                <div class="col-6 text-success">Include email:</div>
+                <div class="col-3">{% if person.allow_email %}Yes{% else %} No {% endif %}</div>
+                <div class="col-3"><input type="submit" class="btn btn-sm btn-success mt-1" name="change_email" value="Change"></div>
+              </div>
+              <h5>Club marketing emails</h5>
+              <div class="row">
+                <div class="col-6 text-success">Marketing emails:</div>
+                <div class="col-3">{% if person.allow_marketing %}Yes{% else %}No{% endif %}</div>
+                <div class="col-3"><input type="submit" class="btn btn-sm btn-success mt-1" name="marketing" value="Change"></div>
+              </div>
+              <div class="row">
+                {% if person.allow_marketing %}
+                  <div class="col-9">
+                    <p class="text-success"> Choose which mail types you want to receive.</p>
+                  </div>
+                  <div class="col-3">
+                    <input type="submit" class="btn btn-sm btn-success mt-1" name="mail_subscribe" value=" Choose">
+                  </div>
+                  {% else %}
+                  <p class="text-success"> You will only receive mails related to membership.</p>
+                {% endif %}
+              </div>
             </div>
           </div>
-          {% if person.allow_marketing %}
-            <div class="card-footer py-1">
-              <input type="submit" class="btn btn-sm btn-primary mt-1" name="mail_subscribe" value="Edit mail preferences">
-            </div>
-          {% endif %}
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    {% endif %}
 
     {% if parent %}
       <!-- Family panel -->

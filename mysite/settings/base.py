@@ -113,11 +113,11 @@ TEMPLATES = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 LANGUAGE_CODE = 'en-uk'
-TIME_ZONE = 'Europe/London'
+
 USE_I18N = False
 USE_L10N = False
-USE_TZ = True
-
+USE_TZ = False
+#TIME_ZONE = 'Europe/London'
 # LIST: https://docs.djangoproject.com/en/dev/ref/templates/builtins/#date
 DATE_FORMAT = 'd/m/Y'
 TIME_FORMAT = 'H:i'

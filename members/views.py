@@ -1434,7 +1434,8 @@ class InvoiceDetailView(StaffuserRequiredMixin, DetailView):
 
         elif 'send' in request.POST:
             do_mail(request, invoice, 'send')
-            return redirect(invoice)
+            messages.success(self.request, f'Invoice {invoice.id} has been mailed')
+            return redirect(invoice.person)
 
         elif 'pay' in request.POST:
             return redirect(reverse('payment-invoice', kwargs={'invoice_id': invoice.id}))
