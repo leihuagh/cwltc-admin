@@ -1180,7 +1180,8 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
             self.table_pagination['per_page'] = lines
         self.filter = self.filter_class(data, qs, request=self.request)
         self.total = self.filter.qs.aggregate(total=Sum('total'))['total']
-        return self.filter.qs
+        # return list so can sort by a property
+        return list(self.filter.qs)
 
     def get_context_data(self, **kwargs):
         context = super(InvoiceTableView, self).get_context_data(**kwargs)
