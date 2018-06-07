@@ -125,7 +125,7 @@ def export_invoices(invoices):
             inv.person_id,
             inv.person.fullname,
             inv.person.email,
-            inv.person.is_active_parent(),
+            inv.person.is_active_parent,
             inv.total,
             payment_count,
             payment_id,

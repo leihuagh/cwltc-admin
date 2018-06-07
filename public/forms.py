@@ -78,7 +78,7 @@ class RegisterForm(Form):
                 raise forms.ValidationError('No matching person found', code='invalid')
             if not self.person.address.post_code.replace(' ', '').lower() == post_code:
                 self.add_error('post_code','Post code is wrong')
-            parent = self.person.is_active_parent()
+            parent = self.person.is_active_parent
             if self.person.state == Person.RESIGNED and not parent:
                 raise forms.ValidationError('You cannot register because you have resigned from the club', code='invalid')
             if self.person.state != Person.ACTIVE:

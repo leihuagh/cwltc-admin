@@ -131,9 +131,11 @@ class Person(models.Model):
     def fullname(self):
         return self.first_name + " " + self.last_name
 
+    @property
     def is_parent(self):
         return self.person_set.all().count() > 0
 
+    @property
     def is_active_parent(self):
         return self.person_set.filter(state=Person.ACTIVE).exists()
 

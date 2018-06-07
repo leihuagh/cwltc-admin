@@ -67,7 +67,7 @@ class InvoiceTable(tables.Table):
         model = Invoice
         fields = ('id', 'person.first_name', 'person.last_name', 'person.state',
                   'person.membership.description', 'age', 'state')
-        sequence = ('selection','...')
+        sequence = ('selection', 'id', 'person.first_name', 'person.last_name', 'person.state', 'parent', '...')
         attrs = {'class': 'table table-condensed'} 
     
 
@@ -83,6 +83,7 @@ class InvoiceTable(tables.Table):
                                         },
                                     orderable=False)
     age = tables.Column(accessor='age', order_by=('-creation_date'))
+    parent = tables.Column('Parent', 'person.is_active_parent')
 
 
 class InvoiceItemTable(tables.Table):
