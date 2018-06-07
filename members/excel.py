@@ -79,7 +79,7 @@ def export_invoices(invoices):
         'Person id',
         'Person',
         'Email',
-        'Children',
+        'Parent',
         'Total', 
         'Payments',
         '1st Payment id',
