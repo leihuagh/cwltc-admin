@@ -1171,8 +1171,10 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
         data = self.request.GET.copy()
         if len(data) == 0:
             data['membership_year'] = Settings.current_year()
-            data['state'] = Invoice.STATE.PAID.value
-            data['lines'] = 20
+            data['state'] = Invoice.STATE.UNPAID.value
+            data['older'] = 10
+            data['younger'] = 365
+            data['lines'] = 100000
         lines = int(data.get('lines', 0))
         if lines > 0:
             self.table_pagination['per_page'] = lines

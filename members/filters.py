@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from django.db.models import Q
 from .models import Person, Membership, Settings, Subscription, Invoice, InvoiceItem, Payment
 import django_filters
-
+from django_filters.widgets import BooleanWidget
 
 def year_choices(withNone = False):
     choices = []
@@ -95,7 +95,7 @@ class InvoiceFilter(django_filters.FilterSet):
     membership_year = django_filters.ChoiceFilter(name='membership_year',
                                                   label='Year',
                                                   empty_label=None,
-                                                  choices=year_choices(withNone=True))
+                                                  choices=year_choices(withNone=False))
 
     state_choices = [(-1, 'All not cancelled')] + Invoice.STATES
     state = django_filters.ChoiceFilter(name='state',
@@ -105,27 +105,28 @@ class InvoiceFilter(django_filters.FilterSet):
                                         empty_label=None)
 
     pending = django_filters.BooleanFilter(name='pending',
-                                           label='Payment pending'
+                                           label='Pending',
                                            )
 
-    age = django_filters.Filter(name='aged',
-                                label='Aged',
-                                method='aged_filter')
+    older = django_filters.Filter(name='older',
+                                  label='Age >=',
+                                  method='older_filter')
 
+    younger = django_filters.Filter(name='younger',
+                                    label='Age <',
+                                    method='younger_filter')
 
-    def aged_filter(self, queryset, name, value):
+    def older_filter(self, queryset, name, value):
         before_date = datetime.now() - timedelta(days=int(value))
         return queryset.filter(creation_date__lte=before_date)
+
+    def younger_filter(self, queryset, name, value):
+        after_date = datetime.now() - timedelta(days=int(value))
+        return queryset.filter(creation_date__gt=after_date)
 
     def state_filter(self, queryset, name, value):
         if value == '-1':
             return queryset.filter(~Q(state=Invoice.STATE.CANCELLED.value))
-        # elif value == str(Invoice.PENDING_GC):
-        #     return queryset.filter(Q(state=Invoice.STATE.UNPAID.value) & ~Q(gocardless_bill_id=""))
-        # elif value == str(Invoice.UNPAID):
-        #     return queryset.filter(Q(state=Invoice.STATE.UNPAID.value) & Q(gocardless_bill_id=""))
-        # else:
-        #     return queryset.filter(state=value)
         return queryset.filter(state=value)
 
 

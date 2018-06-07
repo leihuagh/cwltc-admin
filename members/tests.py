@@ -239,6 +239,7 @@ class MembersTestCase(TestCase):
         self.assertEqual(len(life.payment_set.all()), 1)
         self.assertEqual(len(life.creditnote_set.all()), 1)
 
+
     def test_sub_start_and_end(self):
         m_start = bill_month(5)
         m_end = bill_month(4)
@@ -253,27 +254,33 @@ class MembersTestCase(TestCase):
         self.assertEqual(start, datetime(2015,12,1))
         self.assertEqual(end, datetime(2016,3,31))
 
+
     def test_mem_count(self):
         self.assertEqual(Membership.objects.all().count(), 6, "Actual %d" % Membership.objects.all().count())
 
+
     def test_Fee_count(self):
         self.assertEqual(Fees.objects.all().count(), 6, "Actual %d" % Fees.objects.all().count())
-    
+
+
     def test_annual_sub_12(self):
         mem = Membership.objects.get(description="Full")
         fee = Fees.objects.all().filter(membership=mem, sub_year=2015)[0]
         self.assertEqual(fee.calculate(1,12, Subscription.ANNUAL), 240.00)
-    
+
+
     def test_monthly_sub(self):
         mem = Membership.objects.get(description="Full")
         fee = Fees.objects.all().filter(membership=mem, sub_year=2015)[0]
         self.assertEqual(fee.calculate(1, 6, Subscription.MONTHLY), 6 * 21)
 
+
     def test_quarterly_sub(self):
         mem = Membership.objects.get(description="Full")
         fee = Fees.objects.all().filter(membership=mem, sub_year=2015)[0]
         self.assertEqual(fee.calculate(1, 3, Subscription.QUARTERLY), 3 * 21)
- 
+
+
     def test_adult_subscription_renewal(self):
         adult = get_adult()
         sub = subscription_create(
@@ -349,6 +356,7 @@ class MembersTestCase(TestCase):
         self.assertEqual(sub_34.membership.description, 'Full', 'Sub wrong: %s' % sub_34.membership.description)
         subscription_activate(sub_34)
 
+
     def test_sub_UNDER_26_age25(self):
         child = Person.objects.all().filter(last_name = "Child")[0]
         child.dob = date(1989,5,2)
@@ -361,6 +369,7 @@ class MembersTestCase(TestCase):
         category = child.subscription_set.all()[0].membership.description
         self.assertEqual(category, "UNDER_26", 'Actual is: %s' % category)
 
+
     def test_sub_UNDER_26_age26(self):
         child = Person.objects.all().filter(last_name = "Child")[0]
         child.dob = date(1989,5,1)
@@ -372,6 +381,7 @@ class MembersTestCase(TestCase):
         self.assertEqual(child.subscription_set.count(), 1, 'actual is: %d' % child.subscription_set.count())
         category = child.subscription_set.all()[0].membership.description
         self.assertEqual(category, "Full", 'Actual is: %s' % category)
+
 
     def test_activate_sub_and_current_sub(self):  
         adult = get_adult()
@@ -411,7 +421,8 @@ class MembersTestCase(TestCase):
         self.assertEqual(adult.active_sub(2014), sub2)
         self.assertEqual(adult.active_sub(2015), sub3)
         self.assertEqual(adult.sub, sub3)
-     
+
+
     def test_generate_adult_annual_invoice_items(self):
         self.assertEqual(InvoiceItem.objects.all().count(), 0, 'actual is: %d' % InvoiceItem.objects.all().count())
         adult = get_adult()
@@ -438,10 +449,11 @@ class MembersTestCase(TestCase):
         invoice_cancel(inv)
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.invoice_items.count(), 0)
-        cnote = CreditNote.objects.all()[0]
-        self.assertEqual(cnote.amount, 240)
+        c_note = CreditNote.objects.all()[0]
+        self.assertEqual(c_note.amount, 240)
         item = InvoiceItem.objects.all()[0]
         self.assertEqual(item.invoice, None)
+
 
     def test_generate_adult_annual_invoice_items_6months(self):
         ''' new member for 6 months only, processed late '''
@@ -468,6 +480,7 @@ class MembersTestCase(TestCase):
         self.assertEqual(Invoice.objects.all().count(), 1, 'actual is: %d' % Invoice.objects.all().count())
         inv = Invoice.objects.all()[0]
         self.assertEqual(inv.total, 6 * 21 + 100, 'Wrong total: {}'.format(inv.total))
+
 
     def test_generate_adult_monthly_invoices_item(self):
         self.assertEqual(InvoiceItem.objects.all().count(), 0, 'actual is: %d' % InvoiceItem.objects.all().count())
@@ -503,6 +516,7 @@ class MembersTestCase(TestCase):
         self.assertTrue(item.description.find('1/9/2015 to 30/4/2016') > -1, 'Actual is: {}'.format(item.description))
         self.assertEqual(item.amount, 8 * 21, 'Wrong amount: {}'.format(item.amount))
 
+
     def test_generate_adult_quarterly_invoices_item(self):
         self.assertEqual(InvoiceItem.objects.all().count(), 0, 'actual is: %d' % InvoiceItem.objects.all().count())
         adult = get_adult()
@@ -537,9 +551,9 @@ class MembersTestCase(TestCase):
         self.assertTrue(item.description.find('1/2/2016 to 30/4/2016') > -1, 'Actual is: {}'.format(item.description))
         self.assertEqual(item.amount, 3 * 21, 'Wrong amount: {}'.format(item.amount))
 
-    def test_invoice_paid_full(self):
-        adult = add_subs_to_family()
 
+    def test_invoice_paid_full(self):
+        adult = add_subs_to_family(paid=True)
         # renew the sub and test we have 4 more subs
         subscription_renew_batch(2015, 5)
         self.assertEqual(Subscription.objects.all().count(), 8)
@@ -552,7 +566,7 @@ class MembersTestCase(TestCase):
             description='Test BAR',
             amount=100)
 
-        #create the invoice for the junior - generates invoice for adult
+        # create the invoice for the junior - generates invoice for adult
         junior = get_junior()
         invoice_create_from_items(junior, 2015)
         
@@ -569,18 +583,12 @@ class MembersTestCase(TestCase):
         items = inv.invoice_items.filter(paid=True).count()
         self.assertEqual(items, 0)
 
-        # check the active subs are unpaid
-        people = Person.objects.all()
-        for person in people:
-            if person.sub:
-                self.assertFalse(person.sub.paid, "Sub wrongly marked as paid")
-        
         # create a payment
         payment = Payment.objects.create(type=Payment.BACS,
                                          person=inv.person,
                                          amount=total,
                                          membership_year=inv.membership_year,
-                                         state=Payment.STATE.PAID,
+                                         state=Payment.STATE.CONFIRMED.value,
                                          banked=True,
                                          banked_date= datetime.now()
                                          )
@@ -589,7 +597,7 @@ class MembersTestCase(TestCase):
 
         # check the invoice and items are paid
         inv = Invoice.objects.all()[0]
-        self.assertEqual(inv.state, Invoice.STATE.PAID)
+        self.assertEqual(inv.state, Invoice.STATE.PAID.value)
         items = inv.invoice_items.filter(paid=True).count()
         self.assertEqual(items, 6)
 
@@ -605,20 +613,16 @@ class MembersTestCase(TestCase):
             invoice_pay(inv, payment)
         self.assertTrue("Already paid in full" in context.exception.message)
 
-        # check the active subs are not paid because they are for 2014    
-        for person in Person.objects.all():
-            if person.sub:
-                self.assertFalse(person.sub.paid, "2014 Sub wrongly marked as paid")
-            
         subscriptions_change_year(2015)
         for person in Person.objects.all():
             if person.sub:
                 self.assertTrue(person.sub.paid, "2015 Sub wrongly marked as unpaid")
-            
+
+
     def test_invoice_cancel(self):
-        adult = add_subs_to_family()
+        adult = add_subs_to_family(paid=True)
         subscription_renew_batch(2015,5)
-        self.assertEqual(Subscription.objects.all().count() ,8)
+        self.assertEqual(Subscription.objects.all().count(), 8)
         bar = ItemType.objects.all().filter(id=ItemType.BAR)[0]
         item1 = InvoiceItem.objects.create(
             person=adult,
@@ -663,6 +667,7 @@ class MembersTestCase(TestCase):
 
         inv3 = invoice_create_from_items(adult, 2015)  
         invoice_cancel(inv3, with_credit_note=False, superuser=True)
+
 
     def test_group_create(self):
         # Group creation is unique
@@ -804,7 +809,8 @@ class MembersTestCase(TestCase):
 #        """Tests the about page."""
 #        response = self.client.get('/about')
 #        self.assertContains(response, 'About', 3, 200)
-def add_subs_to_family():
+
+def add_subs_to_family(paid=False):
     ''' Create family with subscriptions '''
     adult = get_adult()
     wife = get_wife()
@@ -815,38 +821,47 @@ def add_subs_to_family():
         sub_year=2014,
         membership_id=Membership.FULL
         )
+    sub.paid=paid
     subscription_activate(sub)
     sub = subscription_create(
         person=wife,
         sub_year=2014,
         membership_id=Membership.FULL
         )
+    sub.paid=paid
     subscription_activate(sub)
     sub = subscription_create(
         person=junior,
         sub_year=2014,
         membership_id=Membership.JUNIOR
         )
+    sub.paid = paid
     subscription_activate(sub)
     sub = subscription_create(
         person=cadet,
         sub_year=2014,
         membership_id=Membership.CADET
         )
+    sub.paid = paid
     subscription_activate(sub)
     return adult
+
 
 def get_adult():
     return Person.objects.all().filter(first_name = "First", last_name = "Adult")[0]
 
+
 def get_wife():
     return Person.objects.all().filter(first_name = "Wife of", last_name = "Adult")[0]
+
 
 def get_junior():
     return Person.objects.all().filter(first_name = "Junior", last_name = "Child")[0]
 
+
 def get_cadet():
     return Person.objects.all().filter(first_name = "Cadet", last_name = "Child")[0]     
+
 
 def get_life():
     return Person.objects.all().filter(first_name = "Life")[0] 

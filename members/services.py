@@ -482,6 +482,7 @@ def subscription_renew_list(sub_year, sub_month, id_list):
 
 def subscription_renew_batch(sub_year, sub_month):
     """
+    Renew all paid subs for previous year
     Invoice items are automatically generated for each subscription
     But person.sub is not changed
     """
