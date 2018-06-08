@@ -7,26 +7,24 @@
 </h4>
 <table id="subs" class="table table-condensed" >
 <thead>
-        <tr>
-        <th>Action</th>
-        <th>Year</th>
-        <th>From</th>
-        <th>To</th>
-        <th>Membership</th>
-        <th>Payment state</th>
-    </tr>
+  <tr>
+    <th>Action</th>
+    <th>Year</th>
+    <th>Active</th>
+    <th>From</th>
+    <th>To</th>
+    <th>Membership</th>
+    <th>Payment state</th>
+  </tr>
 </thead>
 {% for sub in subs %}
 <tr>
     <td>
-    {% if sub.active %}
-        <a href="{% url "sub-update" sub.id %}" class="btn btn-primary btn-xs">Edit </a>
-    {% else %}
-        <a href="{% url "sub-detail" sub.id %}" class="btn btn-primary btn-xs">View</a>
-    {% endif %}
+      <a href="{% url "sub-detail" sub.id %}" class="btn btn-primary btn-xs">View</a>
     </td>
     <td>{{ sub.sub_year }}</td>
-    <td>{{ sub.start_date }}</td> 
+    <td>{{ sub.active }}</td>
+    <td>{{ sub.start_date }}</td>
     <td>{{ sub.end_date }}</td>
     <td>{{ sub.membership_fulldescription }}</td>
     <td>

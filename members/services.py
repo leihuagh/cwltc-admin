@@ -97,7 +97,7 @@ def payment_state(gc_status):
     return the payment state corresponding to the go cardless status
     """
     new_banked = False
-    if gc_status in ('pending_approval_granted', 'pending_submission', 'submitted'):
+    if gc_status in ('pending_customer_approval', 'pending_submission', 'submitted'):
         new_state = Payment.STATE.PENDING
     elif gc_status == 'confirmed':
         new_state = Payment.STATE.CONFIRMED
@@ -340,6 +340,7 @@ def create_age_list():
         ).order_by('cutoff_age')
                 )         
 
+
 def membership_age(dob, sub_year=0):
     """ return age as at start of sub year"""
     if sub_year == 0:
@@ -397,11 +398,13 @@ def subscription_create(person,
     sub.save()
     return sub
 
+# In a given year there can be multiple subs linked to a person, but only one of those will be active
+# The last activated sub is set in person.sub to allow fast access
 
 def subscription_activate(sub, activate=True):
     """
-    Activate this subscription and clear all others that have the same year
-    Update person.sub only if its for the same year
+    Activate this subscription and clear active flag on all others that have the same year
+    Update person.sub
     """
     for subold in sub.person_member.subscription_set.filter(sub_year=sub.sub_year):
         if subold.active:
@@ -409,10 +412,9 @@ def subscription_activate(sub, activate=True):
             subold.save()
     sub.active = True
     sub.save()
-    if activate:
-        sub.person_member.membership_id = sub.membership_id
-        sub.person_member.sub = sub
-        sub.person_member.save()
+    sub.person_member.membership_id = sub.membership_id
+    sub.person_member.sub = sub
+    sub.person_member.save()
 
 
 def subscription_delete(sub):
@@ -433,7 +435,7 @@ def subscription_delete(sub):
         old_subs[0].save()
 
   
-def subscription_renew(sub, sub_year, sub_month, generate_item=False, activate=True, age_list=None):
+def subscription_renew(sub, sub_year, sub_month, generate_item=False, age_list=None):
     """
     Generate a new sub if current sub active and expired
     """
@@ -452,7 +454,7 @@ def subscription_renew(sub, sub_year, sub_month, generate_item=False, activate=T
                 period=sub.period,
                 age_list=age_list
                 )
-            subscription_activate(new_sub, activate)
+            subscription_activate(new_sub)
             if generate_item:
                 subscription_create_invoiceitems(new_sub, sub_month)
             return new_sub
@@ -473,7 +475,6 @@ def subscription_renew_list(sub_year, sub_month, id_list):
                                      sub_year,
                                      sub_month,
                                      generate_item=True,
-                                     activate=True,
                                      age_list=age_list)
         if new_sub:
             count += 1
@@ -484,7 +485,6 @@ def subscription_renew_batch(sub_year, sub_month):
     """
     Renew all paid subs for previous year
     Invoice items are automatically generated for each subscription
-    But person.sub is not changed
     """
     expiry_date = datetime(sub_year, sub_month, 1)
     expired_subs = Subscription.objects.filter(sub_year=sub_year - 1, active=True, paid=True,
@@ -495,7 +495,6 @@ def subscription_renew_batch(sub_year, sub_month):
                            sub_year,
                            sub_month,
                            generate_item=True,
-                           activate=False,
                            age_list=create_age_list())
         count += 1
     return count

@@ -388,39 +388,36 @@ class MembersTestCase(TestCase):
         sub1 = subscription_create(
             person=adult,
             sub_year=2014,
-            membership_id=Membership.FULL
+            membership_id=Membership.LIFE
         )
         sub2 = subscription_create(
             person=adult,
             sub_year=2014,
-            membership_id=Membership.JUNIOR
+            membership_id=Membership.FULL
         )
         self.assertEqual(adult.active_sub(2014), None)
         self.assertEqual(adult.sub, None)
+
         subscription_activate(sub1)
         adult = get_adult()
-        self.assertEqual(adult.active_sub(2014), sub1)
-        self.assertEqual(adult.sub, sub1)
+        self.assertEqual(adult.active_sub(2014), sub1, 'Activation failed')
+        self.assertEqual(adult.sub, sub1, 'Person.sub wrong after activation')
+
         subscription_activate(sub2)
         adult = get_adult()
-        self.assertEqual(adult.active_sub(2014), sub2)
-        self.assertEqual(adult.sub, sub2)
-        sub3 = subscription_create(
-            person=adult,
-            sub_year=2015,
-            membership_id=Membership.FULL
-        )
-        subscription_activate(sub3, activate = False)
+        self.assertEqual(adult.active_sub(2014), sub2, 'Activation change failed - 2 entries same year')
+        sub1= Subscription.objects.get(pk=sub1.pk)
+        self.assertFalse(sub1.active, 'Deactivation failed')
+        sub2= Subscription.objects.get(pk=sub2.pk)
+        self.assertTrue(sub2.active, 'Activation failed')
+        self.assertEqual(adult.sub, sub2, 'Person.sub wrong after activation change')
+
+        sub3 = subscription_renew(sub2, 2016, 5, generate_item=False)
+        self.assertEqual(sub3.active, True)
+        sub2 = Subscription.objects.get(pk=sub2.pk)
         adult = get_adult()
-        self.assertEqual(adult.active_sub(2014), sub2)
-        self.assertEqual(adult.active_sub(2015), sub3)
-        self.assertEqual(adult.sub, sub2)
-        
-        subscription_activate(sub3, activate = True)
-        adult = get_adult()
-        self.assertEqual(adult.active_sub(2014), sub2)
-        self.assertEqual(adult.active_sub(2015), sub3)
-        self.assertEqual(adult.sub, sub3)
+        self.assertEqual(sub2.active, True)
+        self.assertEqual(adult.sub, sub3, 'Person.sub wrong after sub renewal')
 
 
     def test_generate_adult_annual_invoice_items(self):

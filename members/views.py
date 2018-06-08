@@ -380,10 +380,10 @@ def add_membership_context(context):
 def set_person_context(context, person):
     context['can_delete'] = person_can_delete(person)
 
-    year = Settings.current_year()
+    sub_year = Settings.current_year()
     years = []
     statements = []
-    for year in range(year, year-3, -1):
+    for year in range(sub_year, sub_year-3, -1):
         years.append(year)
         statements.append(person_statement(person, year))
     context['years'] = years
@@ -392,7 +392,9 @@ def set_person_context(context, person):
     context['state'] = Person.STATES[person.state][1]
     context['address'] = person.address
     context['subs'] = person.subscription_set.all().order_by('sub_year')
-    context['sub'] = person.sub
+    current_sub = person.subscription_set.filter(sub_year=sub_year, active=True)
+    if len(current_sub) == 1:
+        context['sub'] = current_sub[0]
     context['invoices'] = person.invoice_set.all().order_by('update_date')
     own_items = person.invoiceitem_set.filter(invoice=None).order_by('update_date')
     family_items = InvoiceItem.objects.filter(
@@ -731,10 +733,12 @@ class SubDetailView(StaffuserRequiredMixin, DetailView):
         context = super(SubDetailView, self).get_context_data(**kwargs)
         sub = self.get_object()
         context['items'] = sub.invoiceitem_set.all().order_by('item_type')
-        for item in context['items']:
-            if item.invoice and item.invoice.state == Invoice.STATE.UNPAID.value:
-                context['cancel_invoice'] = True
-                break
+        # for item in context['items']:
+        #     if item.invoice and item.invoice.state == Invoice.STATE.UNPAID.value:
+        #         context['cancel_invoice'] = True
+        #         break
+        #     elif item.unpaid:
+        #         context['delete_unpaid'] = True
         return context
 
 
@@ -746,7 +750,7 @@ class SubHistoryView(StaffuserRequiredMixin, ListView):
 
     def get_queryset(self):
         self.person = get_object_or_404(Person, pk=self.kwargs['person_id'])
-        return Subscription.objects.filter(person_member=self.person).order_by('start_date')
+        return Subscription.objects.filter(person_member=self.person).order_by('-start_date', 'active')
 
     def get_context_data(self, **kwargs):
         context = super(SubHistoryView, self).get_context_data(**kwargs)

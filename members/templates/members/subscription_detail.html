@@ -35,7 +35,7 @@
     </tr>
 </table>
 {% if items %}
-<p>Linked items</p>
+<h4>Linked invoice items</h4>
 <table id="sub" class="table table-condensed">
     {% for item in items %}
     <tr>
@@ -43,27 +43,33 @@
         <td>{{ item.item_date|date }}</td>
         <td>{{ item.description}}</td>
         <td>
-        {% if item.payment %}
-            {{ item.payment_id }}
+        {% if item.paid %}
+            Paid
         {% else %}
             Unpaid
         {% endif %}          
         </td>
-        <td>{% if item.invoice %} Invoice {{ item.invoice.id }}
-        {% else %}No invoice{% endif %}</td>
+        <td>{% if item.invoice %}
+          <a href= "{% url "invoice-detail" item.invoice.id %}" >Invoice: {{ item.invoice.id }}</a>
+        {% else %}
+          No invoice
+        {% endif %}</td>
         <td class = "text-right">£{{ item.amount }}</td>
     </tr>
     {% endfor item %}
 </table>
 {% else %}
-<p>No linked item</p>
-    <a href="{% url "sub-update"  subscription.id %}" class="btn btn-primary">Edit subscription</a>   
+  <p>No linked item</p>
 {% endif %}
-{% if items %}
-    {% if cancel_invoice %}
-        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>   
-    {% else %}
-        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Delete unpaid items</a>   
-    {% endif %}
-{% endif %}
+  <a href="{% url "sub-update"  subscription.id %}" class="btn btn-primary">Edit subscription</a>
+{##}
+{#  <a href="{% url "invoice-update"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>#}
+{#{% if items %}#}
+{#    {% if cancel_invoice %}#}
+{#        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>#}
+{#      {% endif %}#}
+{#    {% if delete_unpaid %}#}
+{#        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Delete unpaid items</a>   #}
+{#    {% endif %}#}
+{#{% endif %}#}
 {% endblock content %}
