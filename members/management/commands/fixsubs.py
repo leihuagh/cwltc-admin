@@ -34,7 +34,6 @@ class Command(BaseCommand):
                     self.stdout.write(f'Problem with {person.id}')
             else:
                 if person.sub != sub:
-                    self.stdout.write(f'??{person.id}')
                     count += 1
                     person.sub_id = sub.id
                     person.save()
