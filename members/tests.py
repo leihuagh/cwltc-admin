@@ -666,6 +666,64 @@ class MembersTestCase(TestCase):
         invoice_cancel(inv3, with_credit_note=False, superuser=True)
 
 
+    def test_resign_adult(self):
+        """
+        After resignation we should have a cancelled invoice and a credit note
+        There should be no invoice items.
+        Person should be marked resigned
+        Person.sub should be marked resigned
+        """
+        adult = get_adult()
+        sub = subscription_create(
+            person=adult,
+            sub_year=2015,
+            membership_id=Membership.FULL
+        )
+        subscription_activate(sub)
+        subscription_create_invoiceitems(sub, 5)
+        self.assertEqual(InvoiceItem.objects.all().count(), 1)
+        invoice_create_from_items(adult, 2015)
+        self.assertEqual(Invoice.objects.all().count(), 1)
+        person_resign(adult)
+        self.assertEqual(adult.state, Person.RESIGNED)
+        self.assertEqual(InvoiceItem.objects.all().count(), 0)
+        inv1 = Invoice.objects.all()[0]
+        self.assertEqual(inv1.state, Invoice.STATE.CANCELLED.value)
+        self.assertEqual(CreditNote.objects.all().count(), 1)
+
+    def test_resign_adult_with_invoiceitems(self):
+        """
+        After resignation we should have a final unpaid invoice
+        and an invoice that is cancelled with a credit note
+        """
+        adult = get_adult()
+        sub = subscription_create(
+            person=adult,
+            sub_year=2015,
+            membership_id=Membership.FULL
+        )
+        subscription_activate(sub)
+        subscription_create_invoiceitems(sub, 5)
+        bar = ItemType.objects.all().filter(id=ItemType.BAR)[0]
+        item1 = InvoiceItem.objects.create(
+            person=adult,
+            item_type=bar,
+            description='Test BAR',
+            amount=100)
+        self.assertEqual(InvoiceItem.objects.all().count(), 2)
+        invoice_create_from_items(adult, 2015)
+        self.assertEqual(Invoice.objects.all().count(), 1)
+        person_resign(adult)
+        self.assertEqual(adult.invoiceitem_set.filter(invoice=None).count(), 0)
+        self.assertEqual(CreditNote.objects.all().count(), 1)
+        self.assertEqual(Invoice.objects.all().count(), 2)
+        inv1 = Invoice.objects.all()[0]
+        self.assertEqual(inv1.state, Invoice.STATE.CANCELLED.value)
+        inv2 = Invoice.objects.all()[1]
+        self.assertEqual(inv2.state, Invoice.STATE.UNPAID.value)
+        self.assertEqual(inv2.total, 100)
+
+
     def test_group_create(self):
         # Group creation is unique
         group = group_get_or_create('test')

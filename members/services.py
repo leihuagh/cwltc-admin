@@ -1,7 +1,8 @@
 from operator import attrgetter
 from nose.tools import nottest
-from members.models import *
 from datetime import datetime
+from members.models import *
+from pos.services import create_all_invoiceitems_from_payments
 
 class Error(Exception):
     """
@@ -586,6 +587,7 @@ def person_resign(person):
     Resign a person
     If there is an unpaid sub, cancel the invoice and delete the sub
     If there is a paid sub, make it inactive
+    Generate an invoice for any outstanding items
     """
     if person.sub:
         if not person.sub.paid:
@@ -601,6 +603,10 @@ def person_resign(person):
         person.sub.save()       
         person.state = Person.RESIGNED
         person_deregister(person)
+        # generate any pos records
+        create_all_invoiceitems_from_payments(person)
+        # create a final invoice for any remaining items
+        return invoice_create_from_items(person, Settings.current_year())
 
 
 def person_deregister(person):

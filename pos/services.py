@@ -66,12 +66,26 @@ def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, to
         return ('Cash', dec_total)
 
 
-def create_invoiceitems_from_payments(item_type_id):
+def create_all_invoiceitems_from_payments(person=None):
+    """
+    Generate invoice items for all item types that pos handles
+    If person is None, process all records else just for that person
+    """
+    item_types = InvoiceItem.objects.filter(pos=True)
+    for item_type in item_types:
+        create_invoiceitems_from_payments(item_type.id, person)
+
+
+def create_invoiceitems_from_payments(item_type_id, person=None):
     """
     Create invoiceitem records from the payment records
+    If person is None, process all records else just for that person
     """
     dict = {}
-    records = PosPayment.objects.filter(transaction__item_type_id=item_type_id, billed=False).order_by('person_id')
+    if person:
+        records = PosPayment.objects.filter(transaction__item_type_id=item_type_id, billed=False, person=person)
+    else:
+        records = PosPayment.objects.filter(transaction__item_type_id=item_type_id, billed=False).order_by('person_id')
     last_id = 0
     count = 0
     for record in records:
@@ -102,7 +116,7 @@ def create_invoiceitems_from_payments(item_type_id):
 
 def delete_billed_transactions(before_date):
     """
-    Delete transactions and linked items and payments
+    Delete transactions that have been billed and linked items and payments
     """
     trans = Transaction.objects.filter(billed=True, creation_date__lt=before_date)
     count = trans.count()

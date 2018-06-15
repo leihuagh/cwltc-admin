@@ -126,3 +126,20 @@ class PosTestCase(TestCase):
         self.assertTrue(t0.cash)
 
 
+    def test_create_invoice_items(self):
+        layout, user, receipt = self.init()
+        person = PersonFactory.create()
+        person_list = [{'id': person.id, 'name': person.fullname, 'amount': 1500}]
+        result = create_transaction_from_receipt(user.id, 1, layout.id, receipt, 15, person_list, False)
+        result = create_transaction_from_receipt(user.id, 1, layout.id, receipt, 15, person_list, False)
+        person2 = PersonFactory.create()
+        person_list = [{'id': person2.id, 'name': person2.fullname, 'amount': 1500}]
+        result = create_transaction_from_receipt(user.id, 1, layout.id, receipt, 15, person_list, False)
+        result = create_transaction_from_receipt(user.id, 1, layout.id, receipt, 15, person_list, False)
+        create_invoiceitems_from_payments(item_type_id=4)
+        items = InvoiceItem.objects.all()
+        self.assertEqual(items.count(), 2)
+        self.assertEqual(items[0].amount, 30)
+        self.assertEqual(items[0].person_id, person.id)
+        self.assertEqual(items[1].amount, 30)
+        self.assertEqual(items[1].person_id, person2.id)
