@@ -71,14 +71,14 @@ def create_all_invoiceitems_from_payments(person=None):
     Generate invoice items for all item types that pos handles
     If person is None, process all records else just for that person
     """
-    item_types = InvoiceItem.objects.filter(pos=True)
+    item_types = ItemType.objects.filter(pos=True)
     for item_type in item_types:
         create_invoiceitems_from_payments(item_type.id, person)
 
 
 def create_invoiceitems_from_payments(item_type_id, person=None):
     """
-    Create invoiceitem records from the payment records
+    Create invoiceitem records from the payment records for a single item type
     If person is None, process all records else just for that person
     """
     dict = {}

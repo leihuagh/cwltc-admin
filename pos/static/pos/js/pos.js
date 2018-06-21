@@ -70,7 +70,7 @@ var posCode = (function () {
         item.cost_price = obj.cost_price;
         receipt.push(item);
         createTable(receipt);
-    }
+    };
 
     pos.newReceipt = function () {
         newReceipt();

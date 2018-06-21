@@ -730,6 +730,12 @@ class InvoiceFilterForm(Form):
 
 class InvoiceItemForm(ModelForm):
 
+    class Meta:
+        model = InvoiceItem
+        fields = ['item_type', 'item_date', 'description', 'amount']
+        widgets = {'item_date': DateTimePicker(options={'format': 'DD/MM/YYYY',
+                                                        'allowInputToggle': True})}
+
     def __init__(self, *args, **kwargs):
         super(InvoiceItemForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
@@ -750,11 +756,7 @@ class InvoiceItemForm(ModelForm):
             if amount >= 0:
                 raise forms.ValidationError("This is a credit. The amount must be negative")
 
-    class Meta:
-        model = InvoiceItem
-        fields = ['item_type', 'item_date', 'description', 'amount']
-        widgets = {'item_date': DateTimePicker(options={'format': 'DD/MM/YYYY',
-                                                        'allowInputToggle': True})}
+
 
 
 class InvoiceSelectForm(Form):

@@ -1,6 +1,7 @@
 from .base import *
 SITE_NAME = "Sandbox"
 DEBUG = False
+LIVE_GO_CARDLESS = True
 
 # We could use the default path but make it explicit for clarity
 env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
@@ -28,9 +29,15 @@ BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 ANYMAIL = env.dict('ANYMAIL')
 
-CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_SANDBOX_TOKEN')
-CARDLESS_ENVIRONMENT = 'sandbox'
-CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
+if LIVE_GO_CARDLESS:
+    CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_PRODUCTION_TOKEN')
+    CARDLESS_ENVIRONMENT = 'live'
+    CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
+    print('WARNING - LIVE Go Cardless site')
+else:
+    CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_SANDBOX_TOKEN')
+    CARDLESS_ENVIRONMENT = 'sandbox'
+    CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')
 
 BROKER_URL = env.str('BROKER_URL_SANDBOX')
 

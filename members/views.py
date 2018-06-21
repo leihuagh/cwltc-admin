@@ -1173,15 +1173,13 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
         
         # set defaults for first time
         data = self.request.GET.copy()
-        if len(data) == 0:
-            data['membership_year'] = Settings.current_year()
-            data['state'] = Invoice.STATE.UNPAID.value
-            data['older'] = 10
-            data['younger'] = 365
-            data['lines'] = 100000
-        lines = int(data.get('lines', 0))
-        if lines > 0:
-            self.table_pagination['per_page'] = lines
+        data['membership_year'] = data.get('membership_year', Settings.current_year())
+        data['state'] = data.get('state', Invoice.STATE.UNPAID.value)
+        data['older'] = data.get('older', 10)
+        data['younger'] = data.get('younger', 365)
+        data['lines'] = data.get('lines', 100000)
+
+        self.table_pagination['per_page'] = data['lines']
         self.filter = self.filter_class(data, qs, request=self.request)
         self.total = self.filter.qs.aggregate(total=Sum('total'))['total']
         # return list so can sort by a property

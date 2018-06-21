@@ -116,8 +116,8 @@ LANGUAGE_CODE = 'en-uk'
 
 USE_I18N = False
 USE_L10N = False
-USE_TZ = False
-#TIME_ZONE = 'Europe/London'
+USE_TZ = True
+TIME_ZONE = 'Europe/London'
 # LIST: https://docs.djangoproject.com/en/dev/ref/templates/builtins/#date
 DATE_FORMAT = 'd/m/Y'
 TIME_FORMAT = 'H:i'
