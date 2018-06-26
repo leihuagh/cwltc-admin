@@ -24,9 +24,13 @@
   {% endfor sub %}
   </table>
   <h3>Updated invoices:</h3>
-  {% for inv in updated %}
-    <li>{{ inv }}</li>
-  {% endfor %}
+  {% if updated %}
+    {% for inv in updated %}
+      <li>{{ inv }}</li>
+    {% endfor %}
+  {% else %}
+    None
+  {% endif %}
   {% if not_founds %}
     <h3>Missing invoices:</h3>
     {% for inv in not_founds %}
@@ -37,6 +41,12 @@
     <h3>Payments created for invoices:</h3>
     {% for inv in created %}
       <li>{{ inv }}</li>
+    {% endfor %}
+  {% endif %}
+  {% if no_reference %}
+    <h3>Payments without reference</h3>
+    {% for id in no_reference %}
+      <li>{{ id }}</li>
     {% endfor %}
   {% endif %}
 {% endblock %}

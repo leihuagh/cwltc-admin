@@ -88,12 +88,13 @@ class PaymentProcessView(LoginRequiredMixin, FormView):
         days = form.cleaned_data['days']
         start_date = datetime.now() - timedelta(days=days)
         gc_payments = payments_list(start_date)
-        updated, not_found, created = process_payments_list(gc_payments)
+        updated, not_found, created, no_reference = process_payments_list(gc_payments)
         context = {}
         context['payments'] = gc_payments
         context['updated'] = updated
         context['not_found'] = not_found
         context['created'] = created
+        context['no_reference'] = no_reference
         return render(self.request, 'cardless/payment_process.html', context)
 
 

@@ -60,7 +60,7 @@ def invoice_update_state(invoice: Invoice):
     Update the linked items state and any sub that is connected.
     From 30 May 2018, if there is a pending GoCardless transaction the invoice state can be considered to be Paid.
     The pending flag will be set until all payments are confirmed.
-
+    TODO Subscription paid state when multiple invoice items
     """
     total = Decimal(0)
     invoice.pending = False
@@ -84,13 +84,19 @@ def invoice_update_state(invoice: Invoice):
             invoice.state=Invoice.STATE.UNPAID
     invoice.save()
     # Update linked items and any sub that is connected
-    paid = invoice.state == Invoice.STATE.PAID
+    paid = (invoice.state == Invoice.STATE.PAID) or invoice.special_case
     for invoice_item in invoice.invoice_items.all():
         invoice_item.paid = paid
         invoice_item.save()
         if invoice_item.subscription:
             invoice_item.subscription.paid = paid
             invoice_item.subscription.save()
+
+
+def invoice_toggle_special_case(invoice: Invoice):
+    """ Toggle special case and update state """
+    invoice.special_case = not invoice.special_case
+    invoice_update_state(invoice)
 
 
 def payment_state(gc_status):
@@ -115,17 +121,17 @@ def payment_state(gc_status):
 def payment_update_state(payment, gc_status):
     """
     Update the payment state from the corresponding go cardless payment
-    Return True if state changed and new_banked state
-    TODO reinstate conditional update of invoice
+    If the state has changed update the invoice state
+    Return True if state changed or new_banked state
     """
     new_state, new_banked = payment_state(gc_status)
-    #if payment.state != new_state or payment.banked != new_banked:
-    payment.state = new_state
-    payment.banked = new_banked
-    payment.save()
-    invoice_update_state(payment.invoice)
-    return True
-    #return False
+    if payment.state != new_state or payment.banked != new_banked:
+        payment.state = new_state
+        payment.banked = new_banked
+        payment.save()
+        invoice_update_state(payment.invoice)
+        return True
+    return False
 
 
 def invoice_pay(invoice, payment):
@@ -587,7 +593,7 @@ def person_resign(person):
     Resign a person
     If there is an unpaid sub, cancel the invoice and delete the sub
     If there is a paid sub, make it inactive
-    Generate an invoice for any outstanding items
+    Generate any invoice items rom POS
     """
     if person.sub:
         if not person.sub.paid:
@@ -601,12 +607,10 @@ def person_resign(person):
         person.sub.resigned = True
         person.sub.no_renewal = True 
         person.sub.save()       
-        person.state = Person.RESIGNED
-        person_deregister(person)
-        # generate any pos records
-        create_all_invoiceitems_from_payments(person)
-        # create a final invoice for any remaining items
-        return invoice_create_from_items(person, Settings.current_year())
+    person.state = Person.RESIGNED
+    person_deregister(person)
+    # generate any pos records
+    create_all_invoiceitems_from_payments(person)
 
 
 def person_deregister(person):

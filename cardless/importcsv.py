@@ -24,6 +24,7 @@ def process_payments_list(gc_payments):
     updated_invoices = []
     invoice_not_founds = []
     payments_created = []
+    no_reference = []
     for gc_payment in gc_payments:
         description = gc_payment.metadata.get('description', None)
         invoice_id = gc_payment.metadata.get('invoice_id', None)
@@ -69,8 +70,8 @@ def process_payments_list(gc_payments):
             except Invoice.DoesNotExist:
                 invoice_not_founds.append(invoice_id)
         else:
-            logger.warning("Bad metadata {} processing payment ".format(gc_payment.id))
-    return updated_invoices, invoice_not_founds, payments_created
+            no_reference.append(gc_payment.id)
+    return updated_invoices, invoice_not_founds, payments_created, no_reference
 
 
 def process_csvfile(f):

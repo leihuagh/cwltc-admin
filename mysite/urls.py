@@ -240,6 +240,9 @@ urlpatterns = [
     url(r'^people/applied/$', AppliedTableView.as_view(),
         name='applied-list'),
 
+    url(r'^people/resign/$', PeopleResignView.as_view(),
+        name='people-resign'),
+
     # url(r'^list/$',
     #     PersonList.as_view(),
     #     name='person-list'

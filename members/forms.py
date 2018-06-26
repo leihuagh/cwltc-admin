@@ -167,9 +167,8 @@ class PersonForm(ModelForm):
 
         self.helper = FormHelper(self)
 
-        name_set = Div(
-            Div('Adult',
-                'first_name',
+        name_set = Div(HTML('<h3>Create Adult</h3>'),
+            Div('first_name',
                 'last_name',
                 'gender',
                 'dob',
@@ -180,9 +179,8 @@ class PersonForm(ModelForm):
             css_class="col col-sm-4"
         )
 
-        address_set = Div(
-            Div('Address',
-                'address1',
+        address_set = Div(HTML('<h3>Address</h3>'),
+            Div('address1',
                 'address2',
                 'town',
                 'post_code',
@@ -192,22 +190,22 @@ class PersonForm(ModelForm):
             css_class="col col-sm-4"
         )
 
-        other_set = Div(
-            Div('Other information',
-                'notes',
-                'british_tennis',
-                'pays_own_bill',
-                'pays_family_bill',
-                'state',
-                css_class="well"
-                ),
-            css_class="col col-sm-4"
-        )
+        # other_set = Div(
+        #     Div('Other information',
+        #         'notes',
+        #         'british_tennis',
+        #         'pays_own_bill',
+        #         'pays_family_bill',
+        #         'state',
+        #         css_class="well"
+        #         ),
+        #     css_class="col col-sm-4"
+        # )
 
         if self.link or self.updating:
             self.helper.layout = Layout(Div(name_set, css_class="row"))
         else:
-            self.helper.layout = Layout(Div(name_set, address_set, other_set, css_class="row"))
+            self.helper.layout = Layout(Div(name_set, address_set, css_class="row"))
         self.helper.layout.append(Div(
             Div(
                 ButtonHolder(

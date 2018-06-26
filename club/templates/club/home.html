@@ -8,23 +8,24 @@
 {% block content %}
   <div class="row">
     <div class="col-md-9">
-      <h1></h1>
-      <h1 class="text-center py-4">Welcome<br>
-        <small>to your new club web site</small></h1>
+      <div class="logo logo-green text-center pt-4">Welcome</div>
+      <h2 class="logo logo-orange text-center pb-4"><small>to the Members' Website</small></h2>
       <p>
       <img src="{% static 'club/images/EricAmerican.jpg' %}" class="img-fluid">
-      <h4>Eric Smith Memorial Americal Tournament</h4>
-      <p>Despite rather poor weather, 28 members competed in the American tournament in memory of Eric Smith, who was chairman of the club for many years.
-      We raised over £600 for the PSPA (Progressive Supranuclear Palsy) charity.</p>
-      <h4>Summer Tournament</h4>
-      <p> The <a href="/static/club/documents/Draw.pdf">draw</a> has been published and you can now <a href="{% url 'events:tournament_active' %}">book courts online.</a><p>
-      <h4>Other content</h4>
-      <p>You have unlimited access to the current and back issues of <a href="{% url 'club_magazine' %}">UK Tennis magazine.</a>
-      <p> We have a <a href="/static/club/documents/Surrey Tennis Discount Ticket Offers.pdf">special offer for tickets</a> to a competition at Roehampton, just before Wimbledon.</p>
-<p>
-Behind the scenes, the committee has been hard at work revising the club's policies to conform to the LTA's best practice.
-  These documents are now all <a href="{% url 'club_policies' %}">online</a>.</p>
-      <p>With new General Data Protection Regulations (GDPR) coming into force in May, we have updated our
+      <h4 class="logo-orange">Members' Handbook</h4>
+      <p>We have published a new <a href="/static/club/documents/Members handbook.pdf">handbook for members</a>
+        that details all the information that you need to get the best out of the club.
+        It is particularly relevant to new members, but established members will also benefit from reading it. Parents of juniors should
+        also read the separate document, Information for Juniors.
+        <p>
+      <h4 class="logo-orange">Summer Tournament</h4>
+      <p> This event is hotting up with many events now at the quarter finals stage or beyond.
+      The <a href="/static/club/documents/Draw.pdf">draw</a>, including the plate competition has been published and
+        you can <a href="{% url 'events:tournament_active' %}">book courts online.</a><p>
+      <h4 class="logo-orange">Table Tennis Competition</h4>
+      <p>If you signed up for this competition, please play your matches ASAP so that we can play the final on Finals Day.</p>
+      <h4 class="logo-orange">GDPR</h4>
+      <p>To comply with new General Data Protection Regulations (GDPR) that came into force in May, we have updated our
         <a href="{% url 'privacy-policy' %}">privacy policy</a> and given you the ability to directly maintain
         the information that we hold about you and your family through the Account menu on the top right of every page.
       </p>
@@ -32,33 +33,19 @@ Behind the scenes, the committee has been hard at work revising the club's polic
     </div>
     <div class="col-md-3">
       <div class="row bg-white">
-{#        <div class="col-12 border border-top-0 border-info py-1">#}
-{#          <a href={% url 'wimbledon_ballot' %}>#}
-{#          <img src="{% static 'club/images/ballot2018.png' %}" class="img-fluid">#}
-{#          </a>#}
-{#          <br>#}
-{#          <h5 class="text-center pt-2">5pm Saturday 21 April</h5>#}
-{#          <p>If you have opted-in you can indicate your preferred days.</p>#}
-{#          <a class="btn btn-sm btn-success" href={% url 'wimbledon_ballot' %}>Full details</a>#}
-{#        </div>#}
+        <div class="col-12 border border-top-0 border-info py-1">
+          <h4 class="logo-green text-center">Finals Day</h4>
+            <img src="{% static 'club/images/trophies.jpg' %}" class="img-fluid">
+          <br>
+          <h5 class="text-center pt-2 logo-orange">Saturday 14 July</h5>
+          <p>Don't miss the adult and junior finals.
+          Please sign up in the club if you will attend the barbecue afterwards.</p>
+        </div>
         <div class="col-12 border border-top-0 border-info py-1">
           <img src="{% static 'club/images/EricSmith.jpg' %}" class="img-fluid">
           <h6 class="text-center pt-1">Eric Smith Memorial Tournament<br>
           We raised over £600!</h6>
         </div>
-{#        <div class="col-12 border border-top-0 border-info py-1">#}
-{#          <img src="{% static 'club/images/openday.png' %}" class="img-fluid">#}
-{#          <h5 class="text-center pt-1">Club Open Day<br>#}
-{#          Saturday 12 May</h5>#}
-{#          <p>Invite your friends!</p>#}
-{#        </div>#}
-        <div class="col-12 border border-top-0 border-info py-1">
-          <a href="{% url 'events:tournament_active' %}">
-            <img src="{% static 'club/images/trophies.jpg' %}" class="img-fluid">
-            <h5 class="text-center pt1">Summer Tournament<br>Book courts online</h5>
-          </a>
-        </div>
-
       </div>
     </div>
   </div>

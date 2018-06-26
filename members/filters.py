@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from django.db.models import Q
+from django.utils import timezone
 from .models import Person, Membership, Settings, Subscription, Invoice, InvoiceItem, Payment
 import django_filters
 from django_filters.widgets import BooleanWidget
@@ -117,11 +118,13 @@ class InvoiceFilter(django_filters.FilterSet):
                                     method='younger_filter')
 
     def older_filter(self, queryset, name, value):
-        before_date = datetime.now() - timedelta(days=int(value))
+        default_timezone = timezone.get_default_timezone()
+        before_date = timezone.make_aware(datetime.now() - timedelta(days=int(value)), default_timezone)
         return queryset.filter(creation_date__lte=before_date)
 
     def younger_filter(self, queryset, name, value):
-        after_date = datetime.now() - timedelta(days=int(value))
+        default_timezone = timezone.get_default_timezone()
+        after_date = timezone.make_aware(datetime.now() - timedelta(days=int(value)), default_timezone)
         return queryset.filter(creation_date__gt=after_date)
 
     def state_filter(self, queryset, name, value):

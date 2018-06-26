@@ -4,14 +4,15 @@ from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, reverse
 from django.utils.html import strip_tags
 from django.core.signing import Signer
-
+from django.conf import settings as django_settings
 from .models import Invoice, TextBlock, MailType, Membership, Settings
-
-mailgun_api_key = 'key-44e941ede1264ea215021bb0b3634eb4'
-mailgun_api_url = 'https://api.mailgun.net/v3/mg.coombewoodltc.co.uk'
 
 
 def do_mail(request, invoice, option):
+    """
+    Send an invoice mail including payment link
+
+    """
     count = 0
     family = invoice.person.person_set.all()
     context = {}
@@ -31,11 +32,11 @@ def do_mail(request, invoice, option):
         return render_to_response("members/invoice_email.html", context)
         
     html_body = render_to_string("members/invoice_email.html", context)
-    target = invoice.person.email if option == 'send' else "is@ktconsultants.co.uk"
+    target = invoice.person.email if option == 'send' else getattr(django_settings, 'TEST_EMAIL', '')
     if target != '':
         text_plain = strip_tags(html_body)
         msg = EmailMultiAlternatives(subject=subject,
-                                        from_email="subs@coombewoodltc.co.uk",
+                                        from_email=getattr(django_settings, 'SUBS_EMAIL', ''),
                                         to=[target],
                                         body=text_plain)
         msg.attach_alternative(html_body, "text/html")
@@ -53,6 +54,7 @@ def send_multiple_mails(request, person_queryset, text, from_email,
     count_unsub = 0
     count_bad = 0
     count_dups = 0
+    count_opt_out = 0
     sent_list = []
     year = Settings.current_year()
     for person in person_queryset:
@@ -72,15 +74,24 @@ def send_multiple_mails(request, person_queryset, text, from_email,
             count_unsub +=1
         elif result == 'duplicate':
             count_dups += 1
-        else:
+        elif result == 'opt out':
+            count_opt_out += 1
+        elif result == 'bad email':
             count_bad += 1
-    return u'Sent: {}, Unsubscribed: {}, Duplicates: {}, No email address: {}'.format(
-            count, count_unsub, count_dups, count_bad)
+        else:
+            return "Error " + result
+    return f'Sent: {count}, Unsubscribed: {count_unsub}, Duplicates: {count_dups}, ' \
+           f'No email address: {count_bad}, Opted out: {count_opt_out}'\
 
 
 def send_template_mail(request, person, text,
                        from_email, cc=None, bcc=None, subject="",
                        mail_types=None, sent_list=None, year=0):
+    """
+    Send a single templated mail to a person
+    Take account of unsubscribed mail types and marketing opt out
+    Return text describing why mail was not sent
+    """
     if sent_list is None:
         sent_list = []
     if year == 0:
@@ -99,10 +110,13 @@ def send_template_mail(request, person, text,
                 child = person
     to = recipient.email
 
+    must_send = False
     if mail_types:
         positive = False
         negative = False
         for mail_type in mail_types:
+            if not mail_type.can_unsubscribe:
+                must_send = True
             if mail_type.person_set.filter(id=recipient.id):
                 negative = True
             else:
@@ -110,6 +124,9 @@ def send_template_mail(request, person, text,
 
         if negative and not positive:
             return 'unsubscribed'
+
+    if not must_send and not person.allow_marketing:
+        return 'opt out'
 
     if recipient.email not in sent_list:
         sent_list.append(recipient.email)
@@ -134,8 +151,12 @@ def send_template_mail(request, person, text,
             'invoice_urls': invoice_urls})
         if child:
             context['child'] = child.first_name
-        template = Template('{% load members_extras %}' + text)
-        html_body = template.render(context)
+
+        try:
+            template = Template('{% load members_extras %}' + text)
+            html_body = template.render(context)
+        except Exception as e:
+            return 'template error: ' + e.args[0]
 
         # Add an unsubscribe url    
         token = signer.sign(recipient.id)
@@ -151,7 +172,7 @@ def send_template_mail(request, person, text,
                                 html_body=html_body)
                 return 'sent'
             except Exception:     
-                return 'bad email address'
+                return 'bad email'
         return False
     else:
         return 'duplicate'

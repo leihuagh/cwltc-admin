@@ -1,0 +1,15 @@
+{% extends "members/layout.html" %}
+{% load static %}
+{% block content %}
+  <h3>Mark these people as resigned</h3>
+  <ul>
+  {% for person in people %}
+  <li>{{ person.first_name }} {{ person.last_name }}</li>
+  {% endfor %}
+  </ul>
+  <form method="post">{% csrf_token %}
+  <input type="submit" class="btn btn-danger" name="resign" value="Resign">
+  <input type="submit" class="btn btn-default" name="cancel" value="Cancel">
+  </form>
+
+{% endblock %}

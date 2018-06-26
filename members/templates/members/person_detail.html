@@ -155,6 +155,7 @@
                     {% else %}
                         Not billed
                     {% endif %}
+                    {% if sub.is_special_case %}<span class="label label-info">Special case</span>{% endif %}
                   {% endif %}
                 {% else %}
                   No subscription
@@ -234,7 +235,9 @@
       <div class="panel with-nav-tabs panel-default">
         <div class="panel-heading">
           <ul class="nav nav-tabs">       
-            <li><a data-toggle="tab" href="#id_unbilled">Uninvoiced items</a></li>
+            <li><a data-toggle="tab" href="#id_unbilled">Uninvoiced items
+              {% if items %}<span class="badge">{{ items|length }}</span>{% endif %}
+            </a></li>
             {% for year in years %}
               <li{% if forloop.first %} class="active" {% endif %}><a data-toggle="tab" href="#id_year{{ forloop.counter }}">{{ year }} account</a></li>
             {% endfor %}

@@ -362,7 +362,6 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
         elif 'deregister' in request.POST:
             person_deregister(person)
 
-
         elif 'invoice' in request.POST:
             return redirect('invoice-generate', pk=person.id)
 
@@ -472,6 +471,34 @@ class PersonExportView(StaffuserRequiredMixin, View):
 
     def get(self, request, option="all"):
         return export_members(option)
+
+
+class PeopleResignView(StaffuserRequiredMixin, TemplateView):
+    template_name = 'members/people_resign.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['people'] = self.get_people(self.request)
+        return context
+
+    def get_people(self, request):
+        id_list = request.session.get('selected_people_ids', [])
+        return Person.objects.filter(pk__in=id_list).order_by('first_name', 'last_name')
+
+    def post(self, request, **kwargs):
+        if 'resign' in request.POST:
+            count = 0
+            people = self.get_people(request)
+            for person in people:
+                try:
+                    person_resign(person)
+                    count += 1
+                except:
+                    pass
+            messages.success(self.request, f'{count} of {len(people)} people marked as resigned')
+        else:
+            messages.success(self.request, f'Resignation of {len(people)} cancelled')
+        return redirect('home')
 
 # ============== Address
 
@@ -1190,6 +1217,12 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
         context['title'] = "Invoices"
         context['total'] = self.total if self.total else 0
         context['lines'] = self.table_pagination['per_page']
+        context['actions'] = (('none', 'No action'),
+                              ('export', 'Export'),
+                              ('mail', 'Mail'),
+                              ('group', 'Add to group'),
+                              ('resign', 'Resign'),
+                              )
         return context
 
     def post(self, request):
@@ -1214,11 +1247,14 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
         # Note values_list does not return a list
         request.session['selected_people_ids'] = list(selected_invoices.values_list('person_id', flat=True))
 
+        if action == 'mail':
+            return redirect('email-selection')
+
         if action == 'group':
             return redirect('group-add-list')
 
-        if action == 'mail':
-            return redirect('email-selection')
+        if action == 'resign':
+            return redirect('people-resign')
 
         return redirect('home')
 
@@ -1456,6 +1492,22 @@ class InvoiceDetailView(StaffuserRequiredMixin, DetailView):
         elif 'superdelete' in request.POST:
             invoice_cancel(invoice, with_credit_note=False, superuser=True)
             return redirect(invoice.person)
+
+        elif 'save_note' in request.POST:
+            invoice.note = request.POST['note']
+            if request.POST.get('special_case', None):
+                invoice.special_case = True
+            else:
+                invoice.special_case = False
+            invoice_update_state(invoice)
+            return redirect(invoice)
+
+        elif 'delete_note' in request.POST:
+            invoice.note = ""
+            invoice.special_case = False
+            invoice_update_state(invoice)
+            return redirect(invoice)
+
 
     def get_context_data(self, **kwargs):
         context = super(InvoiceDetailView, self).get_context_data(**kwargs)
@@ -2171,8 +2223,10 @@ class EmailView(StaffuserRequiredMixin, FormView):
                                         from_email=from_email,
                                         subject=subject,
                                         mail_types=mail_types)
-            
-            messages.info(self.request, result)
+            if result == 'sent':
+                messages.success(self.request, "Mail sent")
+            else:
+                messages.error(self.request, f'Mail not sent - {result}')
             return redirect('person-detail', pk=self.person.id)
 
         elif group_id != '':

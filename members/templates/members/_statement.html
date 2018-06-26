@@ -28,7 +28,11 @@
             <td></td>
             <td></td>
             <td>{{ entry.id }}</td>
-            <td>{{ invoice_states|get_option:entry.state }} {% if entry.pending %}(pending){% endif %}</td>
+            <td>{{ invoice_states|get_option:entry.state }}
+              {% if entry.pending %}(pending){% endif %}
+              {% if entry.special_case %}<span class="label label-info">Special case</span>{% endif %}
+              {% if entry.note %}<span class="label label-info">Note</span>{% endif %}
+            </td>
             <td></td>
             <td class="text-right">£{{ entry.total }}</td>
             <td class="text-right">£{{ line.1 }}</td>

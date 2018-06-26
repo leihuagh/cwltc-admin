@@ -12,7 +12,6 @@ from django.dispatch import receiver
 
 from markdownx.models import MarkdownxField
 
-
 def formatted_date(d):
     return u'{}/{}/{}'.format(d.day, d.month, d.year)
 
@@ -421,7 +420,8 @@ class Invoice(models.Model):
     update_date = models.DateTimeField(auto_now=True)
     date = models.DateField()
     membership_year = models.SmallIntegerField(default=0)
-    reference = models.CharField(max_length=80)
+    note = models.CharField(max_length=80)
+    special_case = models.BooleanField(default=False)
     state = models.SmallIntegerField(choices=STATE.choices(), default=0)
     pending = models.BooleanField(default=False)
     person = models.ForeignKey(Person, on_delete=models.SET_NULL, null=True)
@@ -703,6 +703,7 @@ class Subscription(models.Model):
     resigned = models.BooleanField(default=False)
     invoiced_month = models.SmallIntegerField()
     no_renewal = models.BooleanField(default=False)
+    cardless_id = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return u'Sub {} {} {} {}'.format(
@@ -726,6 +727,12 @@ class Subscription(models.Model):
     def has_paid_invoice(self):
         for item in self.invoiceitem_set.all():
             if item.invoice and item.invoice.state == Invoice.STATE.PAID.value:
+                return True
+        return False
+
+    def is_special_case(self):
+        for item in self.invoiceitem_set.all():
+            if item.invoice and item.invoice.special_case:
                 return True
         return False
 
