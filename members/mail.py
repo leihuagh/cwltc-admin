@@ -173,7 +173,7 @@ def send_template_mail(request, person, text,
                 return 'sent'
             except Exception:     
                 return 'bad email'
-        return False
+        return 'bad email'
     else:
         return 'duplicate'
 
