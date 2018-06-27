@@ -140,10 +140,12 @@ class GetPasswordView(TemplateView):
                         person = Person.objects.get(pk=request.session['person_id'])
                     except Person.DoesNotExist:
                         return redirect('pos_start')
-                    if check_password(request.POST['pin'], person.pin):
+                    pin = request.POST['pin']
+                    if pin and check_password(pin, person.pin):
                         return redirect('pos_menu')
                     user = User.objects.get(pk=person.auth_id)
-                    if user.check_password(request.POST['password']):
+                    password = request.POST['password']
+                    if password and user.check_password(password):
                         return redirect('pos_menu')
                 else: # Complimentary
                     if request.POST['pin'] == str(datetime.now().year):

@@ -136,7 +136,7 @@ var posCode = (function () {
         $('#title_1').text('Charge');
         $('#title_total').text('£ ' + Number(total).toFixed(2));
         $('#title_2').text("to member's account");
-
+        $('#member_search').typeahead('val', '').focus();
     };
 
     pos.split = function () {
@@ -148,7 +148,7 @@ var posCode = (function () {
     pos.addMember = function() {
         // add member button on split sale modal
         showSplit(true);
-        $('.typeahead').typeahead('val', '');
+        $('#member_search').typeahead('val', '').focus();
     };
 
     pos.selectedPerson = function (p) {
