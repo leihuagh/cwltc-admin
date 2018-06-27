@@ -20,6 +20,7 @@ SHORT_TIMEOUT = 30000
 
 stdlogger = logging.getLogger(__name__)
 
+
 class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
     template_name = 'pos/set_terminal.html'
     form_class = TerminalForm
@@ -54,7 +55,7 @@ class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
         return redirect('pos_admin')
 
 
-class DisabledView(TemplateView):
+class DisabledView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/disabled.html'
 
 
@@ -103,7 +104,21 @@ def read_cookie(request):
         return None, None
 
 
-class GetUserView(TemplateView):
+class MemberSelectView(LoginRequiredMixin, TemplateView):
+    """ Select member for transactions view"""
+    template_name = 'pos/select_member.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['timeout_url'] = reverse('pos_start')
+        context['timeout'] = LONG_TIMEOUT
+        return context
+
+    def post(self, request, *args, **kwargs):
+        return redirect('pos_transactions_person', person_id=request.POST['person_id'])
+
+
+class GetUserView(LoginRequiredMixin, TemplateView):
     """ User identification """
     template_name = 'pos/get_user.html'
 
@@ -121,13 +136,13 @@ class GetUserView(TemplateView):
         return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
-        context = super(GetUserView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
         return context
 
 
-class GetPasswordView(TemplateView):
+class GetPasswordView(LoginRequiredMixin, TemplateView):
     """ User's password or PIN """
     template_name = 'pos/get_password.html'
 
@@ -167,7 +182,7 @@ class GetPasswordView(TemplateView):
         return context
 
 
-class PosRegisterView(RegisterView):
+class PosRegisterView(LoginRequiredMixin, RegisterView):
     """ When user is not registered we use the public
     registration form and override some things """
     template_name = 'pos/register.html'
@@ -206,7 +221,7 @@ class PosRegisterView(RegisterView):
         return 'pos_start'
 
 
-class PosRegisterTokenView(RegisterTokenView):
+class PosRegisterTokenView(LoginRequiredMixin, RegisterTokenView):
     """
     Get username, PIN and password
     """
@@ -225,7 +240,7 @@ class PosRegisterTokenView(RegisterTokenView):
         return 'pos_password'
 
 
-class PosConsentView(ConsentTokenView):
+class PosConsentView(LoginRequiredMixin, ConsentTokenView):
     template_name = 'pos/consent.html'
 
     def get_context_data(self, **kwargs):
@@ -246,10 +261,10 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        id = int(self.request.session['person_id'])
-        if id > 0:
-            person = Person.objects.get(pk=self.request.session['person_id'])
-            context['person_id'] = id
+        id = self.request.session.get('person_id', None)
+        if id:
+            person = Person.objects.get(pk=id)
+            context['person_id'] = int(id)
             context['full_name'] = person.fullname
             context['admin'] = person.auth.is_staff or person.auth.groups.filter(name='Pos').exists()
         else:
@@ -329,4 +344,8 @@ def ajax_items_view(request):
     return JsonResponse(data, safe=False)
 
 
-
+def ajax_items2_view(request):
+    """ responds to ajax request for item list - integer version """
+    items = Item.objects.all()
+    data = serialize('json', items)
+    return JsonResponse(data, safe=False)

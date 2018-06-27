@@ -169,7 +169,7 @@
 {% block scripts %}
 <script src= {% static 'js/typeahead.bundle.js' %}></script>
 <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
-<script src="{% static 'pos/js/pos.js' %}"></script>
+<script src="{% static 'pos/js/pos2.js' %}"></script>
 <script>
   $(document).ready(function () {
     posCode.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }},

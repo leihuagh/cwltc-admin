@@ -1,4 +1,5 @@
 import datetime
+import logging
 from decimal import Decimal
 from django.db import transaction
 from django.http import HttpResponse
@@ -8,6 +9,9 @@ from openpyxl.styles import Font
 from .models import Transaction, LineItem, Layout, PosPayment, Item, Location, TWO_PLACES
 from members.models import InvoiceItem, ItemType
 
+stdlogger = logging.getLogger(__name__)
+
+
 @transaction.atomic
 def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, total, people, attended):
     """
@@ -16,7 +20,7 @@ def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, to
     """
     complimentary = False
     count = len(people)
-    dec_total = Decimal(total).quantize(TWO_PLACES)
+    dec_total = (Decimal(total)/100).quantize(TWO_PLACES)
     item_type = Layout.objects.get(pk=layout_id).item_type
     if count > 0:
         person_id = int(people[0]['id'])
@@ -52,14 +56,18 @@ def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, to
     if complimentary:
         return ('Complimentary', dec_total)
 
+    pay_total = Decimal(0)
     for person in people:
         pos_payment = PosPayment(
             transaction=trans,
             person_id=person['id'],
             billed=False,
-            amount=Decimal(person['amount']/100).quantize(TWO_PLACES)
+            amount=(Decimal(person['amount'])/100).quantize(TWO_PLACES)
         )
+        pay_total += pos_payment.amount
         pos_payment.save()
+    if pay_total !=  dec_total:
+        stdlogger.error(f'ERROR: POS Transaction total: {dec_total} unequal to Payment total: {pay_total} Id: {trans.id}')
     if people:
         return (people[0]['name'], dec_total)
     else:

@@ -32,7 +32,7 @@ class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
         return redirect('pos_admin')
 
 
-class TransactionListView(SingleTableView):
+class TransactionListView(LoginRequiredMixin, SingleTableView):
     """List transactions with filtering"""
     model = Transaction
     table_class = TransactionTable
@@ -63,10 +63,11 @@ class TransactionListView(SingleTableView):
         person_id = self.kwargs.get('person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)
+        self.request.session['last_path'] = self.request.path + '?' + self.request.GET.urlencode()
         return context
 
 
-class PaymentListView(SingleTableView):
+class PaymentListView(LoginRequiredMixin, SingleTableView):
     """
      This is used to show the transactions for a single user as it reflects what will be billed
      whereas the TransactionListView shows the transaction total
@@ -96,7 +97,7 @@ class PaymentListView(SingleTableView):
         return context
 
 
-class LineItemListView(SingleTableView):
+class LineItemListView(LoginRequiredMixin, SingleTableView):
     """
     If trans_id kwarg passed show items for that transaction
     else show all items
@@ -129,18 +130,33 @@ class LineItemListView(SingleTableView):
         return context
 
 
-class TransactionDetailView(DetailView):
+class TransactionDetailView(LoginRequiredMixin, DetailView):
     """ Transaction details """
     model = Transaction
     template_name = 'pos/transaction_detail.html'
 
     def get_context_data(self, **kwargs):
-        context = super(TransactionDetailView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         trans = self.get_object()
         context['items'] = trans.lineitem_set.all().order_by('id')
         if len(trans.pospayment_set.all()) > 1:
             context['payments'] = trans.pospayment_set.all()
+        id = self.request.session.get('person_id', None)
+        if id:
+            person = Person.objects.get(pk=self.request.session['person_id'])
+            context['admin'] = person.auth.is_staff or person.auth.groups.filter(name='Pos').exists()
+        else:
+            context['admin'] = (self.request.user.is_staff or
+                                'Pos' in self.request.user.groups.values_list("name", flat=True))
         return context
+
+    def post(self, request, **kwargs):
+        """ post is always a deletion """
+        self.get_object().delete()
+        path = self.request.session.get('last_path', None)
+        if path:
+            return redirect(path)
+        return redirect('pos_admin')
 
 
 class ItemListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):

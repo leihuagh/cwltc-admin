@@ -16,12 +16,13 @@
         {% if person_id > 0 %}
           <p><a href="{% url 'pos_payments_person' person_id=person_id %}" class="btn btn-success btn-lg btn-block stop-timer">View my transactions</a></p>
         {% else %}
-          <p><a href="{% url 'pos_transactions_comp' %}" class="btn btn-success btn-lg btn-block stop-timer">View transactions</a></p>
+          <p><a href="{% url 'pos_transactions_comp' %}" class="btn btn-success btn-lg btn-block stop-timer">View complimentary transactions</a></p>
         {% endif %}
         <p><a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block stop-timer">Log out</a></p>
         {% if admin %}
           <p><a href="{% url 'pos_admin' %}" class="btn btn-warning btn-lg btn-block stop-timer">POS admin</a></p>
           <p><a href="{% url 'pos_transactions' %}" class="btn btn-warning btn-lg btn-block stop-timer">All transactions</a></p>
+          <p><a href="{% url 'pos_member' %}" class="btn btn-warning btn-lg btn-block stop-timer">Transactions for member</a></p>
           <form method="post">{% csrf_token %}
             {% if request.session.attended_allowed %}
               <input class="btn btn-danger btn-lg btn-block stop-timer" type="submit" name="attended_off" value="Disable attended mode">

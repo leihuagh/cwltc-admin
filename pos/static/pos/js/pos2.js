@@ -1,4 +1,5 @@
 
+// Version 2 Handle currency as integer always
 var posCode = (function () {
     "use strict";
 
@@ -17,6 +18,7 @@ var posCode = (function () {
     var items;
     var receipt;
     var total;
+    var formattedTotal;
     var line;
 
     // Django context variables
@@ -68,6 +70,7 @@ var posCode = (function () {
         item.description = obj.description;
         item.sale_price = obj.sale_price;
         item.cost_price = obj.cost_price;
+        item.price = Math.fround(parseFloat(item.sale_price)*100);
         receipt.push(item);
         createTable(receipt);
     };
@@ -90,14 +93,13 @@ var posCode = (function () {
 
     pos.pay = function () {
         // initiate payment sequence
-        var myTotal = '£ ' + Number(total).toFixed(2);
         if (isAttended) {
             personList = [];
-            $('#attended_total').text(myTotal);
+            $('#attended_total').text(formattedTotal);
             $('#attended_modal').modal('show');
         } else {
-            personList = [{'id': personId, 'name': personName, 'amount': Math.floor(total*100)}];
-            $('#member_total').text(myTotal);
+            personList = [{'id': personId, 'name': personName, 'amount': total}];
+            $('#member_total').text(formattedTotal);
             $('#member_name').text(personName);
             $('#member_modal').modal('show');
         }
@@ -120,7 +122,7 @@ var posCode = (function () {
 
     pos.commitSingle = function () {
         // charge to single logged on member
-        personList = [{'id': personId, 'name': personName, 'amount': Math.round(total*100)}];
+        personList = [{'id': personId, 'name': personName, 'amount': total}];
         sendTransaction('account');
     };
 
@@ -134,7 +136,7 @@ var posCode = (function () {
         personList = [];
         showSplit(true);
         $('#title_1').text('Charge');
-        $('#title_total').text('£ ' + Number(total).toFixed(2));
+        $('#title_total').text(formattedTotal);
         $('#title_2').text("to member's account");
         $('#member_search').typeahead('val', '').focus();
     };
@@ -158,7 +160,7 @@ var posCode = (function () {
         showSplit(false);
         if (isAttended && personList.length === 1) {
             $('#title_1').text('Charge');
-            $('#title_total').text('£ ' + Number(total).toFixed(2));
+            $('#title_total').text(formattedTotal);
             $('#title_2').text("to member's account");
         }
     };
@@ -205,16 +207,15 @@ var posCode = (function () {
             tableBody.appendChild(row);
         } else {
             // calculate the split amounts
-            var totalPence = total * 100;
-            var splitPence = Math.floor(totalPence / personList.length);
+            var splitPence = Math.floor(total/ personList.length);
             var firstPence = splitPence;
             var splitTotal = splitPence * personList.length;
             for (i = 0; i < personList.length; i ++) {
                 personList[i].amount = splitPence;
             }
-            if (splitTotal < totalPence) {
+            if (splitTotal < total) {
                 i = 0;
-                while (splitTotal < totalPence) {
+                while (splitTotal < total) {
                     personList[i].amount += 1;
                     i += 1;
                     splitTotal += 1;
@@ -236,7 +237,7 @@ var posCode = (function () {
         peopleTable.appendChild(tableBody);
         // default header message gets overwritten for the first person
         $('#title_1').text('Split');
-        $('#title_total').text('£ ' + Number(total).toFixed(2));
+        $('#title_total').text(formattedTotal);
         $('#title_2').text("between members");
         if (withSelect) {
             $('#add_member_typeahead').show().focus();
@@ -328,14 +329,15 @@ var posCode = (function () {
                 cell.appendChild(button);
                 row.appendChild(cell);
                 tableBody.appendChild(row);
-                total += Number(item.sale_price);
+                total += item.price;
             });
             receiptArea.appendChild(tableBody);
         } else {
             // exitButton.style.visibility = "visible";
             exitClass.show();
         }
-        totalArea.innerHTML = "Total : £ " + Number(total).toFixed(2);
+        formattedTotal = '£ ' + Number(total/100).toFixed(2);
+        totalArea.innerHTML = "Total : " + formattedTotal;
     }
     return pos;
 })();

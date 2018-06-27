@@ -1,0 +1,43 @@
+{% extends 'pos/base.html' %}
+{% load staticfiles %}
+{% block content %}
+  {%  include '_logo_banner.html' %}
+<div class="container bg">
+  <h2 class="text-center">Select member</h2>
+
+  <br/>
+  <div class="row">
+    <div class="col-md-2">
+      <a href="{% url 'pos_menu' %}" class="btn btn-success btn-lg btn-block">Back</a>
+    </div>
+    <div class="col-md-3 ipad-prompt"> Select member:</div>
+    <form id="form_member" role="form" method="POST" >{% csrf_token %}
+      <div class="col-md-3 input-group input-group-lg">
+        <input type="text" class="form-control typeahead tt-query timed bsfix" maxlength="15"
+               id = "search_id" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+      </div>
+      <input name="person_id" id="person_id" type="hidden" value="">
+                <input type="submit" class="button" id ="submit_id"
+             style="display: none" name="login" value="">
+    </form>
+  </div>
+</div>
+
+{% endblock content %}
+{% block scripts %}
+{#  <script src=https://twitter.github.com/typeahead.js/releases/latest/typeahead.bundle.min.js></script>#}
+  <script src= {% static 'js/typeahead.bundle.js' %}></script>
+  <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
+  <script>
+    $(document).ready(function () {
+      bind_typeahead('#search_id', go, true);
+      $('.typeahead').typeahead('val', '');
+      startTimer({{ timeout }}, "{{ timeout_url }}");
+    });
+    function go(person) {
+        $('#person_id').val(person.id);
+        $('#submit_id').trigger('click');
+        $('.typeahead').typeahead('val', '');
+    }
+  </script>
+{% endblock %}
