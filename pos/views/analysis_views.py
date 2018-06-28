@@ -58,6 +58,7 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
         context = super().get_context_data(**kwargs)
         context['main_menu'] = self.main_menu
         context['sum'] = self.qs.aggregate(sum=Sum('total'))['sum']
+        context['heading'] = 'Transactions'
         person_id = self.kwargs.get('person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)
@@ -139,7 +140,6 @@ class TransactionDetailView(LoginRequiredMixin, DetailView):
         context['items'] = trans.lineitem_set.all().order_by('id')
         if len(trans.pospayment_set.all()) > 1:
             context['payments'] = trans.pospayment_set.all()
-        context['heading'] = 'Transactions'
         id = self.request.session.get('person_id', None)
         if id:
             person = Person.objects.get(pk=self.request.session['person_id'])
