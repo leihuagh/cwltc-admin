@@ -342,10 +342,3 @@ def ajax_items_view(request):
     """ responds to ajax request for item list"""
     data = serialize('json', Item.objects.all())
     return JsonResponse(data, safe=False)
-
-
-def ajax_items2_view(request):
-    """ responds to ajax request for item list - integer version """
-    items = Item.objects.all()
-    data = serialize('json', items)
-    return JsonResponse(data, safe=False)

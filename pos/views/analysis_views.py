@@ -45,16 +45,14 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
     def get_table_data(self):
         person_id = self.kwargs.get('person_id', None)
         if person_id:
-            self.qs = Transaction.objects.filter(person_id=person_id, billed=False).order_by('-creation_date')
+            self.qs = Transaction.objects.filter(person_id=person_id, billed=False)
         elif self.cash:
-            self.qs = Transaction.objects.filter(cash=True, billed=False).order_by('-creation_date')
+            self.qs = Transaction.objects.filter(cash=True, billed=False)
         elif self.comp:
-            self.qs = Transaction.objects.filter(complimentary=True, billed=False).order_by('-creation_date')
+            self.qs = Transaction.objects.filter(complimentary=True, billed=False)
         else:
-            self.qs = Transaction.objects.filter(billed=False).order_by(
-                '-creation_date').select_related('person').select_related('item_type')
-
-        return self.qs
+            self.qs = Transaction.objects.filter(billed=False)
+        return self.qs.order_by('-creation_date').select_related('person').select_related('item_type')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -81,16 +79,16 @@ class PaymentListView(LoginRequiredMixin, SingleTableView):
     def get_table_data(self):
         person_id = self.kwargs.get('person_id', None)
         if person_id:
-            self.qs = PosPayment.objects.filter(person_id=person_id, transaction__billed=False).select_related('transaction').order_by(
-                '-transaction.creation_date')
+            self.qs = PosPayment.objects.filter(person_id=person_id, transaction__billed=False)
         else:
-            self.qs = PosPayment.objects.all().select_related('transaction').order_by('-transaction.creation_date')
-        return self.qs
+            self.qs = PosPayment.objects.all()
+        return self.qs.select_related('transaction').select_related('person').order_by('-transaction.creation_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['main_menu'] = self.main_menu
         context['sum'] = self.qs.aggregate(sum=Sum('amount'))['sum']
+        context['heading'] = 'Account'
         person_id = self.kwargs.get('person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)
@@ -141,6 +139,7 @@ class TransactionDetailView(LoginRequiredMixin, DetailView):
         context['items'] = trans.lineitem_set.all().order_by('id')
         if len(trans.pospayment_set.all()) > 1:
             context['payments'] = trans.pospayment_set.all()
+        context['heading'] = 'Transactions'
         id = self.request.session.get('person_id', None)
         if id:
             person = Person.objects.get(pk=self.request.session['person_id'])

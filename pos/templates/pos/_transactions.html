@@ -1,6 +1,6 @@
 {% load widget_tweaks %}
 {% if person %}
-  <h3>Transactions for {{ person.first_name }} {{ person.last_name }}</h3>
+  <h3>{{ heading }} for {{ person.first_name }} {{ person.last_name }}</h3>
 {% else %}
   <h2>All POS transactions</h2>
 {% endif %}
