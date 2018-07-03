@@ -1,0 +1,49 @@
+﻿{% extends 'pos/base.html' %}
+{% load static %}
+{% block content %}
+
+  {%  include '_logo_banner.html' %}
+
+  <div class="container">
+  <div class="jumbotron text-center bg">
+    <h1 class="text-center"><strong>{{ layout.title }}</strong></h1>
+    <h3 class="text-center">{{ layout.line_2 }}</h3>
+    <h3 class="text-center">{{ layout.line_3 }}</h3>
+    <div class="row">
+      <p class="ipad-error">{{ request.session.message }}</p>
+      <div id="idOnlineMessage"></div>
+        <form method="post">{% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <button class="posbutton btn-large" type="submit" name="layout">{{ layout.button_text }}</button>
+              <h2>{{ layout.sub_title }}</h2>
+            </div>
+            <div class="col-md-6">
+              <button class="posbutton btn-large" type="submit" name="layout2">{{ layout2.button_text }}</button>
+              <h2>{{ layout2.sub_title }}</h2>
+            </div>
+          </div>
+        </form>
+    </div>
+    <p id="idOfflineMessage"></p>
+  </div>
+</div>
+<div class="terminal">Terminal: {{ request.session.terminal }} Layout: {{ layout.name }}
+  <span id="idOnline"></span></div>
+<div class="last-transaction">
+  Last transaction: {{ request.session.last_person }}: £ {{ request.session.last_total }}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  $(document).ready(function () {
+    $(".posbutton").on('touchstart', function(event) {
+      event.currentTarget.classList.add('posbutton-down');
+    });
+    $(".posbutton").on('touchend', function(event) {
+      event.currentTarget.classList.remove('posbutton-down');
+    });
+    timingCode.initPing({{ timeout }}, '{{ ping_url }}', '{{ csrf_token }}', '{{ request.session.terminal }}', 'idMessage');
+    });
+</script>
+{% endblock %}

@@ -50,8 +50,13 @@ class Item(models.Model):
 
 
 class Layout(models.Model):
-    name = models.CharField(max_length=25)
+    name = models.CharField(max_length=25, blank=True)
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
+    title = models.CharField(max_length=80)
+    sub_title = models.CharField(max_length=256, blank=True)
+    line_2 = models.CharField(max_length=256, blank=True)
+    line_3 = models.CharField(max_length=256, blank=True)
+    button_text = models.CharField(max_length=30, null=False, blank=False)
 
     def __str__(self):
         return self.name
@@ -118,3 +123,32 @@ class PosPayment(models.Model):
                                     str(self.person.fullname),
                                     str(self.amount),
                                     str(self.billed))
+
+
+class PosPing(models.Model):
+    terminal = models.SmallIntegerField()
+    time = models.DateTimeField()
+
+    def __str__(self):
+        return f'Terminal: {terminal} time: {time}'
+
+
+class Visitor(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
+    email = models.EmailField(max_length=75, blank=True)
+    junior = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.full_name
+
+    @property
+    def fullname(self):
+        return f'{self.first_name} {self.last_name}'
+
+
+class VisitorBook(models.Model):
+    date = models.DateField(auto_now=True)
+    member = models.ForeignKey(Person, on_delete=models.CASCADE, blank=False, null=False)
+    visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE, blank=False, null=False)
+    billed = models.BooleanField()

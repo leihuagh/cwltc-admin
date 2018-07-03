@@ -1,0 +1,105 @@
+{% extends 'pos/base.html' %}
+{% load staticfiles %}
+{% block content %}
+  {%  include '_logo_banner.html' %}
+  <div class="container bg">
+    <div class="row">
+      <div class="col-md-4 col-md-push-4 text-center">
+        <h2 class="text-center">{{ full_name }}</h2>
+        <h2>Add {% if junior %}junior {% else %}adult {% endif %}visitor</h2>
+      </div>
+    </div>
+    <div class="row">
+
+      <div class="col-md-2">
+        <button href="{% url 'pos_select_app' %}" class="btn btn-block btn-lg btn-success">Cancel</button>
+      </div>
+      <div class="col-md-2"></div>
+      <div class="col-md-4">
+        <button class="btn btn-default" id="id_existing" onclick="existing()">&nbsp;&nbsp;</button>
+        <span class="ipad-prompt" onclick="existing()">&nbsp;&nbsp; Select existing visitor</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 col-md-push-4">
+        <button class="btn btn-default" id="id_new" onclick="newVisitor()">&nbsp;&nbsp;</button>
+        <span class="ipad-prompt" onclick="newVisitor()">&nbsp;&nbsp; Enter a new visitor</span>
+      </div>
+    </div>
+  <p></p>
+  <form method="post" id="form">{% csrf_token %}
+    <div class="row">
+      <div class="col-md-4 col-md-push-4">
+
+          <div class="form-group form-group-lg" id="select_group" hidden>
+            <label for="id_visitors"></label>
+            <select name="visitors" id="id_visitors" style="font-size: x-large" class="btn-block" onchange="selection()">
+              {% for option in form.fields.visitors.choices %}
+                <option value="{{ option.0 }}">{{ option.1 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+      </div>
+    </div>
+    <div class="row" id="name_group" hidden>
+      <div class="col-md-3"></div>
+      <div class="col-md-3">
+        <div class="form-group form-group-lg">
+          <label for="first_name" class="ipad-prompt">Visitor's first name:</label>
+          <input id="first_name" name="first_name" type="text" class="form-control" required>
+        </div>
+      </div>
+      <div class="col-md-3" >
+        <div class="form-group form-group-lg">
+          <label for="last_name" class="ipad-prompt">Visitor's last name</label>
+          <input id="last_name" name="last_name" type="text" class="form-control" required>
+        </div>
+      </div>
+    </div>
+  </form>
+    <div class="row" id="confirm" hidden>
+      <div class="col-md-4 col-md-push-4">
+        <button class="btn btn-lg btn-block btn-success" name="submit" onclick="submitClick()" hidden>
+          Confirm visitor
+        </button>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    $(document).ready(function () {
+        timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
+    });
+    function existing() {
+        $('#id_existing').addClass('btn-success').removeClass('btn-default');
+        $('#id_new').addClass('btn-default').removeClass('btn-success');
+        $('#id_visitors').focus();
+        $('#select_group').show();
+        $('#name_group').hide();
+    }
+    function newVisitor() {
+        $('#id_new').addClass('btn-success').removeClass('btn-default');
+        $('#id_existing').addClass('btn-default').removeClass('btn-success');
+        $('#first_name').focus();
+        $('#select_group').hide();
+        $('#name_group').show();
+        $('#confirm').show();
+    }
+    function selection() {
+        var sel = $('select[name=visitors]').val();
+        if (sel === "0"){
+            $('#confirm').hide();
+        }else{
+            $('#confirm').show();
+        }
+    }
+    function submitClick() {
+        $('#first_name').removeAttr('required');
+        $('#last_name').removeAttr('required');
+        $('#form').submit();
+    }
+  </script>
+{% endblock %}

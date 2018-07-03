@@ -83,7 +83,7 @@ class PaymentListView(LoginRequiredMixin, SingleTableView):
             self.qs = PosPayment.objects.filter(person_id=person_id, transaction__billed=False)
         else:
             self.qs = PosPayment.objects.all()
-        return self.qs.select_related('transaction').select_related('person').order_by('-transaction.creation_date')
+        return self.qs.select_related('transaction').select_related('person', 'transaction__item_type').order_by('-transaction.creation_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -245,6 +245,7 @@ class LayoutListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
             return redirect('pos_admin')
         return redirect('pos_layout_list')
 
+
 class LayoutCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
     """
     Create new POS layout then redirect to edit it
@@ -268,6 +269,28 @@ class LayoutCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
     def form_valid(self, form):
         new_layout = form.save()
         return redirect('pos_layout_update', pk=new_layout.id)
+
+
+class LayoutRenameView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
+    """
+    Rename layout, title and item type
+    """
+    model = Layout
+    form_class = LayoutForm
+    success_url = reverse_lazy('pos_layout_list')
+    group_required = 'Pos'
+    template_name = 'pos/layout_new.html'
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['title'] = 'Rename POS Layout'
+        return context
+
 
 class LayoutUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     """ Edit a POS layout """
@@ -363,3 +386,20 @@ class ColourListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
         if 'admin' in request.POST:
             return redirect('pos_admin')
         return redirect('pos_colour_list')
+
+
+class VisitorBookView(LoginRequiredMixin, SingleTableView):
+    """ List visitors book"""
+    model = VisitorBook
+    table_class = VisitorBookTable
+    template_name = 'pos/visitor_book.html'
+    table_pagination = {'per_page': 10}
+
+    def get_table_data(self):
+        id = self.kwargs.get('person_id', None)
+        if id:
+            qs = VisitorBook.objects.filter(member_id=id)
+        else:
+            qs = VisitorBook.objects.all()
+        return list(qs.order_by('-date').select_related('visitor'))
+

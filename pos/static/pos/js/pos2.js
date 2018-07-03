@@ -30,7 +30,7 @@ var posCode = (function () {
     var personList;
 
     /* Public methods*/
-    pos.init = function (items_url, post_url, exit_url, is_attended, person_id, person_name, csrf_token) {
+    pos.init = function (items_url, post_url, exit_url, is_attended, person_id, person_name, csrf_token, timing) {
         itemsUrl = items_url;
         postUrl = post_url;
         exitUrl = exit_url;
@@ -48,6 +48,7 @@ var posCode = (function () {
         $(".posbutton").on('touchstart', function(event) {
             pos.itemAdd(Number(event.currentTarget.id));
             event.currentTarget.classList.add('posbutton-down');
+            timing.restartTimer();
             event.preventDefault();
         });
         // Click event for testing

@@ -23,7 +23,7 @@
 {% block scripts %}
   <script>
     $(document).ready(function () {
-      startTimer({{ timeout }}, "{{ timeout_url }}");
+      timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
     });
   </script>
 {% endblock %}

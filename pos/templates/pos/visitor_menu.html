@@ -1,0 +1,31 @@
+﻿{% extends 'pos/base.html' %}
+{% load staticfiles %}
+{% block content %}
+  {%  include '_logo_banner.html' %}
+  <div class="container bg">
+    <div class="row">
+      <div class="col-md-4 col-md-push-4 text-center">
+        <h2 class="text-center">{{ full_name }}</h2>
+        {% if messages %}
+          {% for message in messages %}
+            <h4>{{ message }}</h4>
+          {% endfor %}
+        {% endif %}
+        <br>
+        <p><a href="{% url 'pos_visitor_adult' %}" class="btn btn-success btn-lg btn-block stop-timer">Add adult visitor</a></p>
+        <p><a href="{% url 'pos_visitor_junior' %}" class="btn btn-success btn-lg btn-block stop-timer">Add junior visitor</a></p>
+        <p><a href="{% url 'pos_visitors_person' person_id=person_id %}" class="btn btn-success btn-lg btn-block stop-timer">Show my visitors</a></p>
+        <p><a href="{% url 'pos_visitors_all' %}" class="btn btn-success btn-lg btn-block stop-timer">Show all visitors</a></p>
+        <p><a href="{% url 'pos_select_app' %}" class="btn btn-success btn-lg btn-block stop-timer">Log out</a></p>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+  $(document).ready(function () {
+      timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
+  });
+  </script>
+{% endblock %}

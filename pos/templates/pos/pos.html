@@ -173,8 +173,8 @@
 <script>
   $(document).ready(function () {
     posCode.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }},
-        '{{ person_id }}', '{{ full_name }}', '{{ csrf_token }}');
-    startTimer({{ timeout }}, "{{ timeout_url }}");
+        '{{ person_id }}', '{{ full_name }}', '{{ csrf_token }}', timingCode);
+    timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
     bind_typeahead('#member_search', posCode.selectedPerson, true);
 });
 </script>

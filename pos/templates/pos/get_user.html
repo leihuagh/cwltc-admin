@@ -3,21 +3,23 @@
 {% block content %}
   {%  include '_logo_banner.html' %}
 <div class="container bg">
+  <h2 class="text-center"> {{ request.session.app }}</h2>
   <h2 class="text-center">Member login</h2>
 
   <br/>
   <div class="row">
+    <form id="form_member" role="form" method="POST" >{% csrf_token %}
     <div class="col-md-2">
-      <a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block">Back</a>
+      <input type="submit" name="back" class="btn btn-success btn-lg btn-block" value="Back">
     </div>
     <div class="col-md-3 ipad-prompt"> Search for name:</div>
-    <form id="form_member" role="form" method="POST" >{% csrf_token %}
+
       <div class="col-md-3 input-group input-group-lg">
         <input type="text" class="form-control typeahead tt-query timed bsfix" maxlength="15"
                id = "search_id" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
       </div>
       <input name="person_id" id="person_id" type="hidden" value="">
-                <input type="submit" class="button" id ="submit_id"
+      <input type="submit" class="button" id ="submit_id"
              style="display: none" name="login" value="">
     </form>
   </div>
@@ -44,7 +46,7 @@
     $(document).ready(function () {
       bind_typeahead('#search_id', go, true);
       $('.typeahead').typeahead('val', '');
-      startTimer({{ timeout }}, "{{ timeout_url }}");
+      timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
     });
     function go(person) {
         $('#person_id').val(person.id);

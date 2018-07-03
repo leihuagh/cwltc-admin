@@ -70,7 +70,7 @@ class LayoutForm(ModelForm):
 
     class Meta:
         model = Layout
-        fields = ['name', 'item_type']
+        fields = ['name', 'title', 'sub_title', 'line_2', 'line_3', 'button_text', 'item_type']
 
     def __init__(self, *args, **kwargs):
         delete = kwargs.pop('delete', None)
@@ -78,7 +78,9 @@ class LayoutForm(ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = CrispyLayout(
             Div(
-            'name',
+            'name', 'title',
+            'sub_title', 'line_2', 'line_3',
+            'button_text',
             'item_type',
                 css_class="well"
             ),
@@ -120,3 +122,19 @@ class ColourForm(ModelForm):
             self.helper.layout[1].insert(
                 1, SubmitButton('delete','Delete', css_class='btn-danger', formnovalidate='formnovalidate')
             )
+
+class VisitorForm(ModelForm):
+
+    class Meta:
+        model = Visitor
+        fields = ['first_name', 'last_name']
+
+    visitors = forms.ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        person_id = kwargs.pop('person_id')
+        super().__init__(*args, **kwargs)
+        visitor_ids= VisitorBook.objects.filter(member_id=person_id).values('visitor_id').distinct()
+        visitors = Visitor.objects.filter(pk__in=visitor_ids)
+        self.fields['visitors'].choices = [('0', 'Select a visitor')] + [(v.id, v.full_name) for v in visitors]
+

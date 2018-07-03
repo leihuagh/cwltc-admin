@@ -12,7 +12,7 @@
           {% endfor %}
         {% endif %}
         <br>
-        <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block stop-timer">Purchase items from bar</a></p>
+        <p><a href="{% url 'pos_run' %}" class="btn btn-success btn-lg btn-block stop-timer">Make a purchase</a></p>
         {% if person_id > 0 %}
           <p><a href="{% url 'pos_payments_person' person_id=person_id %}" class="btn btn-success btn-lg btn-block stop-timer">View my account</a></p>
         {% else %}
@@ -43,7 +43,7 @@
 {% block scripts %}
   <script>
   $(document).ready(function () {
-      startTimer({{ timeout }}, "{{ timeout_url }}");
+      timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
   });
   </script>
 {% endblock %}

@@ -23,7 +23,8 @@ class PosPaymentTable(tables.Table):
 
     class Meta:
         model = PosPayment
-        fields = ('transaction.creation_date', 'person.fullname', 'amount', 'split', 'transaction.attended')
+        fields = ('transaction.creation_date', 'person.fullname', 'amount', 'transaction.item_type.description',
+                  'split', 'transaction.attended')
         attrs = {'class': 'table'}
 
     # amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
@@ -67,11 +68,13 @@ class LayoutTable(tables.Table):
 
     class Meta:
         model = Layout
-        fields = ('edit', 'name', 'item_type')
+        fields = ('edit', 'rename', 'name', 'item_type')
         attrs = {'class': 'table'}
 
     edit = tables.TemplateColumn('<a href="{% url "pos_layout_update" record.id %}"'
                                  ' class="btn btn-primary btn-xs">Edit</a>', verbose_name='Edit',)
+    rename = tables.TemplateColumn('<a href="{% url "pos_layout_rename" record.id %}"'
+                                 ' class="btn btn-primary btn-xs">Rename</a>', verbose_name='Rename',)
     item_type = tables.Column(accessor='item_type.description',
                               verbose_name='Charge to',
                               order_by='item_type.description',
@@ -91,3 +94,10 @@ class ColourTable(tables.Table):
                 background-color: {{ record.back_colour }};
                 border: {{ record.outline_colour }};">Sample</button>'''
     )
+
+class VisitorBookTable(tables.Table):
+    class Meta:
+        model = VisitorBook
+        fields = ('date', 'member.fullname', 'visitor.fullname', 'visitor.junior')
+        attrs = {'class': 'table', 'style':"font-size: large;"}
+

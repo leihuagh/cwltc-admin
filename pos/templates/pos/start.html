@@ -8,36 +8,42 @@
   <div class="jumbotron text-center bg">
     <div class="row">
     </div>
-    <h1><strong>Honesty Bar System</strong></h1>
-    <h3>All adult members can use this system once they have registered. </h3>
-    <h3>You can register on this device.</h3>
-    <br/>
-    <form method="post">
-      {% csrf_token %}
-      <button class="posbutton btn-large" type="submit" name="login">Member log in</button>
-      {% if request.session.attended_allowed %}
-        <br/><br/><br/>
-        <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
-      {% endif %}
-    </form>
-  <br>
-    <p class="ipad-error">{{ request.session.message }}</p>
+    <h1><strong>{{ layout.title }}</strong></h1>
+    <div id="idOnlineMessage">
+      <h2>{{ layout.sub_title }}</h2>
+      <h3>{{ layout.line_2 }}</h3>
+      <h3>{{ layout.line_3 }}</h3>
+      <br/>
+      <form method="post">
+        {% csrf_token %}
+        <button class="posbutton btn-large" type="submit" name="login">Member log in</button>
+        {% if request.session.attended_allowed %}
+          <br/><br/><br/>
+          <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
+        {% endif %}
+      </form>
+    </div>
+    <br>
+    <p class="ipad-error">{{ message }}</p>
+    <p id="idOfflineMessage"></p>
   </div>
 </div>
-    <div class="terminal">Terminal: {{ request.session.terminal }} Layout: {{ layout_name }}</div>
+    <div class="terminal">Terminal: {{ request.session.terminal }} Layout: {{ layout.name }}
+      <span id="idOnline"></span></div>
     <div class="last-transaction">
       Last transaction: {{ request.session.last_person }}: £ {{ request.session.last_total }}
     </div>
 {% endblock %}
-{#{% block scripts %}#}
-{#<script>#}
-{#  $(document).ready(function () {#}
-{#      $(".posbutton").on('touchstart', function(event) {#}
-{#        event.currentTarget.classList.add('posbutton-down');#}
-{#      });#}
-{#        $(".posbutton").on('touchend', function(event) {#}
-{#        event.currentTarget.classList.remove('posbutton-down');#}
-{#      });#}
-{#});#}
-{#</script>#}
-{#{% endblock %}#}
+{% block scripts %}
+<script>
+  $(document).ready(function () {
+    $(".posbutton").on('touchstart', function(event) {
+      event.currentTarget.classList.add('posbutton-down');
+    });
+    $(".posbutton").on('touchend', function(event) {
+      event.currentTarget.classList.remove('posbutton-down');
+    });
+    timingCode.initPing({{ timeout }}, '{{ ping_url }}', '{{ csrf_token }}', '{{ request.session.terminal }}', 'idMessage');
+    });
+</script>
+{% endblock %}
