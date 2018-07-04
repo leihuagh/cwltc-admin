@@ -376,7 +376,7 @@ class PosView(LoginRequiredMixin, TemplateView):
             request.session['last_person'] = trans[0]
             request.session['last_total'] = trans[1]
             if self.request.session['attended']:
-                return HttpResponse(reverse(restart_url(self.request)))
+                return HttpResponse(reverse(restart_url(request)))
             else:
                 return HttpResponse(reverse('pos_menu_timeout'))
         # should not get here - all posts are ajax

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <div class="flex-container">
-  <div class="flex-left">
+  <div class="flex-left" hidden>
     {% for row in rows %}
       {% for loc in row %}
         {% if loc.1 == 0 %}
@@ -35,7 +35,7 @@
     {% endfor %}
   </div>
 
-  <div class="flex-right">
+  <div class="flex-right" hidden>
     <div class="name-area">
       {{ full_name }}
     </div>
@@ -165,6 +165,25 @@
     </div>
   </div>
 </div>
+
+  <!-- Modal to show saving data -->
+<div id="save_modal" class="modal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <h3 id="save_message"></h3>
+        <h4 id="save_error"></h4>
+      </div>
+      <div class="modal-footer" id="save-footer"  hidden>
+        <button class="btn btn-lg btn-success"  data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 {% endblock %}
 {% block scripts %}
 <script src= {% static 'js/typeahead.bundle.js' %}></script>
@@ -172,10 +191,11 @@
 <script src="{% static 'pos/js/pos2.js' %}"></script>
 <script>
   $(document).ready(function () {
-    posCode.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }},
-        '{{ person_id }}', '{{ full_name }}', '{{ csrf_token }}', timingCode);
-    timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
-    bind_typeahead('#member_search', posCode.selectedPerson, true);
+      posCode.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }},
+          '{{ person_id }}', '{{ full_name }}', '{{ csrf_token }}', timingCode);
+      timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
+
+      bind_typeahead('#member_search', posCode.selectedPerson, true);
 });
 </script>
 {% endblock %}

@@ -77,7 +77,7 @@ var timingCode = (function () {
                 xhr.setRequestHeader('X-CSRFToken', csrf_token);
             },
             success: function (data, status, xhr) {
-                $('#idOfflineMessage').text();
+                $('#idOfflineMessage').hide();
                 $('#idOnlineMessage').show();
                 $('#idOnline').text('Online');
                 $('.posbutton').show();
@@ -88,8 +88,8 @@ var timingCode = (function () {
                 }
             },
             error: function (data, status, xhr) {
+                $('#idOfflineMessage').show();
                 $('#idOfflineMessage').text('Sorry, the server is temporarily available. Please try later');
-                $('#idOnlineMessage').hide();
                 $('#idOnline').text('OffLine');
                 $('.posbutton').hide();
                 timing.startPing();

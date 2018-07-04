@@ -256,8 +256,45 @@ var posCode = (function () {
         var payObj = {'pay_type': payType, 'people': personList, 'total': total};
         receipt.push(payObj);
         var data = JSON.stringify(receipt);
-        $.post(postUrl, data, function(result){
-            window.location.replace(result);
+        // $.post(postUrl, data, function(result){
+        //     window.location.replace(result);
+        // });
+        $('#save_message').text('Saving transaction to server ...');
+        $('#save_error').text(' ');
+        $('#save-footer').hide();
+        $('#save_modal').modal('show');
+        $.ajax({
+            type: "POST",
+            url: postUrl,
+            data: data,
+            dataType: 'text',
+            tryCount: 0,
+            retryLimit: 3,
+            timeout: 10000,
+            success: function (target) {
+                if (target.includes('<')) {
+                    console.log('bad url received');
+                }else{
+                    window.location.replace(target);
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                if (textStatus === 'timeout') {
+                    this.tryCount++;
+                    if (this.tryCount < this.retryLimit) {
+                        $('#save_error').text('No response from server. Retrying ' + this.tryCount.toString());
+                        $.ajax(this);
+                        return;
+                    }
+                    $('#save_message').text('Sorry, the transaction could not be saved.');
+                    $('#save_error').text('Please record it on paper');
+                    $('#save-footer').show();
+                    return;
+                }
+                if (xhr.status === 500) {
+                    console.log('Bad server response');
+                }
+            }
         });
     }
 
@@ -274,6 +311,8 @@ var posCode = (function () {
             if (this.readyState === 4 && this.status === 200) {
                 var jsonData = this.responseText;
                 items = JSON.parse(JSON.parse(this.responseText));
+                $('.flex-left').show();
+                $('.flex-right').show();
             }
         };
         xhttp.open("GET", itemsUrl, true);
