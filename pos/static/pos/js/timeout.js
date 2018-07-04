@@ -88,8 +88,7 @@ var timingCode = (function () {
                 }
             },
             error: function (data, status, xhr) {
-                $('#idOfflineMessage').show();
-                $('#idOfflineMessage').text('Sorry, the server is temporarily available. Please try later');
+                $('#idOfflineMessage').show().text('Sorry, the server is temporarily available. Please try later');
                 $('#idOnline').text('OffLine');
                 $('.posbutton').hide();
                 timing.startPing();
