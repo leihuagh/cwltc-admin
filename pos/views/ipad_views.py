@@ -78,6 +78,8 @@ class StartView(LoginRequiredMixin, TemplateView):
         layout_id, request.session['terminal'] = read_cookie(request)
         if layout_id:
             request.session['layout'] = Layout.objects.get(id=layout_id)
+            if request.session['layout'].item_type.id == ItemType.VISITORS:
+                return redirect('pos_select_app')
             return super().get(request, *args, **kwargs)
         return redirect('pos_disabled')
 
