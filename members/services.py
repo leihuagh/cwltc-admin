@@ -608,21 +608,10 @@ def person_resign(person):
         person.sub.no_renewal = True 
         person.sub.save()       
     person.state = Person.RESIGNED
+    person.unregister()
     person_deregister(person)
     # generate any pos records
     create_all_invoiceitems_from_payments(person)
-
-
-def person_deregister(person):
-    if person.auth:
-        person.auth.delete()
-    person.auth = None
-    person.pin = None
-    person.allow_phone = False
-    person.allow_email = False
-    person.allow_marketing = False
-    person.consent_date = None
-    person.save()
 
 
 @nottest

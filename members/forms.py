@@ -14,7 +14,7 @@ from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, Inl
 from mysite.widgets import DateTimePicker
 from .widgets import MySelectDate
 from .models import (Person, Address, AdultApplication, Subscription, Membership, Invoice, InvoiceItem,
-                     Payment, CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings)
+                     Payment, CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings, VisitorFees)
 from .excel import *
 from .filters import year_choices
 
@@ -462,6 +462,22 @@ class FeesForm(ModelForm):
                 raise forms.ValidationError('Value cannot be negative')
         else:
             joining = 0
+
+
+class VisitorFeesForm(ModelForm):
+
+    class Meta:
+        model = VisitorFees
+        fields = ['year', 'adult_fee', 'junior_fee']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+        self.helper.form_class = 'form-horizontal'
+        self.helper.well_class = 'col-md-4'
+        self.helper.label_class = 'col-md-6'
+        self.helper.field_class = 'col-md-6'
 
 
 class SubscriptionForm(ModelForm):

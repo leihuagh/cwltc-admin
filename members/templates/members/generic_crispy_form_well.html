@@ -11,7 +11,7 @@
   {% csrf_token %}
 {% endif %}
 <div class="row">
-  <div class="col col-sm-6">
+  <div class="col {{ form.helper.well_class }}">
     <div class="well">
       {% crispy form %}
     </div>
@@ -23,12 +23,12 @@
       {% if button.0 == 'cancel' %}
         <a href="{{ view.get_success_url }}" class="btn {{ button.2 }}">{{ button.1 }}</a>
       {%  else %}
-        <input type="submit" name="{{ button.0 }}" value="{{ button.1 }}" class="btn {{ button.2 }} {{ button.3 }}">
+        <input type="submit" name="{{ button.name }}" value="{{ button.value }}" class="btn {{ button.css_class }}">
       {% endif %}
     {% endfor %}
   {% else %}
     <input type="submit" name="save" value="Save" class="btn btn-success">
-    <a href="{{ view.get_success_url }}" class="btn btn-default">Cancel</a>
+{#    <a href="{% url view.get_success_url %}" class="btn btn-default">Cancel</a>#}
   {% endif %}
   </form>
 {% endif %}

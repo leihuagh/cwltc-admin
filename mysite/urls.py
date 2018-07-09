@@ -34,20 +34,13 @@ urlpatterns = [
     url(r'^wimbledon/', include('wimbledon.urls')),
     url(r'^events/', include('events.urls')),
     url(r'^diary/', include('diary.urls')),
-    url(r'^home/',
-        HomeView.as_view(),
-        name='home'
-        ),
+
+    url(r'^home/', HomeView.as_view(), name='home'),
 
     # url(r'^markdownx/', include('markdownx.urls')),
-    url(r'^ajax/people/',
-        ajax_people,
-        name="ajax-people"
-        ),
-    url(r'^search/person/',
-        search_person,
-        name="search-person"
-        ),
+    url(r'^ajax/people/', ajax_people, name="ajax-people"),
+    url(r'^ajax/person/', ajax_person, name="ajax-person"),
+    url(r'^search/person/', search_person, name="search-person"),
 
     # YEAR END
     url(r'^yearend/$', YearEndView.as_view(), name='yearend'),
@@ -85,18 +78,12 @@ urlpatterns = [
         name='categories-list'
         ),
     #   FEES
-    url(r'^fees/update/(?P<pk>\d+)/$',
-        FeesUpdateView.as_view(),
-        name='fees-update'
-        ),
-    url(r'^fees/list/$',
-        FeesListView.as_view(),
-        name='fees-list'
-        ),
-    url(r'^fees/list/(?P<year>[0-9]{4})/$',
-        FeesListView.as_view(),
-        name='fees-list'
-        ),
+    url(r'^fees/update/(?P<pk>\d+)/$', FeesUpdateView.as_view(), name='fees-update'),
+    url(r'^fees/list/$', FeesListView.as_view(), name='fees-list'),
+    url(r'^fees/list/(?P<year>[0-9]{4})/$', FeesListView.as_view(),name='fees-list'),
+
+    url(r'^visitor-fees/update/(?P<pk>\d+)/$', VisitorFeesUpdateView.as_view(), name='visitor-fees-update'),
+    url(r'^visitor-fees/list/$', VisitorFeesListView.as_view(), name='visitor-fees-list'),
 
     #   SUBSCRIPTIONS
     url(r'^sub/update/(?P<pk>\d+)/$',

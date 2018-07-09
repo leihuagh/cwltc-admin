@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
 
+    url(r'lookup/member/$', LookupMemberView.as_view(), name='pos_lookup_member'),
     url(r'^user/$', GetUserView.as_view(), name='pos_user'),
     url(r'^password/$', GetPasswordView.as_view(), name='pos_password'),
     url(r'^menu/$', MemberMenuView.as_view(), name='pos_menu'),
@@ -25,8 +26,9 @@ urlpatterns = [
     url(r'^visitors/person/(?P<person_id>\d+)/$', VisitorBookView.as_view(), name='pos_visitors_person'),
     url(r'^visitors/all/$', VisitorBookView.as_view(), name='pos_visitors_all'),
 
-
     url(r'^register/$', PosRegisterView.as_view(), name='pos_register'),
+    url(r'^register/again$', PosRegisterView.as_view(re_register=True), name='pos_register_again'),
+
     url(r'^register/token/(?P<token>.+)/$', PosRegisterTokenView.as_view(), name='pos_register_token'),
     url(r'^consent/token/(?P<token>.+)/$', PosConsentView.as_view(), name='pos_consent_token'),
 

@@ -75,7 +75,7 @@ class RegisterView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form_title'] = 'Register for the club website and bar system'
+        context['form_title'] = 'Register for the club website and online services'
         context['info'] = 'Enter these details to confirm you are a club member:'
         context['buttons'] = [Button('Register', css_class='btn-success')]
         return context

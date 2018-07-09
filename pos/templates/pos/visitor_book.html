@@ -1,24 +1,41 @@
 ﻿{% extends 'pos/base.html' %}
 
 {% block content %}
-    {%  include '_logo_banner.html' %}
+
 {% if person %}
-  <h3>Visitors for {{ person.first_name }} {{ person.last_name }}</h3>
+  <h3 class="text-center"><b>Visitors Book - entries for {{ person.first_name }} {{ person.last_name }}</b></h3>
 {% else %}
-  <h2 class="text-center"><b>Visitors Book</b></h2>
+  <h2 class="text-center"><b>Visitors Book - all entries</b></h2>
 {% endif %}
 {% load render_table from django_tables2 %}
-  <div class="container">
+<div class="container">
   <div class="panel panel-primary">
-    <div class="panel-body" style="max-height: 80%; overflow-y: scroll;">
+    <div class="panel-body" style="height:600px; overflow-y: scroll;">
       {% render_table table 'django_tables2/table.html'%}
     </div>
   </div>
-  {% if main_menu %}
-    <a href="{% url 'home' %}" class="btn btn-primary ">Exit</a>
-  {% else %}
-    <a href="{% url 'pos_select_app'  %}" class="btn btn-lg btn-success">Exit</a>
-    <a href="{% url 'pos_user'  %}" class="btn btn-lg btn-success">Enter a visitor</a>
-  {% endif %}
+  <div class="row">
+    <div class="col-md-2">
+    {% if main_menu %}
+      <a href="{% url 'home' %}" class="btn btn-primary btn-block ">Exit</a>
+    {% else %}
+      <a href="{% url 'pos_select_app' %}" class="btn btn-lg btn-success btn-block">Exit</a>
+    {% endif %}
+    </div>
+    {% if not main_menu %}
+
+      {% if person %}
+        <div class="col-md-3 col-md-offset-1">
+        <a href="{% url 'pos_visitor_adult' %}" class="btn btn-lg btn-block btn-success">Add adult visitor</a>
+        </div>
+        <div class="col-md-3  ">
+        <a href="{% url 'pos_visitor_junior' %}" class="btn btn-lg btn-block btn-success">Add junior visitor</a>
+        </div>
+      {% else %}
+        <div class="col-md-3 ">
+          <a href="{% url 'pos_user' %}" class="btn btn-lg btn-block btn-success">Log in to add a visitor</a>
+        </div>
+      {% endif %}
+    {% endif %}
   </div>
 {% endblock %}

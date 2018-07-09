@@ -5,7 +5,8 @@
   <div class="container bg">
     <div class="row">
       <div class="col-md-4 col-md-push-4 text-center">
-        <h2 class="text-center">{{ full_name }}</h2>
+        <h2>Visitors book menu</h2>
+        <h2 class="text-center">{{ person.fullname }}</h2>
         {% if messages %}
           {% for message in messages %}
             <h4>{{ message }}</h4>
@@ -14,7 +15,7 @@
         <br>
         <p><a href="{% url 'pos_visitor_adult' %}" class="btn btn-success btn-lg btn-block stop-timer">Add adult visitor</a></p>
         <p><a href="{% url 'pos_visitor_junior' %}" class="btn btn-success btn-lg btn-block stop-timer">Add junior visitor</a></p>
-        <p><a href="{% url 'pos_visitors_person' person_id=person_id %}" class="btn btn-success btn-lg btn-block stop-timer">Show my visitors</a></p>
+        <p><a href="{% url 'pos_visitors_person' person_id=person.id %}" class="btn btn-success btn-lg btn-block stop-timer">Show my visitors</a></p>
         <p><a href="{% url 'pos_visitors_all' %}" class="btn btn-success btn-lg btn-block stop-timer">Show all visitors</a></p>
         <p><a href="{% url 'pos_select_app' %}" class="btn btn-success btn-lg btn-block stop-timer">Log out</a></p>
         </div>

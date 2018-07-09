@@ -358,6 +358,7 @@ class ColourCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
         context['title'] = 'Create new colour scheme'
         return context
 
+
 class ColourUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     model = Colour
     form_class = ColourForm
@@ -374,6 +375,7 @@ class ColourUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
             return redirect('pos_colour_list')
         return super().post(request, *args, **kwargs)
 
+
 class ColourListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
     model = Colour
     table_class = ColourTable
@@ -386,20 +388,3 @@ class ColourListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
         if 'admin' in request.POST:
             return redirect('pos_admin')
         return redirect('pos_colour_list')
-
-
-class VisitorBookView(LoginRequiredMixin, SingleTableView):
-    """ List visitors book"""
-    model = VisitorBook
-    table_class = VisitorBookTable
-    template_name = 'pos/visitor_book.html'
-    table_pagination = {'per_page': 10}
-
-    def get_table_data(self):
-        id = self.kwargs.get('person_id', None)
-        if id:
-            qs = VisitorBook.objects.filter(member_id=id)
-        else:
-            qs = VisitorBook.objects.all()
-        return list(qs.order_by('-date').select_related('visitor'))
-

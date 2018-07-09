@@ -6,21 +6,26 @@
 
   <div class="container">
   <div class="jumbotron text-center bg">
-    <h1 class="text-center"><strong>{{ layout.title }}</strong></h1>
+    <h1 class="text-center"><strong>Member Services</strong></h1>
     <h3 class="text-center">{{ layout.line_2 }}</h3>
     <h3 class="text-center">{{ layout.line_3 }}</h3>
+    <br>
     <div class="row">
       <p class="ipad-error">{{ request.session.message }}</p>
       <div id="idOnlineMessage"></div>
         <form method="post">{% csrf_token %}
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <button class="posbutton btn-large" type="submit" name="layout">{{ layout.button_text }}</button>
-              <h2>{{ layout.sub_title }}</h2>
+              <h4>{{ layout.sub_title }}</h4>
             </div>
-            <div class="col-md-6">
-              <button class="posbutton btn-large" type="submit" name="layout2">{{ layout2.button_text }}</button>
-              <h2>{{ layout2.sub_title }}</h2>
+            <div class="col-md-4">
+              <button class="posbutton btn-large" type="submit" name="visitors">{{ visitors.button_text }}</button>
+              <h4>{{ layout2.sub_title }}</h4>
+            </div>
+            <div class="col-md-4">
+              <button class="posbutton btn-large" type="submit" name="lookup">Lookup member</button>
+              <h4>{{ layout2.sub_title }}</h4>
             </div>
           </div>
         </form>

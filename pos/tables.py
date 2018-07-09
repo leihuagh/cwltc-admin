@@ -74,7 +74,7 @@ class LayoutTable(tables.Table):
     edit = tables.TemplateColumn('<a href="{% url "pos_layout_update" record.id %}"'
                                  ' class="btn btn-primary btn-xs">Edit</a>', verbose_name='Edit',)
     rename = tables.TemplateColumn('<a href="{% url "pos_layout_rename" record.id %}"'
-                                 ' class="btn btn-primary btn-xs">Rename</a>', verbose_name='Rename',)
+                                   ' class="btn btn-primary btn-xs">Rename</a>', verbose_name='Rename',)
     item_type = tables.Column(accessor='item_type.description',
                               verbose_name='Charge to',
                               order_by='item_type.description',
@@ -95,9 +95,21 @@ class ColourTable(tables.Table):
                 border: {{ record.outline_colour }};">Sample</button>'''
     )
 
+
 class VisitorBookTable(tables.Table):
     class Meta:
         model = VisitorBook
-        fields = ('date', 'member.fullname', 'visitor.fullname', 'visitor.junior')
-        attrs = {'class': 'table', 'style':"font-size: large;"}
+        fields = ('date', 'member.fullname', 'visitor', 'fee')
+        attrs = {'class': 'table', 'style': "font-size: large;"}
+
+        sequence = ('date', 'member.fullname', 'membership', 'visitor', 'visitor_junior', 'fee')
+
+    visitor = tables.Column(accessor='visitor.fullname')
+    membership = tables.Column(accessor='member.membership.description', verbose_name='Membership')
+    visitor_junior = tables.Column(accessor='visitor.junior', verbose_name='Adult/Junior')
+
+    def render_visitor_junior(self, value):
+        if value:
+            return 'Junior'
+        return 'Adult'
 

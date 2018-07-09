@@ -360,7 +360,7 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
             return redirect(reverse('sub-renew-list'))
 
         elif 'deregister' in request.POST:
-            person_deregister(person)
+            person.unregister()
 
         elif 'invoice' in request.POST:
             return redirect('invoice-generate', pk=person.id)
@@ -456,6 +456,25 @@ def ajax_people(request):
         data = 'error'
         mimetype = 'application/json'
         return HttpResponse(data, mimetype)
+
+
+def ajax_person(request):
+    id = request.GET.get('id', '')
+    person = Person.objects.get(pk=id)
+    json = {}
+    json['name'] = person.fullname
+    if person.allow_phone:
+        json['mobile'] = person.mobile_phone
+        json['phone'] = person.address.home_phone
+    else:
+        json['mobile'] = 'Not shared'
+        json['phone'] = 'Not shared'
+    if person.allow_email:
+        json['email'] = person.email
+    else:
+        json['email'] = 'Not shared'
+    json['membership'] = person.membership.description
+    return JsonResponse(json)
 
 
 def search_person(request):
@@ -1055,7 +1074,7 @@ class FeesListView(StaffuserRequiredMixin, ListView):
         return Fees.objects.filter(sub_year=self.year).order_by('membership')
 
     def get_context_data(self, **kwargs):
-        context = super(FeesListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['year'] = self.year
         context['latest'] = (self.latest_year == self.year)
         context['forward'] = self.year + 1
@@ -1083,6 +1102,49 @@ class FeesListView(StaffuserRequiredMixin, ListView):
                 fee.delete()
             messages.success(self.request, "All records for {} deleted".format(year))
             return redirect('fees-list', year - 1)
+
+
+class VisitorFeesUpdateView(StaffuserRequiredMixin, UpdateView):
+    model = VisitorFees
+    form_class = VisitorFeesForm
+    template_name = 'members/generic_crispy_form_well.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Visitor fees'
+        context['buttons'] = [
+            Button('Save', name='save', css_class='btn-default'),
+            Button('Delete', name='delete', css_class='btn-danger'),]
+        return context
+
+    def get_success_url(self):
+        return reverse('visitor-fees-list')
+
+    def post(self, request, *args, **kwargs):
+        if 'delete' in request.POST:
+            self.get_object().delete()
+            return redirect(self.get_success_url())
+        return super().post(request, *args, **kwargs)
+
+
+class VisitorFeesListView(StaffuserRequiredMixin, SingleTableView):
+    model = VisitorFees
+    template_name = 'members/visitors_fees_list.html'
+
+    def get_queryset(self):
+        return VisitorFees.objects.all().order_by('-year')
+
+    def post(self, request, *args, **kwargs):
+        if 'create' in request.POST:
+            records = self.get_queryset()
+            if records:
+                record = records[0]
+                VisitorFees.objects.create(year=record.year + 1,
+                                           adult_fee=record.adult_fee,
+                                           junior_fee=record.junior_fee)
+            else:
+                VisitorFees.objects.create(year=2017, adult_fee=6, junior_fee=3)
+        return redirect('visitor-fees-list')
 
 # ================ Membership categories
 

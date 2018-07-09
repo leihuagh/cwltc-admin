@@ -163,6 +163,17 @@ class Person(models.Model):
 
     def has_consented(self):
         return self.consent_date != None
+    
+    def unregister(self):
+        if self.auth:
+            self.auth.delete()
+        self.auth = None
+        self.pin = None
+        self.allow_phone = False
+        self.allow_email = False
+        self.allow_marketing = False
+        self.consent_date = None
+        self.save()
 
 
 class Membership(models.Model):
@@ -397,6 +408,12 @@ class Fees(models.Model):
         else:
             amount = months * self.monthly_sub
         return amount
+
+
+class VisitorFees(models.Model):
+    year = models.SmallIntegerField()
+    adult_fee = models.DecimalField(max_digits=5, decimal_places=2)
+    junior_fee = models.DecimalField(max_digits=5, decimal_places=2)
 
 
 class ModelEnum(IntEnum):

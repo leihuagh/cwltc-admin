@@ -130,11 +130,32 @@ class VisitorForm(ModelForm):
         fields = ['first_name', 'last_name']
 
     visitors = forms.ChoiceField()
+    person_id = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
-        person_id = kwargs.pop('person_id')
+        person_id = kwargs.pop('person_id', None)
+        junior = kwargs.pop('junior', False)
         super().__init__(*args, **kwargs)
-        visitor_ids= VisitorBook.objects.filter(member_id=person_id).values('visitor_id').distinct()
-        visitors = Visitor.objects.filter(pk__in=visitor_ids)
-        self.fields['visitors'].choices = [('0', 'Select a visitor')] + [(v.id, v.full_name) for v in visitors]
+        if person_id:
+            visitor_ids = VisitorBook.objects.filter(member_id=person_id, visitor__junior=junior).values('visitor_id').distinct()
+        else:
+            visitor_ids = VisitorBook.objects.filter(visitor__junior=junior).values('visitor_id').distinct()
+        visitors = Visitor.objects.filter(pk__in=visitor_ids).order_by('first_name', 'last_name')
+        self.fields['visitors'].choices = [('0', '-- Select a visitor --')] + [(v.id, v.fullname) for v in visitors]
 
+    def clean(self):
+        cleaned_data = super().clean()
+        visitor_id = cleaned_data.get('visitors', '')
+        # if user selected existing visitor, ensure no required errors from name fields
+        if visitor_id != '0':
+            self.errors.clear()
+            self.cleaned_data['first_name'] = "x"
+            self.cleaned_data['last_name'] = "x"
+        return self.cleaned_data
+
+
+    def clean_first_name(self):
+        return self.cleaned_data['first_name'].title()
+
+    def clean_last_name(self):
+        return self.cleaned_data['last_name'].title()

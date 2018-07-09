@@ -140,7 +140,7 @@ class Visitor(models.Model):
     junior = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.full_name
+        return self.fullname
 
     @property
     def fullname(self):
@@ -151,4 +151,6 @@ class VisitorBook(models.Model):
     date = models.DateField(auto_now=True)
     member = models.ForeignKey(Person, on_delete=models.CASCADE, blank=False, null=False)
     visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE, blank=False, null=False)
+    fee = models.DecimalField(max_digits=5, decimal_places=2)
     billed = models.BooleanField()
+

@@ -225,6 +225,11 @@
     transform: translateY(2px) translateX(1px);
 }
 
+.pospanel {
+    background-color: #ccffcc;
+    box-shadow: 4px 6px 12px rgba(0, 0, 0, 0.4);
+}
+
 .btn-success {
   background-color: #008800; /* Green */
 }

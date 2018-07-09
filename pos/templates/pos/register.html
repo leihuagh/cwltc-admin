@@ -3,8 +3,8 @@
 {% load crispy_forms_tags %}
 {% load ipad_field %}
 {% block content %}
-  <h3 class="text-center">You have not registered to use this system or the members' web site.<br>
-  You can register now.</h3>
+  <h3 class="text-center"><b>Registration</b></h3>
+  <h3 class="text-center">Register to use the club's online services</h3>
   <br>
   <h3 class="text-center">Enter these details to confirm that you are {{ person.fullname }}:</h3>
 {% if message %}
@@ -29,7 +29,6 @@
 
 {% endblock content %}
 {% block scripts %}
-  <script src="{% static 'pos/js/timeout.js' %}"></script>
   <script>
     $(document).ready(function () {
       timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");

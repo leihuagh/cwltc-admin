@@ -5,7 +5,8 @@
   <div class="container bg">
     <div class="row">
       <div class="col-md-4 col-md-push-4 text-center">
-        <h2 class="text-center">{{ full_name }}</h2>
+        <h2><b>{{ request.session.layout.name }}</b></h2>
+        <h2 class="text-center">{{ fullname }}</h2>
         {% if messages %}
           {% for message in messages %}
             <h4>{{ message }}</h4>
@@ -18,7 +19,7 @@
         {% else %}
           <p><a href="{% url 'pos_transactions_comp' %}" class="btn btn-success btn-lg btn-block stop-timer">View complimentary transactions</a></p>
         {% endif %}
-        <p><a href="{% url 'pos_start' %}" class="btn btn-success btn-lg btn-block stop-timer">Log out</a></p>
+        <p><a href="{{ timeout_url }}" class="btn btn-success btn-lg btn-block stop-timer">Log out</a></p>
         {% if admin %}
           <p><a href="{% url 'pos_admin' %}" class="btn btn-warning btn-lg btn-block stop-timer">POS admin</a></p>
           <p><a href="{% url 'pos_transactions' %}" class="btn btn-warning btn-lg btn-block stop-timer">All transactions</a></p>
@@ -32,7 +33,7 @@
           </form>
         {% endif %}
         <br><br>
-        {% if request.session.last_person == full_name %}
+        {% if request.session.last_person == person.fullname %}
           <h3>Last transaction: £ {{ request.session.last_total }}</h3>
         {% endif %}
         </div>

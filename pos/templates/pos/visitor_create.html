@@ -4,75 +4,125 @@
   {%  include '_logo_banner.html' %}
   <div class="container bg">
     <div class="row">
-      <div class="col-md-4 col-md-push-4 text-center">
-        <h2 class="text-center">{{ full_name }}</h2>
-        <h2>Add {% if junior %}junior {% else %}adult {% endif %}visitor</h2>
+      <div class="col-md-6 col-md-push-3 text-center">
+        <h2 class="text-center"><b>Visitors Book for <span id="fullname">{{ person.fullname }}</span> </b></h2>
+        <h2>Add {% if junior %}a junior {% else %}an adult {% endif %}visitor</h2>
       </div>
     </div>
     <div class="row">
-
       <div class="col-md-2">
-        <button href="{% url 'pos_select_app' %}" class="btn btn-block btn-lg btn-success">Cancel</button>
+        <a href="{% url 'pos_visitors_person' person_id=person.id %}" class="btn btn-block btn-lg btn-success">Back</a>
       </div>
       <div class="col-md-2"></div>
       <div class="col-md-4">
-        <button class="btn btn-default" id="id_existing" onclick="existing()">&nbsp;&nbsp;</button>
-        <span class="ipad-prompt" onclick="existing()">&nbsp;&nbsp; Select existing visitor</span>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-4 col-md-push-4">
-        <button class="btn btn-default" id="id_new" onclick="newVisitor()">&nbsp;&nbsp;</button>
-        <span class="ipad-prompt" onclick="newVisitor()">&nbsp;&nbsp; Enter a new visitor</span>
-      </div>
-    </div>
-  <p></p>
-  <form method="post" id="form">{% csrf_token %}
-    <div class="row">
-      <div class="col-md-4 col-md-push-4">
-
-          <div class="form-group form-group-lg" id="select_group" hidden>
-            <label for="id_visitors"></label>
-            <select name="visitors" id="id_visitors" style="font-size: x-large" class="btn-block" onchange="selection()">
-              {% for option in form.fields.visitors.choices %}
-                <option value="{{ option.0 }}">{{ option.1 }}</option>
-              {% endfor %}
-            </select>
+        <div class="panel pospanel" id="admin" hidden>
+          <div class="panel-body">
+            <div class="input-group input-group-lg">
+              <label for="search_id">Member</label>
+              <input type="text" class="form-control typeahead tt-query timed bsfix" maxlength="15"
+                     id = "search_id" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+            </div>
           </div>
+        </div>
+        {% if has_existing %}
+        <div class="panel pospanel">
+          <div class="panel-body">
+            <button class="btn btn-success" id="id_new" onclick="newVisitor()">&nbsp;&nbsp;</button>
+            <span class="ipad-prompt" onclick="newVisitor()">&nbsp;&nbsp; Add a new visitor</span>
+            <br>
+            <button class="btn btn-default" id="id_existing" onclick="existing()">&nbsp;&nbsp;</button>
+            <span class="ipad-prompt" onclick="existing()">&nbsp;&nbsp; Add an existing visitor</span>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
-    <div class="row" id="name_group" hidden>
-      <div class="col-md-3"></div>
-      <div class="col-md-3">
-        <div class="form-group form-group-lg">
-          <label for="first_name" class="ipad-prompt">Visitor's first name:</label>
-          <input id="first_name" name="first_name" type="text" class="form-control" required>
+    <p></p>
+    <form method="post" id="form">{% csrf_token %}
+      <!-- hidden field populated by typeahead in admin mode --->
+      <input name="person_id" id="person_id" type="hidden" value="">
+      <!--- hidden field if slection is junior --->
+      <input id="junior" name="junior" type="hidden" value="{% if junior %}true{% else %}false{% endif %}">
+      <div class="row" id="select_group" hidden>
+        <div class="col-md-6 col-md-push-3">
+          <div class="panel pospanel">
+            <div class="panel-body">
+            <h3 class="text-center">Add an existing visitor</h3>
+              <div class="form-group form-group-lg">
+              <label for="id_visitors"></label>
+              <select name="visitors" id="id_visitors" style="font-size: x-large" class="btn-block" onchange="selection()">
+                {% for option in form.fields.visitors.choices %}
+                  <option id="Option{{ option.0 }}" value="{{ option.0 }}">{{ option.1 }}</option>
+                {% endfor %}
+              </select>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="col-md-3" >
-        <div class="form-group form-group-lg">
-          <label for="last_name" class="ipad-prompt">Visitor's last name</label>
-          <input id="last_name" name="last_name" type="text" class="form-control" required>
+      <div class="row" id="name_group">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+          <div class="panel pospanel">
+            <div class="panel-body">
+              <h3 class="text-center">Add a new visitor</h3>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group form-group-lg">
+                    <label for="first_name" class="ipad-prompt">Visitor's first name:</label>
+                    <input id="first_name" name="first_name" type="text" class="form-control" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group form-group-lg">
+                    <label for="last_name" class="ipad-prompt">Visitor's last name</label>
+                    <input id="last_name" name="last_name" type="text" class="form-control" required>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </form>
-    <div class="row" id="confirm" hidden>
-      <div class="col-md-4 col-md-push-4">
-        <button class="btn btn-lg btn-block btn-success" name="submit" onclick="submitClick()" hidden>
-          Confirm visitor
-        </button>
-      </div>
-    </div>
 
+    </form>
+    <div class="row" id="confirm">
+      <div class="col-md-4"></div>
+      {% if admin %}
+        <div class="col-md-3">
+          <button class="btn btn-lg btn-block btn-success" name="submit" onclick="submitClick()" hidden>
+            Confirm visitor
+          </button>
+        </div>
+        <div class="col-md-1">
+            <a class="btn btn-lg btn-warning" onclick="adminClick()">Admin</a>
+        </div>
+      {% else %}
+        <div class="col-md-4 ">
+          <button class="btn btn-lg btn-block btn-success" name="submit" onclick="submitClick()" hidden>
+            Confirm visitor
+          </button>
+        </div>
+      {% endif %}
+    </div>
   </div>
+
 {% endblock %}
 
 {% block scripts %}
+    <script src= {% static 'js/typeahead.bundle.js' %}></script>
+  <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
   <script>
     $(document).ready(function () {
+        bind_typeahead('#search_id', go, true);
+        $('.typeahead').typeahead('val', '');
         timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
     });
+    function go(person) {
+        // called when typeahead is completed
+        $('#person_id').val(person.id);
+        $('#fullname').text(person.value);
+    }
     function existing() {
         $('#id_existing').addClass('btn-success').removeClass('btn-default');
         $('#id_new').addClass('btn-default').removeClass('btn-success');
@@ -83,11 +133,13 @@
     function newVisitor() {
         $('#id_new').addClass('btn-success').removeClass('btn-default');
         $('#id_existing').addClass('btn-default').removeClass('btn-success');
+        $('#name_group').show();
         $('#first_name').focus();
         $('#select_group').hide();
-        $('#name_group').show();
+        //$('#id-visitors').options[1].setAttribute('selected','selected');
         $('#confirm').show();
     }
+
     function selection() {
         var sel = $('select[name=visitors]').val();
         if (sel === "0"){
@@ -100,6 +152,9 @@
         $('#first_name').removeAttr('required');
         $('#last_name').removeAttr('required');
         $('#form').submit();
+    }
+    function adminClick() {
+        $('#admin').toggle()
     }
   </script>
 {% endblock %}

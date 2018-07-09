@@ -35,6 +35,7 @@
       {% else %}
           <input type="submit" name="forward" value="{{ forward }}" class="btn btn-default"/>
       {% endif %}
+      <a href="{% url 'visitor-fees-list' %}" class="btn btn-default pull-right">Visitors fees</a>
       <input type="hidden" name="year" value="{{ year }}"/>
   </form>
 {% endblock %}
