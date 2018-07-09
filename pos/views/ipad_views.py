@@ -102,9 +102,16 @@ class StartView(LoginRequiredMixin, TemplateView):
         return redirect('pos_start')
 
 
-class SelectAppView(StartView):
+class SelectAppView(LoginRequiredMixin, TemplateView):
     """ Choose Cafe or Vistors book """
     template_name = 'pos/select_app.html'
+
+    def get(self, request, *args, **kwargs):
+        request.session['person_id'] = None
+        layout_id, request.session['terminal'] = read_cookie(request)
+        if layout_id:
+            return super().get(request, *args, **kwargs)
+        return redirect('pos_disabled')
 
     def post(self, request, *args, **kwargs):
         if 'layout' in request.POST:
@@ -120,7 +127,12 @@ class SelectAppView(StartView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['layout'] = self.request.session['layout']
         context['visitors'] = visitors_layout()
+        context['message'] = self.request.session.get('message', "")
+        self.request.session['message'] = ""
+        context['timeout'] = PING_TIMEOUT
+        context['ping_url'] = reverse('pos_ajax_ping')
         return context
 
 
