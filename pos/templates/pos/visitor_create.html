@@ -13,8 +13,8 @@
       <div class="col-md-2">
         <a href="{% url 'pos_visitors_person' person_id=person.id %}" class="btn btn-block btn-lg btn-success">Back</a>
       </div>
-      <div class="col-md-2"></div>
-      <div class="col-md-4">
+      <div class="col-md-1"></div>
+      <div class="col-md-6">
         <div class="panel pospanel" id="admin" hidden>
           <div class="panel-body">
             <div class="input-group input-group-lg">
@@ -29,7 +29,7 @@
           <div class="panel-body">
             <button class="btn btn-success" id="id_new" onclick="newVisitor()">&nbsp;&nbsp;</button>
             <span class="ipad-prompt" onclick="newVisitor()">&nbsp;&nbsp; Add a new visitor</span>
-            <br>
+            <p> </p>
             <button class="btn btn-default" id="id_existing" onclick="existing()">&nbsp;&nbsp;</button>
             <span class="ipad-prompt" onclick="existing()">&nbsp;&nbsp; Add an existing visitor</span>
           </div>

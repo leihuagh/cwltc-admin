@@ -49,7 +49,7 @@ class LineItemTable(tables.Table):
 class ItemTable(tables.Table):
 
     class Meta:
-        model = LineItem
+        model = Item
         fields = ('id', 'button_text', 'description', 'sale_price', 'cost_price', 'margin', 'item_type', 'colour')
         attrs = {'class': 'table'}
 
