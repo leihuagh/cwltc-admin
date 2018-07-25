@@ -52,7 +52,7 @@ LOGGING = {
     'loggers': {
         # stop sentry logging disallowed host
         'django.security.DisallowedHost': {
-            'handlers': ['null'],
+            'handlers': ['console'],
             'propagate': False,
         },
         'django.request': {  # debug logging of things that break requests
