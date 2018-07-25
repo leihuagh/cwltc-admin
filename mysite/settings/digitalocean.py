@@ -50,6 +50,11 @@ LOGGING = {
         'level': 'WARNING',
         },
     'loggers': {
+        # stop sentry logging disallowed host
+        'django.security.DisallowedHost': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
         'django.request': {  # debug logging of things that break requests
             'handlers': ['sentry'],
             'level': 'WARNING',

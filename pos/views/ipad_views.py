@@ -4,7 +4,8 @@ from datetime import datetime
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.views.generic import TemplateView, FormView
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.hashers import check_password
 from django.shortcuts import redirect
@@ -15,12 +16,12 @@ from public.views import RegisterView, RegisterTokenView, ConsentTokenView
 from mysite.common import Button
 from members.models import VisitorFees, Settings
 from pos.tables import *
-from pos.forms import TerminalForm, VisitorForm
-from pos.services import create_transaction_from_receipt, build_pos_array
+from pos.forms import TerminalForm, VisitorForm, DobForm
+from pos.services import create_transaction_from_receipt, build_pos_array, PosServicesError
 
 LONG_TIMEOUT = 120000
 SHORT_TIMEOUT = 30000
-PING_TIMEOUT = 60000
+PING_TIMEOUT = 6000
 
 stdlogger = logging.getLogger(__name__)
 
@@ -32,15 +33,17 @@ class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
 
     def get_initial(self):
         initial = super().get_initial()
-        layout, terminal = read_cookie(self.request)
-        initial.update({'layout': layout,
+        system, terminal = read_cookie(self.request)
+        # code for smooth migration of cookie data from layout id to string
+        if system and is_integer_string(system):
+            system = 'bar'
+        initial.update({'system': system,
                         'terminal': terminal})
         return initial
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = "Start POS on this screen"
-        context['layouts'] = Layout.objects.all()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -50,17 +53,10 @@ class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
             return response
         if 'start' in request.POST:
             terminal = request.POST['terminal']
-            layout_id = request.POST['layout']
-            layout = Layout.objects.get(pk=layout_id)
-            if layout.item_type_id == ItemType.BAR:
-                start_screen = 'pos_start'
-            else:
-                start_screen = 'pos_select_app'
-            request.session['start_screen'] = start_screen
-            response = HttpResponseRedirect(reverse(start_screen))
+            system = request.POST['system']
+            response = HttpResponseRedirect(reverse('pos_start'))
             max_age = 10 * 365 * 24 * 60 * 60
-            response.set_cookie('pos', layout_id + ';' + terminal, max_age=max_age)
-            request.session['layout'] = layout
+            response.set_cookie('pos', system + ';' + terminal, max_age=max_age)
             return response
         return redirect('pos_admin')
 
@@ -72,95 +68,47 @@ class DisabledView(LoginRequiredMixin, TemplateView):
 class StartView(LoginRequiredMixin, TemplateView):
     """ Member login or attended mode selection """
     template_name = 'pos/start.html'
+    system = ''
 
     def get(self, request, *args, **kwargs):
         request.session['person_id'] = None
-        layout_id, request.session['terminal'] = read_cookie(request)
-        if layout_id:
-            request.session['layout'] = Layout.objects.get(id=layout_id)
-            if request.session['layout'].item_type.id != ItemType.BAR:
-                return redirect('pos_select_app')
+        request.session['app'] = None
+        request.session['attended'] = False
+        self.system, request.session['terminal'] = read_cookie(request)
+        if self.system:
             return super().get(request, *args, **kwargs)
         return redirect('pos_disabled')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['layout'] = self.request.session['layout']
-        context['message'] = self.request.session.get('message', "")
-        self.request.session['message'] = ""
-        context['timeout'] = PING_TIMEOUT
-        context['ping_url'] = reverse('pos_ajax_ping')
-        return context
-
     def post(self, request, *args, **kwargs):
-        if 'login' in request.POST:
-            request.session['attended'] = False
-            return redirect('pos_user')
-        elif 'attended' in request.POST:
-            request.session['attended'] = True
-            return redirect('pos_run')
+        if 'attended' in request.POST:
+            #
+            apps = PosApp.objects.filter(main_system=False, enabled=True,
+                                         layout__item_type=ItemType.BAR)
+            if len(apps) > 0:
+                request.session['app'] = apps[0]
+                request.session['attended'] = True
+                return redirect('pos_run')
+            return redirect('pos_start')
+
+        for key, value in request.POST.items():
+            if key[0:4] == 'App_':
+                app = PosApp.objects.get(id=key[4:])
+                request.session['app'] = app
+                return redirect('pos_user')
         return redirect('pos_start')
 
-
-class SelectAppView(LoginRequiredMixin, TemplateView):
-    """ Choose Cafe or Vistors book """
-    template_name = 'pos/select_app.html'
-
-    def get(self, request, *args, **kwargs):
-        request.session['person_id'] = None
-        layout_id, request.session['terminal'] = read_cookie(request)
-        if layout_id:
-            return super().get(request, *args, **kwargs)
-        return redirect('pos_disabled')
-
-    def post(self, request, *args, **kwargs):
-        if 'layout' in request.POST:
-            return redirect('pos_user')
-        elif 'visitors' in request.POST:
-            visitors = visitors_layout()
-            request.session['layout'] = visitors
-            return redirect('pos_visitors_all')
-        elif 'lookup' in request.POST:
-            return redirect('pos_lookup_member')
-
-        return redirect('pos_select_app')
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['layout'] = self.request.session['layout']
-        context['visitors'] = visitors_layout()
+        apps = PosApp.objects.filter(main_system=self.system == 'main', enabled=True).order_by('index')
+        context['apps'] = apps
+        if len(apps) == 1 and apps[0].is_bar_app():
+            context['is_bar'] = True
+            context['attended'] = apps[0].attended
         context['message'] = self.request.session.get('message', "")
         self.request.session['message'] = ""
         context['timeout'] = PING_TIMEOUT
         context['ping_url'] = reverse('pos_ajax_ping')
         return context
-
-
-def visitors_layout():
-    visitors = Layout.objects.filter(name="Visitors")
-    if visitors:
-        return visitors[0]
-    return None
-
-
-def read_cookie(request):
-    if 'pos' in request.COOKIES:
-        values = request.COOKIES['pos'].split(';')
-        return values[0], values[1]
-    else:
-        return None, None
-
-
-def restart_url(request):
-    if request.session['layout'].item_type.id == ItemType.BAR:
-        return 'pos_start'
-    return 'pos_select_app'
-
-
-def menu_url(request):
-    if request.session['layout'].item_type.id == ItemType.VISITORS:
-        return 'pos_visitors_all'
-    return 'pos_menu'
 
 
 class MemberSelectView(LoginRequiredMixin, TemplateView):
@@ -169,9 +117,8 @@ class MemberSelectView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
-        return context
+        context['filter'] = 'members'
+        return add_context(context, self.request)
 
     def post(self, request, *args, **kwargs):
         return redirect('pos_transactions_person', person_id=request.POST['person_id'])
@@ -188,17 +135,24 @@ class GetUserView(LoginRequiredMixin, TemplateView):
                 person = Person.objects.get(pk=request.POST['person_id'])
                 if person.auth_id:
                     return redirect('pos_password')
+                else:
+                    if person.dob:
+                        age = person.age_for_membership()
+                        if age <= 10:
+                            return redirect('pos_start')
+                        if age > 13:
+                            return redirect('pos_register')
+                        return redirect('pos_dob')
                 return redirect('pos_register')
             else:
                 # Complimentary sale, id = -1
                 return redirect('pos_password')
-        return redirect(restart_url(request))
+        return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
-        return context
+        context['filter'] = 'members' if self.request.session['app'].allow_juniors else 'adults'
+        return add_context(context, self.request)
 
 
 class GetPasswordView(LoginRequiredMixin, TemplateView):
@@ -214,7 +168,7 @@ class GetPasswordView(LoginRequiredMixin, TemplateView):
                     try:
                         person = Person.objects.get(pk=request.session['person_id'])
                     except Person.DoesNotExist:
-                        return redirect(restart_url(request))
+                        return redirect('pos_start')
 
                     authorised = False
                     pin = request.POST['pin']
@@ -226,28 +180,48 @@ class GetPasswordView(LoginRequiredMixin, TemplateView):
                         if password and user.check_password(password):
                             authorised = True
                     if authorised:
-                        if request.session['layout'].item_type.id == ItemType.VISITORS:
-                            return redirect('pos_visitors_person', person_id=person.id)
-                        return redirect(menu_url(request))
+                        app = request.session.get('app', None)
+                        if app:
+                            try:
+                                url = reverse(app.view_name)
+                                return redirect(url)
+                            except NoReverseMatch:
+                                request.session['message'] = f'Bad view name for app {app}'
+                                return redirect('pos_start')
+
+                        # if request.session['layout'].item_type.id == ItemType.VISITORS:
+                        #     return redirect('pos_visitors_person', person_id=person.id)
+                        # return redirect(menu_url(request))
                     request.session['message'] = "Incorrect PIN or password"
 
-                else:  # Complimentary
+                else:  # Complimentary Bar sale
                     if request.POST['pin'] == str(datetime.now().year):
                         return redirect('pos_run')
-        return redirect(restart_url(request))
+        return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
-        context = super(GetPasswordView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
+        return add_context(context, self.request)
+
+
+class GetDobView(LoginRequiredMixin, FormView):
+    """ Validate junior by checking the date of birth """
+
+    template_name = 'pos/dob.html'
+    form_class = DobForm
+
+    def form_valid(self, form):
+        dob = form.cleaned_data['dob']
         id = self.request.session.get('person_id', None)
-        if id:
-            person = Person.objects.get(pk=id)
-            context['person_id'] = int(id)
-            context['full_name'] = person.fullname
-        else:
-            context['full_name'] = 'Complimentary'
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
-        return context
+        person = Person.objects.get(pk=id)
+        if person.dob == dob:
+            return redirect(reverse('pos_visitors_person', kwargs={'person_id': id}))
+        self.request.session['message'] = "Incorrect date of birth"
+        return redirect('pos_start')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return add_context(context, self.request)
 
 
 class PosRegisterView(LoginRequiredMixin, RegisterView):
@@ -271,16 +245,13 @@ class PosRegisterView(LoginRequiredMixin, RegisterView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['person'] = self.person
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
         context['buttons'] = [Button('Back', 'back', css_class='btn-success btn-lg'),
                               Button('Next', 'register', css_class='btn-success btn-lg')]
-        return context
+        return add_context(context, self.request)
 
     def post(self, request, *args, **kwargs):
         if 'back' in request.POST:
-            return redirect(restart_url(request))
+            return redirect('pos_start')
         if self.re_register:
             person = Person.objects.get(pk=self.request.session['person_id'])
             person.unregister()
@@ -301,9 +272,7 @@ class PosRegisterTokenView(LoginRequiredMixin, RegisterTokenView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
-        return context
+        return add_context(context, self.request)
 
     def get_success_url_name(self, **kwargs):
         return 'pos_consent_token'
@@ -318,39 +287,29 @@ class PosConsentView(LoginRequiredMixin, ConsentTokenView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['pos'] = True
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
-        return context
+        return add_context(context, self.request)
 
     def get_success_url(self):
         return reverse(menu_url(self.request))
 
 
 class MemberMenuView(LoginRequiredMixin, TemplateView):
-    """ Menu of options for members """
+    """ Menu of options for members
+    This has a shorter timeout, defined in the url """
     template_name = 'pos/menu.html'
     timeout = LONG_TIMEOUT
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        id = self.request.session.get('person_id', None)
-        if id:
-            person = Person.objects.get(pk=id)
-            context['person_id'] = int(id)
-            context['fullname'] = person.fullname
-            context['admin'] = person.auth.is_staff or person.auth.groups.filter(name='Pos').exists()
-        else:
-            context['person_id'] = -1
-            context['fullname'] = 'Complimentary'
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = self.timeout
-        return context
+        return add_context(context, self.request, self.timeout)
 
     def post(self, request, *args, **kwargs):
         if 'attended_on' in request.POST:
-            request.session['attended_allowed'] = True
+            request.session['app'].attended = True
+            request.session['app'].save()
         elif 'attended_off' in request.POST:
-            request.session['attended_allowed'] = False
+            request.session['app'].attended = False
+            request.session['app'].save()
         return redirect('pos_menu')
 
 
@@ -360,29 +319,18 @@ class PosView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(PosView, self).get_context_data(**kwargs)
-        layout = self.request.session['layout']
+        layout = self.request.session['app'].layout
         context['rows'], used_items = build_pos_array(layout)
         context['items_url'] = reverse('pos_ajax_items')
         context['post_url'] = reverse('pos_run')
         context['exit_url'] = reverse('pos_start' if self.request.session['attended'] else 'pos_menu')
         context['terminal'] = self.request.session['terminal']
-        context['complimentary'] = False
-        if self.request.session['attended']:
-            context['is_attended'] = 'true'
+        context = add_context(context, self.request)
+        if self.request.session['app'].attended:
+            context['is_attended'] = 'true' # javascript true
             context['full_name'] = 'Attended mode'
         else:
             context['is_attended'] = 'false'
-            id = int(self.request.session['person_id'])
-            context['person_id'] = id
-            if id > 0:
-                person = Person.objects.get(pk=id)
-                context['full_name'] = person.fullname
-            else:
-                context['complimentary'] = True
-                context['full_name'] = 'Complimentary'
-
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
         return context
 
     def post(self, request, *args, **kwargs):
@@ -391,49 +339,58 @@ class PosView(LoginRequiredMixin, TemplateView):
         if request.is_ajax():
             receipt = json.loads(request.body)
             pay_record = receipt.pop()
-            layout_id, terminal = read_cookie(request)
-            trans = create_transaction_from_receipt(request.user.id,
-                                                    terminal,
-                                                    layout_id,
-                                                    receipt,
-                                                    pay_record['total'],
-                                                    pay_record['people'],
-                                                    request.session['attended']
-                                                    )
-            request.session['last_person'] = trans[0]
-            request.session['last_total'] = trans[1]
+            system, terminal = read_cookie(request)
+            layout_id = request.session['app'].layout_id
+            try:
+                trans = create_transaction_from_receipt(request.user.id,
+                                                        terminal,
+                                                        layout_id,
+                                                        receipt,
+                                                        pay_record['total'],
+                                                        pay_record['people'],
+                                                        request.session['attended']
+                                                        )
+                request.session['last_person'] = trans[0]
+                request.session['last_total'] = trans[1]
+            except PosServicesError:
+                return HttpResponse(reverse('Error'))
             if self.request.session['attended']:
-                return HttpResponse(reverse(restart_url(request)))
+                return HttpResponse(reverse('pos_start'))
             else:
                 return HttpResponse(reverse('pos_menu_timeout'))
         # should not get here - all posts are ajax
-        return redirect(restart_url(request))
+        return redirect('pos_start')
 
 
 class VisitorBookView(LoginRequiredMixin, SingleTableView):
-    """ List visitors book"""
+    """
+    List visitors book
+    This can be for all entries or for a specific person (not necessary the one logged in)
+    """
     model = VisitorBook
     table_class = VisitorBookTable
     template_name = 'pos/visitor_book.html'
     table_pagination = {'per_page': 10}
+    id = None
+    all_entries = False
 
     def get_table_data(self):
         self.id = self.kwargs.get('person_id', None)
         if self.id:
             qs = VisitorBook.objects.filter(member_id=self.id)
-        elif self.request.session.get('person_id', None):
-            qs = VisitorBook.objects.filter(member_id=self.request.session['person_id'])
         else:
             qs = VisitorBook.objects.all()
         return list(qs.order_by('-date', '-id').select_related('visitor').select_related('member__membership'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['all_entries'] = self.all_entries
         if self.id:
-            context['person'] = Person.objects.get(pk=self.id)
-        context['timeout_url'] = reverse(restart_url(self.request))
+            person = Person.objects.get(pk=self.id)
+            context['person'] = person
+        context['timeout_url'] = reverse('pos_start')
         context['timeout'] = LONG_TIMEOUT
-        return context
+        return add_context(context, self.request)
 
 
 class VisitorMenuView(LoginRequiredMixin, TemplateView):
@@ -442,10 +399,7 @@ class VisitorMenuView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['person'] = Person.objects.get(pk=self.request.session['person_id'])
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
-        return context
+        return add_context(context, self.request)
 
 
 class VisitorCreateView(LoginRequiredMixin, FormView):
@@ -470,13 +424,8 @@ class VisitorCreateView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['has_existing'] = len(context['form'].fields['visitors'].choices) > 1
-        context['person'] = self.person
-        context['admin'] = self.admin
-        # context['visitors'] = VisitorBook.objects.filter(member_id=person.id, visitor__junior=self.junior)
         context['junior'] = self.junior
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
-        return context
+        return add_context(context, self.request)
 
     def form_invalid(self, form):
         return super().form_invalid(form)
@@ -514,25 +463,9 @@ class VisitorCreateView(LoginRequiredMixin, FormView):
 class LookupMemberView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/lookup_member.html'
 
-    # def post(self, request, *args, **kwargs):
-    #     if request.POST['person_id']:
-    #         request.session['person_id'] = request.POST['person_id']
-    #         if int(request.POST['person_id']) > 0:
-    #             person = Person.objects.get(pk=request.POST['person_id'])
-    #             if person.auth_id:
-    #                 return redirect('pos_password')
-    #             return redirect('pos_register')
-    #         else:
-    #             # Complimentary sale, id = -1
-    #             return redirect('pos_password')
-    #     return redirect(restart_url(request))
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['timeout_url'] = reverse(restart_url(self.request))
-        context['timeout'] = LONG_TIMEOUT
-        return context
-
+        return add_context(context, self.request)
 
 
 def ajax_items_view(request):
@@ -543,14 +476,52 @@ def ajax_items_view(request):
 
 def ajax_ping_view(request):
     """ responds to keep alive from pos"""
-    terminal = request.POST['terminal']
-    records = PosPing.objects.filter(terminal=terminal)
-    if records:
-        records[0].time = timezone.now()
-        records[0].save()
-    else:
-        record = PosPing.objects.create(terminal=terminal, time=timezone.now())
-    return HttpResponse('OK')
+    terminal = request.POST.get('terminal', None)
+    if terminal:
+        records = PosPing.objects.filter(terminal=terminal)
+        if records:
+            records[0].time = timezone.now()
+            records[0].save()
+        else:
+            record = PosPing.objects.create(terminal=terminal, time=timezone.now())
+        return HttpResponse('OK')
+    return HttpResponse('Bad terminal')
 
-def ajax_member_lookup(request):
-    id = request.POST['id']
+
+def read_cookie(request):
+    if 'pos' in request.COOKIES:
+        values = request.COOKIES['pos'].split(';')
+        return values[0], values[1]
+    else:
+        return None, None
+
+
+def menu_url(request):
+    if request.session['app'].is_visitors_app():
+        return 'pos_visitors_all'
+    return 'pos_menu'
+
+
+def add_context(context, request, timeout=LONG_TIMEOUT):
+    id = request.session.get('person_id', None)
+    if id and int(id) != -1:
+        person = Person.objects.get(pk=id)
+        context['person_id'] = int(id)
+        context['person'] = person
+        context['full_name'] = person.fullname
+        if person.auth:
+            context['admin'] = person.auth.is_staff or person.auth.groups.filter(name='Pos').exists()
+    else:
+        context['person_id'] = -1
+        context['full_name'] = 'Complimentary'
+    context['timeout_url'] = reverse('pos_start')
+    context['timeout'] = timeout
+    return context
+
+
+def is_integer_string(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False

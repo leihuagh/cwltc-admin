@@ -309,6 +309,14 @@ span {
   padding:2px;
 }
 
+.btn-round {
+  border-radius: 50%;
+}
+
+.invalid-feedback {
+  color: red;
+}
+
 p.invalid-feedback {
   color: red;
 }

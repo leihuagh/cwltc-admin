@@ -1,4 +1,4 @@
-function bind_typeahead(typeahead_id, setPerson, adult) {
+function bind_typeahead(typeahead_id, setPerson, filter) {
 
     // var people = new Bloodhound({
     //     datumTokenizer: Bloodhound.tokenizers.whitespace,
@@ -11,9 +11,12 @@ function bind_typeahead(typeahead_id, setPerson, adult) {
 
     var lastItem;
     var qualifier = '';
-    if (adult){
+    if (filter==='adults') {
         qualifier = '&adult=true';
+    }else if (filter==='members') {
+        qualifier = '&members=true';
     }
+
 
     // Initializing the typeahead with remote dataset
     $(typeahead_id).typeahead({

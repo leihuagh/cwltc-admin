@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% block content %}
+<div class="container">
+  <h2>POS Applications</h2>
+  {% render_table table %}
+  <a href="{% url 'pos_app_create' %}" class="btn btn-primary">New app</a>
+  <a href="{% url 'pos_admin' %}" class="btn btn-primary">POS Admin menu</a>
+</div>
+{% endblock %}

@@ -97,6 +97,7 @@ class ColourTable(tables.Table):
 
 
 class VisitorBookTable(tables.Table):
+
     class Meta:
         model = VisitorBook
         fields = ('date', 'member.fullname', 'visitor', 'fee')
@@ -113,3 +114,11 @@ class VisitorBookTable(tables.Table):
             return 'Junior'
         return 'Adult'
 
+
+class PosAppTable(tables.Table):
+
+    class Meta:
+        model = PosApp
+        fields = ['id', 'name', 'description', 'layout', 'view_name', 'bar_system', 'main_system', 'enabled', 'index']
+
+    id = tables.LinkColumn('pos_app_update', verbose_name='', text='Edit', args=[A('pk')], orderable=True)

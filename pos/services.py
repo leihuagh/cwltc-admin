@@ -12,66 +12,84 @@ from members.models import InvoiceItem, ItemType
 stdlogger = logging.getLogger(__name__)
 
 
+class Error(Exception):
+    """
+    Base class for exceptions in this module
+    """
+    pass
+
+
+class PosServicesError(Error):
+    """
+    Error while processing payment
+    """
+    def __init__(self, message):
+        self.message = message
+
+
 @transaction.atomic
 def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, total, people, attended):
     """
     Create Transaction, LineItem and PosPayment records in the database
     Return a description of it
     """
-    complimentary = False
-    count = len(people)
-    dec_total = (Decimal(total)/100).quantize(TWO_PLACES)
-    item_type = Layout.objects.get(pk=layout_id).item_type
-    if count > 0:
-        person_id = int(people[0]['id'])
-        if person_id == -1:
-            complimentary = True
+    try:
+        complimentary = False
+        count = len(people)
+        dec_total = (Decimal(total)/100).quantize(TWO_PLACES)
+        item_type = Layout.objects.get(pk=layout_id).item_type
+        if count > 0:
+            person_id = int(people[0]['id'])
+            if person_id == -1:
+                complimentary = True
+                person_id = None
+        else:
             person_id = None
-    else:
-        person_id = None
-    trans = Transaction(
-        creator_id=creator_id,
-        person_id=person_id,
-        terminal=terminal,
-        item_type=item_type,
-        total=dec_total,
-        billed=False,
-        cash=person_id == None and not complimentary,
-        complimentary=complimentary,
-        split=count > 1,
-        attended=attended
-        )
-    trans.save()
-
-    for item_dict in receipt:
-        line_item = LineItem(
-            item_id=item_dict['id'],
-            sale_price=Decimal(item_dict['sale_price']).quantize(TWO_PLACES),
-            cost_price=Decimal(item_dict['cost_price']).quantize(TWO_PLACES),
-            quantity=1,
-            transaction=trans
-            )
-        line_item.save()
-
-    if complimentary:
-        return ('Complimentary', dec_total)
-
-    pay_total = Decimal(0)
-    for person in people:
-        pos_payment = PosPayment(
-            transaction=trans,
-            person_id=person['id'],
+        trans = Transaction(
+            creator_id=creator_id,
+            person_id=person_id,
+            terminal=terminal,
+            item_type=item_type,
+            total=dec_total,
             billed=False,
-            amount=(Decimal(person['amount'])/100).quantize(TWO_PLACES)
-        )
-        pay_total += pos_payment.amount
-        pos_payment.save()
-    if pay_total !=  dec_total:
-        stdlogger.error(f'ERROR: POS Transaction total: {dec_total} unequal to Payment total: {pay_total} Id: {trans.id}')
-    if people:
-        return (people[0]['name'], dec_total)
-    else:
-        return ('Cash', dec_total)
+            cash=person_id == None and not complimentary,
+            complimentary=complimentary,
+            split=count > 1,
+            attended=attended
+            )
+        trans.save()
+
+        for item_dict in receipt:
+            line_item = LineItem(
+                item_id=item_dict['id'],
+                sale_price=Decimal(item_dict['sale_price']).quantize(TWO_PLACES),
+                cost_price=Decimal(item_dict['cost_price']).quantize(TWO_PLACES),
+                quantity=1,
+                transaction=trans
+                )
+            line_item.save()
+
+        if complimentary:
+            return ('Complimentary', dec_total)
+
+        pay_total = Decimal(0)
+        for person in people:
+            pos_payment = PosPayment(
+                transaction=trans,
+                person_id=person['id'],
+                billed=False,
+                total=(Decimal(person['amount'])/100).quantize(TWO_PLACES)
+            )
+            pay_total += pos_payment.total
+            pos_payment.save()
+        if pay_total !=  dec_total:
+            stdlogger.error(f'ERROR: POS Transaction total: {dec_total} unequal to Payment total: {pay_total} Id: {trans.id}')
+        if people:
+            return (people[0]['name'], dec_total)
+        else:
+            return ('Cash', dec_total)
+    except:
+        raise PosServicesError('Error creating transaction')
 
 
 def create_all_invoiceitems_from_payments(person=None):
@@ -101,9 +119,9 @@ def create_invoiceitems_from_payments(item_type_id, person=None):
             count += 1
             if record.person_id != last_id:
                 last_id = record.person_id
-                dict[record.person_id] = Decimal(record.amount)
+                dict[record.person_id] = Decimal(record.total)
             else:
-                dict[record.person_id] += record.amount
+                dict[record.person_id] += record.total
 
     description = ItemType.objects.get(pk=item_type_id)
     with transaction.atomic():

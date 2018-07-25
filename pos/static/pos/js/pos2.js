@@ -29,6 +29,8 @@ var posCode = (function () {
     var personName;
     var personList;
 
+    var timer;
+
     /* Public methods*/
     pos.init = function (items_url, post_url, exit_url, is_attended, person_id, person_name, csrf_token, timing) {
         itemsUrl = items_url;
@@ -37,6 +39,7 @@ var posCode = (function () {
         isAttended = is_attended;
         personId = person_id;
         personName = person_name;
+        timer = timing;
         payClass.hide();
         exitClass.hide();
         $.ajaxSetup({
@@ -253,6 +256,7 @@ var posCode = (function () {
     function sendTransaction(payType) {
         // post the transaction to the server
         // the response is the next screen to show
+        timer.stopTimer();
         var payObj = {'pay_type': payType, 'people': personList, 'total': total};
         receipt.push(payObj);
         var data = JSON.stringify(receipt);
@@ -263,6 +267,8 @@ var posCode = (function () {
         $('#save_error').text(' ');
         $('#save-footer').hide();
         $('#save_modal').modal('show');
+        var fatal = false;
+        var message = '';
         $.ajax({
             type: "POST",
             url: postUrl,
@@ -274,6 +280,11 @@ var posCode = (function () {
             success: function (target) {
                 if (target.includes('<')) {
                     console.log('bad url received');
+                }else if (target === 'Error'){
+                    $('#save_message').text('Sorry, the server could not save the transaction.');
+                    $('#save_error').text('Please try to pay again or record it on paper.');
+                    $('#save-footer').show();
+                    receipt.pop(payObj);
                 }else{
                     window.location.replace(target);
                 }
@@ -286,13 +297,20 @@ var posCode = (function () {
                         $.ajax(this);
                         return;
                     }
-                    $('#save_message').text('Sorry, the transaction could not be saved.');
-                    $('#save_error').text('Please record it on paper');
-                    $('#save-footer').show();
-                    return;
+                    fatal = true;
+                    message = 'Timeout';
                 }
                 if (xhr.status === 500) {
+                    fatal = true;
+                    message = 'Server error';
+                }
+                if (fatal) {
                     console.log('Bad server response');
+                    $('#save_message').text(message + ' Sorry, the transaction could not be saved.');
+                    $('#save_error').text('Please try to pay again or record it on paper.');
+                    $('#save-footer').show();
+                    receipt.pop(payObj);
+                    timer.startTimer(60000, exitUrl);
                 }
             }
         });

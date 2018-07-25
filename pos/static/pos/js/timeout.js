@@ -80,7 +80,7 @@ var timingCode = (function () {
                 $('#idOfflineMessage').hide();
                 $('#idOnlineMessage').show();
                 $('#idOnline').text('Online');
-                $('.posbutton').show();
+                // $('.posbutton').show();
                 if (data === 'OK') {
                     timing.startPing();
                 }else{
@@ -89,8 +89,9 @@ var timingCode = (function () {
             },
             error: function (data, status, xhr) {
                 $('#idOfflineMessage').show().text('Sorry, the server is temporarily available. Please try later');
+                $('#idOnlineMessage').hide();
                 $('#idOnline').text('OffLine');
-                $('.posbutton').hide();
+                // $('.posbutton').hide();
                 timing.startPing();
             }
         });

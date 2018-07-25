@@ -1,19 +1,43 @@
 {% load widget_tweaks %}
-{% if person %}
-  <h3>{{ heading }} for {{ person.first_name }} {{ person.last_name }}</h3>
-{% else %}
-  <h2>All POS transactions</h2>
-{% endif %}
-{% load render_table from django_tables2 %}
-<form class="form-inline">
-{#<div class="well" style="padding:10px">#}
-{#  {{ filter.form.trans_type.label_tag }}#}
-{#  {% render_field filter.form.trans_type class="form-control " %}#}
-{##}
-{#  <button type="submit" class="btn btn-primary offset">Go</button>#}
-{#</div> #}
+<form method="post" id="id_form">{% csrf_token %}
+  <div class="row">
+    <div class="col-md-6">
+      {% if person %}
+        <h3>{{ heading }} for {{ person.first_name }} {{ person.last_name }}</h3>
+      {% else %}
+        <h2>POS transactions</h2>
+      {% endif %}
+    </div>
+    <div class="col-md-2">
+      <button id="bar" class="btn btn-round {% if bar %}btn-success{% else %}btn-default{% endif %} }}" onclick="send('bar')">&nbsp;&nbsp;</button>
+      <span class="ipad-prompt" onclick="send('bar')">&nbsp; Bar</span>
+    </div>
+    <div class="col-md-2">
+      <button id="teas" class="btn btn-round {% if teas %}btn-success{% else %}btn-default{% endif %}" onclick="send('teas')">&nbsp;&nbsp;</button>
+      <span class="ipad-prompt" onclick="send('teas')">&nbsp; Teas</span>
+    </div>
+    <div class="col-md-2">
+      <button id="all" class="btn btn-round {% if all %}btn-success{% else %}btn-default{% endif %}" onclick="send('all')">&nbsp;&nbsp;</button>
+      <span class="ipad-prompt" onclick="send('all')">&nbsp; All</span>
+    </div>
+    <input type="hidden" id="option" name="option" value="">
+  </div>
 </form>
-<div class="panel panel-primary">
+<script>
+    function send(text) {
+        $('#option').val(text);
+        $('#id_form').submit();
+        $('#bar').removeClass('btn-success').addClass('btn-default');
+        $('#teas').removeClass('btn-success').addClass('btn-default');
+        $('#all').removeClass('btn-success').addClass('btn-default');
+        $('#'+text).addClass('btn-success');
+        $('.panel').hide();
+    }
+</script>
+
+{% load render_table from django_tables2 %}
+
+<div class="panel panel-primary" >
   <div class="panel-body" style="max-height: 80%; overflow-y: scroll;">
     {% render_table table 'django_tables2/table.html'%}
   </div>

@@ -53,10 +53,7 @@ class Layout(models.Model):
     name = models.CharField(max_length=25, blank=True)
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
     title = models.CharField(max_length=80)
-    sub_title = models.CharField(max_length=256, blank=True)
-    line_2 = models.CharField(max_length=256, blank=True)
-    line_3 = models.CharField(max_length=256, blank=True)
-    button_text = models.CharField(max_length=30, null=False, blank=False)
+
 
     def __str__(self):
         return self.name
@@ -116,13 +113,41 @@ class PosPayment(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, blank=True, null=True)
     person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     billed = models.BooleanField()
-    amount = models.DecimalField(max_digits=5, decimal_places=2, null=False)
+    total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
 
     def __str__(self):
         return "{} {} {} {}".format(str(self.id),
                                     str(self.person.fullname),
-                                    str(self.amount),
+                                    str(self.total),
                                     str(self.billed))
+
+
+class PosApp(models.Model):
+    name = models.CharField(max_length=25, blank=False)
+    description= models.CharField(max_length=80)
+    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, blank=True, null=True)
+    bar_system = models.BooleanField(default=False)
+    main_system = models.BooleanField(default=True)
+    allow_juniors = models.BooleanField(default=False)
+    index = models.SmallIntegerField()
+    enabled = models.BooleanField(default=True)
+    view_name = models.CharField(max_length=25, blank=False)
+    attended = models.BooleanField(default=False)
+
+    def is_bar_app(self):
+        if self.layout:
+            return self.layout.item_type.id == ItemType.BAR
+        return False
+
+    def is_visitors_app(self):
+        if self.layout:
+            return self.layout.item_type.id == ItemType.VISITORS
+        return False
+
+    def is_teas_app(self):
+        if self.layout:
+            return self.layout.item_type.id == ItemType.TEAS
+        return False
 
 
 class PosPing(models.Model):

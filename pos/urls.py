@@ -7,13 +7,13 @@ from pos.views.analysis_views import *
 urlpatterns = [
     url(r'^admin/$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
-    url(r'^select_app/$', SelectAppView.as_view(), name='pos_select_app'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
 
     url(r'lookup/member/$', LookupMemberView.as_view(), name='pos_lookup_member'),
     url(r'^user/$', GetUserView.as_view(), name='pos_user'),
     url(r'^password/$', GetPasswordView.as_view(), name='pos_password'),
+    url(r'^dob/$', GetDobView.as_view(), name='pos_dob'),
     url(r'^menu/$', MemberMenuView.as_view(), name='pos_menu'),
     url(r'^menu/timeout/$', MemberMenuView.as_view(timeout=10000), name='pos_menu_timeout'),
     url(r'^run/$', PosView.as_view(), name='pos_run'),
@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'^visitor/adult/$', VisitorCreateView.as_view(), name='pos_visitor_adult'),
     url(r'^visitor/junior/$', VisitorCreateView.as_view(junior=True), name='pos_visitor_junior'),
     url(r'^visitors/person/(?P<person_id>\d+)/$', VisitorBookView.as_view(), name='pos_visitors_person'),
-    url(r'^visitors/all/$', VisitorBookView.as_view(), name='pos_visitors_all'),
+    url(r'^visitors/all/$', VisitorBookView.as_view(all_entries=True), name='pos_visitors_all'),
 
     url(r'^register/$', PosRegisterView.as_view(), name='pos_register'),
     url(r'^register/again$', PosRegisterView.as_view(re_register=True), name='pos_register_again'),
@@ -60,4 +60,9 @@ urlpatterns = [
     url(r'^colour/list/$', ColourListView.as_view(), name='pos_colour_list'),
     url(r'^colour/(?P<pk>\d+)/$', ColourUpdateView.as_view(), name='pos_colour_update'),
     url(r'^colour/create/$', ColourCreateView.as_view(), name='pos_colour_create'),
+
+    url(r'^app/list/$', AppListView.as_view(), name='pos_app_list'),
+    url(r'^app/create/$', AppCreateView.as_view(), name='pos_app_create'),
+    url(r'^app/(?P<pk>\d+)/$', AppUpdateView.as_view(), name='pos_app_update'),
+
     ]

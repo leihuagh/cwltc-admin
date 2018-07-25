@@ -1,4 +1,4 @@
-﻿{% extends 'pos/base.html' %}
+{% extends 'pos/base.html' %}
 {% load staticfiles %}
 {% block content %}
   {%  include '_logo_banner.html' %}
@@ -13,11 +13,10 @@
           <div class="col-md-2">
             <a href="{{ timeout_url }}" class="btn btn-success btn-lg btn-block">Back</a>
           </div>
-          <h4 class="col-md-3 ipad-prompt"> PIN:</h4>
+          <h4 class="col-md-3 ipad-prompt">Date of Birth</h4>
           <div class="col-md-5">
             <div class="input-group input-group-lg">
-              <input type="password" class="form-control" name="pin" pattern="[0-9]*" value="" spellcheck="false"
-                     maxlength="8" autofocus>
+              <input type="text" class="form-control" name="dob" placeholder="DD/MM/YY" maxlength="10" autofocus>
             </div>
           </div>
           <div class="col-md-1"></div>
@@ -25,26 +24,10 @@
             <input type="submit" class="btb btn-success btn-lg btn-block stop-timer" name="submit" value="Go">
           </div>
         </div>
-        <br>
-        <div class="row">
-          <div class="col-md-2"></div>
-        <div class="col-md-3 ipad-prompt"> Or password:</div>
-        <div class="col-md-5">
-          <div class="input-group input-group-lg">
-            <input type="password" class="form-control" name="password" value="" spellcheck="false" maxlength="50">
-            </div>
-        </div>
-      </div>
       </form>
     <br>
       <div class="text-center hint">
-        Enter your PIN or the password you created when you registered.<br><br><br>
-        If you have forgotten your PIN or password click below.<br>
-        <div class="row">
-          <div class="col-md-3 col-md-offset-5">
-            <a href="{% url 'pos_register_again' %}" class="btn btn-lg btn-block btn-default stop-timer">Register again</a>
-          </div>
-        </div>
+        <p>Confirm your date of birth to add an entry to the visitor book</p>
       </div>
   </div>
 
@@ -56,5 +39,3 @@
     });
   </script>
 {% endblock %}
-
-

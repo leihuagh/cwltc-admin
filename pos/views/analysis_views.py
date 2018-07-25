@@ -4,9 +4,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
 from django.db.models import Sum
+from django.http import HttpResponseRedirect
 from braces.views import GroupRequiredMixin
 from pos.tables import *
-from pos.forms import ItemForm, LayoutForm, ColourForm
+from pos.forms import ItemForm, LayoutForm, ColourForm, AppForm
 from pos.filters import LineItemFilter
 from pos.views.ipad_views import build_pos_array
 from pos.services import dump_layout_to_excel
@@ -23,13 +24,14 @@ class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
             request.session['attended_allowed'] = False
         elif 'start' in request.POST:
             return redirect('pos_set_terminal')
-        elif 'default' in request.POST:
-            return redirect('pos_start_default')
-        elif 'layout' in request.POST:
-            layout = Layout.objects.filter(name=request.POST['layout'])[0]
-            request.session['layout_id'] = layout.id
-            return redirect('pos_start')
+        elif 'clear' in request.POST:
+            PosPing.objects.all().delete()
         return redirect('pos_admin')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pings'] = PosPing.objects.all()
+        return context
 
 
 class TransactionListView(LoginRequiredMixin, SingleTableView):
@@ -41,6 +43,7 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
     main_menu = False
     cash = False
     comp = False
+    filter = ''
 
     def get_table_data(self):
         person_id = self.kwargs.get('person_id', None)
@@ -52,30 +55,42 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
             self.qs = Transaction.objects.filter(complimentary=True, billed=False)
         else:
             self.qs = Transaction.objects.filter(billed=False)
+        self.filter = self.request.GET.get('filter', 'all')
+        if self.filter =='bar':
+            self.qs = self.qs.filter(item_type_id=ItemType.BAR)
+        elif self.filter == 'teas':
+            self.qs = self.qs.filter(item_type_id=ItemType.TEAS)
         return self.qs.order_by('-creation_date').select_related('person').select_related('item_type')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['main_menu'] = self.main_menu
         context['sum'] = self.qs.aggregate(sum=Sum('total'))['sum']
-        context['heading'] = 'Transactions'
+        context['heading'] = 'POS Transactions'
+        context['bar'] = self.filter == 'bar'
+        context['teas'] = self.filter == 'teas'
+        context['all'] = self.filter == 'all'
         person_id = self.kwargs.get('person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)
         self.request.session['last_path'] = self.request.path + '?' + self.request.GET.urlencode()
         return context
 
+    def post(self, request, **kwargs):
+        if 'option' in request.POST:
+            return HttpResponseRedirect(request.path + f"?filter={request.POST['option']}")
+        return HttpResponseRedirect(request.path)
 
-class PaymentListView(LoginRequiredMixin, SingleTableView):
+
+class PaymentListView(TransactionListView):
     """
-     This is used to show the transactions for a single user as it reflects what will be billed
-     whereas the TransactionListView shows the transaction total
-     """
+    This is used to show the payments for a single user as it reflects what will be billed
+    whereas the TransactionListView  (which it inherits) shows the transaction total
+    """
     model = PosPayment
     table_class = PosPaymentTable
     template_name = 'pos/transactions.html'
-    table_pagination = {'per_page': 10}
-    main_menu = False
+
 
     def get_table_data(self):
         person_id = self.kwargs.get('person_id', None)
@@ -83,16 +98,16 @@ class PaymentListView(LoginRequiredMixin, SingleTableView):
             self.qs = PosPayment.objects.filter(person_id=person_id, transaction__billed=False)
         else:
             self.qs = PosPayment.objects.all()
+        self.filter = self.request.GET.get('filter', 'all')
+        if self.filter =='bar':
+            self.qs = self.qs.filter(transaction__item_type_id=ItemType.BAR)
+        elif self.filter == 'teas':
+            self.qs = self.qs.filter(transaction__item_type_id=ItemType.TEAS)
         return self.qs.select_related('transaction').select_related('person', 'transaction__item_type').order_by('-transaction.creation_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['main_menu'] = self.main_menu
-        context['sum'] = self.qs.aggregate(sum=Sum('amount'))['sum']
-        context['heading'] = 'Account'
-        person_id = self.kwargs.get('person_id', None)
-        if person_id:
-            context['person'] = Person.objects.get(pk=person_id)
+        context['heading'] = 'POS Account'
         return context
 
 
@@ -226,6 +241,7 @@ class PriceListView(LoginRequiredMixin, GroupRequiredMixin, View):
     group_required = 'Pos'
 
     def get(self, request, *args, **kwargs):
+        # TODO Don't fix PK in PriceListView
        # layout = Layout.objects.filter(item_type_id=ItemType.BAR)[0]
         layout = Layout.objects.get(pk=3)
         return dump_layout_to_excel(layout)
@@ -388,3 +404,61 @@ class ColourListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
         if 'admin' in request.POST:
             return redirect('pos_admin')
         return redirect('pos_colour_list')
+
+
+class AppCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
+    """
+    Create new POS application
+    """
+    model = PosApp
+    form_class = AppForm
+    success_url = reverse_lazy('pos_app_list')
+    group_required = 'Pos'
+    template_name = 'pos/crispy_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['title'] = 'Create new POS application'
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+
+class AppUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
+    """
+    Update a POS application
+    """
+    model = PosApp
+    form_class = AppForm
+    success_url = reverse_lazy('pos_app_list')
+    group_required = 'Pos'
+    template_name = 'pos/crispy_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['title'] = 'Edit POS application'
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+
+class AppListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
+    """
+    List all POS applications
+    """
+    model = PosApp
+    table_class = PosAppTable
+    success_url = reverse_lazy('pos_app_list')
+    group_required = 'Pos'
+    template_name = 'pos/app_list.html'
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)

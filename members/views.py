@@ -421,6 +421,8 @@ def ajax_people(request):
     """
     Returns a list of people for autocomplete search field
     If id field is sent include the id after the name
+    if ?members=true only return paid members
+    if ?adults=true only return paid adult members
     """
     if request.is_ajax():
         results = []
@@ -442,8 +444,10 @@ def ajax_people(request):
                 people = Person.objects.filter(first_name__istartswith=keys[0],
                                                last_name__istartswith=keys[1]
                                                )
-            if request.GET.get('adult', ""):
+            if request.GET.get('adults', ""):
                 people = people.filter(membership__is_adult=True, state=Person.ACTIVE, sub__paid=True)[:9]
+            elif request.GET.get('members', ""):
+                people = people.filter(state=Person.ACTIVE, sub__paid=True)
             for person in people:
                 person_json = {}
                 person_json['id'] = person.id

@@ -30,7 +30,7 @@
   <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
   <script>
     $(document).ready(function () {
-      bind_typeahead('#search_id', go, true);
+      bind_typeahead('#search_id', go, '{{ filter }}');
       $('.typeahead').typeahead('val', '');
       timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
     });

@@ -2,6 +2,8 @@ from django import forms
 from django.forms import ModelForm, Form
 from django.forms.widgets import TextInput
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout as CrispyLayout, Div, HTML
 from crispy_forms.bootstrap import FormActions
@@ -11,14 +13,14 @@ from members.forms import SubmitButton
 
 class TerminalForm(Form):
 
-    layout = forms.ModelChoiceField(queryset=Layout.objects.all(), empty_label=None)
     terminal = forms.IntegerField(label="Terminal number")
+    system = forms.ChoiceField(choices =(('bar', 'Bar system'),('main', 'Main system')))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.layout = CrispyLayout(
-            Div('terminal', 'layout'),
+            Div('terminal', 'system'),
             HTML('<br><br>'),
                 SubmitButton('start', 'Start terminal', css_class='btn-success btn-lg'),
                 SubmitButton('disable', 'Disable terminal', css_class='btn-warning btn-lg', formnovalidate='formnovalidate'),
@@ -70,7 +72,7 @@ class LayoutForm(ModelForm):
 
     class Meta:
         model = Layout
-        fields = ['name', 'title', 'sub_title', 'line_2', 'line_3', 'button_text', 'item_type']
+        fields = ['name', 'title', 'item_type']
 
     def __init__(self, *args, **kwargs):
         delete = kwargs.pop('delete', None)
@@ -79,8 +81,6 @@ class LayoutForm(ModelForm):
         self.helper.layout = CrispyLayout(
             Div(
             'name', 'title',
-            'sub_title', 'line_2', 'line_3',
-            'button_text',
             'item_type',
                 css_class="well"
             ),
@@ -159,3 +159,44 @@ class VisitorForm(ModelForm):
 
     def clean_last_name(self):
         return self.cleaned_data['last_name'].title()
+
+
+class AppForm(ModelForm):
+
+    class Meta:
+        model = PosApp
+        fields = ['name', 'description', 'layout', 'allow_juniors', 'view_name', 'bar_system', 'main_system',
+                  'enabled', 'index']
+
+    layout = forms.ModelChoiceField(required=False, queryset=Layout.objects.all())
+
+    def __init__(self, *args, **kwargs):
+        delete = kwargs.pop('delete', None)
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = CrispyLayout(
+            Div(
+                'name', 'description', 'layout', 'allow_juniors', 'view_name', 'bar_system', 'main_system',
+                'enabled', 'index',
+            ),
+            FormActions(
+                SubmitButton('save', 'Save', css_class='btn-primary'),
+                SubmitButton('cancel', 'Cancel', css_class='btn-default', formnovalidate='formnovalidate')
+            )
+        )
+        if delete:
+            self.helper.layout[1].insert(
+                1, SubmitButton('delete','Delete', css_class='btn-danger', formnovalidate='formnovalidate')
+            )
+
+    def clean_view_name(self):
+        try:
+            reverse(self.cleaned_data['view_name'])
+        except NoReverseMatch:
+            self.add_error('view_name', 'Name does not exist')
+        return self.cleaned_data['view_name']
+
+
+class DobForm(forms.Form):
+
+    dob = forms.DateField(widget=forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY'}))

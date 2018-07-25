@@ -3,8 +3,10 @@
 {% block content %}
   {%  include '_logo_banner.html' %}
 <div class="container bg">
-  <h2 class="text-center"><b>{{ request.session.layout.name }}</b></h2>
-  <h2 class="text-center">Member login</h2>
+  <h2 class="text-center"><b>{{ request.session.app.name }}</b></h2>
+  <h2 class="text-center">
+    {% if filter == 'adults' %} Adult Member Login{% else %}Adult or Junior Member Login{% endif %}
+  </h2>
 
   <br/>
   <div class="row">
@@ -44,7 +46,7 @@
   <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
   <script>
     $(document).ready(function () {
-      bind_typeahead('#search_id', go, true);
+      bind_typeahead('#search_id', go, '{{ filter }}');
       $('.typeahead').typeahead('val', '');
       timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
     });

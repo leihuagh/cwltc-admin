@@ -6,33 +6,47 @@
 
   <div class="container">
   <div class="jumbotron text-center bg">
-    <div class="row">
-    </div>
-    <h1><strong>Honesty Bar</strong></h1>
-    <div id="idOnlineMessage">
-      <h2>{{ layout.sub_title }}</h2>
-      <h3>{{ layout.line_2 }}</h3>
-      <h3>{{ layout.line_3 }}</h3>
-      <br/>
-      <form method="post">
-        {% csrf_token %}
-        <button class="posbutton btn-large" type="submit" name="login">Member log in</button>
-        {% if request.session.attended_allowed %}
-          <br/><br/><br/>
-          <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
-        {% endif %}
-      </form>
-    </div>
+    <h1 class="text-center"><strong>
+      {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
     <br>
-    <p class="ipad-error">{{ message }}</p>
-    <p id="idOfflineMessage"></p>
+    <div id="idOnlineMessage"> <!-- division is hidden if ping fails -->
+      <div class="row">
+        <p class="ipad-error">{{ request.session.message }}</p>
+        <form method="post">{% csrf_token %}
+          {% for app in apps %}
+            {% if is_bar %}
+              <button class="posbutton btn-large btn-block" type="submit" name="App_{{ app.id }}">{{ app.name }}</button>
+              {% if attended %}
+                <br/><br/><br/>
+                <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
+                <br>
+              {% endif %}
+            {% else %}
+              <div class="row">
+                <div class="col-md-2 col-md-offset-4 text-center">
+                  <button class="posbutton btn-large btn-block" type="submit" name="App_{{ app.id }}">{{ app.name }}</button>
+                </div>
+                <div class="col-md-5 col-md-offset-1">
+                  <p class="hint">{{ app.description }}</p>
+                </div>
+              </div>
+            {% endif %}
+                <br>
+          {% endfor %}
+        </form>
+      </div>
+
+      <p class="hint">All members who have paid their subscription can use this system after registration.
+          You can register now by pressing the button and searching for your name.</p>
+    </div>
+    <p id="idOfflineMessage"></p><!-- division is visible if ping fails -->
   </div>
 </div>
-    <div class="terminal">Terminal: {{ request.session.terminal }} Layout: {{ layout.name }}
-      <span id="idOnline"></span></div>
-    <div class="last-transaction">
-      Last transaction: {{ request.session.last_person }}: £ {{ request.session.last_total }}
-    </div>
+<div class="terminal">Terminal: {{ request.session.terminal }}
+  <span id="idOnline"></span></div>
+<div class="last-transaction">
+  Last transaction: {{ request.session.last_person }}: £ {{ request.session.last_total }}
+</div>
 {% endblock %}
 {% block scripts %}
 <script>

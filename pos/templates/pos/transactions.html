@@ -1,11 +1,58 @@
 ﻿{% extends 'pos/base.html' %}
+{% load render_table from django_tables2 %}
 {% block content %}
 <div class="container">
-{% include "pos/_transactions.html" %}
+  <form method="post" id="id_form">{% csrf_token %}
+    <div class="row">
+      <div class="col-md-6">
+        {% if person %}
+          <h3>{{ heading }} for {{ person.first_name }} {{ person.last_name }}</h3>
+        {% else %}
+          <h3>{{ heading }}</h3>
+        {% endif %}
+      </div>
+      <div class="col-md-2">
+        <button id="bar" class="btn btn-round {% if bar %}btn-success{% else %}btn-default{% endif %} }}" onclick="send('bar')">&nbsp;&nbsp;</button>
+        <span class="ipad-prompt" onclick="send('bar')">&nbsp; Bar</span>
+      </div>
+      <div class="col-md-2">
+        <button id="teas" class="btn btn-round {% if teas %}btn-success{% else %}btn-default{% endif %}" onclick="send('teas')">&nbsp;&nbsp;</button>
+        <span class="ipad-prompt" onclick="send('teas')">&nbsp; Teas</span>
+      </div>
+      <div class="col-md-2">
+        <button id="all" class="btn btn-round {% if all %}btn-success{% else %}btn-default{% endif %}" onclick="send('all')">&nbsp;&nbsp;</button>
+        <span class="ipad-prompt" onclick="send('all')">&nbsp; All</span>
+      </div>
+      <input type="hidden" id="option" name="option" value="">
+    </div>
+  </form>
+
+  <div class="panel panel-primary" >
+    <div class="panel-body" style="max-height: 80%; overflow-y: scroll;">
+      {% render_table table 'django_tables2/table.html'%}
+    </div>
+    <div class="panel-footer">
+      Total: £ {% if sum %}{{ sum }}{% else %}0{% endif %}
+    </div>
+  </div>
   {% if main_menu %}
-    <a href="{% url 'home' %}" class="btn btn-primary ">Exit</a>
+    <a href="{% url 'home' %}" class="btn btn-primary" id="exit">Exit</a>
   {% else %}
-    <a href="{% url 'pos_menu'  %}" class="btn btn-lg btn-success">Exit</a>
+    <a href="{% url 'pos_menu'  %}" class="btn btn-lg btn-success" id="exit">Exit</a>
   {% endif %}
   </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+    function send(text) {
+        $('#option').val(text);
+        $('#id_form').submit();
+        $('#bar').removeClass('btn-success').addClass('btn-default');
+        $('#teas').removeClass('btn-success').addClass('btn-default');
+        $('#all').removeClass('btn-success').addClass('btn-default');
+        $('#'+text).addClass('btn-success');
+        $('.panel').hide();
+        $('#exit').hide();
+    }
+</script>
 {% endblock %}
