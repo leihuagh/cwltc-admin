@@ -20,7 +20,7 @@ BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
 EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
-CELERY_EMAIL_BACKEND = 'anymail.backends.mailgun.eMailBackend'
+CELERY_EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 CELERY_EMAIL_MESSAGE_EXTRA_ATTRIBUTES = {
     'track_opens': True,
     'track_clicks': True
