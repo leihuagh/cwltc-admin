@@ -21,7 +21,12 @@ BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
 EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
 CELERY_EMAIL_BACKEND = 'anymail.backends.mailgun.eMailBackend'
+CELERY_EMAIL_MESSAGE_EXTRA_ATTRIBUTES = {
+    'track_opens': True,
+    'track_clicks': True
+}
 ANYMAIL = env.dict('ANYMAIL')
+
 CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_PRODUCTION_TOKEN')
 CARDLESS_ENVIRONMENT = 'live'
 CARDLESS_WEBHOOK_SECRET = env.str('CARDLESS_WEBHOOK_SECRET')

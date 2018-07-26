@@ -189,6 +189,8 @@ def send_htmlmail(from_email, to, cc=None, bcc=None, subject="", html_body=""):
                                  bcc=bcc,
                                  subject=subject,
                                  body=text_plain)
+    # AnyMail attributes - these have to be put in settings file when working with django-celery
+    # because it does not serialise them by default
     msg.track_opens = True
     msg.track_clicks = True
     msg.attach_alternative(html_body, "text/html")

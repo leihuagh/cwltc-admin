@@ -29,6 +29,7 @@ BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 # Mails go to dummy
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 # EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+
 ANYMAIL = env.dict('ANYMAIL')
 
 if LIVE_GO_CARDLESS:
