@@ -28,7 +28,7 @@ BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
 # Mails go to dummy
 # EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 print('Using mailgun email')
 ANYMAIL = env.dict('ANYMAIL')
 
