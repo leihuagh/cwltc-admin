@@ -3,6 +3,7 @@ SITE_NAME = "Sandbox"
 DEBUG = False
 LIVE_GO_CARDLESS = True
 
+
 # We could use the default path but make it explicit for clarity
 env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
@@ -26,7 +27,9 @@ BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
 # Mails go to dummy
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+EMAIL_BACKEND = 'anymail.backends.mailgun.MailgunBackend'
+print('Using mailgun email')
 ANYMAIL = env.dict('ANYMAIL')
 
 if LIVE_GO_CARDLESS:
