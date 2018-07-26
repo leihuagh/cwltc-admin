@@ -165,11 +165,11 @@ def send_template_mail(request, person, text,
         if '@' in to:
             try:          
                 send_htmlmail(from_email='Coombe Wood LTC <' + from_email + '>',
-                                to=recipient.email,
-                                cc=cc,
-                                bcc=bcc,
-                                subject=subject,
-                                html_body=html_body)
+                              to=recipient.email,
+                              cc=cc,
+                              bcc=bcc,
+                              subject=subject,
+                              html_body=html_body)
                 return 'sent'
             except Exception:     
                 return 'bad email'
@@ -184,10 +184,12 @@ def send_htmlmail(from_email, to, cc=None, bcc=None, subject="", html_body=""):
     '''
     text_plain = strip_tags(html_body)
     msg = EmailMultiAlternatives(from_email=from_email,
-                                to=[to],
-                                cc=cc,
-                                bcc=bcc,
-                                subject=subject,
-                                body=text_plain)
+                                 to=[to],
+                                 cc=cc,
+                                 bcc=bcc,
+                                 subject=subject,
+                                 body=text_plain)
+    msg.track_opens = True
+    msg.track_clicks = True
     msg.attach_alternative(html_body, "text/html")
     msg.send()
