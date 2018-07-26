@@ -21,7 +21,7 @@ from pos.services import create_transaction_from_receipt, build_pos_array, PosSe
 
 LONG_TIMEOUT = 120000
 SHORT_TIMEOUT = 30000
-PING_TIMEOUT = 6000
+PING_TIMEOUT = 60000
 
 stdlogger = logging.getLogger(__name__)
 
