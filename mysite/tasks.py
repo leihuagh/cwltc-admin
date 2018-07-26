@@ -1,3 +1,4 @@
+import logging
 from celery import shared_task, Celery
 
 from celery.schedules import crontab
@@ -5,6 +6,7 @@ from celery.schedules import crontab
 from celery.utils.log import get_task_logger
 from datetime import datetime
 
+stdlogger = logging.getLogger(__name__)
 app = Celery()
 
 @app.on_after_configure.connect
@@ -23,6 +25,7 @@ def setup_periodic_tasks(sender, **kwargs):
 
 @app.task
 def test(arg):
+    stdlogger.warning(f'Celery beat {arg}')
     print(arg)
 #
 # # A periodic task that will run every minute (the symbol "*" means every)

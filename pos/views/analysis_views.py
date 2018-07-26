@@ -1,3 +1,4 @@
+import logging
 from django.views.generic import DetailView, CreateView, UpdateView, TemplateView, View
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -12,6 +13,7 @@ from pos.filters import LineItemFilter
 from pos.views.ipad_views import build_pos_array
 from pos.services import dump_layout_to_excel
 
+stdlogger = logging.getLogger(__name__)
 
 class AdminView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     template_name = 'pos/admin.html'
