@@ -7,15 +7,17 @@ from celery.utils.log import get_task_logger
 from datetime import datetime
 
 stdlogger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
+
 app = Celery()
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Calls test('hello') every 10 seconds.
-    sender.add_periodic_task(10.0, test.s('hello'), name='add every 10')
+    sender.add_periodic_task(10.0, test('hello'), name='add every 10')
 
     # Calls test('world') every 30 seconds
-    sender.add_periodic_task(30.0, test.s('world'), expires=10)
+    sender.add_periodic_task(30.0, test('world'), expires=10)
 
     # Executes every Monday morning at 7:30 a.m.
     sender.add_periodic_task(
@@ -25,7 +27,7 @@ def setup_periodic_tasks(sender, **kwargs):
 
 @app.task
 def test(arg):
-    stdlogger.warning(f'Celery beat {arg}')
+    logger.info(f'Celery beat {arg}')
     print(arg)
 #
 # # A periodic task that will run every minute (the symbol "*" means every)
