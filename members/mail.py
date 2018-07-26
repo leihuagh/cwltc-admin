@@ -171,8 +171,8 @@ def send_template_mail(request, person, text,
                               subject=subject,
                               html_body=html_body)
                 return 'sent'
-            except Exception:     
-                return 'bad email'
+            except Exception as e:
+                return f'email exception {e.args[0]}'
         return 'bad email'
     else:
         return 'duplicate'
