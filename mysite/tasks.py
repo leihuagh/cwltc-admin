@@ -45,4 +45,5 @@ import time
 @shared_task
 def addxy(x, y):
     time.sleep(10)
+    print('celery output')
     return x + y
