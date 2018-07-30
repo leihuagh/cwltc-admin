@@ -3,51 +3,56 @@
 {% block content-wide %}
 <div class="container bg-light px-0">
   <img src="{% static 'images/panorama.jpg' %}" class="img-fluid d-block">
-</div>
+
+{#      <img src="{% static 'club/images/EricAmerican.jpg' %}" class="img-fluid d-block">#}
  {% endblock %}
 {% block content %}
   <div class="row">
-    <div class="col-md-9">
-      <div class="logo logo-green text-center pt-4">Welcome</div>
-      <h2 class="logo logo-orange text-center pb-4"><small>to the Members' Website</small></h2>
+    <div class="col-md-12">
+      <div class="logo logo-green text-center small pt-4">Welcome<span class="logo-orange small"> to the Members' Website</span></div>
+      <h2>Club News</h2>
       <p>
-      <img src="{% static 'club/images/EricAmerican.jpg' %}" class="img-fluid">
+
+      <h4 class="logo-orange">New online services</h4>
+      We have upgraded the internet service in the clubhouse, significantly increasing the speed and range of the wi-fi.
+      There is now an iPad mounted on the wall to the right of the kitchen hatch that offers 3 new online services:
+      <div class="pt-2 ml-4">
+        <h5>Tea and coffee sales</h5>
+        <p>You can now charge teas, coffee and cakes to your club account in the same way as bar purchases. The old teas
+          book is no longer necessary.<p>
+        <h5>Visitors book</h5>
+        <p>The paper-based visitors book is now obsolete. Adults and juniors 13 and over should now record their visitors
+          online through the iPad.</p>
+        <h5>Members database search</h5>
+        <p>You can now search the database of adult members to find a phone number or email address. Only adults who agreed
+          to share their details are shown.</p>
+        <p>You can also search the database through the Search menu on this website.</p>
+      </div>
       <h4 class="logo-orange">Members' Handbook</h4>
       <p>We have published a new <a href="/static/club/documents/Members handbook.pdf">handbook for members</a>
         that details all the information that you need to get the best out of the club.
         It is particularly relevant to new members, but established members will also benefit from reading it. Parents of juniors should
         also read the separate document, Information for Juniors.
         <p>
-      <h4 class="logo-orange">Summer Tournament</h4>
-      <p> This event is hotting up with many events now at the quarter finals stage or beyond.
-      The <a href="/static/club/documents/Draw.pdf">draw</a>, including the plate competition has been published and
-        you can <a href="{% url 'events:tournament_active' %}">book courts online.</a><p>
-      <h4 class="logo-orange">Table Tennis Competition</h4>
-      <p>If you signed up for this competition, please play your matches ASAP so that we can play the final on Finals Day.</p>
-      <h4 class="logo-orange">GDPR</h4>
-      <p>To comply with new General Data Protection Regulations (GDPR) that came into force in May, we have updated our
-        <a href="{% url 'privacy-policy' %}">privacy policy</a> and given you the ability to directly maintain
-        the information that we hold about you and your family through the Account menu on the top right of every page.
-      </p>
 
     </div>
-    <div class="col-md-3">
-      <div class="row bg-white">
-        <div class="col-12 border border-top-0 border-info py-1">
-          <h4 class="logo-green text-center">Finals Day</h4>
-            <img src="{% static 'club/images/trophies.jpg' %}" class="img-fluid">
-          <br>
-          <h5 class="text-center pt-2 logo-orange">Saturday 14 July</h5>
-          <p>Don't miss the adult and junior finals.
-          Please sign up in the club if you will attend the barbecue afterwards.</p>
-        </div>
-        <div class="col-12 border border-top-0 border-info py-1">
-          <img src="{% static 'club/images/EricSmith.jpg' %}" class="img-fluid">
-          <h6 class="text-center pt-1">Eric Smith Memorial Tournament<br>
-          We raised over £600!</h6>
-        </div>
-      </div>
-    </div>
+{#    <div class="col-md-3">#}
+{#      <div class="row bg-white">#}
+{#        <div class="col-12 border border-top-0 border-info py-1">#}
+{#          <h4 class="logo-green text-center">Finals Day</h4>#}
+{#            <img src="{% static 'club/images/trophies.jpg' %}" class="img-fluid">#}
+{#          <br>#}
+{#          <h5 class="text-center pt-2 logo-orange">Saturday 14 July</h5>#}
+{#          <p>Don't miss the adult and junior finals.#}
+{#          Please sign up in the club if you will attend the barbecue afterwards.</p>#}
+{#        </div>#}
+{#        <div class="col-12 border border-top-0 border-info py-1">#}
+{#          <img src="{% static 'club/images/EricSmith.jpg' %}" class="img-fluid">#}
+{#          <h6 class="text-center pt-1">Eric Smith Memorial Tournament<br>#}
+{#          We raised over £600!</h6>#}
+{#        </div>#}
+{#      </div>#}
+{#    </div>#}
   </div>
 
 {% endblock %}

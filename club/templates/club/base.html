@@ -20,6 +20,7 @@
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <div class="navbar-nav mr-auto">
           <a class="nav-item nav-link" href="{% url 'club_home' %}">Home</a>
+          <a class="nav-item nav-link" href="{% url 'club_search' %}">Search</a>
           <a class="nav-item nav-link" href="{% url 'events:tournament_active' %}">Tournaments</a>
           <a class="nav-item nav-link" href="{% url 'club_magazine' %}">UK Tennis magazine</a>
           <a class="nav-item nav-link" href="{% url 'club_history' %}">Club history</a>
@@ -27,7 +28,7 @@
           {% if user.is_staff %}
             <div class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Administration
+                Admin
               </a>
               <div class="dropdown-menu" aria-labelledby="navbarAdmin">
                 <a class="dropdown-item" href="{% url 'home' %}">Members admin</a>

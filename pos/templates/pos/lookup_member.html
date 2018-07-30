@@ -51,16 +51,11 @@
   <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
   <script>
     $(document).ready(function () {
-      bind_typeahead('#search_id', go, true);
-      $('.typeahead').typeahead('val', '');
-      {#$.ajaxSetup({#}
-      {#    beforeSend: function (xhr, settings) {#}
-      {#        xhr.setRequestHeader('X-CSRFToken', csrf_token);#}
-      {#    }});#}
+      bind_typeahead('#search_id', go, 'members');
+      $('#search_id').typeahead('val', '');
       timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
     });
     function go(person) {
-        $('#person_id').val(person.id);
         $.get("/ajax/person?id=" + person.id, function(person){
             $('#hint').hide();
             $('#results').show();
@@ -70,7 +65,7 @@
             $('#mobile').text(person.mobile);
             $('#email').text(person.email);
         });
-        $('.typeahead').typeahead('val', '');
+        $('#search_id').typeahead('val', '');
     }
   </script>
 {% endblock %}

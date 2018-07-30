@@ -2,10 +2,13 @@ from django.shortcuts import reverse, redirect
 from django.views.generic import DetailView, TemplateView, UpdateView, FormView
 from django.core.signing import Signer
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.db.models import Sum
 from braces.views import LoginRequiredMixin
 from mysite.common import Button
-from members.models import Person, Address, Settings, Invoice, Payment
-from members.views import set_person_context, add_membership_context
+from members.models import Person, Address, Settings, Invoice, Payment, ItemType
+from pos.models import PosPayment, Transaction, VisitorBook
+from .tables import PosPaymentsTable
+from members.views import set_person_context, add_membership_context, SingleTableView
 from members.services import person_statement
 from public.forms import NameForm, AddressForm, ConsentForm
 from public.views import InvoicePublicView
@@ -115,6 +118,7 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class ClubSearchView(LoginRequiredMixin, TemplateView):
+    """ Search in member's database """
     template_name = 'club/search.html'
 
     def get_context_data(self, **kwargs):
@@ -134,20 +138,25 @@ class PoliciesView(LoginRequiredMixin, TemplateView):
     template_name = 'club/policies.html'
 
 
-class InvoiceListView(LoginRequiredMixin, TemplateView):
-    """ List all invoices associated with the user"""
+class StatementView(LoginRequiredMixin, TemplateView):
+    """ List all invoices, payments and POS totals associated with the user """
     template_name = 'club/account_overview.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         person = person_from_user(self.request)
         year = Settings.current_year()
+        pos_qs = PosPayment.objects.filter(person=person, transaction__billed=False)
         context['person'] = person
         context['year'] = year
         context['statement'] = person_statement(person, year)
         context['invoice_states'] = Invoice.STATES
         context['payment_types'] = Payment.TYPES
         context['payment_states'] = Payment.STATES
+        context['bar_bill'] = pos_qs.filter(transaction__item_type_id=ItemType.BAR).aggregate(sum=Sum('total'))['sum']
+        context['teas_bill'] = pos_qs.filter(transaction__item_type_id=ItemType.TEAS).aggregate(sum=Sum('total'))['sum']
+        context['visitors_bill'] = VisitorBook.objects.filter(member=person,
+                                                              billed=False).aggregate(sum=Sum('fee'))['sum']
         return context
 
     def post(self, request):
@@ -158,9 +167,60 @@ class InvoiceListView(LoginRequiredMixin, TemplateView):
         return redirect('club_invoice_list')
 
 
-class ClubInvoiceView(LoginRequiredMixin, InvoicePublicView):
+class InvoiceView(LoginRequiredMixin, InvoicePublicView):
     """ Show detail of 1 invoice """
     template_name = 'club/invoice_club.html'
+
+
+class PosListView(LoginRequiredMixin, SingleTableView):
+
+    """
+    Un-billed Teas or Bar transactions
+    """
+    model = PosPayment
+    table_class = PosPaymentsTable
+    template_name = 'club/table.html'
+    bar = False
+    qs = None
+
+    def get_table_data(self):
+        self.person_id = self.kwargs.get('pk', None)
+        if self.person_id:
+            self.qs = PosPayment.objects.filter(person_id=self.person_id, transaction__billed=False)
+        else:
+            self.qs = PosPayment.objects.all()
+        if self.bar:
+            self.qs = self.qs.filter(transaction__item_type_id=ItemType.BAR)
+        else:
+            self.qs = self.qs.filter(transaction__item_type_id=ItemType.TEAS)
+        return self.qs.select_related('transaction').select_related('person', 'transaction__item_type').order_by(
+            '-transaction.creation_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['sum'] = self.qs.aggregate(sum=Sum('total'))['sum']
+        context['heading'] = 'Bar' if self.bar else 'Teas' + ' Transactions'
+        context['person_id'] = self.person_id
+        return context
+
+
+class PosDetailView(LoginRequiredMixin, DetailView):
+    """ Detail of a Pos transaction"""
+
+    model = Transaction
+    template_name = 'club/pos_transaction_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        trans = self.get_object()
+        context['items'] = trans.lineitem_set.all().order_by('id')
+        if len(trans.pospayment_set.all()) > 1:
+            context['payments'] = trans.pospayment_set.all()
+        return context
+
+
+class VisitorsListView(LoginRequiredMixin, SingleTableView):
+    pass
 
 
 class HistoryView(LoginRequiredMixin, TemplateView):

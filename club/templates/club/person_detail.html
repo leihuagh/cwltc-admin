@@ -5,7 +5,7 @@
   <h4 class="pt-2">{{ person.fullname }} </h4>
   {% if person.sub %}<h5>Membership: {{ person.membership.description }}</h5>{%  endif %}
   <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
       <div class="card"><div class="card-header bg-success text-white text-center p-1">{{ person.fullname }}</div>
         <div class="card-body">
           <div class="row"><div class="col-5 text-success">First name:</div><div class="col">{{ person.first_name }}</div></div>
@@ -41,7 +41,7 @@
       </div>
     </div>
     {% if person.membership.is_adult %}
-      <div class="col-md-4">
+      <div class="col-md-6">
         <form method="post">{% csrf_token %}
           <div class="card"><div class="card-header bg-success text-white text-center p-1">Preferences</div>
             <div class="card-body">

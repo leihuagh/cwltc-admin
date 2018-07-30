@@ -1,1 +1,75 @@
-﻿
+﻿{% extends 'club/base.html' %}
+{% load staticfiles %}
+{% block content %}
+  <h4 class="pt-2">Search members' database</h4>
+
+  <div class="row mt-3" id="search">
+    <div class="col-md-4">
+      <input type="search" id="search_id" class="form-control" maxlength="15"
+             autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="Search for member">
+    </div>
+  </div>
+  <a id="help_button" href="#" onclick="help()">Help</a>
+  <p class="text-muted initially-hidden" id="help_text">
+      You can search by first name, last name or both names separated by a space. <br>
+      You only need to type the first few letters of each name. Case does not matter.<br>
+      In most cases entering the 1st initial then 2 characters of the last name is enough.<br>
+      Click the name when it appears in the list. &nbsp &nbsp
+      E.g. <strong>jsm</strong> would find <strong>John Smith</strong>
+  </p>
+
+  <div class="row initially-hidden" id="results">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <h4 id="name"></h4>
+          <p id="membership" class="mb-1"></p>
+          <p id="mobile" class="mb-1"></p>
+          <p id="home_phone" class="mb-1"></p>
+          <p id="email" class="mb-1"></p>
+          <button class="btn btn-success" onclick="closePanel()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <p><br>You can only see phone numbers and email address for adult members who have agreed to
+    share their details.<br>
+  <a href="{% url 'club_person' %}">Click here</a> to change visibility of your own details.</p>
+  <br/>
+{% endblock content %}
+{% block scripts %}
+{#  <script src=https://twitter.github.com/typeahead.js/releases/latest/typeahead.bundle.min.js></script>#}
+  <script src= {% static 'js/typeahead.bundle.js' %}></script>
+  <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
+  <script>
+    $(document).ready(function () {
+      bind_typeahead('#search_id', go, 'members');
+      $('#search_id').typeahead('val', '');
+    });
+    function go(person) {
+        $.get("/ajax/person?id=" + person.id, function(person){
+            $('#help_button').hide();
+            $('#help_text').hide();
+            $('#search').hide();
+            $('#results').show();
+            $('#name').text(person.name);
+            $('#membership').text('Membership: ' + person.membership);
+            $('#home_phone').text(person.phone);
+            $('#mobile').text(person.mobile);
+            $('#email').text(person.email);
+        });
+        $('#search_id').typeahead('val', '');
+        $('.search_id').val('');
+    }
+    function closePanel() {
+        $('#results').hide();
+        $('#search').show();
+        $('#help_button').show();
+    }
+    function help() {
+        $('#help_button').hide();
+        $('#help_text').show();
+    }
+  </script>
+{% endblock %}

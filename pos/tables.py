@@ -23,11 +23,11 @@ class PosPaymentTable(tables.Table):
 
     class Meta:
         model = PosPayment
-        fields = ('transaction.creation_date', 'person.fullname', 'amount', 'transaction.item_type.description',
+        fields = ('transaction.creation_date', 'person.fullname', 'total', 'transaction.item_type.description',
                   'split', 'transaction.attended')
         attrs = {'class': 'table'}
 
-    # amount = tables.Column(attrs={'td':{'style':'text-align: right;'}})
+    total = tables.Column(attrs={'td':{'style':'text-align: right;'}})
     split = tables.BooleanColumn(accessor='transaction.split', verbose_name='Split transaction')
     detail = tables.LinkColumn('pos_transaction_detail', text='View detail',
                                args=[A('transaction.pk')], orderable=False)
