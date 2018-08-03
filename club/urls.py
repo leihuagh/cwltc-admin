@@ -31,11 +31,11 @@ urlpatterns = [
     path('policies/', PoliciesView.as_view(), name='club_policies'),
     path('history/', HistoryView.as_view(), name='club_history'),
 
-    path('invoice/list/', StatementView.as_view(), name='club_invoice_list'),
+    path('account/overview/', StatementView.as_view(), name='club_account_overview'),
     path('invoice/<str:token>/', InvoiceView.as_view(), name='club_invoice'),
     path('account/bar/<int:pk>/', PosListView.as_view(bar=True), name='club_account_bar'),
     path('account/teas/<int:pk>/', PosListView.as_view(bar=False), name='club_account_teas'),
-    path('account/visitors/', VisitorsListView.as_view(), name='club_account_teas'),
+    path('account/visitors/<int:pk>/', VisitorsListView.as_view(), name='club_account_visitors'),
     path('account/pos-detail/<int:pk>/', PosDetailView.as_view(), name='club_pos_detail'),
 
 

@@ -4,7 +4,7 @@
 {% load members_extras %}
 {% if statement %}
   <form method="post"> {% csrf_token %}
-  <table class="table table-sm table-responsive table-borderless dark-header">
+  <table class="table table-sm table-responsive table-borderless dark-header bg-white with-border">
   <thead>
     <tr>
       <th></th>
@@ -68,7 +68,7 @@
 {% else %}
  <br/><p>No entries for this year</p>
 {% endif %}
- <a href="{% url 'club_account_teas' pk=person.id %}">Teas: </a> {{ teas_bill }}<br>
-  <a href="{% url 'club_account_bar' pk=person.id %}">  Bar: </a>{{ bar_bill }}<br>
-  Visitors: {{ visitors_bill }}<br>
+<a href="{% url 'club_account_teas' pk=person.id %}">Teas: </a> {{ teas_bill }}<br>
+<a href="{% url 'club_account_bar' pk=person.id %}">Bar: </a>{{ bar_bill }}<br>
+<a href="{% url 'club_account_visitors' pk=person.id %}">Visitor: </a>{{ visitors_bill }}<br>
 {% endblock %}

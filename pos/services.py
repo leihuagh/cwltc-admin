@@ -8,6 +8,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
 from .models import Transaction, LineItem, Layout, PosPayment, Item, Location, TWO_PLACES
 from members.models import InvoiceItem, ItemType
+from pos.models import VisitorBook
 
 stdlogger = logging.getLogger(__name__)
 
@@ -71,6 +72,8 @@ def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, to
 
         if complimentary:
             return ('Complimentary', dec_total)
+        if trans.cash:
+            return ('Cash', dec_total)
 
         pay_total = Decimal(0)
         for person in people:
@@ -84,60 +87,9 @@ def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, to
             pos_payment.save()
         if pay_total !=  dec_total:
             stdlogger.error(f'ERROR: POS Transaction total: {dec_total} unequal to Payment total: {pay_total} Id: {trans.id}')
-        if people:
-            return (people[0]['name'], dec_total)
-        else:
-            return ('Cash', dec_total)
+        return (people[0]['name'], dec_total)
     except:
         raise PosServicesError('Error creating transaction')
-
-
-def create_all_invoiceitems_from_payments(person=None):
-    """
-    Generate invoice items for all item types that pos handles
-    If person is None, process all records else just for that person
-    """
-    item_types = ItemType.objects.filter(pos=True)
-    for item_type in item_types:
-        create_invoiceitems_from_payments(item_type.id, person)
-
-
-def create_invoiceitems_from_payments(item_type_id, person=None):
-    """
-    Create invoiceitem records from the payment records for a single item type
-    If person is None, process all records else just for that person
-    """
-    dict = {}
-    if person:
-        records = PosPayment.objects.filter(transaction__item_type_id=item_type_id, billed=False, person=person)
-    else:
-        records = PosPayment.objects.filter(transaction__item_type_id=item_type_id, billed=False).order_by('person_id')
-    last_id = 0
-    count = 0
-    for record in records:
-        if record.person_id:
-            count += 1
-            if record.person_id != last_id:
-                last_id = record.person_id
-                dict[record.person_id] = Decimal(record.total)
-            else:
-                dict[record.person_id] += record.total
-
-    description = ItemType.objects.get(pk=item_type_id)
-    with transaction.atomic():
-        for id, total in dict.items():
-            inv_item = InvoiceItem(
-                item_date=datetime.date.today(),
-                item_type_id=item_type_id,
-                description=description,
-                amount=total,
-                person_id=id,
-                paid=False
-            )
-            inv_item.save()
-        records.update(billed=True)
-        Transaction.objects.filter(item_type_id=item_type_id, billed=False) .update(billed=True)
-    return count, len(dict)
 
 
 def delete_billed_transactions(before_date):
@@ -150,9 +102,14 @@ def delete_billed_transactions(before_date):
     return count
 
 
-def fix_tea_transactions():
-    Transaction.objects.filter(creation_date__gt=datetime.date(2018, 3, 1)).filter(
-        creation_date__lt=datetime.date(2018, 3, 15)).update(item_type_id=ItemType.TEAS)
+def delete_billed_visitors(before_date):
+    """
+    Delete visitor book entries that have been billed
+    """
+    visitors = VisitorBook.objects.filter(billed=True, creation_date__lt=before_date)
+    count = visitors.count()
+    visitors.delete()
+    return count
 
 
 def dump_items_to_excel(item_type_id):

@@ -1,0 +1,9 @@
+{% extends 'club/base.html' %}
+{% load render_table from django_tables2 %}
+{% block content %}
+  <h3 class="pt-2">{{ title }}</h3>
+  <h4>{{ sub_title }}</h4>
+  {% render_table table 'django_tables2/bootstrap4.html'%}
+  <p>{{ footnote }}</p>
+  <a class="btn btn-success" href="{% url 'club_account_overview' %}">Account overview</a>
+{% endblock %}

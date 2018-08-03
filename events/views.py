@@ -69,7 +69,8 @@ class EventDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         event = self.object
-        participants = Participant.objects.filter(event=self.object).order_by('person__first_name', 'person__last_name').select_related('person')
+        participants = Participant.objects.filter(event=self.object).order_by(
+            'person__first_name', 'person__last_name').select_related('person')
         participant = participants.filter(person=self.person)
         partner = participants.filter(partner=self.person)
         entered = (participant.exists() or partner.exists()) and event.online_entry

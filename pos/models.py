@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import User
 from members.models import Person, ItemType
+from members.services import BillingData
 
 TWO_PLACES = Decimal(10) ** -2
 
@@ -25,14 +26,14 @@ class Item(models.Model):
 
     def __str__(self):
         return self.button_text
-    
+
     def margin(self):
         if self.sale_price != 0:
-            return Decimal((self.sale_price - self.cost_price)/self.sale_price * 100)
+            return Decimal((self.sale_price - self.cost_price) / self.sale_price * 100)
         return Decimal(0)
 
     def margin_formatted(self):
-        return str(self.margin().quantize(TWO_PLACES))+'%'
+        return str(self.margin().quantize(TWO_PLACES)) + '%'
 
     def to_dict(self):
         '''
@@ -46,7 +47,7 @@ class Item(models.Model):
         item_dict['cost_price'] = int(100 * self.cost_price)
         item_dict['quantity'] = 1
         item_dict['total'] = chr(163) + " " + str(self.sale_price)
-        return item_dict 
+        return item_dict
 
 
 class Layout(models.Model):
@@ -54,13 +55,11 @@ class Layout(models.Model):
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
     title = models.CharField(max_length=80)
 
-
     def __str__(self):
         return self.name
 
 
 class Location(models.Model):
-
     ROW_MAX = 6
     COL_MAX = 6
     row = models.IntegerField()
@@ -68,7 +67,7 @@ class Location(models.Model):
     visible = models.BooleanField()
     item = models.ForeignKey(Item, on_delete=models.CASCADE, blank=True, null=True)
     layout = models.ForeignKey(Layout, on_delete=models.CASCADE, blank=True, null=True)
-    description = models.CharField(max_length=50, blank=True) # holds the row description when col=0
+    description = models.CharField(max_length=50, blank=True)  # holds the row description when col=0
 
     def __str__(self):
         name = "Layout: {}, Row: {}, Col: {}, ".format(str(self.layout.name),
@@ -104,9 +103,46 @@ class LineItem(models.Model):
     cost_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     quantity = models.IntegerField()
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, blank=True, null=True)
-    
+
     def __str__(self):
         return "{} {}".format(self.item.description, self.transaction_id)
+
+
+class PosPaymentBillingManager(models.Manager):
+
+    def data(self, person=None):
+        result = []
+        item_types = ItemType.objects.filter(pos=True)
+        for item_type in item_types:
+            records = PosPayment.objects.filter(transaction__item_type=item_type, billed=False).order_by('person_id')
+            if person:
+                records = records.filter(person=person)
+
+            transaction_ids = []
+            last_id = 0
+            dict = {}
+            if len(records):
+                for record in records:
+                    transaction_ids.append(record.transaction_id)
+                    if record.person_id:  # skip complimentary
+                        if record.person_id != last_id:
+                            last_id = record.person_id
+                            dict[record.person_id] = Decimal(record.total)
+                        else:
+                            dict[record.person_id] += record.total
+                transactions = Transaction.objects.filter(id__in=transaction_ids)
+                billing_data = BillingData(item_type, dict, records, transactions)
+                result.append(billing_data)
+        return result
+
+    def process(self, person=None):
+        """ return count of invoice items generated """
+        data = self.data(person)
+        count = 0
+        if data:
+            for billing_data in data:
+                count += billing_data.process()
+        return count
 
 
 class PosPayment(models.Model):
@@ -114,6 +150,9 @@ class PosPayment(models.Model):
     person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     billed = models.BooleanField()
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
+
+    objects = models.Manager()
+    billing = PosPaymentBillingManager()
 
     def __str__(self):
         return "{} {} {} {}".format(str(self.id),
@@ -124,7 +163,7 @@ class PosPayment(models.Model):
 
 class PosApp(models.Model):
     name = models.CharField(max_length=25, blank=False)
-    description= models.CharField(max_length=80)
+    description = models.CharField(max_length=80)
     layout = models.ForeignKey(Layout, on_delete=models.CASCADE, blank=True, null=True)
     bar_system = models.BooleanField(default=False)
     main_system = models.BooleanField(default=True)
@@ -172,6 +211,33 @@ class Visitor(models.Model):
         return f'{self.first_name} {self.last_name}'
 
 
+class VisitorBookBillingManager(models.Manager):
+
+    def data(self, person=None):
+        records = VisitorBook.objects.filter(billed=False).order_by('member_id')
+        if person:
+            records = records.filter(member=person)
+        last_id = 0
+        dict = {}
+        if len(records):
+            for record in records:
+                if record.member_id != last_id:
+                    last_id = record.member_id
+                    dict[record.member_id] = Decimal(record.fee)
+                else:
+                    dict[record.member_id] += record.fee
+            item_type = ItemType.objects.get(id=ItemType.VISITORS)
+            return BillingData(item_type, dict, records)
+        return None
+
+    def process(self, person=None):
+        count = 0
+        data = self.data(person)
+        if data:
+            count = data.process()
+        return count
+
+
 class VisitorBook(models.Model):
     date = models.DateField(auto_now=True)
     member = models.ForeignKey(Person, on_delete=models.CASCADE, blank=False, null=False)
@@ -179,3 +245,5 @@ class VisitorBook(models.Model):
     fee = models.DecimalField(max_digits=5, decimal_places=2)
     billed = models.BooleanField()
 
+    objects = models.Manager()
+    billing = VisitorBookBillingManager()

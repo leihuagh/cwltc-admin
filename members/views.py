@@ -11,7 +11,6 @@ from braces.views import StaffuserRequiredMixin
 
 from django_tables2 import SingleTableView
 from mysite.common import Button
-from pos.services import create_invoiceitems_from_payments
 from public.forms import NameForm, AddressForm
 from .models import (Person, Address, Membership, Subscription, InvoiceItem, Invoice, Fees,
                      Payment, CreditNote, ItemType, TextBlock, ExcelBook, Group, MailCampaign)
@@ -949,29 +948,31 @@ class YearEndView(StaffuserRequiredMixin, TemplateView):
         #     messages.success(self.request, message)
         #     return redirect('year-end')
 
-        elif 'renew' in request.POST:
-            count = subscription_renew_batch(year, Subscription.START_MONTH)
-            message = '{} subscriptions generated'.format(count)
-            messages.success(self.request, message)
-            return redirect('yearend')
-
-        elif 'bar' in request.POST:
-            count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.BAR)
-            message = f'{count1} POS records processed and {count2} invoice item records generated'
-            messages.success(self.request, message)
-            return redirect('yearend')
-
-        elif 'teas' in request.POST:
-            count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.TEAS)
-            message = f'{count1} POS records processed and {count2} invoice item records generated'
-            messages.success(self.request, message)
-            return redirect('yearend')
-
-        elif 'visitors' in request.POST:
-            count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.VISITORS)
-            message = f'{count1} POS records processed and {count2} invoice item records generated'
-            messages.success(self.request, message)
-            return redirect('yearend')
+        # todo fix year end billing
+        # elif 'renew' in request.POST:
+        #
+        #     #count = subscription_renew_batch(year, Subscription.START_MONTH)
+        #     message = '{} subscriptions generated'.format(count)
+        #     messages.success(self.request, message)
+        #     return redirect('yearend')
+        #
+        # elif 'bar' in request.POST:
+        #     count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.BAR)
+        #     message = f'{count1} POS records processed and {count2} invoice item records generated'
+        #     messages.success(self.request, message)
+        #     return redirect('yearend')
+        #
+        # elif 'teas' in request.POST:
+        #     count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.TEAS)
+        #     message = f'{count1} POS records processed and {count2} invoice item records generated'
+        #     messages.success(self.request, message)
+        #     return redirect('yearend')
+        #
+        # elif 'visitors' in request.POST:
+        #     count1, count2 = create_invoiceitems_from_payments(item_type_id=ItemType.VISITORS)
+        #     message = f'{count1} POS records processed and {count2} invoice item records generated'
+        #     messages.success(self.request, message)
+        #     return redirect('yearend')
 
         elif 'invoices' in request.POST:
             counts = invoice_create_batch(exclude_slug='2015UnpaidInvoices')

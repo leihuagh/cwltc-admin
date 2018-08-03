@@ -1,8 +1,8 @@
 from operator import attrgetter
+from typing import Dict
+from django.db import transaction
 from nose.tools import nottest
-from datetime import datetime
 from members.models import *
-from pos.services import create_all_invoiceitems_from_payments
 
 class Error(Exception):
     """
@@ -17,6 +17,39 @@ class ServicesError(Error):
     """
     def __init__(self, message):
         self.message = message
+
+
+class BillingData:
+
+    def __init__(self, item_type:ItemType, dict:Dict, records, transactions=None, description=''):
+        self.item_type = item_type
+        self.dict = dict
+        self.description = description
+        self.records = records
+        self.transactions = transactions
+
+    def process(self):
+        """
+        Processes the dictionary creating invoice items
+        Return count of items generated
+        """
+        count = 0
+        with transaction.atomic():
+            for id, total in self.dict.items():
+                count += 1
+                inv_item = InvoiceItem(
+                    item_date=date.today(),
+                    item_type_id=self.item_type.id,
+                    description=self.description,
+                    amount=total,
+                    person_id=id,
+                    paid=False
+                )
+                inv_item.save()
+            self.records.update(billed=True)
+            if self.transactions:
+                self.transactions.update(billed=True)
+        return count
 
 
 def calculate_fee(amount):
@@ -593,7 +626,7 @@ def person_resign(person):
     Resign a person
     If there is an unpaid sub, cancel the invoice and delete the sub
     If there is a paid sub, make it inactive
-    Generate any invoice items rom POS
+    Generate any invoice items from POS
     """
     if person.sub:
         if not person.sub.paid:
@@ -609,9 +642,10 @@ def person_resign(person):
         person.sub.save()       
     person.state = Person.RESIGNED
     person.unregister()
-    person_deregister(person)
     # generate any pos records
-    create_all_invoiceitems_from_payments(person)
+    # todo bill person upon resignation
+    # create_all_invoiceitems_from_payments(person)
+    invoice_create_from_items(person, Settings.current_year())
 
 
 @nottest

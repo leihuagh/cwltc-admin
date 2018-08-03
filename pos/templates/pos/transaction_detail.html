@@ -1,6 +1,11 @@
-﻿{% extends 'base.html' %}
+﻿{% extends 'pos/base.html' %}
 {% block content %}
 {% include 'pos/_transaction_detail.html' %}
+  <div class="container">
+  {% if admin and not payment.0.billed %}
+    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#idModal">Delete</button>
+  {% endif %}
+  </div>
 
 <form id='form' method="post">{% csrf_token %}
 </form>

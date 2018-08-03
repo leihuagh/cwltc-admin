@@ -1,30 +1,27 @@
 <div class="container">
   <div class="row">
     <div class="col-md-6">
-      <h2>POS Transaction detail</h2>
-      <h4>Created by {{ transaction.person.fullname }}</h4>
-      <h4>{{ transaction.creation_date }}</h4>
-      <h4>Id: {{  transaction.id }}</h4>
-      <table class="table">
+      <h3 class="pt-2">POS Transaction Detail</h3>
+      <p>Created by {{ transaction.person.fullname }}</p>
+      <p>{{ transaction.creation_date }}</p>
+      <p>Id: {{  transaction.id }}</p>
+      <table class="table table-sm table-borderless with-border" style="background: white">
         {% for lineitem in items %}
-          <tr><td>{{ lineitem.quantity }}</td><td>{{ lineitem.item.description }}</td><td>£ {{ lineitem.sale_price }}</td>
-          <td>{{ lineitem.item_type.description }}</td></tr>
+          <tr><td>{{ lineitem.quantity }}</td><td>{{ lineitem.item.description }}</td><td>£ {{ lineitem.sale_price }}</td></tr>
         {% endfor %}
         <tr><td></td><td><strong>Total:</strong></td><td><strong>£ {{ transaction.total }}</strong></td></tr>
       </table>
     {% if payments %}
     <h4>Split payments</h4>
-      <table class="table">
+      <table class="table table-sm table-borderless with-border" style="background: white">
         {% for payment in payments %}
-          <tr><td>{{ payment.person.fullname }}</td><td>£ {{ payment.amount }}</td></tr>
+          <tr><td>{{ payment.person.fullname }}</td><td>£ {{ payment.total }}</td></tr>
         {% endfor %}
       </table>
     {% endif %}
     </div>
   </div>
-  <h4>This transaction has {% if not payment.0.billed %}not yet{% endif %} been invoiced.</h4>
-<button id="back1" class="btn btn-primary" onclick="parent.history.back()">Back</button>
-{% if admin and not payment.0.billed %}
-  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#idModal">Delete</button>
-{% endif %}
+  <p>This transaction has {% if not payment.0.billed %}not yet{% endif %} been invoiced.</p>
+    <button id="back1" class="btn btn-primary" onclick="parent.history.back()">Back</button>
+
 </div>

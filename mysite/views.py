@@ -22,6 +22,6 @@ def custom_500(request):
     path = tb.tb_frame.f_locals['request'].path
     if '/pos/' in path:
         request.session['message'] = "Terminal was restarted because an error occurred."
-        return redirect('pos_restart')
+        return redirect('pos_start')
     context = {}
     return HttpResponseServerError(t.render(context))

@@ -190,14 +190,6 @@ body {
     border: 0;
 }
 
-table.dark-header > thead > tr > th{
-  background-color: #06857b;
-  color: white;
-  font-weight: normal;
-}
-
-
-
 .form-control-label {
     font-weight: bold;
     margin-bottom: 0;
@@ -297,6 +289,27 @@ anchors are inline so you need ot make them block to go full width
 .initially-hidden {
   display: none
 }
+
+
+
+table.dark-header > thead > tr > th{
+  background-color: #00564f;
+  color: white;
+  font-weight: normal;
+  border-bottom: 0;
+}
+
+table.with-border {
+  border: 1px solid #00564f; !important
+}
+
+/* Django-Tables2 */
+
+th.orderable a{
+  color: white; !important
+  font-weight: normal;
+}
+
 
 /* Twitter typeahead for Bootstrap 4 */
 

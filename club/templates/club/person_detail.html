@@ -36,7 +36,7 @@
           <div class="row"><div class="col-5 text-success">Home phone:</div><div class="col">{{ address.home_phone }}</div></div>
         </div>
         <div class="card-footer py-1">
-          <a href="{% url "club_address_update" person_id=person.id %}" class="btn btn-success btn-sm">Edit address</a>
+          <a href="{% url "club_address_update" pk=person.id %}" class="btn btn-success btn-sm">Edit address</a>
         </div>
       </div>
     </div>

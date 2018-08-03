@@ -413,7 +413,6 @@ class VisitorCreateView(LoginRequiredMixin, FormView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         self.person = Person.objects.get(pk=self.request.session['person_id'])
-        self.admin = self.person.auth.is_staff or self.person.auth.groups.filter(name='Pos').exists()
         # if not self.admin:
         kwargs.update({'person_id': self.person.id,
                        'junior': self.junior

@@ -1,7 +1,9 @@
 from operator import itemgetter
 from django.db import models
+from django.db.models import Q
 from taggit.managers import TaggableManager
 from members.models import ItemType, Person, ModelEnum, Membership, Settings
+from members.services import BillingData
 
 
 class Tournament(models.Model):
@@ -12,6 +14,16 @@ class Tournament(models.Model):
     finals_date = models.DateField(blank=False, null=False)
     event_cost = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     active = models.BooleanField(default=True)
+
+    @property
+    def billed(self):
+        return not self.event_set.filter(billed=False).count() == 0
+
+    def generate_bills(self):
+        if not self.active:
+            for event in self.event_set.filter(billed=False):
+                event.billing_data().process()
+
 
     def add_standard_events(self):
         Event.objects.create(name="Men's Singles", event_type=EventType.MENS_SINGLES, cost=self.event_cost,
@@ -51,7 +63,7 @@ class Tournament(models.Model):
             people_list.insert(0, (None, "-----"))
         return people_list
 
-      
+
 class EventType(ModelEnum):
     MENS_SINGLES = 0
     LADIES_SINGLES = 1
@@ -75,6 +87,7 @@ class Event(models.Model):
     active = models.BooleanField(default=True)
     online_entry = models.BooleanField(default=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, null=True, blank=True)
+    billed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -192,6 +205,29 @@ class Event(models.Model):
             if part:
                 return part[0]
         return None
+
+    def billing_data(self):
+        """
+        Return a single BillingData object for this event
+        NB you cannot generate this for a single person - it is always for everyone in the event
+        """
+        dict = {}
+        if not self.billed and not self.active:
+            for p in self.participant_set.all():
+                if p.person_id in dict:
+                    dict[p.person_id] += self.cost
+                else:
+                    dict[p.person_id] = self.cost
+                if p.partner_id:
+                    if p.partner_id in dict:
+                        dict[p.partner_id] += self.cost
+                    else:
+                        dict[p.partner_id] = self.cost
+            id = ItemType.TOURNAMENT if self.tournament else ItemType.SOCIAL
+            item_type = ItemType.objects.get(id=id)
+            records = Event.objects.get(id=self.id)
+            return BillingData(item_type, dict, records, self.description)
+
 
 class Participant(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, blank=False, null=False)

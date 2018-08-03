@@ -7,11 +7,12 @@ from braces.views import LoginRequiredMixin
 from mysite.common import Button
 from members.models import Person, Address, Settings, Invoice, Payment, ItemType
 from pos.models import PosPayment, Transaction, VisitorBook
-from .tables import PosPaymentsTable
+from .tables import PosPaymentsTable, VisitorBookTable
 from members.views import set_person_context, add_membership_context, SingleTableView
 from members.services import person_statement
 from public.forms import NameForm, AddressForm, ConsentForm
 from public.views import InvoicePublicView
+
 
 # Club Members views
 
@@ -98,7 +99,7 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
     person = None
 
     def get_object(self, queryset=None):
-        self.person = Person.objects.get(pk=self.kwargs['person_id'])
+        self.person = Person.objects.get(pk=self.kwargs['pk'])
         return Address.objects.get(pk=self.person.address_id)
 
     def get_context_data(self, **kwargs):
@@ -173,13 +174,13 @@ class InvoiceView(LoginRequiredMixin, InvoicePublicView):
 
 
 class PosListView(LoginRequiredMixin, SingleTableView):
-
     """
     Un-billed Teas or Bar transactions
     """
     model = PosPayment
     table_class = PosPaymentsTable
-    template_name = 'club/table.html'
+    template_name = 'club/transactions_table.html'
+    table_pagination = {"per_page": 10}
     bar = False
     qs = None
 
@@ -199,7 +200,9 @@ class PosListView(LoginRequiredMixin, SingleTableView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['sum'] = self.qs.aggregate(sum=Sum('total'))['sum']
-        context['heading'] = 'Bar' if self.bar else 'Teas' + ' Transactions'
+        context['title'] = ('Bar' if self.bar else 'Teas') + ' Transactions'
+        context['sub_title'] = f'Total: £ {self.qs.aggregate(sum=Sum("total"))["sum"]}'
+        context['footnote'] = 'Attended transactions were charged to your account by bar staff'
         context['person_id'] = self.person_id
         return context
 
@@ -220,7 +223,34 @@ class PosDetailView(LoginRequiredMixin, DetailView):
 
 
 class VisitorsListView(LoginRequiredMixin, SingleTableView):
-    pass
+    """
+    List visitors book
+    This can be for all entries or for a specific person (not necessary the one logged in)
+    """
+    model = VisitorBook
+    table_class = VisitorBookTable
+    template_name = 'club/transactions_table.html'
+    table_pagination = {'per_page': 10}
+    id = None
+    all_entries = False
+
+    def get_table_data(self):
+        self.id = self.kwargs.get('person_id', None)
+        if self.id:
+            self.qs = VisitorBook.objects.filter(member_id=self.id)
+        else:
+            self.qs = VisitorBook.objects.all()
+        return list(self.qs.order_by('-date', '-id').select_related('visitor').select_related('member__membership'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['all_entries'] = self.all_entries
+        if self.id:
+            person = Person.objects.get(pk=self.id)
+            context['person'] = person
+        context['title'] = 'Visitors Book Entries'
+        context['sub_title'] = f'Total: £ {self.qs.aggregate(sum=Sum("fee"))["sum"]}'
+        return context
 
 
 class HistoryView(LoginRequiredMixin, TemplateView):
