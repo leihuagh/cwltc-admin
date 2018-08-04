@@ -4,7 +4,6 @@ from pos.models import *
 from members.models import Person, ItemType, Settings
 from django.contrib.auth.models import User
 from .services import *
-import factory
 import logging
 
 logger = logging.getLogger('factory').setLevel(logging.WARNING)

@@ -1,3 +1,4 @@
+import datetime
 from operator import attrgetter
 from typing import Dict
 from django.db import transaction
@@ -21,12 +22,13 @@ class ServicesError(Error):
 
 class BillingData:
 
-    def __init__(self, item_type:ItemType, dict:Dict, records, transactions=None, description=''):
+    def __init__(self, item_type:ItemType, dict:Dict, records, transactions=None, description='', date=None):
         self.item_type = item_type
         self.dict = dict
         self.description = description
         self.records = records
         self.transactions = transactions
+        self.date = date
 
     def process(self):
         """
@@ -34,18 +36,20 @@ class BillingData:
         Return count of items generated
         """
         count = 0
+        date = self.date if self.date else datetime.today()
         with transaction.atomic():
             for id, total in self.dict.items():
-                count += 1
-                inv_item = InvoiceItem(
-                    item_date=date.today(),
-                    item_type_id=self.item_type.id,
-                    description=self.description,
-                    amount=total,
-                    person_id=id,
-                    paid=False
-                )
-                inv_item.save()
+                if total != 0:
+                    count += 1
+                    inv_item = InvoiceItem(
+                        item_date=date,
+                        item_type_id=self.item_type.id,
+                        description=self.description,
+                        amount=total,
+                        person_id=id,
+                        paid=False
+                    )
+                    inv_item.save()
             self.records.update(billed=True)
             if self.transactions:
                 self.transactions.update(billed=True)

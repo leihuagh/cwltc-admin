@@ -1,18 +1,47 @@
 import logging
 from django.views.generic import DetailView, CreateView, UpdateView, ListView, TemplateView, View
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.contrib import messages
+from django.http import Http404
 from braces.views import StaffuserRequiredMixin
-from mysite.common import Button
+from mysite.common import Button, LinkButton
 from club.views import person_from_user
+from members.views import SingleTableView
 from members.models import Person
 from events.models import Event, Participant, Tournament
 from events.forms import EventForm, TournamentForm
 from events.download import export_event, export_tournament
+from events.tables import EventTable, TournamentTable
 
 stdlogger = logging.getLogger(__name__)
+
+# todo sort permissions fro events and tournament
+
+class EventAdminTableView(StaffuserRequiredMixin, SingleTableView):
+    """ Show events in a table """
+    model = Event
+    template_name = 'events/table.html'
+    table_class = EventTable
+    id = None
+
+    def get_table_data(self, **kwargs):
+        self.id = self.kwargs.get('tournament_id', None)
+        if self.id:
+            return Event.objects.filter(tournament_id=self.id).order_by('id')
+        else:
+            return Event.objects.all().order_by('id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Events'
+        if self.id:
+            tournament = Tournament.objects.get(id=self.id)
+            context['title'] += f' linked to {tournament.name}'
+        else:
+            context['buttons'] = [LinkButton('Create event', reverse('events:create'))]
+        return context
 
 
 class EventHelpView(LoginRequiredMixin, TemplateView):
@@ -20,7 +49,7 @@ class EventHelpView(LoginRequiredMixin, TemplateView):
     template_name = 'events/event_help.html'
 
 
-class EventCreateView(LoginRequiredMixin, CreateView):
+class EventCreateView(StaffuserRequiredMixin, CreateView):
     """ Creates an event NOT linked to a tournament """
     model = Event
     form_class = EventForm
@@ -34,7 +63,7 @@ class EventCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-class EventUpdateView(LoginRequiredMixin, UpdateView):
+class EventUpdateView(StaffuserRequiredMixin, UpdateView):
     """ update event details - date etc"""
     model = Event
     form_class = EventForm
@@ -46,12 +75,22 @@ class EventUpdateView(LoginRequiredMixin, UpdateView):
         context['form_title'] = 'Update event'
         context['buttons'] = [Button('Save', css_class='btn-success'),
                               Button('Delete', css_class='btn-danger')]
+        if not self.object.active and not self.object.billed:
+            context['buttons'].append(Button('Create invoice items', css_class='btn-success'))
+        if self.object.participant_set.all().count():
+            context['link_buttons'] = [LinkButton('Participants',
+                                                  href=reverse('events:participant_list',
+                                                               kwargs={'pk': self.object.id}))]
         return context
 
     def post(self, request, *args, **kwargs):
+        event = self.get_object()
         if 'delete' in request.POST:
-            event = self.get_object(request)
             event.delete()
+            return redirect('events:admin')
+        elif 'create-invoice-items' in request.POST:
+            count = event.billing_data().process()
+            messages.success(request, f'{count} invoice items created')
             return redirect('events:admin')
         return super().post(request, *args, **kwargs)
 
@@ -139,10 +178,22 @@ class ParticipantListView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        participants = Participant.objects.filter(event=self.object).select_related('person')
+        participants = Participant.objects.filter(event=self.object).order_by(
+            'person__first_name').select_related('person')
         context['with_partner'] = self.object.with_partner()
         context['participants'] = participants
         return context
+
+class ParticipantDownloadView(LoginRequiredMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        id = kwargs.get('pk', None)
+        try:
+            event = Event.objects.get(pk=id)
+        except Event.DoesNotExist:
+            return Http404
+        return export_event(event)
+
 
 
 class ParticipantAddView(LoginRequiredMixin, DetailView):
@@ -231,29 +282,12 @@ def handle_participant_post(request, participant):
     return None
 
 
-class EventListView(ListView):
-    """ Currently redundant """
-    model = Event
-    template_name = 'events/event_list.html'
-
-
-class EventAdminView(ListView):
-    """ Show list of events with button to edit or add participants"""
-    model = Event
-    template_name = 'events/event_admin.html'
-
-    def post(self, request, **kwargs):
-        if 'download' in request.POST:
-            event = Event.objects.get(pk=request.POST['download'])
-            return export_event(event)
-
-
 class TournamentCreateView(StaffuserRequiredMixin, CreateView):
     """ Create a standard club tournament set of events"""
     model = Tournament
     form_class = TournamentForm
     template_name = 'events/event_form.html'
-    success_url = reverse_lazy('events:tournaments_list')
+    success_url = reverse_lazy('events:tournaments_table')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -271,19 +305,49 @@ class TournamentUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Tournament
     form_class = TournamentForm
     template_name = 'events/event_form.html'
-    success_url = reverse_lazy('events:tournament_list')
+    success_url = reverse_lazy('events:tournament_table')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        actives = self.object.event_count(active=True)
+        inactives = self.object.event_count(active=False)
         context['form_title'] = 'Update tournament'
+        context['tournament'] = True
+        context['active_events'] = actives
+        context['inactive_events'] = inactives
+        context['link_buttons'] = [LinkButton('Events',
+                                              href=reverse('events:admin_tournament',
+                                                           kwargs={'tournament_id': self.object.id})),
+                                   LinkButton('Download participants',
+                                              href=reverse('events:tournament_download',
+                                                           kwargs={'pk': self.object.id})),
+                                   ]
         context['buttons'] = [Button('Save', css_class='btn-success'),
-                              Button('Delete', css_class='btn-danger')]
+                              Button('Delete', css_class='btn-danger'),
+                              ]
+        if not self.object.billed:
+            if actives:
+                context['buttons'].append(Button('Make inactive'))
+            else:
+                context['buttons'].append(Button('Make active'))
+                context['buttons'].append(Button('Create invoice items', css_class='btn-success'))
         return context
 
     def form_valid(self, form):
-        if 'delete' in self.request.POST:
+        request = self.request
+        if 'delete' in request.POST:
             self.object.delete()
+            return redirect('events:tournament_table')
+        elif 'create-invoice-items' in request.POST:
+            count = self.object.generate_bills()
+            messages.success(self.request, f'{count} invoice items created')
             return redirect('events:tournament_admin')
+        elif 'make-active' in request.POST:
+            self.object.make_active()
+            return redirect(self.request.path)
+        elif 'make-inactive' in request.POST:
+            self.object.make_active(False)
+            return redirect(self.request.path)
         else:
             return super().form_valid(form)
 
@@ -291,7 +355,7 @@ class TournamentUpdateView(StaffuserRequiredMixin, UpdateView):
 class TournamentDetailView(LoginRequiredMixin, DetailView):
     model = Tournament
     template_name = 'events/tournament_detail.html'
-    success_url = reverse_lazy('events:tournament_list')
+    success_url = reverse_lazy('events:tournament_table')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -299,19 +363,29 @@ class TournamentDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class TournamentListView(LoginRequiredMixin, ListView):
+class TournamentAdminView(StaffuserRequiredMixin, SingleTableView):
     model = Tournament
-    template_name = 'events/tournament_list.html'
+    template_name = 'events/table.html'
+    table_class = TournamentTable
+
+    def get_table_data(self, **kwargs):
+        return Tournament.objects.all().order_by('id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Tournaments'
+        return context
 
 
-class TournamentAdminView(StaffuserRequiredMixin, ListView):
-    model = Tournament
-    template_name = 'events/tournament_admin.html'
+class TournamentDownloadView(StaffuserRequiredMixin, View):
 
-    def post(self, request, **kwargs):
-        if 'download' in request.POST:
-            tournament = Tournament.objects.get(pk=request.POST['download'])
-            return export_tournament(tournament)
+    def get(self, request, **kwargs):
+        id = kwargs.get('pk', None)
+        try:
+            tournament = Tournament.objects.get(pk=id)
+        except Tournament.DoesNotExist:
+            return Http404
+        return export_tournament(tournament)
 
 
 class TournamentActiveView(View):
@@ -321,7 +395,7 @@ class TournamentActiveView(View):
         if len(tours) == 1:
             return redirect('events:tournament_detail', pk=tours[0].pk)
         else:
-            return redirect('events:tournament_list')
+            return redirect('events:tournament_table')
 
 
 class TournamentPlayersView(ListView):

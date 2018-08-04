@@ -10,7 +10,7 @@ class TransactionTable(tables.Table):
         fields = ('creation_date', 'id', 'name', 'total', 'type', 'complimentary', 'cash', 'split', 'attended',
                   'billed')
         attrs = {'class': 'table'}
-         
+
     type = tables.Column(accessor='item_type.description', verbose_name='Charge to')
     total = tables.Column(attrs={'td': {'style': 'text-align: right;'}})
     detail = tables.LinkColumn('pos_transaction_detail', text='View detail', args=[A('pk')], orderable=False)

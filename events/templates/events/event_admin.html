@@ -12,6 +12,7 @@
       <button type="submit" name="download" class="btn btn-sm btn-outline-success" value="{{ event.id }}">
         Download participants
       </button>
+      {{ event.billed }}
       <b>{{ event.name }}</b>
       {% if event.online_entry %} Entries allowed {% endif %}
       <span class="float-right">{{ event.tournament.name }}</span></li>

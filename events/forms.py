@@ -29,7 +29,7 @@ class TournamentForm(ModelForm):
 
     class Meta:
         model = Tournament
-        fields = ['name', 'description', 'draw_date', 'finals_date', 'event_cost', 'active']
+        fields = ['name', 'description', 'draw_date', 'finals_date', 'event_cost']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -13,17 +13,34 @@ class Tournament(models.Model):
     draw_date = models.DateField(blank=False, null=False)
     finals_date = models.DateField(blank=False, null=False)
     event_cost = models.DecimalField(max_digits=5, decimal_places=2, null=False)
-    active = models.BooleanField(default=True)
 
     @property
     def billed(self):
-        return not self.event_set.filter(billed=False).count() == 0
+        """ True if no associated unbilled events"""
+        return self.event_set.filter(billed=False).count() == 0
+
+    def event_count(self, active=True):
+        """ True if any linked event is active"""
+        return self.event_set.filter(active=active).count()
+
+
+    def make_active(self, state=True):
+        """ Make tournament inactive - makes all linked events inactive too """
+        for event in self.event_set.all():
+            if state:
+                event.active = not event.billed
+            else:
+                event.active = False
+            event.save()
 
     def generate_bills(self):
+        count = 0
         if not self.active:
             for event in self.event_set.filter(billed=False):
-                event.billing_data().process()
-
+                data = event.billing_data()
+                if data:
+                    count += data.process()
+        return count
 
     def add_standard_events(self):
         Event.objects.create(name="Men's Singles", event_type=EventType.MENS_SINGLES, cost=self.event_cost,
@@ -79,7 +96,6 @@ class Event(models.Model):
        
     name = models.CharField(max_length=50, blank=False)
     description = models.CharField(max_length=1000, blank=True)
-    event_type = models.SmallIntegerField(choices=EventType.choices(), default=0)
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
     cost = models.DecimalField(max_digits=5, decimal_places=2, null=False)
@@ -87,13 +103,14 @@ class Event(models.Model):
     active = models.BooleanField(default=True)
     online_entry = models.BooleanField(default=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, null=True, blank=True)
+    event_type = models.SmallIntegerField(choices=EventType.choices(), default=0)
     billed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
 
-    def add_person(self, person, person2=None, text=""):
-        Participant.objects.create(event=self, person=person, person2=person2, text=text)
+    def add_person(self, person, partner=None, text=""):
+        Participant.objects.create(event=self, person=person, partner=partner, text=text)
 
     def with_partner(self):
         """ True if event must have a partner """
@@ -187,13 +204,13 @@ class Event(models.Model):
         return True
 
     def is_male_only(self):
-        return self.event_type in [EventType.MENS_SINGLES.value, EventType.MENS_DOUBLES.value]
+        return self.tournament and self.event_type in [EventType.MENS_SINGLES.value, EventType.MENS_DOUBLES.value]
 
     def is_female_only(self):
-        return self.event_type in [EventType.LADIES_SINGLES.value, EventType.LADIES_DOUBLES.value]
+        return self.tournament and self.event_type in [EventType.LADIES_SINGLES.value, EventType.LADIES_DOUBLES.value]
 
     def is_mixed(self):
-        return self.event_type == EventType.MIXED_DOUBLES.value
+        return self.tournament and self.event_type == EventType.MIXED_DOUBLES.value
 
     def participant_from_person(self, person):
         """ return the Participant object for a person if there is one """
@@ -223,10 +240,8 @@ class Event(models.Model):
                         dict[p.partner_id] += self.cost
                     else:
                         dict[p.partner_id] = self.cost
-            id = ItemType.TOURNAMENT if self.tournament else ItemType.SOCIAL
-            item_type = ItemType.objects.get(id=id)
-            records = Event.objects.get(id=self.id)
-            return BillingData(item_type, dict, records, self.description)
+            records = Event.objects.filter(id=self.id) # need a queryset of records to be updated
+            return BillingData(self.item_type, dict, records, self.description, self.end_date)
 
 
 class Participant(models.Model):

@@ -27,11 +27,26 @@
               </div>
             {% endif %}
             {% crispy form %}
+            <p>Billed: {{ object.billed }}</p>
+            {% if tournament %}
+              <p>
+                {% if active_events %}
+                  {{ active_events }} events are active,
+                {%  else %}
+                  No active events, {% endif %}
+                {% if inactive_events %}
+                  {{ inactive_events }} events are inactive
+                {%  else %}
+                  No inactive events{% endif %}
+              </p>
+            {% endif  %}
+            {% for button in link_buttons %}
+              {% include '_button.html' %}
+            {% endfor %}
           </div>
           <div class="card-footer">
             {% for button in buttons %}
-              <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} mb-1"
-                     id="id-{{ button.name }}" value="{{ button.value }}">
+              {% include '_button.html' %}
             {% endfor %}
           </div>
         </div>

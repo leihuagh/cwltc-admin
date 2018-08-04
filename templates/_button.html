@@ -1,0 +1,7 @@
+<!-- Render a Button or LinkButton object --->
+{% if button.href %}
+  <a href="{{ button.href }}" class="{{ button.css_class }}">{{ button.text }}</a>
+{% else %}
+  <input type="submit" name="{{ button.name }}" class="mt-1 {{ button.css_class }} mb-1"
+         id="id-{{ button.name }}" value="{{ button.value }}">
+{% endif %}
