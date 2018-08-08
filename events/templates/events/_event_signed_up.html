@@ -1,6 +1,8 @@
 <div class="card my-2">
   <h5 class="card-header card-title bg-success text-center text-white" >
-    People signed up
+    {%  if event.cost > 0 %}
+    {{ event.total_ticket_count }} Ticket{% if event.total_ticket_count > 1 %}s{% endif %} sold
+    {% else %}People signed up{% endif %}
   </h5>
   <div class="card-body text-center">
       {% for p in participants %}

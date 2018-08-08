@@ -7,12 +7,13 @@ class EventTable(tables.Table):
 
     class Meta:
         model = Event
-        fields = ('name', 'end_date', 'cost', 'active', 'billed', 'online_entry')
+        fields = ('name', 'date', 'cost', 'active', 'billed', 'online_entry')
         attrs = {'class': 'table table-sm table-responsive table-borderless bg-white dark-header with-border'}
 
     name = tables.LinkColumn('events:update', args=[A('pk')], text=lambda record: record.name)
     tournament = tables.LinkColumn('events:tournament_update', args=[A('tournament.id')],
                                    text=lambda record: record.tournament.name)
+    tickets = tables.Column(accessor=A('total_ticket_count'))
     preview = tables.LinkColumn('events:register', args=[A('pk')], text='Preview', orderable=False)
 
 

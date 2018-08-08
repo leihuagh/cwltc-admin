@@ -1,7 +1,6 @@
 from operator import itemgetter
 from django.db import models
-from django.db.models import Q
-from taggit.managers import TaggableManager
+from django.db.models import Sum
 from members.models import ItemType, Person, ModelEnum, Membership, Settings
 from members.services import BillingData
 
@@ -43,7 +42,7 @@ class Tournament(models.Model):
 
 
     def make_active(self, state=True):
-        """ Make tournament inactive - makes all linked events inactive too """
+        """ Change tournament active state - updated all linked events """
         for event in self.event_set.all():
             if state:
                 event.active = not event.billed
@@ -113,15 +112,15 @@ class Event(models.Model):
     """ Events can be social or other events. A tournament event is a special case """
        
     name = models.CharField(max_length=50, blank=False)
-    strap_line = models.CharField(max_length=100, blank=True)
+    slogan = models.CharField(max_length=100, blank=True)
     description = models.CharField(max_length=1000, blank=True)
     image = models.ImageField(upload_to='images/', null=True, blank=True)
-    end_date = models.DateField(blank=True, null=True)
+    date = models.DateField(blank=True, null=True)
     cutoff_date = models.DateField(blank=True, null=True)
     time = models.TimeField(blank=True, null=True)
     cost = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, null=True, blank=True)
-    active = models.BooleanField(default=True)
+    active = models.BooleanField(default=False)
     online_entry = models.BooleanField(default=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, null=True, blank=True)
     event_type = models.SmallIntegerField(choices=EventType.choices(), default=0)
@@ -139,6 +138,11 @@ class Event(models.Model):
             return records[0].tickets
         else:
             return 0
+
+    @property
+    def total_ticket_count(self):
+        return self.participant_set.all().aggregate(total=Sum('tickets'))['total']
+
 
     def with_partner(self):
         """ True if event must have a partner """

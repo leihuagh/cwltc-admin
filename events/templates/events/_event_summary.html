@@ -1,8 +1,12 @@
-<h1 class="text-center pt-2 m-0 logo-orange"><b>{{ event.name }}</b></h1><br>
-<h4 class="text-center mb-2"><i>{{ event.strap_line }}</i></h4>
-<div class="row">
-  <div class="col-md-4 mt-2 text-center"><h5>{{ event.end_date|date:"j M Y" }}</h5></div>
-  <div class="col-md-4 mt-2 text-center"><h5>{{ event.time|time:"g:i A" }}</h5></div>
-  <div class="col-md-4 mt-2 text-center"><h5>Tickets: {% if event.cost == 0 %}Free{% else %} £{{ event.cost }}{% endif %}</h5></div>
+<div class="card">
+  <h1 class="text-center pt-2 m-0 logo-orange"><b>{{ event.name }}</b></h1><br>
+  <h4 class="text-center mb-2"><i>{{ event.slogan }}</i></h4>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-4 mt-2 text-center"><h5>{{ event.date|date:"j M Y" }}</h5></div>
+      <div class="col-md-4 mt-2 text-center"><h5>{{ event.time|time:"g:i A" }}</h5></div>
+      <div class="col-md-4 mt-2 text-center"><h5>Tickets: {% if event.cost == 0 %}Free{% else %} £{{ event.cost }}{% endif %}</h5></div>
+      <p class="card-text m-1">{{ event.description|linebreaks }}</p>
+    </div>
+  </div>
 </div>
-<p>{{ event.description|linebreaks }}</p>

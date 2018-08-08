@@ -121,7 +121,7 @@ class EventListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(*args, **kwargs)
         events = Event.objects.filter(item_type_id=ItemType.SOCIAL,
                                       active=True, online_entry=True).order_by(
-            'end_date').prefetch_related('participant_set__person')
+            'date').prefetch_related('participant_set__person')
         for event in events:
             event.tickets = event.ticket_count(person_from_user(self.request))
         context['social'] = events

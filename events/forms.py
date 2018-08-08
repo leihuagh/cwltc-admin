@@ -12,7 +12,7 @@ class TournamentEventForm(ModelForm):
             'name',
             'description',
             'event_type',
-            'end_date',
+            'date',
             'cost',
             'active',
             'online_entry'
@@ -33,26 +33,27 @@ class SocialEventForm(ModelForm):
         model = Event
         fields = [
             'name',
-            'strap_line',
+            'slogan',
             'description',
-            'end_date',
-            'cutoff_date',
+            'date',
             'time',
+            'cutoff_date',
             'cost',
             'image',
             'active',
-            'online_entry'
         ]
-        widgets = {'end_date': DatePicker(options=dateOptions),
+        widgets = {'date': DatePicker(options=dateOptions),
                    'cutoff_date': DatePicker(options=dateOptions),
-                   'time': TimePicker()
+                   'description': forms.Textarea(),
                    }
 
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['date'].required = True
         self.helper = FormHelper(self)
         self.helper.form_tag = False
+
 
 class TournamentForm(ModelForm):
 
