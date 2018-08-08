@@ -1,5 +1,5 @@
 import logging
-from django.views.generic import DetailView, CreateView, UpdateView, ListView, TemplateView, View
+from django.views.generic import DetailView, CreateView, UpdateView, ListView, TemplateView, View, FormView
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
@@ -9,9 +9,9 @@ from braces.views import StaffuserRequiredMixin
 from mysite.common import Button, LinkButton
 from club.views import person_from_user
 from members.views import SingleTableView
-from members.models import Person
+from members.models import Person, ItemType
 from events.models import Event, Participant, Tournament
-from events.forms import EventForm, TournamentForm
+from events.forms import SocialEventForm, TournamentEventForm, TournamentForm, RegisterForm
 from events.download import export_event, export_tournament
 from events.tables import EventTable, TournamentTable
 
@@ -40,7 +40,7 @@ class EventAdminTableView(StaffuserRequiredMixin, SingleTableView):
             tournament = Tournament.objects.get(id=self.id)
             context['title'] += f' linked to {tournament.name}'
         else:
-            context['buttons'] = [LinkButton('Create event', reverse('events:create'))]
+            context['buttons'] = [LinkButton('Create social event', reverse('events:create_social'))]
         return context
 
 
@@ -50,25 +50,41 @@ class EventHelpView(LoginRequiredMixin, TemplateView):
 
 
 class EventCreateView(StaffuserRequiredMixin, CreateView):
-    """ Creates an event NOT linked to a tournament """
+    """ Creates a social or tournament event """
     model = Event
-    form_class = EventForm
     template_name = 'events/event_form.html'
     success_url = reverse_lazy('events:admin')
+    social = False
+
+    def get_form_class(self):
+        if self.social:
+            return SocialEventForm
+        else:
+            return TournamentEventForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form_title'] = 'Create new event'
+        context['form_title'] = f'Create new {"social " if self.social else ""}event'
         context['buttons'] = [Button('Save', css_class='btn-success')]
         return context
 
+    def form_valid(self, form):
+        form.instance.item_type_id = ItemType.SOCIAL if self.social else ItemType.TOURNAMENT
+        return super().form_valid(form)
+
 
 class EventUpdateView(StaffuserRequiredMixin, UpdateView):
-    """ update event details - date etc"""
+    """ Update event details - date etc"""
     model = Event
-    form_class = EventForm
+    form_class = TournamentEventForm
     template_name = 'events/event_form.html'
     success_url = reverse_lazy('events:admin')
+
+    def get_form_class(self):
+        if self.object.item_type_id == ItemType.SOCIAL:
+            return SocialEventForm
+        else:
+            return TournamentEventForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -93,6 +109,24 @@ class EventUpdateView(StaffuserRequiredMixin, UpdateView):
             messages.success(request, f'{count} invoice items created')
             return redirect('events:admin')
         return super().post(request, *args, **kwargs)
+
+
+class EventListView(LoginRequiredMixin, ListView):
+    """ List active events"""
+    model = Event
+    template_name = 'events/event_list.html'
+
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        events = Event.objects.filter(item_type_id=ItemType.SOCIAL,
+                                      active=True, online_entry=True).order_by(
+            'end_date').prefetch_related('participant_set__person')
+        for event in events:
+            event.tickets = event.ticket_count(person_from_user(self.request))
+        context['social'] = events
+        context['tournaments'] = Tournament.active_objects.all()
+        return context
 
 
 class EventDetailView(LoginRequiredMixin, DetailView):
@@ -168,6 +202,62 @@ class EventDetailView(LoginRequiredMixin, DetailView):
         return redirect('events:tournament_detail', pk=event.tournament.id)
 
 
+class EventRegisterView(LoginRequiredMixin, FormView):
+    """ User can register for a social event
+    """
+
+    form_class = RegisterForm
+    template_name = 'events/event_register.html'
+    person = None
+    event = None
+    success_url = 'events:list'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.person = person_from_user(request)
+        self.event = Event.objects.get(pk=self.kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        participants = Participant.objects.filter(event=self.event)
+        context['event'] = self.event
+        context['participants'] = participants
+        if self.event.cost > 0:
+            context['buttons'] = [Button('Buy tickets')]
+            context['form_title'] = 'Buy tickets now'
+        else:
+            context['buttons'] = [Button('Sign up')]
+            context['form_title'] = 'Sign up now'
+        registered = participants.filter(person=self.person)
+        if registered:
+            context['tickets'] = registered[0].tickets
+            context['buttons'].append(Button('Cancel', css_class='btn-danger',
+                                             no_validate=True))
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            Participant.objects.filter(person=self.person).delete()
+            messages.warning(self.request, f'Your tickets have been cancelled')
+            return redirect(self.success_url)
+        else:
+            return super().post(request, *args, **kwargs)
+
+
+    def form_valid(self, form):
+        participants = Participant.objects.filter(event=self.event, person=self.person)
+        if len(participants) == 1:
+            part = participants[0]
+            part.tickets += form.cleaned_data['number_of_tickets']
+        else:
+            part = Participant(event=self.event, person=self.person,
+                               text=form.cleaned_data['special_diet'],
+                               tickets=form.cleaned_data['number_of_tickets'])
+        part.save()
+        messages.success(self.request, f'Thanks for buying tickets')
+        return redirect(self.success_url)
+
+
 class ParticipantListView(LoginRequiredMixin, DetailView):
     """
     Admin view: List participants in an event
@@ -184,6 +274,7 @@ class ParticipantListView(LoginRequiredMixin, DetailView):
         context['participants'] = participants
         return context
 
+
 class ParticipantDownloadView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
@@ -193,7 +284,6 @@ class ParticipantDownloadView(LoginRequiredMixin, View):
         except Event.DoesNotExist:
             return Http404
         return export_event(event)
-
 
 
 class ParticipantAddView(LoginRequiredMixin, DetailView):
@@ -305,7 +395,7 @@ class TournamentUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Tournament
     form_class = TournamentForm
     template_name = 'events/event_form.html'
-    success_url = reverse_lazy('events:tournament_table')
+    success_url = reverse_lazy('events:tournament_admin')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -337,7 +427,7 @@ class TournamentUpdateView(StaffuserRequiredMixin, UpdateView):
         request = self.request
         if 'delete' in request.POST:
             self.object.delete()
-            return redirect('events:tournament_table')
+            return redirect('events:tournament_admin')
         elif 'create-invoice-items' in request.POST:
             count = self.object.generate_bills()
             messages.success(self.request, f'{count} invoice items created')
@@ -355,7 +445,7 @@ class TournamentUpdateView(StaffuserRequiredMixin, UpdateView):
 class TournamentDetailView(LoginRequiredMixin, DetailView):
     model = Tournament
     template_name = 'events/tournament_detail.html'
-    success_url = reverse_lazy('events:tournament_table')
+    success_url = reverse_lazy('events:tournament_admin')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -374,6 +464,7 @@ class TournamentAdminView(StaffuserRequiredMixin, SingleTableView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Tournaments'
+        context['buttons'] = [LinkButton('Create tournament', reverse('events:tournament_create'))]
         return context
 
 
@@ -386,16 +477,6 @@ class TournamentDownloadView(StaffuserRequiredMixin, View):
         except Tournament.DoesNotExist:
             return Http404
         return export_tournament(tournament)
-
-
-class TournamentActiveView(View):
-
-    def get(self, request):
-        tours = Tournament.objects.filter(active=True)
-        if len(tours) == 1:
-            return redirect('events:tournament_detail', pk=tours[0].pk)
-        else:
-            return redirect('events:tournament_table')
 
 
 class TournamentPlayersView(ListView):

@@ -4,23 +4,27 @@
 
   <div class="text-center">
 
-  <h2 class="pt-3 pb-2">{{ tournament.name }}</h2>
-  <h5>Finals day: {{  tournament.finals_date }}</h5>
-  <h5><a href="{% static 'club/documents/Rules2018.pdf' %}">Tournament Rules</a></h5>
-  <h5><a href="{% static 'club/documents/Draw.pdf' %}">Draw</a></h5>
-  <a href="{% url 'diary:week_now' %}" class="btn btn-success">Book a court</a>
-  <a href="{% url 'events:tournament_players' pk=tournament.id %}" class="btn btn-success">Player details</a>
-  <p>Select an event to view the entrants</p>
+    <h2 class="pt-3 pb-2">{{ tournament.name }}</h2>
+    <h5>Finals day: {{  tournament.finals_date }}</h5>
+    {% if tournament.active %}
+      <h5><a href="{% static 'club/documents/Rules2018.pdf' %}">Tournament Rules</a></h5>
+      <h5><a href="{% static 'club/documents/Draw.pdf' %}">Draw</a></h5>
+      <a href="{% url 'diary:week_now' %}" class="btn btn-success">Book a court</a>
+      <a href="{% url 'events:tournament_players' pk=tournament.id %}" class="btn btn-success">Player details</a>
+      <p>Select an event to view the entrants</p>
 
-  <div class="row justify-content-center">
-    <div class="col-sm-12 col-md-6 col-lg-4">
-    <div class="card my-2">
-      <div class="list-group">
-        {% for event in event_list %}
-          <a class="list-group-item list-group-item-action" href="{% url 'events:detail' pk=event.id %}">{{ event.name }}</a>
-        {% endfor %}
+      <div class="row justify-content-center">
+        <div class="col-sm-12 col-md-6 col-lg-4">
+        <div class="card my-2">
+          <div class="list-group">
+            {% for event in event_list %}
+              <a class="list-group-item list-group-item-action" href="{% url 'events:detail' pk=event.id %}">{{ event.name }}</a>
+            {% endfor %}
+          </div>
       </div>
-  </div>
+    {% else %}
+      This tournament is no longer active
+    {% endif %}
 
   </div>
 

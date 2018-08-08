@@ -1,0 +1,67 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+  <div class="container">
+    <div class ="row">
+      <div class="col-md-6 bg-white border border-dark rounded my-2" style="background: yellow">
+        <h1 class="text-center pt-2 m-0 text-primary bg-white"><b>{{ event.name }}</b></h1><br>
+        <h4 class="text-center mb-2"><i>{{ event.strap_line }}</i></h4>
+        <div class="row">
+          <div class="col-md-4 mt-2 text-center"><h5>{{ event.end_date|date:"j M Y" }}</h5></div>
+          <div class="col-md-4 mt-2 text-center"><h5>{{ event.time|time:"g:i A" }}</h5></div>
+          <div class="col-md-4 mt-2 text-center"><h5>Tickets: {% if event.cost == 0 %}Free{% else %} £{{ event.cost }}{% endif %}</h5></div>
+        </div>
+        <p>{{ event.description|linebreaks }}</p>
+
+      </div>
+
+      <div class="col-md-3">
+
+        <form method="post"> {% csrf_token %}
+         <div class="card my-2">
+           <h5 class="card-header card-title bg-success text-center text-white mb-3" >{{ form_title }}</h5>
+            <div class="card-body pt-0">
+              {%  if form.errors %}
+                <div class="text-danger">
+                  <strong>Please correct the errors in red below:</strong>
+                </div>
+              {% endif %}
+              {% if event.cost %}<p>Tickets cost <b>£{{ event.cost }}</b>.</p>{% endif %}
+              {% if tickets %}
+                <p>You already have {{ tickets }} ticket{% if tickets > 1 %}s{% endif %}.<br>
+                To buy more enter the additional number below.</p>
+                <p>To cancel all your tickets press Cancel.<p>
+              {% endif %}
+              {% crispy form %}
+              {% if event.cost %}<small>Tickets will be charged to your club account.</small>{% endif %}
+              {% if event.cutoff_date %}<br>
+                <small>You can cancel before <b>{{event.cutoff_date }}</b>.
+                {% if event.cost %}After that tickets must be paid for.{% endif %}</small>
+              {% endif %}
+            </div>
+            <div class="card-footer">
+              {% for button in buttons %}
+                {% include '_button.html' %}
+              {% endfor %}
+            </div>
+          </div>
+        </form>
+      </div>
+
+
+      <div class="col-md-3">
+        <div class="card my-2">
+          <h5 class="card-header card-title bg-success text-center text-white" >
+            People signed up
+          </h5>
+          <div class="card-body text-center">
+              {% for p in participants %}
+                  {{ p.person.fullname }} {% if p.tickets > 1 %}({{ p.tickets }}){% endif %}<br>
+              {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

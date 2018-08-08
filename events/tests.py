@@ -32,7 +32,6 @@ class TournamentFactory(DjangoModelFactory):
     class Meta:
         model = Tournament
     event_cost = 5
-    active = True
     draw_date = datetime.datetime.now()
     finals_date = draw_date
 
@@ -51,6 +50,7 @@ class EventTestCase(TestCase):
     def test_bill_social_event(self):
         social = ItemTypeFactory()
         event = EventFactory(active=False, item_type=social)
+        event.description = 'My event'
         for i in range(10):
             event.add_person(PersonFactory())
         bill_data = event.billing_data()
@@ -59,6 +59,8 @@ class EventTestCase(TestCase):
         self.assertEqual(len(items), 10)
         for i in range(10):
             self.assertEqual(items[i].amount, 10)
+            self.assertEqual(items[i].item_type_id, ItemType.SOCIAL)
+            self.assertEqual(items[i].description, 'My event')
             self.assertEqual(items[i].person.first_name, f'first_name_{i}')
 
     def test_bill_tournament(self):
@@ -78,7 +80,7 @@ class EventTestCase(TestCase):
         self.assertEqual(tournament.billed, False)
         # generate bills should return 0 because tournament is active
         self.assertEqual(tournament.generate_bills(), 0 )
-        tournament.make_inactive()
+        tournament.make_active(False)
         self.assertEqual(Event.objects.filter(active=True).count(), 0),
         self.assertEqual(tournament.generate_bills(), 5)
         self.assertEqual(InvoiceItem.objects.filter(amount=5).count(), 5)

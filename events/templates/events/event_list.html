@@ -1,0 +1,33 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+  <div class="container">
+  {% if social %}
+    <h4 class="pt-2"><b>Social events</b></h4>
+      {% for event in social %}
+        <div class="row   border border-secondary mb-1" style="background: white">
+          <div class="col-md-2"><h5 class="pt-1">{{ event.end_date }}</h5></div>
+          <div class="col-md-4"><h4 class="pt-1 logo-orange" ><b>{{ event.name }}</b></h4></div>
+          <div class="col-md-4"><h5 class="pt-1">{{ event.strap_line }}</h5></div>
+          <span class="col-md-2"><a class="btn btn-success btn-block my-1" href="{% url 'events:register' pk=event.id %}">
+          More info & tickets</a>
+            {% if event.tickets %}<span class="text-center text-danger">You have {{ event.tickets }} ticket{% if event.tickets > 1 %}s{% endif %}</span>{% endif %}
+        </div>
+      {% endfor %}
+  {% else %}
+    There are no social events at this time.
+  {% endif %}
+  {% if tournaments %}
+    <h4>Tournaments</h4>
+    <ul class="list-group">
+      {% for tour in tournaments %}
+        <li class="list-group-item list-group-action-item">
+          <a href="{% url 'events:tournament_detail' pk=tour.id %}">{{ tour.name }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    There are no tournaments at this time.
+  {% endif %}
+  </div>
+  {% endblock %}

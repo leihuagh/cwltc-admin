@@ -54,7 +54,7 @@ else:
 
 
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 

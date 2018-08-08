@@ -2,6 +2,6 @@
 {% if button.href %}
   <a href="{{ button.href }}" class="{{ button.css_class }}">{{ button.text }}</a>
 {% else %}
-  <input type="submit" name="{{ button.name }}" class="mt-1 {{ button.css_class }} mb-1"
-         id="id-{{ button.name }}" value="{{ button.value }}">
+  <button type="submit" name="{{ button.name }}" class="mt-1 {{ button.css_class }} mb-1"
+          id="id-{{ button.name }}" {% if button.no_validate %} formnovalidate="true" {% endif %}>{{ button.value }}</button>
 {% endif %}

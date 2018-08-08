@@ -6,6 +6,17 @@ from members.models import ItemType, Person, ModelEnum, Membership, Settings
 from members.services import BillingData
 
 
+class TournamentActiveManager(models.Manager):
+    """ Return active tournaments - ie those with active events"""
+
+    def get_queryset(self):
+        tours = super().get_queryset()
+        active_ids = set()
+        for tour in tours:
+                active_ids.add(tour.id)
+        return tours.filter(pk__in=active_ids)
+
+
 class Tournament(models.Model):
     """ A tournament is a collection of events """
     name = models.CharField(max_length=50, blank=True)
@@ -14,10 +25,17 @@ class Tournament(models.Model):
     finals_date = models.DateField(blank=False, null=False)
     event_cost = models.DecimalField(max_digits=5, decimal_places=2, null=False)
 
+    objects = models.Manager()
+    active_objects = TournamentActiveManager()
+
     @property
     def billed(self):
         """ True if no associated unbilled events"""
         return self.event_set.filter(billed=False).count() == 0
+
+    @property
+    def active(self):
+        return self.event_count(True) > 0
 
     def event_count(self, active=True):
         """ True if any linked event is active"""
@@ -44,21 +62,21 @@ class Tournament(models.Model):
 
     def add_standard_events(self):
         Event.objects.create(name="Men's Singles", event_type=EventType.MENS_SINGLES, cost=self.event_cost,
-                             item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
         Event.objects.create(name="Ladies' Singles", event_type=EventType.LADIES_SINGLES, cost=self.event_cost,
-                             item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
         Event.objects.create(name="Men's Doubles", event_type=EventType.MENS_DOUBLES, cost=self.event_cost,
-                             item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
         Event.objects.create(name="Ladies' Doubles", event_type=EventType.LADIES_DOUBLES, cost=self.event_cost,
-                             item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
         Event.objects.create(name="Mixed Doubles", event_type=EventType.MIXED_DOUBLES, cost=self.event_cost,
-                             item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
         Event.objects.create(name="Men's Plate", event_type=EventType.MENS_DOUBLES, cost=0,
-                             item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
+                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
         Event.objects.create(name="Ladies' Plate", event_type=EventType.LADIES_DOUBLES, cost=0,
-                             item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
+                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
         Event.objects.create(name="Mixed Plate", event_type=EventType.MIXED_DOUBLES, cost=0,
-                             item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
+                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
 
     def players_list(self, for_choice_field=False):
         """ Returns a list of tuples containing player's fullname and id """
@@ -95,9 +113,13 @@ class Event(models.Model):
     """ Events can be social or other events. A tournament event is a special case """
        
     name = models.CharField(max_length=50, blank=False)
+    strap_line = models.CharField(max_length=100, blank=True)
     description = models.CharField(max_length=1000, blank=True)
     start_date = models.DateField(blank=True, null=True)
+    image =models.ImageField(null=True)
     end_date = models.DateField(blank=True, null=True)
+    cutoff_date = models.DateField(blank=True, null=True)
+    time = models.TimeField(blank=True, null=True)
     cost = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, null=True, blank=True)
     active = models.BooleanField(default=True)
@@ -111,6 +133,13 @@ class Event(models.Model):
 
     def add_person(self, person, partner=None, text=""):
         Participant.objects.create(event=self, person=person, partner=partner, text=text)
+
+    def ticket_count(self, person):
+        records = self.participant_set.filter(person=person)
+        if records:
+            return records[0].tickets
+        else:
+            return 0
 
     def with_partner(self):
         """ True if event must have a partner """
@@ -241,7 +270,8 @@ class Event(models.Model):
                     else:
                         dict[p.partner_id] = self.cost
             records = Event.objects.filter(id=self.id) # need a queryset of records to be updated
-            return BillingData(self.item_type, dict, records, self.description, self.end_date)
+            return BillingData(self.item_type, dict, records,
+                               transactions=None, description=self.name, date=self.end_date)
 
 
 class Participant(models.Model):
@@ -249,8 +279,7 @@ class Participant(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE, blank=False, null=False)
     partner = models.ForeignKey(Person, on_delete=models.CASCADE, blank=True, null=True, related_name='partner')
     text = models.CharField(max_length=100, blank=True)
+    tickets = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.event.name}: {self.person.fullname}'
-
-    

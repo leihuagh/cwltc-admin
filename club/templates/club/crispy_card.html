@@ -18,7 +18,7 @@
               {% endfor %}
             {% endif %}
             {% if info %}
-              <p>{{ info }}</p>
+              <p>{{ info|linebreaks }}</p>
             {%  endif %}
             {%  if form.errors %}
               <div class="text-danger">
@@ -26,7 +26,7 @@
               </div>
             {% endif %}
             {% crispy form %}
-{#              {% crispy child_form %}#}
+            {% if footnote %} <p class="text-muted">{{ footnote|linebreaks }}{% endif %}
           </div>
           <div class="card-footer">
             {% for button in buttons %}
@@ -39,3 +39,10 @@
     </div>
   </div>
 {% endblock content %}
+{% block scripts %}
+    <script>
+        $('#datepicker').datepicker({
+            uiLibrary: 'bootstrap4'
+        });
+    </script>
+{% endblock %}
