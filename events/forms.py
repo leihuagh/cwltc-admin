@@ -42,11 +42,11 @@ class SocialEventForm(ModelForm):
             'image',
             'active',
         ]
-        widgets = {'date': DatePicker(options=dateOptions),
-                   'cutoff_date': DatePicker(options=dateOptions),
-                   'description': forms.Textarea(),
-                   }
-
+        # widgets = {'date': DatePicker(options=dateOptions),
+        #            'cutoff_date': DatePicker(options=dateOptions),
+        #            'description': forms.Textarea(),
+        #            }
+        widgets = {'description': forms.Textarea()}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

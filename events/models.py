@@ -142,8 +142,8 @@ class Event(models.Model):
 
     @property
     def total_ticket_count(self):
-        return self.participant_set.all().aggregate(total=Sum('tickets'))['total']
-
+        result = self.participant_set.all().aggregate(total=Sum('tickets'))['total']
+        return result if result else 0
 
     def with_partner(self):
         """ True if event must have a partner """
