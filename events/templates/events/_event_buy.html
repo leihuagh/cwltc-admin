@@ -1,0 +1,30 @@
+{% load crispy_forms_tags %}
+<form method="post">{% csrf_token %}
+ <div class="card my-2">
+   <h5 class="card-header card-title bg-success text-center text-white mb-3" >{{ form_title }}</h5>
+    <div class="card-body pt-0">
+      {%  if form.errors %}
+        <div class="text-danger">
+          <strong>Please correct the errors in red below:</strong>
+        </div>
+      {% endif %}
+      {% if event.cost %}<p>Tickets cost <b>£{{ event.cost }}</b>.</p>{% endif %}
+      {% if tickets %}
+        <p>You already have {{ tickets }} ticket{% if tickets > 1 %}s{% endif %}.<br>
+        To buy more enter the additional number below.</p>
+        <p>To cancel all your tickets press Cancel.<p>
+      {% endif %}
+      {% crispy form %}
+      {% if event.cost %}<small>Tickets will be charged to your club account.</small>{% endif %}
+      {% if event.cutoff_date %}<br>
+        <small>You can cancel before <b>{{event.cutoff_date }}</b>.
+        {% if event.cost %}After that tickets must be paid for.{% endif %}</small>
+      {% endif %}
+    </div>
+    <div class="card-footer">
+      {% for button in buttons %}
+        {% include '_button.html' %}
+      {% endfor %}
+    </div>
+  </div>
+</form>

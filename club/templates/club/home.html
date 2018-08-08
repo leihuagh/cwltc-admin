@@ -8,8 +8,10 @@
  {% endblock %}
 {% block content %}
   <div class="row">
-    <div class="col-md-12">
+    <div class="col-12">
       <div class="logo logo-green text-center small pt-4">Welcome<span class="logo-orange small"> to the Members' Website</span></div>
+    </div>
+    <div class="col-md-9">
       <h2>Club News</h2>
       <p>
 
@@ -34,25 +36,18 @@
         It is particularly relevant to new members, but established members will also benefit from reading it. Parents of juniors should
         also read the separate document, Information for Juniors.
         <p>
-
     </div>
-{#    <div class="col-md-3">#}
-{#      <div class="row bg-white">#}
-{#        <div class="col-12 border border-top-0 border-info py-1">#}
-{#          <h4 class="logo-green text-center">Finals Day</h4>#}
-{#            <img src="{% static 'club/images/trophies.jpg' %}" class="img-fluid">#}
-{#          <br>#}
-{#          <h5 class="text-center pt-2 logo-orange">Saturday 14 July</h5>#}
-{#          <p>Don't miss the adult and junior finals.#}
-{#          Please sign up in the club if you will attend the barbecue afterwards.</p>#}
-{#        </div>#}
-{#        <div class="col-12 border border-top-0 border-info py-1">#}
-{#          <img src="{% static 'club/images/EricSmith.jpg' %}" class="img-fluid">#}
-{#          <h6 class="text-center pt-1">Eric Smith Memorial Tournament<br>#}
-{#          We raised over £600!</h6>#}
-{#        </div>#}
-{#      </div>#}
-{#    </div>#}
+
+    <div class="col-md-3">
+      <div class="row bg-white">
+        <div class="col-12 mt-5 py-1">
+          <a href="/events/list">
+            <img src="{% static 'club/images/summer_party_small.PNG' %}" class="img-fluid" >
+        </a>
+          <br>
+        </div>
+      </div>
+    </div>
   </div>
 
 {% endblock %}

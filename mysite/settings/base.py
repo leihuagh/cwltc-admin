@@ -17,12 +17,6 @@ env = environ.Env(DEBUG=(bool, False), )  # set default values and casting
 
 BASE_DIR = str(root)
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-
-# This is where the static files get served from
-STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
-
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -81,7 +75,13 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+# This is where the static files get served from
+STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 TEMPLATES = [
     {

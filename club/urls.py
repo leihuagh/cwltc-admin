@@ -22,5 +22,6 @@ urlpatterns = [
     path('account/teas/<int:pk>/', PosListView.as_view(bar=False), name='club_account_teas'),
     path('account/visitors/<int:pk>/', VisitorsListView.as_view(), name='club_account_visitors'),
     path('account/pos-detail/<int:pk>/', PosDetailView.as_view(), name='club_pos_detail'),
+    path('upload', model_form_upload, name='club_upload')
     ]
 

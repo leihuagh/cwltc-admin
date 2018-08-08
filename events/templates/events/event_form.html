@@ -6,7 +6,7 @@
   {% if title %}<h3 class="text-center">{{ title }}</h3>{% endif %}
   <div class="row justify-content-center">
     <div class="col-sm-12 col-md-6">
-      <form method="POST" novalidate="">
+      <form method="POST"  enctype="multipart/form-data" novalidate="">
         <div class="card my-2">
           {% if form_title %}
             <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>

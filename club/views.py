@@ -1,4 +1,4 @@
-from django.shortcuts import reverse, redirect
+from django.shortcuts import reverse, redirect, render
 from django.views.generic import DetailView, TemplateView, UpdateView, FormView
 from django.core.signing import Signer
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -12,7 +12,8 @@ from members.views import set_person_context, add_membership_context, SingleTabl
 from members.services import person_statement
 from public.forms import NameForm, AddressForm, ConsentForm
 from public.views import InvoicePublicView
-
+from .models import Document
+from .forms import DocumentForm
 
 # Club Members views
 
@@ -274,3 +275,16 @@ def person_from_user(request):
         except ObjectDoesNotExist:
             pass
     raise PermissionDenied
+
+
+def model_form_upload(request):
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = DocumentForm()
+    return render(request, 'club/model_form_upload.html', {
+        'form': form
+    })

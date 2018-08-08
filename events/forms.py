@@ -12,7 +12,6 @@ class TournamentEventForm(ModelForm):
             'name',
             'description',
             'event_type',
-            'start_date',
             'end_date',
             'cost',
             'active',
@@ -36,16 +35,15 @@ class SocialEventForm(ModelForm):
             'name',
             'strap_line',
             'description',
-            'start_date',
             'end_date',
             'cutoff_date',
             'time',
             'cost',
+            'image',
             'active',
             'online_entry'
         ]
-        widgets = {'start_date': DatePicker(options=dateOptions),
-                   'end_date': DatePicker(options=dateOptions),
+        widgets = {'end_date': DatePicker(options=dateOptions),
                    'cutoff_date': DatePicker(options=dateOptions),
                    'time': TimePicker()
                    }

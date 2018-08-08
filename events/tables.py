@@ -13,6 +13,7 @@ class EventTable(tables.Table):
     name = tables.LinkColumn('events:update', args=[A('pk')], text=lambda record: record.name)
     tournament = tables.LinkColumn('events:tournament_update', args=[A('tournament.id')],
                                    text=lambda record: record.tournament.name)
+    preview = tables.LinkColumn('events:register', args=[A('pk')], text='Preview', orderable=False)
 
 
 class TournamentTable(tables.Table):

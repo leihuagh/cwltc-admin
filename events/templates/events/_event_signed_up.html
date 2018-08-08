@@ -1,0 +1,10 @@
+<div class="card my-2">
+  <h5 class="card-header card-title bg-success text-center text-white" >
+    People signed up
+  </h5>
+  <div class="card-body text-center">
+      {% for p in participants %}
+          {{ p.person.fullname }} {% if p.tickets > 1 %}({{ p.tickets }}){% endif %}<br>
+      {% endfor %}
+  </div>
+</div>
