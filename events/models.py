@@ -12,6 +12,7 @@ class TournamentActiveManager(models.Manager):
         tours = super().get_queryset()
         active_ids = set()
         for tour in tours:
+            if tour.active:
                 active_ids.add(tour.id)
         return tours.filter(pk__in=active_ids)
 

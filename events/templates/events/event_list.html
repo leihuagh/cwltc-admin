@@ -2,8 +2,9 @@
 {% load static %}
 {% block content %}
   <div class="container">
+  <h4 class="pt-2"><b>Social events</b></h4>
   {% if social %}
-    <h4 class="pt-2"><b>Social events</b></h4>
+
       {% for event in social %}
         <div class="row   border border-secondary mb-1" style="background: white">
           <div class="col-md-2"><h5 class="pt-1">{{ event.date }}</h5></div>
@@ -15,19 +16,18 @@
         </div>
       {% endfor %}
   {% else %}
-    There are no social events at this time.
+    <p>There are no social events at this time.</p>
   {% endif %}
+  <h4 class="pt-2"><b>Tournaments</b></h4>
   {% if tournaments %}
-    <h4 class="pt-2"><b>Tournaments</b></h4>
-      {% for tour in tournaments %}
-        <div class="row   border border-secondary mb-1" style="background: white">
-          <div class="col-md-10"><h5 class="pt-1">{{ tour.name }}</h5></div>
-          <span class="col-md-2"><a class="btn btn-success btn-block my-1" href="{% url 'events:tournament_detail' pk=tour.id %}">Details</a></span>
-        </div>
-      {% endfor %}
-
+    {% for tour in tournaments %}
+      <div class="row   border border-secondary mb-1" style="background: white">
+        <div class="col-md-10"><h5 class="pt-1">{{ tour.name }}</h5></div>
+        <span class="col-md-2"><a class="btn btn-success btn-block my-1" href="{% url 'events:tournament_detail' pk=tour.id %}">Details</a></span>
+      </div>
+    {% endfor %}
   {% else %}
-    There are no tournaments at this time.
+    <p>There are no tournaments at this time.</p>
   {% endif %}
   </div>
   {% endblock %}
