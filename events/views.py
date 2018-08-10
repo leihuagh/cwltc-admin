@@ -1,11 +1,10 @@
 import logging
 from django.views.generic import DetailView, CreateView, UpdateView, ListView, TemplateView, View, FormView
 from django.urls import reverse, reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.http import Http404
-from braces.views import StaffuserRequiredMixin
+from braces.views import StaffuserRequiredMixin, LoginRequiredMixin
 from mysite.common import Button, LinkButton
 from club.views import person_from_user
 from members.views import SingleTableView
@@ -202,7 +201,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
         return redirect('events:tournament_detail', pk=event.tournament.id)
 
 
-class EventRegisterView(LoginRequiredMixin, FormView):
+class EventRegisterView(FormView):
     """ User can register for a social event
     """
 
@@ -213,7 +212,7 @@ class EventRegisterView(LoginRequiredMixin, FormView):
     success_url = 'events:list'
 
     def dispatch(self, request, *args, **kwargs):
-        self.person = person_from_user(request)
+        self.person = person_from_user(request, raiseException=False)
         self.event = Event.objects.get(pk=self.kwargs['pk'])
         return super().dispatch(request, *args, **kwargs)
 
@@ -228,8 +227,14 @@ class EventRegisterView(LoginRequiredMixin, FormView):
         context['event'] = self.event
         context['participants'] = participants
         if self.event.cost > 0:
-            context['buttons'] = [Button('Buy tickets')]
-            context['form_title'] = 'Buy tickets now'
+            if self.event.online_entry:
+                context['form_title'] = 'Tickets available'
+                if self.request.user.is_authenticated:
+                    context['buttons'] = [Button('Buy tickets')]
+                else:
+                    context['buttons'] = [LinkButton('Login to buy tickets', reverse('public-home'))]
+            else:
+                context['form_title'] = 'Sorry - Sold out'
         else:
             context['buttons'] = [Button('Sign up')]
             context['form_title'] = 'Sign up now'

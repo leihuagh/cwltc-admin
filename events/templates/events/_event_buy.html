@@ -14,7 +14,9 @@
         To buy more enter the additional number below.</p>
         <p>To cancel all your tickets press Cancel.<p>
       {% endif %}
-      {% crispy form %}
+      {% if request.user.is_authenticated %}
+        {% crispy form %}
+      {% endif %}
       {% if event.cost %}<small>Tickets will be charged to your club account.</small>{% endif %}
       {% if event.cutoff_date %}<br>
         <small>You can cancel before <b>{{event.cutoff_date }}</b>.

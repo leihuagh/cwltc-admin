@@ -263,7 +263,7 @@ class HistoryView(LoginRequiredMixin, TemplateView):
         return context
 
 
-def person_from_user(request):
+def person_from_user(request, raiseException=True):
     """
     Return a person object for the logged in user
     Should be called by views that inherit LoginRequiredMixin but if
@@ -274,8 +274,9 @@ def person_from_user(request):
             return Person.objects.get(auth_id=request.user.id)
         except ObjectDoesNotExist:
             pass
-    raise PermissionDenied
-
+    if raiseException:
+        raise PermissionDenied
+    return None
 
 def model_form_upload(request):
     if request.method == 'POST':
