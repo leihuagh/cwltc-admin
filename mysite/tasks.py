@@ -1,4 +1,5 @@
 import logging
+from django.conf import settings
 from celery import shared_task, Celery
 
 from celery.schedules import crontab
@@ -9,7 +10,7 @@ from datetime import datetime
 stdlogger = logging.getLogger(__name__)
 logger = get_task_logger(__name__)
 
-app = Celery()
+app = Celery('tasks', backend='amqp', broker=settings.BROKER_URL)
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
