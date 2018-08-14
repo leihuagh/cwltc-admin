@@ -10,7 +10,7 @@ from datetime import datetime
 stdlogger = logging.getLogger(__name__)
 logger = get_task_logger(__name__)
 
-app = Celery('tasks', backend='amqp', broker=settings.BROKER_URL)
+app = Celery('mysite', backend='amqp', broker=settings.BROKER_URL)
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
