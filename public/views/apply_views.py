@@ -384,8 +384,44 @@ class ApplySubmitView(FormView):
             return redirect(session.back(index, request))
         return super().post(self, request, *args, **kwargs)
 
-    @transaction.atomic
     def form_valid(self, form):
+        error, names = self.process(form)
+
+        if error:
+            message = ("Sorry, an error occurred while processing the form. {0}").format(error)
+            logger.error(message)
+            return HttpResponse(message)
+
+        try:
+            # Message to membership secretary
+            from_mail = getattr(settings, "INFO_EMAIL", None)
+            admins = getattr(settings, "ADMINS", None)
+            if from_mail and admins:
+                to_list = []
+                for admin in admins:
+                    to_list.append(admin[1])
+                message = 'Applicants: '
+                for name in names:
+                    message += f' {name},'
+                send_mail('New membership application',
+                          message[:-1],
+                          from_mail, to_list)
+            # message to user
+            from_email = getattr(settings, "SUBS_EMAIL", None)
+            to_email = self.request.session['person'].email
+            if from_email and to_email:
+                send_mail('Coombe Wood membership application',
+                          f'Thank you for applying to join Coombe Wood LTC. Your application is being processed.',
+                          from_email, [to_email])
+        except:
+            logger.error("Post-application mail failed")
+        return redirect('public-apply-thank-you')
+
+
+    @transaction.atomic
+    def process(self, form):
+        """ process the form and return any error and a list of names that applied """
+        names = []
         try:
             person = self.request.session['person']
             address = self.request.session['address']
@@ -396,7 +432,8 @@ class ApplySubmitView(FormView):
             person.allow_marketing = self.request.POST['marketing'] == 'yes'
             person.consent_date = datetime.today()
             person.save()
-        
+            names.append(person.fullname)
+
             posts = self.request.session['posts']
             i = 1
             if session.is_adult_application(self.request):
@@ -426,6 +463,8 @@ class ApplySubmitView(FormView):
                     fam_member.state = Person.APPLIED
                     fam_member.date_joined = person.date_joined
                     fam_member.save()
+                    names.append(fam_member.fullname)
+
                     i += 1
                     child = False
                     if posts[i]['form_class'] == AdultContactForm.__name__:
@@ -449,28 +488,25 @@ class ApplySubmitView(FormView):
                     profile.person = fam_member
                     profile.save()
                 i += 1
-            session.clear(self.request)
-            from_mail = getattr(settings, "INFO_EMAIL", None)
-            admins = getattr(settings, "ADMINS", None)
-            if admins:
-                to_list = []
-                for admin in admins:
-                    to_list.append(admin[1])
-                send_mail("New application received",
-                          "Someone has applied to join the club.",
-                          from_mail,
-                          to_list,
-                          )
-            return redirect('public-apply-thank-you')
-
+            return None, names
         except ValueError as error:
-            message = ("Sorry, an error occurred while processing the form. {0}").format(error)
-            logger.error(message)
-            return HttpResponse(message)
+            return error, []
 
 
 class ApplyThankYouView(TemplateView):
     template_name = 'public/apply_thanks.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        person = self.request.session.get('person', None)
+        admins = getattr(settings, "ADMINS", None)
+        membership_email = admins[0][1] if admins else '<no membership email>'
+        session.clear(self.request)
+        context['subs_email'] = getattr(settings, "SUBS_EMAIL", None)
+        context['info_email'] =getattr(settings, "INFO_EMAIL", None)
+        context['membership_email'] = membership_email
+        context['email'] = person.email if person else '<no email>'
+        return context
 
 
 class PrivacyPolicyView(TemplateView):

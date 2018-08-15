@@ -1,10 +1,16 @@
 ﻿{% extends "public/base.html" %}
 
 {% block content%}
-  <div class="text-center mt-2">
-     <h3 class="pt-2"> Application form received</h3>
-    <p> Thank you for applying for membership. Your application will be considered and we will get back to you shortly.</p>
-    <p> if you have any questions about your membership please mail the <a href="mailto:membership@coombewoodltc.co.uk">
-      membership secretary</a></p>
+  <div class="mt-2">
+     <h3 class="pt-2 text-center"> Application form received</h3>
+    <p> Thank you for applying for membership of Coombe Wood LTC. Your application will be considered and we will get
+      back to you shortly.</p>
+    <p>We have sent an acknowledgement email to <b>{{ email }}</b> from our membership system's address <b>{{ subs_email }}</b>.
+      Please check that you have received that email.</p>
+    <p>Sometimes, particularly with hotmail, msn or outlook addresses, our emails
+      get put into your spam or junk mail folder. If that happens, please add <b>{{ subs_email }}</b> and <b>{{ info_email }}</b>
+      to your safe senders list.</p>
+    <p>If you do not receive an acknowledgement email or have any questions about your membership application,
+      please mail the <a href="mailto:{{ membership_email }}"> membership secretary.</a></p>
   </div>
 {% endblock content %}
