@@ -4,7 +4,7 @@ from django.conf import settings
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.digitalocean')
 
-app = Celery('mysite', broker=settings.BROKER_URL)
+app = Celery('mysite')
 #app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
