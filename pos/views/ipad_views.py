@@ -15,6 +15,7 @@ from braces.views import GroupRequiredMixin
 from public.views import RegisterView, RegisterTokenView, ConsentTokenView
 from mysite.common import Button
 from members.models import VisitorFees, Settings
+from events.views import EventRegisterView
 from pos.tables import *
 from pos.forms import TerminalForm, VisitorForm, DobForm
 from pos.services import create_transaction_from_receipt, build_pos_array, PosServicesError
@@ -91,9 +92,13 @@ class StartView(LoginRequiredMixin, TemplateView):
             return redirect('pos_start')
 
         for key, value in request.POST.items():
-            if key[0:4] == 'App_':
+            if key[0:4] == 'app_':
                 app = PosApp.objects.get(id=key[4:])
-                request.session['app'] = app
+                request.session['app'] = PosApp.objects.get(id=key[4:])
+                return redirect('pos_user')
+            if key[0:6] == 'event_':
+                parts = key[6:].split('.')
+                request.session['app'] = PosApp.objects.filter(event_id=parts[0])[0]
                 return redirect('pos_user')
         return redirect('pos_start')
 
@@ -180,8 +185,11 @@ class GetPasswordView(LoginRequiredMixin, TemplateView):
                         if password and user.check_password(password):
                             authorised = True
                     if authorised:
+                        # Redirect to selected app
                         app = request.session.get('app', None)
                         if app:
+                            if app.event:
+                                return redirect('pos_event_register', pk=app.event.id)
                             try:
                                 url = reverse(app.view_name)
                                 return redirect(url)
@@ -465,6 +473,14 @@ class LookupMemberView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return add_context(context, self.request)
+
+
+class PosEventRegisterView(EventRegisterView):
+    template_name = 'pos/event_register.html'
+
+    def post(self, request, *args, **kwargs):
+        super().post(request, args, kwargs)
+        return redirect('pos_event_register', pk=self.event.id)
 
 
 def ajax_items_view(request):

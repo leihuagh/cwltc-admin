@@ -5,7 +5,7 @@
   {%  include '_logo_banner.html' %}
 
   <div class="container">
-  <div class="jumbotron text-center bg">
+  <div class="text-center bg">
     <h1 class="text-center"><strong>
       {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
     <br>
@@ -13,33 +13,48 @@
       <div class="row">
         <p class="ipad-error">{{ request.session.message }}</p>
         <form method="post">{% csrf_token %}
-          {% for app in apps %}
-            {% if is_bar %}
-              <button class="posbutton btn-large btn-block" type="submit" name="App_{{ app.id }}">{{ app.name }}</button>
-              {% if attended %}
-                <br/><br/><br/>
-                <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
-                <br>
-              {% endif %}
-            {% else %}
-              <div class="row">
-                <div class="col-md-2 col-md-offset-4 text-center">
-                  <button class="posbutton btn-large btn-block" type="submit" name="App_{{ app.id }}">{{ app.name }}</button>
-                </div>
-                <div class="col-md-5 col-md-offset-1">
-                  <p class="hint">{{ app.description }}</p>
-                </div>
-              </div>
+          {% if is_bar %}
+            <button class="posbutton btn-large btn-block" type="submit" name="App_{{ app.id }}">{{ app.name }}</button>
+            {% if attended %}
+              <br/><br/><br/>
+              <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
+              <br>
             {% endif %}
-                <br>
-          {% endfor %}
+          {% else %}
+            <div class="row">
+              <div class="col-md-4">
+                {% for app in apps %}
+                  {% if app.event %}
+                    <input type="image" name="event_{{ app.event.id }}" src="{{ app.event.image.url }}" class="img-responsive">
+                    <h3>Touch the picture to book</h3>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <div class="col-md-8">
+                {% for app in apps %}
+                  {% if not app.event %}
+                    <div class="row">
+                      <div class="col-md-6 text-center">
+                        <button class="posbutton btn-large btn-block" type="submit" name="app_{{ app.id }}">{{ app.name }}</button>
+                      </div>
+                      <div class="col-md-6">
+                        <p class="hint">{{ app.description }}</p>
+                      </div>
+                    </div>
+                    <br>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+          <br>
         </form>
       </div>
 
       <p class="hint">All members who have paid their subscription can use this system after registration.<br>
-          You can register now by pressing the button and searching for your name.</p>
+          You can register now by pressing any button above and searching for your name.</p>
     </div>
-    <p id="idOfflineMessage"></p><!-- division is visible if ping fails -->
+    <p id="idOfflineMessage">Sorry, the server is offline. Please try later.</p><!-- division is visible if ping fails -->
   </div>
 </div>
 <div class="terminal">Terminal: {{ request.session.terminal }}

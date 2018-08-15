@@ -1,8 +1,10 @@
 from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import User
+from events.models import Event
 from members.models import Person, ItemType
 from members.services import BillingData
+
 
 TWO_PLACES = Decimal(10) ** -2
 
@@ -172,6 +174,7 @@ class PosApp(models.Model):
     enabled = models.BooleanField(default=True)
     view_name = models.CharField(max_length=25, blank=False)
     attended = models.BooleanField(default=False)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, blank=True, null=True)
 
     def is_bar_app(self):
         if self.layout:

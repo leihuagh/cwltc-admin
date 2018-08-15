@@ -202,14 +202,13 @@ class EventDetailView(LoginRequiredMixin, DetailView):
 
 
 class EventRegisterView(FormView):
-    """ User can register for a social event
-    """
+    """ User can register for a social event """
 
     form_class = RegisterForm
-    template_name = 'events/event_register.html'
     person = None
     event = None
     success_url = 'events:list'
+    template_name = 'events/event_register.html'
 
     def dispatch(self, request, *args, **kwargs):
         self.person = person_from_user(request, raiseException=False)

@@ -166,9 +166,10 @@ class AppForm(ModelForm):
     class Meta:
         model = PosApp
         fields = ['name', 'description', 'layout', 'allow_juniors', 'view_name', 'bar_system', 'main_system',
-                  'enabled', 'index']
+                  'enabled', 'index', 'event']
 
     layout = forms.ModelChoiceField(required=False, queryset=Layout.objects.all())
+    event = forms.ModelChoiceField(required=False, queryset=Event.objects.filter(active=True, online_entry=True))
 
     def __init__(self, *args, **kwargs):
         delete = kwargs.pop('delete', None)
@@ -177,7 +178,7 @@ class AppForm(ModelForm):
         self.helper.layout = CrispyLayout(
             Div(
                 'name', 'description', 'layout', 'allow_juniors', 'view_name', 'bar_system', 'main_system',
-                'enabled', 'index',
+                'enabled', 'index', 'event',
             ),
             FormActions(
                 SubmitButton('save', 'Save', css_class='btn-primary'),
@@ -190,11 +191,12 @@ class AppForm(ModelForm):
             )
 
     def clean_view_name(self):
+        view_name = self.cleaned_data['view_name']
         try:
-            reverse(self.cleaned_data['view_name'])
+            reverse(view_name)
         except NoReverseMatch:
-            self.add_error('view_name', 'Name does not exist')
-        return self.cleaned_data['view_name']
+            raise forms.ValidationError('Bad view name')
+        return view_name
 
 
 class DobForm(forms.Form):

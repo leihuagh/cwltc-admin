@@ -32,6 +32,8 @@ urlpatterns = [
     url(r'^register/token/(?P<token>.+)/$', PosRegisterTokenView.as_view(), name='pos_register_token'),
     url(r'^consent/token/(?P<token>.+)/$', PosConsentView.as_view(), name='pos_consent_token'),
 
+    url(r'^event/register/(?P<pk>\d+)/$', PosEventRegisterView.as_view(), name='pos_event_register'),
+
     url(r'^member/$', MemberSelectView.as_view(), name='pos_member'),
     url(r'^transactions/$', TransactionListView.as_view(), name='pos_transactions'),
     url(r'^transactions/main/$', TransactionListView.as_view(main_menu=True), name='pos_transactions_main'),

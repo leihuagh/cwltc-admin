@@ -10,9 +10,9 @@
       {% endif %}
       {% if event.cost %}<p>Tickets cost <b>£{{ event.cost }}</b>.</p>{% endif %}
       {% if tickets %}
-        <p>You already have {{ tickets }} ticket{% if tickets > 1 %}s{% endif %}.<br>
-        To buy more enter the additional number below.</p>
-        <p>To cancel all your tickets press Cancel.<p>
+        <p>You already have <b>{{ tickets }} ticket{% if tickets > 1 %}s{% endif %}</b>.
+        To buy more enter the additional number below.
+        To cancel all your tickets press Cancel.<p>
       {% endif %}
       {% if request.user.is_authenticated %}
         {% crispy form %}
