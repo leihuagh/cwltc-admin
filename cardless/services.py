@@ -260,22 +260,39 @@ def detokenise(token, model_class):
         return model_class.objects.get(pk=pk)
     except model_class.DoesNotExist:
         return None
+#
+#
+# def person_from_token(token, is_invoice_token):
+#     try:
+#         id = Signer().unsign(token)
+#     except:
+#         return None
+#     if is_invoice_token:
+#         try:
+#             id = Invoice.objects.get(pk=id).person_id
+#         except Invoice.DoesNotExist:
+#             return None
+#     try:
+#         return Person.objects.get(pk=id)
+#     except Person.DoesNotExist:
+#         return None
 
 
-def person_from_token(token, is_invoice_token):
+def person_from_token(token, model_class):
     try:
         id = Signer().unsign(token)
     except:
         return None
-    if is_invoice_token:
+    if model_class != Person:
         try:
-            id = Invoice.objects.get(pk=id).person_id
+            id = model_class.objects.get(pk=id).person_id
         except Invoice.DoesNotExist:
             return None
     try:
         return Person.objects.get(pk=id)
     except Person.DoesNotExist:
         return None
+
 
 
 def iso_date(in_date):

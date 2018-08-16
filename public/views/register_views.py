@@ -36,7 +36,7 @@ class GoOnlineView(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.token = kwargs.pop('token')
-        self.person = person_from_token(self.token, is_invoice_token=True)
+        self.person = person_from_token(self.token, Invoice)
         if self.person.auth:
             kwargs['token'] = self.token
             return ConsentTokenView.as_view(invoice=True)(request, *args, **kwargs)
@@ -171,7 +171,8 @@ class ConsentTokenView(FormView):
 
     def dispatch(self, request, *args, **kwargs):
         self.token = kwargs['token']
-        self.person = person_from_token(self.token, is_invoice_token=self.invoice)
+        model_class = Invoice if self.invoice else Person
+        self.person = person_from_token(self.token, model_class)
         if self.person:
             return super().dispatch(request, *args, **kwargs)
         messages.error(self.request, 'Invalid token')

@@ -131,7 +131,7 @@ class InvoicePublicView(DetailView):
 
 class ContactView(FormView):
     """
-    Send a message. None token is a person token
+    Send a message. Note token is a person token
     """
     form_class = ContactForm
     template_name = 'public/crispy_form.html'
@@ -145,7 +145,7 @@ class ContactView(FormView):
     def get_initial(self):
         initial = super().get_initial()
         if self.token:
-            person = person_from_token(self.token, is_invoice_token=False)
+            person = person_from_token(self.token, Person)
             initial.update({'email': person.email})
         return initial
 
