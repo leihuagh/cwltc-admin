@@ -14,7 +14,7 @@
         To buy more enter the additional number below.
         To cancel all your tickets press Cancel.<p>
       {% endif %}
-      {% if request.user.is_authenticated %}
+      {% if person %}
         {% crispy form %}
       {% endif %}
       {% if event.cost %}<small>Tickets will be charged to your club account.</small>{% endif %}

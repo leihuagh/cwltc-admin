@@ -9,6 +9,7 @@ from mysite.common import Button, LinkButton
 from club.views import person_from_user
 from members.views import SingleTableView
 from members.models import Person, ItemType
+from cardless.services import person_from_token
 from events.models import Event, Participant, Tournament
 from events.forms import SocialEventForm, TournamentEventForm, TournamentForm, RegisterForm
 from events.download import export_event, export_tournament
@@ -211,7 +212,13 @@ class EventRegisterView(FormView):
     template_name = 'events/event_register.html'
 
     def dispatch(self, request, *args, **kwargs):
-        self.person = person_from_user(request, raiseException=False)
+
+        token = self.kwargs.get('token', None)
+        if token:
+            self.person = person_from_token(token, Person)
+        else:
+            self.person = person_from_user(request, raiseException=False)
+
         self.event = Event.objects.get(pk=self.kwargs['pk'])
         return super().dispatch(request, *args, **kwargs)
 
@@ -224,11 +231,12 @@ class EventRegisterView(FormView):
         context = super().get_context_data(**kwargs)
         participants = Participant.objects.filter(event=self.event)
         context['event'] = self.event
+        context['person'] = self.person
         context['participants'] = participants
         if self.event.cost > 0:
             if self.event.online_entry:
                 context['form_title'] = 'Tickets available'
-                if self.request.user.is_authenticated:
+                if self.request.user.is_authenticated or self.person:
                     context['buttons'] = [Button('Buy tickets')]
                 else:
                     context['buttons'] = [LinkButton('Login to buy tickets', reverse('public-home'))]
@@ -265,6 +273,11 @@ class EventRegisterView(FormView):
         part.save()
         messages.success(self.request, f'Thanks for buying tickets')
         return redirect(self.success_url)
+
+
+class EventRegisterDone(TemplateView):
+    """ Used when registered without being logged in """
+    template_name = 'events/register_done..html'
 
 
 class ParticipantListView(LoginRequiredMixin, DetailView):

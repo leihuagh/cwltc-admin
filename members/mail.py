@@ -5,7 +5,8 @@ from django.shortcuts import render_to_response, reverse
 from django.utils.html import strip_tags
 from django.core.signing import Signer
 from django.conf import settings as django_settings
-from .models import Invoice, TextBlock, MailType, Membership, Settings
+from events.models import Event
+from .models import Invoice, TextBlock, MailType, Membership, Settings, ItemType
 
 
 def do_mail(request, invoice, option):
@@ -138,9 +139,17 @@ def send_template_mail(request, person, text,
             for inv in unpaid_invoices:
                 total_unpaid += inv.total
                 token = signer.sign(inv.id)
-                url= request.build_absolute_uri(reverse('invoice-public', args=(token,)))
+                url = request.build_absolute_uri(reverse('invoice-public', args=(token,)))
                 anchor ='<p><a href="' + url + '">Invoice ' + str(inv.id) + '</a><p>'
                 invoice_urls.append(anchor)
+        event_ids = Event.objects.filter(item_type_id=ItemType.SOCIAL,
+                                         active=True, online_entry=True).order_by('date').values_list('id', flat=True)
+        # Build list of event urls
+        token = signer.sign(recipient.id)
+        event_urls = []
+        for id in event_ids:
+            event_urls.append(request.build_absolute_uri(reverse('events:register_token',
+                                                                 kwargs={'token': token, 'pk': id})))
         context = Context({
             'request': request,
             'recipient': recipient,
@@ -148,7 +157,8 @@ def send_template_mail(request, person, text,
             'first_name': recipient.first_name,
             'last_name': recipient.last_name,
             'total_unpaid': total_unpaid,
-            'invoice_urls': invoice_urls})
+            'invoices': invoice_urls,
+            'events': event_urls})
         if child:
             context['child'] = child.first_name
 

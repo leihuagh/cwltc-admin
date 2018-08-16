@@ -1,0 +1,9 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+  <div class="container">
+  <h4 class="pt-2"><b>Thank you</b></h4>
+  <p class="my-5">To continue on the member's site you need to register or login.<p>
+    <a href="{% url 'public-home' %}" class="btn btn-lg btn-success">Continue</a>
+  </div>
+{% endblock %}

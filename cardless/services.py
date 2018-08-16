@@ -76,53 +76,53 @@ def create_cardless_payment(invoice: Invoice, mandate: Mandate):
     return True, ""
 
 
-def create_cardless_subscription(subscription: Subscription, mandate: Mandate):
-    """
-    Create a cardless subscription
-    """
-    interval_unit = 'monthly'
-    interval = 1
-    count = 12
-    if subscription.period == Subscription.MONTHLY:
-        pass
-    elif subscription.period == Subscription.QUARTERLY:
-        interval = 3
-        count = 4
-    else:
-        return False
-    # TODO calculate the amount
-    amount = 100
-    try:
-        gc_subscription = cardless_client().subscriptions.create(
-            params={
-                'amount': str(amount),
-                'currency': 'GBP',
-                'interval_unit': interval_unit,
-                'count': count,
-                'day_of_month': 5,
-                'interval': interval,
-                'links': {
-                    'mandate': mandate.mandate_id
-                },
-                'metadata': {
-                    'subscription_id': str(subscription.id),
-                    'description': Payment.SINGLE_PAYMENT  # identifies not from legacy api
-                }
-            }, headers={
-                'Idempotency-Key': str(invoice.id) + "/" + str(payment_number)
-            }
-        )
-    except Exception as e:
-        return False, "Exception from GoCardless {0}".format(e)
-
-    # Check that we have not already got this payment id attached to the invoice
-    # It should not happen if all is working properly
-    for payment in existing_payments:
-        if payment.cardless_id == gc_payment.id:
-            return False, "Payment already processed"
-
-    invoice_pay_by_gocardless(invoice, unpaid, gc_payment.id, payment_number)
-    return True, ""
+# def create_cardless_subscription(subscription: Subscription, mandate: Mandate):
+#     """
+#     Create a cardless subscription
+#     """
+#     interval_unit = 'monthly'
+#     interval = 1
+#     count = 12
+#     if subscription.period == Subscription.MONTHLY:
+#         pass
+#     elif subscription.period == Subscription.QUARTERLY:
+#         interval = 3
+#         count = 4
+#     else:
+#         return False
+#     # TODO calculate the amount
+#     amount = 100
+#     try:
+#         gc_subscription = cardless_client().subscriptions.create(
+#             params={
+#                 'amount': str(amount),
+#                 'currency': 'GBP',
+#                 'interval_unit': interval_unit,
+#                 'count': count,
+#                 'day_of_month': 5,
+#                 'interval': interval,
+#                 'links': {
+#                     'mandate': mandate.mandate_id
+#                 },
+#                 'metadata': {
+#                     'subscription_id': str(subscription.id),
+#                     'description': Payment.SINGLE_PAYMENT  # identifies not from legacy api
+#                 }
+#             }, headers={
+#                 'Idempotency-Key': str(invoice.id) + "/" + str(payment_number)
+#             }
+#         )
+#     except Exception as e:
+#         return False, "Exception from GoCardless {0}".format(e)
+#
+#     # Check that we have not already got this payment id attached to the invoice
+#     # It should not happen if all is working properly
+#     for payment in existing_payments:
+#         if payment.cardless_id == gc_payment.id:
+#             return False, "Payment already processed"
+#
+#     invoice_pay_by_gocardless(invoice, unpaid, gc_payment.id, payment_number)
+#     return True, ""
 
 
 def process_payment_event(event):
