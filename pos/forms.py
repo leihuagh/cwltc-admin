@@ -166,7 +166,7 @@ class AppForm(ModelForm):
     class Meta:
         model = PosApp
         fields = ['name', 'description', 'layout', 'allow_juniors', 'view_name', 'bar_system', 'main_system',
-                  'enabled', 'index', 'event']
+                  'enabled', 'index', 'attended', 'event']
 
     layout = forms.ModelChoiceField(required=False, queryset=Layout.objects.all())
     event = forms.ModelChoiceField(required=False, queryset=Event.objects.filter(active=True, online_entry=True))
@@ -178,7 +178,7 @@ class AppForm(ModelForm):
         self.helper.layout = CrispyLayout(
             Div(
                 'name', 'description', 'layout', 'allow_juniors', 'view_name', 'bar_system', 'main_system',
-                'enabled', 'index', 'event',
+                'enabled', 'index', 'attended', 'event',
             ),
             FormActions(
                 SubmitButton('save', 'Save', css_class='btn-primary'),

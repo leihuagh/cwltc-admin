@@ -4,9 +4,11 @@
   {%  include '_logo_banner.html' %}
   <div class="container bg">
     <div class="row">
+
+        <h2 class="text-center"><b>{{ request.session.app.name }}</b></h2>
+        <h2 class="text-center">{{ full_name }}</h2>
+
       <div class="col-md-4 col-md-push-4 text-center">
-        <h2><b>{{ request.session.layout.name }}</b></h2>
-        <h2 class="text-center">{{ fullname }}</h2>
         {% if messages %}
           {% for message in messages %}
             <h4>{{ message }}</h4>
@@ -25,7 +27,7 @@
           <p><a href="{% url 'pos_transactions' %}" class="btn btn-warning btn-lg btn-block stop-timer">All transactions</a></p>
           <p><a href="{% url 'pos_member' %}" class="btn btn-warning btn-lg btn-block stop-timer">Transactions for member</a></p>
           <form method="post">{% csrf_token %}
-            {% if request.session.app.attended%}
+            {% if attended %}
               <input class="btn btn-danger btn-lg btn-block stop-timer" type="submit" name="attended_off" value="Disable attended mode">
             {%  else %}
               <input class="btn btn-warning btn-lg btn-block stop-timer" type="submit" name="attended_on" value="Enable attended mode">

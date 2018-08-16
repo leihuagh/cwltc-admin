@@ -309,16 +309,22 @@ class MemberMenuView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['attended'] = self.request.session['app'].attended and has_attended_cookie(self.request)
         return add_context(context, self.request, self.timeout)
 
     def post(self, request, *args, **kwargs):
+        """ Attended mode is enabled if session['app'].attended is True and cookie 'attended' is 'on' """
+        state = 'off'
         if 'attended_on' in request.POST:
+            state = 'on'
             request.session['app'].attended = True
-            request.session['app'].save()
         elif 'attended_off' in request.POST:
             request.session['app'].attended = False
-            request.session['app'].save()
-        return redirect('pos_menu')
+        request.session['app'].save()
+        response = HttpResponseRedirect(reverse('pos_start'))
+        max_age = 8 * 60 * 60 # 8 hours lifetime
+        response.set_cookie('attended', state, max_age=max_age)
+        return response
 
 
 class PosView(LoginRequiredMixin, TemplateView):
@@ -327,18 +333,23 @@ class PosView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(PosView, self).get_context_data(**kwargs)
-        layout = self.request.session['app'].layout
+        app = self.request.session['app']
+        layout = app.layout
         context['rows'], used_items = build_pos_array(layout)
         context['items_url'] = reverse('pos_ajax_items')
         context['post_url'] = reverse('pos_run')
-        context['exit_url'] = reverse('pos_start' if self.request.session['attended'] else 'pos_menu')
+        context['exit_url'] = reverse('pos_menu')
         context['terminal'] = self.request.session['terminal']
         context = add_context(context, self.request)
-        if self.request.session['app'].attended:
+        if app.attended and has_attended_cookie(self.request):
+            if app.is_bar_app():
+                context['exit_url'] = reverse('pos_start')
+            else:
+                context['exit_url'] = reverse('pos_menu')
             context['is_attended'] = 'true' # javascript true
             context['full_name'] = 'Attended mode'
         else:
-            context['is_attended'] = 'false'
+            context['is_attended'] = 'false' # javascript false
         return context
 
     def post(self, request, *args, **kwargs):
@@ -509,6 +520,11 @@ def read_cookie(request):
         return values[0], values[1]
     else:
         return None, None
+
+
+def has_attended_cookie(request):
+    value = request.COOKIES.get('attended', None)
+    return value and value == 'on'
 
 
 def menu_url(request):
