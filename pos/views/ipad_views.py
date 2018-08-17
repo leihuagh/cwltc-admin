@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.hashers import check_password
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django_tables2 import SingleTableView
 from braces.views import GroupRequiredMixin
@@ -100,6 +100,7 @@ class StartView(LoginRequiredMixin, TemplateView):
                 parts = key[6:].split('.')
                 request.session['app'] = PosApp.objects.filter(event_id=parts[0])[0]
                 return redirect('pos_user')
+
         return redirect('pos_start')
 
     def get_context_data(self, **kwargs):
@@ -111,7 +112,7 @@ class StartView(LoginRequiredMixin, TemplateView):
             context['attended'] = apps[0].attended
         context['message'] = self.request.session.get('message', "")
         self.request.session['message'] = ""
-        context['timeout'] = PING_TIMEOUT
+        context['timeout'] = LONG_TIMEOUT
         context['ping_url'] = reverse('pos_ajax_ping')
         return context
 
@@ -210,6 +211,49 @@ class GetPasswordView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return add_context(context, self.request)
+
+
+def ajax_validate_person(request):
+    id = request.POST['id']
+    person = Person.objects.get(pk=id)
+    if person.auth_id:
+        return redirect('pos_password')
+    else:
+        if person.dob:
+            age = person.age_for_membership()
+            if age <= 10:
+                return redirect('pos_start')
+            if age > 13:
+                return redirect('pos_register')
+            return redirect('pos_dob')
+    return redirect('pos_register')
+
+
+def ajax_validate_user(request):
+    authorised = False
+    id = request.POST['id']
+    request.session['person_id'] = id
+    pin = request.POST['PIN']
+    person = Person.objects.get(pk=id)
+    if pin and check_password(pin, person.pin):
+        authorised = True
+    else:
+        user = User.objects.get(pk=person.auth_id)
+        password = request.POST['password']
+        if password and user.check_password(password):
+            authorised = True
+    if authorised:
+        # Redirect to selected app
+        app = request.session.get('app', None)
+        if app:
+            if app.event:
+                return redirect('pos_event_register', pk=app.event.id)
+            try:
+                url = reverse(app.view_name)
+                return redirect(url)
+            except NoReverseMatch:
+                request.session['message'] = f'Bad view name for app {app}'
+                return redirect('pos_start')
 
 
 class GetDobView(LoginRequiredMixin, FormView):
