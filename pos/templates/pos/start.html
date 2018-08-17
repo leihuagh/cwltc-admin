@@ -15,7 +15,8 @@
         <form method="post">{% csrf_token %}
           {% if is_bar %}
             {% for app in apps %}
-              <button class="posbutton btn-large btn-block" type="submit" name="app_{{ app.id }}">{{ app.name }}</button>
+{#              <button class="posbutton btn-large btn-block" type="submit" name="app_{{ app.id }}">{{ app.name }}</button>#}
+              <button type="button" class="posbutton btn-large btn-block" onclick="startBar()" name="app_{{ app.id }}">CLICK ME</button>
             {% endfor %}
             {% if attended %}
               <br/><br/><br/>
@@ -75,6 +76,28 @@
       event.currentTarget.classList.remove('posbutton-down');
     });
     timingCode.initPing({{ timeout }}, '{{ ping_url }}', '{{ csrf_token }}', '{{ request.session.terminal }}', 'idMessage');
-    });
+  });
+  function startBar() {
+      console.log('Start bar');
+      $('#idOfflineMessage').show().text('Ready');
+              $.ajax({
+            type: "POST",
+            url: '/pos/start/',
+            data: '',
+            timeout: 10000,
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            },
+            success: function (data, status, xhr) {
+                $('#idOfflineMessage').show().text('Button press was successful');
+            },
+            error: function (data, status, xhr) {
+                $('#idOfflineMessage').show().text('Sorry, the server is temporarily available. Please try later');
+                $('#idOnlineMessage').hide();
+                $('#idOnline').text('OffLine');
+                timing.startPing();
+            }
+        });
+  }
 </script>
 {% endblock %}
