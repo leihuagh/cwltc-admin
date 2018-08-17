@@ -75,7 +75,7 @@
     $(".posbutton").on('touchend', function(event) {
       event.currentTarget.classList.remove('posbutton-down');
     });
-    timingCode.initPing({{ timeout }}, '{{ ping_url }}', '{{ csrf_token }}', '{{ request.session.terminal }}', 'idMessage');
+    //timingCode.initPing({{ timeout }}, '{{ ping_url }}', '{{ csrf_token }}', '{{ request.session.terminal }}', 'idMessage');
   });
   function startBar() {
       console.log('Start bar');
@@ -92,10 +92,7 @@
                 $('#idOfflineMessage').show().text('Button press was successful');
             },
             error: function (data, status, xhr) {
-                $('#idOfflineMessage').show().text('Sorry, the server is temporarily available. Please try later');
-                $('#idOnlineMessage').hide();
-                $('#idOnline').text('OffLine');
-                timing.startPing();
+                $('#idOfflineMessage').show().text('Got an error');
             }
         });
   }
