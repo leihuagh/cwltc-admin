@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^list/$', EventListView.as_view(), name='list'),
     url(r'^register/done/$', EventRegisterDone.as_view(), name='register_done'),
     url(r'^register/token/(?P<token>.+)/(?P<pk>\d+)$', EventRegisterView.as_view(), name='register_token'),
+    url(r'^register/admin/(?P<pk>\d+)/$', EventRegisterView.as_view(admin=True), name='register_admin'),
     url(r'^register/(?P<pk>\d+)/$', EventRegisterView.as_view(), name='register'),
     url(r'^help/$', EventHelpView.as_view(), name='help'),
 

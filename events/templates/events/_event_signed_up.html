@@ -6,7 +6,9 @@
   </h5>
   <div class="card-body text-center">
       {% for p in participants %}
-          {{ p.person.fullname }} {% if p.tickets > 1 %}({{ p.tickets }}){% endif %}<br>
+          {{ p.person.fullname }} {% if p.tickets > 1 %}({{ p.tickets }}){% endif %}
+        {% if admin %}<span class="text-danger">{{ p.text }}</span> {% endif %}
+        <br>
       {% endfor %}
   </div>
 </div>

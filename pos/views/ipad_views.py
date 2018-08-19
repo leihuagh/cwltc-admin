@@ -534,6 +534,7 @@ class PosEventRegisterView(EventRegisterView):
     template_name = 'pos/event_register.html'
 
     def post(self, request, *args, **kwargs):
+        self.person = Person.objects.get(id=request.session['person_id'])
         super().post(request, args, kwargs)
         return redirect('pos_event_register', pk=self.event.id)
 

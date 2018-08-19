@@ -1,0 +1,6 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% block content %}
+  <h3>{{ event.name }}</h3>
+{% include 'events/_event_signed_up.html' %}
+{% endblock %}

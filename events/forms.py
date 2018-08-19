@@ -76,3 +76,8 @@ class RegisterForm(Form):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_tag = False
+
+
+class AdminRegisterForm(RegisterForm):
+
+    person_id = forms.IntegerField(widget=forms.HiddenInput)

@@ -11,7 +11,7 @@ from members.views import SingleTableView
 from members.models import Person, ItemType
 from cardless.services import person_from_token
 from events.models import Event, Participant, Tournament
-from events.forms import SocialEventForm, TournamentEventForm, TournamentForm, RegisterForm
+from events.forms import SocialEventForm, TournamentEventForm, TournamentForm, RegisterForm, AdminRegisterForm
 from events.download import export_event, export_tournament
 from events.tables import EventTable, TournamentTable
 
@@ -76,7 +76,6 @@ class EventCreateView(StaffuserRequiredMixin, CreateView):
 class EventUpdateView(StaffuserRequiredMixin, UpdateView):
     """ Update event details - date etc"""
     model = Event
-    form_class = TournamentEventForm
     template_name = 'events/event_form.html'
     success_url = reverse_lazy('events:admin')
 
@@ -88,15 +87,21 @@ class EventUpdateView(StaffuserRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        event = self.object
         context['form_title'] = 'Update event'
         context['buttons'] = [Button('Save', css_class='btn-success'),
                               Button('Delete', css_class='btn-danger')]
-        if not self.object.active and not self.object.billed:
+        if not event.active and not event.billed:
             context['buttons'].append(Button('Create invoice items', css_class='btn-success'))
-        if self.object.participant_set.all().count():
-            context['link_buttons'] = [LinkButton('Participants',
-                                                  href=reverse('events:participant_list',
-                                                               kwargs={'pk': self.object.id}))]
+        if event.participant_set.all().count():
+            if event.item_type_id == ItemType.SOCIAL:
+                context['link_buttons'] = [LinkButton('Participants',
+                                                      href=reverse('events:register_admin',
+                                                                   kwargs={'pk': self.object.id}))]
+            else:
+                context['link_buttons'] = [LinkButton('Players',
+                                                      href=reverse('events:participant_list',
+                                                                   kwargs={'pk': self.object.id}))]
         return context
 
     def post(self, request, *args, **kwargs):
@@ -203,24 +208,37 @@ class EventDetailView(LoginRequiredMixin, DetailView):
 
 
 class EventRegisterView(FormView):
-    """ User can register for a social event """
-
-    form_class = RegisterForm
+    """
+     Register for a social event. 3 ways this view gets used:
+     1. User is logged in and buys tickets for himself
+     2. User has a token that allows tickets to be bought without being logged in (or even without auth record)
+     3. Admin allocates tickets to a person
+     """
     person = None
     event = None
-    success_url = 'events:list'
-    template_name = 'events/event_register.html'
+    admin = False
 
     def dispatch(self, request, *args, **kwargs):
-
         token = self.kwargs.get('token', None)
         if token:
             self.person = person_from_token(token, Person)
-        else:
+        elif not self.admin:
             self.person = person_from_user(request, raiseException=False)
-
         self.event = Event.objects.get(pk=self.kwargs['pk'])
         return super().dispatch(request, *args, **kwargs)
+
+    def get_form_class(self):
+        if self.admin:
+            return AdminRegisterForm
+        return RegisterForm
+
+    def get_template_names(self):
+        if self.admin:
+            return ['events/event_register_admin.html']
+        return ['events/event_register.html']
+
+    def get_success_url(self):
+        return 'events:list'
 
     def get(self, request, *args, **kwargs):
         if self.event.tournament:
@@ -229,10 +247,12 @@ class EventRegisterView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        participants = Participant.objects.filter(event=self.event)
+        participants = Participant.objects.filter(event=self.event).order_by(
+            'person__first_name', 'person__last_name')
         context['event'] = self.event
         context['person'] = self.person
         context['participants'] = participants
+        context['admin'] = self.admin
         if self.event.cost > 0:
             if self.event.online_entry:
                 context['form_title'] = 'Tickets available'
@@ -248,31 +268,43 @@ class EventRegisterView(FormView):
         registered = participants.filter(person=self.person)
         if registered:
             context['tickets'] = registered[0].tickets
-            context['buttons'].append(Button('Cancel', css_class='btn-danger',
-                                             no_validate=True))
+            context['buttons'].append(Button('Cancel', css_class='btn-danger', no_validate=True))
+        if self.admin:
+            context['buttons'].extend([Button('Cancel', css_class='btn-danger', no_validate=True),
+                                       LinkButton('Back', reverse('events:register_admin',
+                                                                  kwargs={'pk': self.event.id}))])
         return context
 
     def post(self, request, *args, **kwargs):
+        if 'person_id' in request.POST:
+            self.person = Person.objects.get(id=request.POST['person_id'])
         if 'cancel' in request.POST:
-            Participant.objects.filter(person=self.person).delete()
+            part = Participant.objects.filter(person=self.person)
+            if part:
+                part[0].delete()
+            if self.admin:
+                return redirect('events:register_admin', pk=self.event.id)
             messages.warning(self.request, f'Your tickets have been cancelled')
-            return redirect(self.success_url)
+            return redirect(self.get_success_url())
         else:
             return super().post(request, *args, **kwargs)
-
 
     def form_valid(self, form):
         participants = Participant.objects.filter(event=self.event, person=self.person)
         if len(participants) == 1:
             part = participants[0]
-            part.tickets += form.cleaned_data['number_of_tickets']
+            part.tickets = form.cleaned_data['number_of_tickets']
+            if form.cleaned_data['special_diet']:
+                part.text += form.cleaned_data['special_diet']
         else:
             part = Participant(event=self.event, person=self.person,
                                text=form.cleaned_data['special_diet'],
                                tickets=form.cleaned_data['number_of_tickets'])
         part.save()
+        if self.admin:
+            return redirect('events:register_admin', pk=self.event.id)
         messages.success(self.request, f'Thanks for buying tickets')
-        return redirect(self.success_url)
+        return redirect(self.get_success_url())
 
 
 class EventRegisterDone(TemplateView):

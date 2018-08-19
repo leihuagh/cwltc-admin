@@ -1,0 +1,55 @@
+{% extends 'club/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+  <div class="container">
+    <h3 class="pt-2">{{ event.name }}</h3>
+    <div class ="row">
+        <div class="col-md-4">
+          {% include 'events/_event_signed_up.html' %}
+          <a class="btn btn-success mt-2" href="{% url 'events:admin' %}">Exit</a>
+        </div>
+        <div class="col-md-4">
+          <form method="post">{% csrf_token %}
+            <div class="card mt-2">
+              <div class="card-header card-title bg-success text-center text-white">Allocate tickets</div>
+              <div class="card-body">
+                <div id="idSelect">
+                  <label for="idSelPerson">Select person</label>
+                  <input type="text" class="form-control" id="idSelPerson"
+                         autocomplete="off" spellcheck="false" autocapitalize="off">
+                </div>
+                <div id="idBuy" style="display: none">
+                  <h4><span id="idName"></span></h4>
+                  {% crispy form %}
+                </div>
+              </div>
+              <div class="card-footer" id="idFooter" style="display: none;">
+                {% for button in buttons %}
+                  {% include '_button.html' %}
+                {% endfor %}
+              </div>
+            </div>
+          </form>
+        </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block scripts %}
+<script src= {% static 'js/typeahead.bundle.js' %}></script>
+<script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
+<script>
+  $(document).ready(function () {
+    bind_typeahead('#idSelPerson', go, false);
+    $('.typeahead').typeahead('val', '');
+  });
+  function go(person) {
+      $('#id_person_id').val(person.id);
+      $('#idName').text(person.value);
+      $('#idSelect').hide();
+      $('#idBuy').show();
+      $('#idFooter').show();
+  }
+</script>
+{% endblock %}

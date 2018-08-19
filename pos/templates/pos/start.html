@@ -56,7 +56,7 @@
       <p class="hint">All members who have paid their subscription can use this system after registration.<br>
           You can register now by pressing any button above and searching for your name.</p>
     </div>
-    <p id="idOfflineMessage">Sorry, the server is offline. Please try later.</p><!-- division is visible if ping fails -->
+    <h3 id="idOfflineMessage">Sorry, the server is offline. Please try later.</h3><!-- division is visible if ping fails -->
   </div>
 
   <div class="terminal">Terminal: {{ request.session.terminal }}
@@ -75,28 +75,7 @@
     $(".posbutton").on('touchend', function(event) {
       event.currentTarget.classList.remove('posbutton-down');
     });
-    //timingCode.initPing({{ timeout }}, '{{ ping_url }}', '{{ csrf_token }}', '{{ request.session.terminal }}', 'idMessage');
+    timingCode.initPing({{ timeout }}, '{{ ping_url }}', '{{ csrf_token }}', '{{ request.session.terminal }}', 'idMessage');
   });
-  function startBar() {
-      console.log('Start bar');
-      $('#idOfflineMessage').show().text('Ready');
-              $.ajax({
-            type: "POST",
-            url: '/pos/start/',
-            data: '',
-            timeout: 10000,
-            beforeSend: function (xhr, settings) {
-                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
-            },
-            success: function (data, status, xhr) {
-                 document.open();
-                 document.write(data);
-                 document.close();
-            },
-            error: function (data, status, xhr) {
-                $('#idOfflineMessage').show().text('Got an error');
-            }
-        });
-  }
 </script>
 {% endblock %}
