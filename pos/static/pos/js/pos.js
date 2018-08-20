@@ -1,4 +1,5 @@
 
+// Version 3 Fully support offline working
 var posCode = (function () {
     "use strict";
 
@@ -17,24 +18,29 @@ var posCode = (function () {
     var items;
     var receipt;
     var total;
+    var formattedTotal;
     var line;
 
     // Django context variables
     var itemsUrl, postUrl, exitUrl;
+    var layoutId;
     var isAttended = false;
+
     var personId;
     var person;
     var personName;
     var personList;
 
+    var timer;
+
     /* Public methods*/
-    pos.init = function (items_url, post_url, exit_url, is_attended, person_id, person_name, csrf_token) {
+    pos.init = function (items_url, post_url, exit_url, is_attended, layout_id, csrf_token, timing) {
         itemsUrl = items_url;
         postUrl = post_url;
         exitUrl = exit_url;
         isAttended = is_attended;
-        personId = person_id;
-        personName = person_name;
+        layoutId = layout_id;
+        timer = timing;
         payClass.hide();
         exitClass.hide();
         $.ajaxSetup({
@@ -42,13 +48,17 @@ var posCode = (function () {
                 xhr.setRequestHeader('X-CSRFToken', csrf_token);
             }
         });
+        //localStorage.clear();
+
         loadItems();
+
         $(".posbutton").on('touchstart', function(event) {
             pos.itemAdd(Number(event.currentTarget.id));
             event.currentTarget.classList.add('posbutton-down');
+            timing.restartTimer();
             event.preventDefault();
         });
-        // Click event for testing
+        // Click event for testing in browser
         $(".posbutton").on('click', function(event) {
             pos.itemAdd(Number(event.currentTarget.id));
         });
@@ -56,6 +66,67 @@ var posCode = (function () {
             event.currentTarget.classList.remove('posbutton-down');
         });
         newReceipt();
+    };
+
+    pos.showPage = function(pageId){
+        $('#idPageStart').hide();
+        $('#idPageGetUser').hide();
+        $('#idPageGetPassword').hide();
+        $('#idPagePos').hide();
+        if (pageId === '#idPagePos') {
+          $('#idLogoBanner').hide();
+        }else{
+          $('#idLogoBanner').show();
+        }
+        $(pageId).show();
+    };
+
+    pos.startApp = function (){
+        pos.showPage('#idPageStart');
+    };
+
+    pos.getUser = function(){
+        pos.showPage('#idPageGetUser');
+        $('#idNameInput').val('').focus();
+    };
+
+    pos.gotUser = function(person) {
+        personId = person.id;
+        personName = person.value;
+        $('.typeahead').typeahead('val', '');
+        pos.showPage('#idPageGetPassword');
+        $('#idPasswordName').text(personName);
+        $('#idPersonId').val(personId); // hidden field on form
+        $('#idPinInput').val('').focus();
+        $('#idPasswordInput').val('');
+    };
+
+    pos.submitPassword = function() {
+        $.ajax({
+            type: 'GET',
+            url: '/pos/ajax/password/',
+            data: $('#idPasswordForm').serialize(),
+            timeout: 10000,
+            success: function (response) {
+                if (response === 'pass'){
+                  pos.newReceipt();
+                }else{
+                  console.log(response);
+                  pos.startApp();
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                if (textStatus === 'timeout') {
+                  console.log('timeout');
+                }
+            }
+        });
+    };
+
+    pos.newReceipt = function(){
+        newReceipt();
+        $('#id_PosName').val(personName);
+        pos.showPage('#idPagePos');
     };
 
     pos.itemAdd = function (id) {
@@ -68,13 +139,14 @@ var posCode = (function () {
         item.description = obj.description;
         item.sale_price = obj.sale_price;
         item.cost_price = obj.cost_price;
+        item.price = Math.fround(parseFloat(item.sale_price)*100);
         receipt.push(item);
         createTable(receipt);
     };
 
-    pos.newReceipt = function () {
-        newReceipt();
-    };
+    // pos.newReceipt = function () {
+    //     newReceipt();
+    // };
 
     pos.itemRemove = function (target) {
         var index;
@@ -90,14 +162,13 @@ var posCode = (function () {
 
     pos.pay = function () {
         // initiate payment sequence
-        var myTotal = '£ ' + Number(total).toFixed(2);
         if (isAttended) {
             personList = [];
-            $('#attended_total').text(myTotal);
+            $('#attended_total').text(formattedTotal);
             $('#attended_modal').modal('show');
         } else {
-            personList = [{'id': personId, 'name': personName, 'amount': Math.floor(total*100)}];
-            $('#member_total').text(myTotal);
+            personList = [{'id': personId, 'name': personName, 'amount': total}];
+            $('#member_total').text(formattedTotal);
             $('#member_name').text(personName);
             $('#member_modal').modal('show');
         }
@@ -106,7 +177,7 @@ var posCode = (function () {
     };
 
     pos.exitPos = function () {
-        window.location.replace(exitUrl);
+        pos.startApp();
     };
 
     pos.selectMember = function () {
@@ -120,7 +191,7 @@ var posCode = (function () {
 
     pos.commitSingle = function () {
         // charge to single logged on member
-        personList = [{'id': personId, 'name': personName, 'amount': Math.round(total*100)}];
+        personList = [{'id': personId, 'name': personName, 'amount': total}];
         sendTransaction('account');
     };
 
@@ -134,7 +205,7 @@ var posCode = (function () {
         personList = [];
         showSplit(true);
         $('#title_1').text('Charge');
-        $('#title_total').text('£ ' + Number(total).toFixed(2));
+        $('#title_total').text(formattedTotal);
         $('#title_2').text("to member's account");
         $('#member_search').typeahead('val', '').focus();
     };
@@ -158,7 +229,7 @@ var posCode = (function () {
         showSplit(false);
         if (isAttended && personList.length === 1) {
             $('#title_1').text('Charge');
-            $('#title_total').text('£ ' + Number(total).toFixed(2));
+            $('#title_total').text(formattedTotal);
             $('#title_2').text("to member's account");
         }
     };
@@ -205,16 +276,15 @@ var posCode = (function () {
             tableBody.appendChild(row);
         } else {
             // calculate the split amounts
-            var totalPence = total * 100;
-            var splitPence = Math.floor(totalPence / personList.length);
+            var splitPence = Math.floor(total/ personList.length);
             var firstPence = splitPence;
             var splitTotal = splitPence * personList.length;
             for (i = 0; i < personList.length; i ++) {
                 personList[i].amount = splitPence;
             }
-            if (splitTotal < totalPence) {
+            if (splitTotal < total) {
                 i = 0;
-                while (splitTotal < totalPence) {
+                while (splitTotal < total) {
                     personList[i].amount += 1;
                     i += 1;
                     splitTotal += 1;
@@ -236,7 +306,7 @@ var posCode = (function () {
         peopleTable.appendChild(tableBody);
         // default header message gets overwritten for the first person
         $('#title_1').text('Split');
-        $('#title_total').text('£ ' + Number(total).toFixed(2));
+        $('#title_total').text(formattedTotal);
         $('#title_2').text("between members");
         if (withSelect) {
             $('#add_member_typeahead').show().focus();
@@ -251,11 +321,92 @@ var posCode = (function () {
     function sendTransaction(payType) {
         // post the transaction to the server
         // the response is the next screen to show
-        var payObj = {'pay_type': payType, 'people': personList, 'total': total};
+        timer.stopTimer();
+        stamp = new Date().getTime();
+        var payObj = {
+            'pay_type': payType,
+            'people': personList,
+            'total': total,
+            'stamp': stamp,
+            'layout_id': layoutId
+        };
         receipt.push(payObj);
-        var data = JSON.stringify(receipt);
-        $.post(postUrl, data, function(result){
-            window.location.replace(result);
+        var transaction = JSON.stringify(receipt);
+
+        $('#save_message').text('Saving transaction to server ...');
+        $('#save_error').text(' ');
+        $('#save-footer').hide();
+        $('#save_modal').modal('show');
+        var fatal = false;
+        var message = '';
+        $.ajax({
+            type: "POST",
+            url: postUrl,
+            data: transaction,
+            dataType: 'text',
+            tryCount: 0,
+            retryLimit: 1,
+            timeout: 10000,
+            success: function (response) {
+                if (response === 'saved') {
+                    console.log('Transaction saved');
+                    // TODO last transaction
+                    pos.startApp();
+                }else{
+                    console.log('Transaction error - save locally');
+                    saveTransaction(transaction, stamp);
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                console.log ('Error {xhr} {textStatus}')
+                saveTransaction(transaction, stamp);
+            }
+        });
+    }
+
+
+    function saveTransaction(trans, stamp){
+        // Save trans in local storage
+        var key = 'Trans:{stamp}';
+        localStorage.setItem(key, trans);
+        var index = localStorage.getItem('index');
+        if (!index){
+            index = [];
+        }
+        index.push(stamp);
+    }
+
+
+    function removeTransaction(stamp){
+        // Save trans in local storage
+        var key = 'Trans:{stamp}';
+        localStorage.setItem(key, trans);
+        var index = localStorage.getItem('index');
+        if (!index){
+            index = [];
+        }
+        index.push(stamp);
+    }
+
+    function unsaveTransaction(stamp){
+        var transaction = localStorage.getItem(stamp);
+        $.ajax({
+            type: "POST",
+            url: postUrl,
+            data: transaction,
+            dataType: 'text',
+            timeout: 10000,
+            success: function (response) {
+                if (response === 'saved') {
+                    console.log('Recovery {stamp} written to server');
+                    removeTransaction(stamp);
+                }else{
+                    console.log('Recovery server error {stamp}');
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                console.log ('Recovery error {xhr} {textStatus} {stamp}');
+            }
         });
     }
 
@@ -265,17 +416,50 @@ var posCode = (function () {
         createTable(receipt);
     }
 
+    // function loadItems() {
+    //     // AJAX request to download items with description & price
+    //     var xhttp = new XMLHttpRequest();
+    //     xhttp.onreadystatechange = function () {
+    //         if (this.readyState === 4 && this.status === 200) {
+    //             var jsonData = this.responseText;
+    //             items = JSON.parse(JSON.parse(this.responseText));
+    //             $('.flex-left').show();
+    //             $('.flex-right').show();
+    //         }
+    //     };
+    //     xhttp.open("GET", itemsUrl, true);
+    //     xhttp.send();
+    // }
+
     function loadItems() {
-        // AJAX request to download items with description & price
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
-                var jsonData = this.responseText;
-                items = JSON.parse(JSON.parse(this.responseText));
-            }
-        };
-        xhttp.open("GET", itemsUrl, true);
-        xhttp.send();
+
+        var savedItems = localStorage.getItem('items');
+        if (savedItems) {
+            console.log('Using items from storage');
+            items = JSON.parse(savedItems);
+            $('.flex-left').show();
+            $('.flex-right').show();
+
+        }else{
+            console.log('Start get items');
+            $.ajax({
+                type: 'GET',
+                url: itemsUrl,
+                timeout: 10000,
+                success: function (response) {
+                    console.log('saving items')
+                    localStorage.setItem('items', response);
+                    items = JSON.parse(response);
+                    $('.flex-left').show();
+                    $('.flex-right').show();
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    if (textStatus === 'timeout') {
+                        console.log('timeout');
+                    }
+                }
+            });
+        }
     }
 
     var lookup = function (id) {
@@ -295,16 +479,11 @@ var posCode = (function () {
         var button;
         payClass.hide();
         exitClass.hide();
-        // payButton.style.visibility = "hidden";
-        // cancelButton.style.visibility = "hidden";
-        // exitButton.style.visibility = "hidden";
         while (receiptArea.firstChild) {
             receiptArea.removeChild(receiptArea.firstChild);
         }
         total = 0;
         if (receipt.length > 0) {
-            // payButton.style.visibility = "visible";
-            // cancelButton.style.visibility = "visible";
            payClass.show();
             receipt.forEach(function (item) {
                 row = document.createElement('tr');
@@ -328,14 +507,14 @@ var posCode = (function () {
                 cell.appendChild(button);
                 row.appendChild(cell);
                 tableBody.appendChild(row);
-                total += Number(item.sale_price);
+                total += item.price;
             });
             receiptArea.appendChild(tableBody);
         } else {
-            // exitButton.style.visibility = "visible";
             exitClass.show();
         }
-        totalArea.innerHTML = "Total : £ " + Number(total).toFixed(2);
+        formattedTotal = '£ ' + Number(total/100).toFixed(2);
+        totalArea.innerHTML = "Total : " + formattedTotal;
     }
     return pos;
 })();

@@ -29,7 +29,7 @@ class PosServicesError(Error):
 
 
 @transaction.atomic
-def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, total, people, attended):
+def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, total, people, attended, creation_date=None):
     """
     Create Transaction, LineItem and PosPayment records in the database
     Return a description of it
@@ -47,6 +47,7 @@ def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, to
         else:
             person_id = None
         trans = Transaction(
+            creation_date=creation_date,
             creator_id=creator_id,
             person_id=person_id,
             terminal=terminal,

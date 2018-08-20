@@ -7,6 +7,7 @@ from pos.views.analysis_views import *
 urlpatterns = [
     url(r'^admin/$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
+    url(r'^new_start/$', NewStartView.as_view(), name='pos_new_start'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
 
@@ -17,8 +18,10 @@ urlpatterns = [
     url(r'^menu/$', MemberMenuView.as_view(), name='pos_menu'),
     url(r'^menu/timeout/$', MemberMenuView.as_view(timeout=10000), name='pos_menu_timeout'),
     url(r'^run/$', PosView.as_view(), name='pos_run'),
+
     url(r'^ajax/items/$', ajax_items_view, name='pos_ajax_items'),
     url(r'^ajax/ping/$', ajax_ping_view, name='pos_ajax_ping'),
+    url(r'^ajax/password/$', ajax_password_view, name='pos_ajax_password'),
 
     url(r'^visitor/menu/$', VisitorMenuView.as_view(), name='pos_visitor_menu'),
     url(r'^visitor/adult/$', VisitorCreateView.as_view(), name='pos_visitor_adult'),

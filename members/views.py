@@ -477,6 +477,9 @@ def ajax_person(request):
     else:
         json['email'] = 'Not shared'
     json['membership'] = person.membership.description
+    json['auth'] = person.auth
+    json['age'] = person.age_today()
+    json['dob'] = person.dob
     return JsonResponse(json)
 
 

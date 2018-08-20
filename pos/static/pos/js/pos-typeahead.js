@@ -1,13 +1,15 @@
 function bind_typeahead(typeahead_id, setPerson, filter) {
 
-    // var people = new Bloodhound({
-    //     datumTokenizer: Bloodhound.tokenizers.whitespace,
-    //     queryTokenizer: Bloodhound.tokenizers.whitespace,
-    //     remote: {
-    //         url: '/ajax/people/?term=%QUERY&adult=true',
-    //         wildcard: '%QUERY'
-    //     }
-    // });
+    // https://digitalfortress.tech/tutorial/smart-search-using-twitter-typeahead-bloodhound/
+var people = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.whitespace,
+    queryTokenizer: Bloodhound.tokenizers.whitespace,
+    remote: {
+        url: '/ajax/people/?term=%QUERY&adult=true',
+        wildcard: '%QUERY'
+    }
+});
+
 
     var lastItem;
     var qualifier = '';
@@ -18,23 +20,37 @@ function bind_typeahead(typeahead_id, setPerson, filter) {
     }
 
 
-    // Initializing the typeahead with remote dataset
+    // // Initializing the typeahead with remote dataset
+    // $(typeahead_id).typeahead({
+    //     minLength: 3,
+    //     hint: true,
+    //     highlight: true
+    // },
+    //     {
+    //         name: 'people',
+    //         displayKey: "value",
+    //         // source: people.ttAdapter(),
+    //         source: function(query, syncResults, asyncResults) {
+    //             $.get('/ajax/people/?term=' + query + qualifier, function (data) {
+    //                 asyncResults(data);
+    //             });
+    //         },
+    //         limit: 10
+    //     }).focus();
+
     $(typeahead_id).typeahead({
-        minLength: 3,
-        hint: true,
-        highlight: true
-    },
-        {
-            name: 'people',
-            displayKey: "value",
-            // source: people.ttAdapter(),
-            source: function(query, syncResults, asyncResults) {
-                $.get('/ajax/people/?term=' + query + qualifier, function (data) {
-                    asyncResults(data);
-                });
-            },
-            limit: 10
-        }).focus();
+  hint: true,
+  highlight: true,
+  minLength: 1
+},
+{
+  name: 'people',
+    displayKey: 'value',
+  source: people   // Bloodhound instance is passed as the source
+});
+
+
+
 
     // Selecting an item sets person_id
     $(typeahead_id).bind('typeahead:select', function (event, item) {

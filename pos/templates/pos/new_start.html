@@ -4,7 +4,7 @@
 
 {%  include '_logo_banner.html' %}
 
-<div class="container" id="idStart">
+<div class="container" id="idPageStart" style="display: none">
   <div class="text-center bg {% if is_bar %}jumbotron{% endif %}">
     <h1 class="text-center"><strong>
       {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
@@ -14,7 +14,7 @@
         <p class="ipad-error">{{ request.session.message }}</p>
           {% if is_bar %}
             {% for app in apps %}
-              <button type="button" class="posbutton btn-large btn-block" onclick="getUser()" name="app_{{ app.id }}">Member Login</button>
+              <button type="button" class="posbutton btn-large btn-block" onclick="posCode.getUser()" name="app_{{ app.id }}">Member Login</button>
             {% endfor %}
             {% if attended %}
               <br/><br/><br/>
@@ -64,7 +64,8 @@
 </div>
 
 <!-- Get user page --->
-<div class="container bg" id="idGetUser">
+
+<div class="container bg" id="idPageGetUser" style="display: none">
   <h2 class="text-center"><b>{{ request.session.app.name }}</b></h2>
   <h2 class="text-center">
     {% if filter == 'adults' %} Adult Member Login{% else %}Adult or Junior Member Login{% endif %}
@@ -72,16 +73,13 @@
   <br/>
   <div class="row">
     <div class="col-md-2">
-        <button class="btn btn-success btn-lg btn-block" onclick="startApp()">Back</button>
+        <button class="btn btn-success btn-lg btn-block" onclick="posCode.startApp()">Back</button>
     </div>
     <div class="col-md-3 ipad-prompt"> Search for name:</div>
       <div class="col-md-2 input-group input-group-lg">
         <input type="text" class="form-control typeahead tt-query timed bsfix" maxlength="15"
-               id ="idNameInput" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+               id ="idNameInput" autocomplete="off" spellcheck="false" autocapitalize="off">
       </div>
-      <input name="person_id" id="person_id" type="hidden" value="">
-      <input type="submit" class="button" id ="submit_id"
-             style="display: none" name="login" value="">
   </div>
   <br><br>
   <div class="row">
@@ -97,68 +95,80 @@
    </div>
 </div>
 
-<!-- Get password -->
-<div class="container bg" id="idGetPassword">
+<!-- Get password page-->
+
+<div class="container bg" id="idPageGetPassword" style="display: none">
   <div class="row">
     <h2 class="text-center"><b>{{ request.session.app.name }}</b></h2>
-    <h2 class="text-center">{{ full_name }}</h2>
+    <h2 class="text-center" id="idPasswordName"></h2>
   </div>
   <br/>
+  <form id="idPasswordForm">
+    <input type="hidden" id="idPersonId" name="person_id" value="">
     <div class="row">
       <div class="col-md-2">
-        <button class="btn btn-success btn-lg btn-block" onclick="startApp()">Back</button>
+        <button class="btn btn-success btn-lg btn-block" onclick="posCode.startApp()">Back</button>
       </div>
       <h4 class="col-md-3 ipad-prompt"> PIN:</h4>
       <div class="col-md-2">
-        <div class="input-group input-group-lg"  style="width: 100%!important;">
-          <input type="password" class="form-control" name="pin" pattern="[0-9]*" value="" spellcheck="false"
-                 maxlength="8" autofocus>
-        </div>
+          <div class="input-group input-group-lg"  style="width: 100%!important;">
+            <input id='idPinInput' type="password" class="form-control" name="pin" pattern="[0-9]*" value="" spellcheck="false"
+                   maxlength="8" autofocus>
+          </div>
       </div>
       <div class="col-md-3"></div>
       <div class="col-md-2">
-        <input type="submit" class="btn btn-success btn-lg btn-block stop-timer" name="submit" value="Go">
+        <button type="button" class="btn btn-success btn-lg btn-block stop-timer" onclick="posCode.submitPassword()">Go</button>
       </div>
     </div>
     <br>
     <div class="row">
       <div class="col-md-2"></div>
-    <div class="col-md-3 ipad-prompt"> Or password:</div>
-    <div class="col-md-2">
-      <div class="input-group input-group-lg" style="width: 100%!important;">
-        <input type="password" class="form-control" name="password" value="" spellcheck="false" maxlength="50">
-        </div>
-    </div>
-  </div>
-  <br>
-  <div class="text-center hint">
-    Enter your PIN or the password you created when you registered.<br><br><br>
-    If you have forgotten your PIN or password click below.<br><br>
-    <div class="row">
-      <div class="col-md-2 col-md-offset-5">
-        <a href="{% url 'pos_register_again' %}" class="btn btn-warning btn-lg btn-block btn-default stop-timer">Register again</a>
+      <div class="col-md-3 ipad-prompt"> Or password:</div>
+      <div class="col-md-2">
+        <div class="input-group input-group-lg" style="width: 100%!important;">
+          <input id="idPasswordInput" type="password" class="form-control" name="password" value="" spellcheck="false" maxlength="50">
+          </div>
       </div>
     </div>
-  </div>
+    <br>
+    <div class="text-center hint">
+      Enter your PIN or the password you created when you registered.<br><br><br>
+      If you have forgotten your PIN or password click below.<br><br>
+      <div class="row">
+        <div class="col-md-2 col-md-offset-5">
+          <a href="{% url 'pos_register_again' %}" class="btn btn-warning btn-lg btn-block btn-default stop-timer">Register again</a>
+        </div>
+      </div>
+    </div>
+  </form>
 </div>
+
+  {% include 'pos/_pos.html' %}
+
 {% endblock %}
 {% block scripts %}
-  <script src= {% static 'js/typeahead.bundle.js' %}></script>
-  <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
-  <script>
+<script src= {% static 'js/typeahead.bundle.js' %}></script>
+<script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
+<script src="{% static 'pos/js/pos.js' %}"></script>
+<script>
   $(document).ready(function () {
 
-      $(".posbutton").on('touchstart', function (event) {
-          event.currentTarget.classList.add('posbutton-down');
-      });
-      $(".posbutton").on('touchend', function (event) {
-          event.currentTarget.classList.remove('posbutton-down');
-      });
-      bind_typeahead('#idNameInput', gotUser, '{{ filter }}');
-      $('.typeahead').typeahead('val', '');
-      startApp();
+    posCode.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }},
+        '{{ layout.id }}', '{{ csrf_token }}', timingCode);
 
-      timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
+    $(".posbutton").on('touchstart', function (event) {
+        event.currentTarget.classList.add('posbutton-down');
+    });
+    $(".posbutton").on('touchend', function (event) {
+        event.currentTarget.classList.remove('posbutton-down');
+    });
+    bind_typeahead('#idNameInput', posCode.gotUser, '{{ filter }}');
+    bind_typeahead('#member_search', posCode.selectedPerson, true);
+
+    posCode.startApp();
+
+    timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
 
 
 
@@ -166,38 +176,63 @@
 
       // Executed when name selected in typeahead
 
-
-      function getPassword() {
-          console.log('Validate password')
-
-      }
-
   });
+  /*
+  var person_id;
+
+  function showPage(pageId){
+      $('#idPageStart').hide();
+      $('#idPageGetUser').hide();
+      $('#idPageGetPassword').hide();
+      if (pageId == '#idPagePos') {
+          $('#idLogoBanner').hide();
+      }else{
+          $('#idLogoBanner').show()
+      }
+      $(pageId).show()
+  }
+
   function startApp(){
-      $('#idGetUser').hide();
-      $('#idGetPassword').hide();
-      $('#idStart').show();
+      showPage('#idPageStart');
   }
 
   function getUser() {
-      $('#idStart').hide();
+      showPage('#idPageGetUser');
       $('#idNameInput').val('');
-      $('#idGetUser').show();
   }
 
   function gotUser(person) {
-      $('#person_id').val(person.id);
+      person_id = person;
+      $('#idPerson_id').val(person.id);
       $('.typeahead').typeahead('val', '');
-      $('#idGetUser').hide();
-      $('#idGetPassword').show();
+      showPage('#idPageGetPassword');
   }
 
-  function getPassword() {
-          console.log('Validate password')
-
+  function submitPassword() {
+      $.ajax({
+          type: 'GET',
+          url: '{% url 'pos_ajax_password' %}',
+          data: $('#idPasswordForm').serialize(),
+          timeout: 10000,
+          success: function (response) {
+              if (response === 'pass'){
+                  showPos();
+              }else{
+                  console.log(data);
+                  startApp();
+              }
+            },
+          error: function (xhr, textStatus, errorThrown) {
+              if (textStatus === 'timeout') {
+                  console.log('timeout');
+              }
+            }
+          })
       }
 
-
-
-  </script>
+  function showPos(){
+      posCode.newReceipt();
+      showPage('#idPagePos');
+  } */
+   </script>
 {% endblock %}

@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import User
@@ -80,7 +81,7 @@ class Location(models.Model):
 
 
 class Transaction(models.Model):
-    creation_date = models.DateTimeField(auto_now_add=True)
+    creation_date = models.DateTimeField()
     creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
@@ -91,6 +92,12 @@ class Transaction(models.Model):
     terminal = models.IntegerField(default=1)
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
     attended = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        """ simulate auto now for backwards compatibility but normally date come from the pos """
+        if self.creation_date is None:
+            self.creation_date = datetime.now()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         name = self.person.fullname if self.person else "Cash"

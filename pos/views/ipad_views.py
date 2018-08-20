@@ -2,13 +2,13 @@ import json
 import logging
 from datetime import datetime
 from django.core.serializers import serialize
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, Http404
 from django.views.generic import TemplateView, FormView
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.hashers import check_password
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.utils import timezone
 from django_tables2 import SingleTableView
 from braces.views import GroupRequiredMixin
@@ -64,6 +64,82 @@ class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
 
 class DisabledView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/disabled.html'
+
+
+class NewStartView(LoginRequiredMixin, TemplateView):
+    """ Member login or attended mode selection """
+    template_name = 'pos/new_start.html'
+    system = ''
+
+    def get(self, request, *args, **kwargs):
+        request.session['person_id'] = None
+        request.session['app'] = None
+        request.session['attended'] = False
+        self.system, request.session['terminal'] = read_cookie(request)
+        if self.system:
+            return super().get(request, *args, **kwargs)
+        return redirect('pos_disabled')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        apps = PosApp.objects.filter(main_system=False, enabled=True).order_by('index')
+        context['apps'] = apps
+        app = apps[0]
+        if len(apps) == 1 and apps[0].is_bar_app():
+            context['is_bar'] = True
+            context['attended'] = apps[0].attended
+        layout = app.layout
+        context['message'] = self.request.session.get('message', "")
+        self.request.session['message'] = ""
+        context['timeout'] = LONG_TIMEOUT
+        context['ping_url'] = reverse('pos_ajax_ping')
+        context['items_url'] = reverse('pos_ajax_items')
+        context['post_url'] = reverse('pos_new_start')
+        context['exit_url'] = reverse('pos_menu')
+        context['terminal'] = self.request.session['terminal']
+        context['layout'] = layout
+        context['rows'], used_items = build_pos_array(layout)
+        #context = add_context(context, self.request)
+        if app.attended and has_attended_cookie(self.request):
+            if app.is_bar_app():
+                context['exit_url'] = reverse('pos_new_start')
+            else:
+                context['exit_url'] = reverse('pos_menu')
+            context['is_attended'] = 'true' # javascript true
+            context['full_name'] = 'Attended mode'
+        else:
+            context['is_attended'] = 'false' # javascript false
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """ Write transaction to database"""
+
+        if request.is_ajax():
+            receipt = json.loads(request.body)
+            pay_record = receipt.pop()
+            creation_date = datetime.fromtimestamp(pay_record['stamp']/1000)
+            system, terminal = read_cookie(request)
+
+            try:
+                trans = create_transaction_from_receipt(request.user.id,
+                                                        terminal,
+                                                        pay_record['layout_id'],
+                                                        receipt,
+                                                        pay_record['total'],
+                                                        pay_record['people'],
+                                                        request.session['attended'],
+                                                        creation_date=creation_date
+                                                        )
+                # request.session['last_person'] = trans[0]
+                # request.session['last_total'] = trans[1]
+            except PosServicesError:
+                return HttpResponse('error')
+            return HttpResponse('saved')
+
+        # should not get here - all posts are ajax
+        return redirect('pos_new_start')
+
+
 
 
 class StartView(LoginRequiredMixin, TemplateView):
@@ -212,48 +288,26 @@ class GetPasswordView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         return add_context(context, self.request)
 
+# TODO redirects for new_start
 
-def ajax_validate_person(request):
-    id = request.POST['id']
-    person = Person.objects.get(pk=id)
-    if person.auth_id:
-        return redirect('pos_password')
-    else:
-        if person.dob:
-            age = person.age_for_membership()
-            if age <= 10:
-                return redirect('pos_start')
-            if age > 13:
-                return redirect('pos_register')
-            return redirect('pos_dob')
-    return redirect('pos_register')
-
-
-def ajax_validate_user(request):
-    authorised = False
-    id = request.POST['id']
+def ajax_password_view(request):
+    id = request.GET.get('person_id', None)
+    if not id:
+        raise Http404
     request.session['person_id'] = id
-    pin = request.POST['PIN']
-    person = Person.objects.get(pk=id)
+    try:
+        person = Person.objects.get(pk=id)
+    except Person.DoesNotExist:
+        raise Http404
+    pin = request.GET.get('pin', None)
     if pin and check_password(pin, person.pin):
-        authorised = True
+        return HttpResponse('pass')
     else:
         user = User.objects.get(pk=person.auth_id)
-        password = request.POST['password']
+        password = request.POST.get('password', None)
         if password and user.check_password(password):
-            authorised = True
-    if authorised:
-        # Redirect to selected app
-        app = request.session.get('app', None)
-        if app:
-            if app.event:
-                return redirect('pos_event_register', pk=app.event.id)
-            try:
-                url = reverse(app.view_name)
-                return redirect(url)
-            except NoReverseMatch:
-                request.session['message'] = f'Bad view name for app {app}'
-                return redirect('pos_start')
+            return HttpResponse('pass')
+    return HttpResponse('fail')
 
 
 class GetDobView(LoginRequiredMixin, FormView):
@@ -534,7 +588,7 @@ class PosEventRegisterView(EventRegisterView):
     template_name = 'pos/event_register.html'
 
     def post(self, request, *args, **kwargs):
-        self.person = Person.objects.get(id=request.session['person_id'])
+        self.person = Person.objects.get(id=self.request.session['person_id'])
         super().post(request, args, kwargs)
         return redirect('pos_event_register', pk=self.event.id)
 
