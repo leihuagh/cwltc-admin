@@ -118,10 +118,11 @@ def send_template_mail(request, person, text,
         for mail_type in mail_types:
             if not mail_type.can_unsubscribe:
                 must_send = True
-            if mail_type.person_set.filter(id=recipient.id):
-                negative = True
             else:
-                positive = True
+                if mail_type.person_set.filter(id=recipient.id):
+                    negative = True
+                else:
+                    positive = True
 
         if negative and not positive:
             return 'unsubscribed'
