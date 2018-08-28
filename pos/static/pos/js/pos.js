@@ -1,6 +1,5 @@
-
 // Version 3 Fully support offline working
-var posCode = (function () {
+var posCode = (function (){
     "use strict";
 
     var pos = {};
@@ -34,10 +33,10 @@ var posCode = (function () {
     var timer;
 
     /* Public methods*/
-    pos.init = function (items_url, post_url, exit_url, is_attended, layout_id, csrf_token, timing) {
+    pos.init = function (items_url, post_url, ping_url, is_attended, layout_id, csrf_token, terminal, timeout, timing) {
         itemsUrl = items_url;
         postUrl = post_url;
-        exitUrl = exit_url;
+        pingUrl = ping_url;
         isAttended = is_attended;
         layoutId = layout_id;
         timer = timing;
@@ -48,8 +47,8 @@ var posCode = (function () {
                 xhr.setRequestHeader('X-CSRFToken', csrf_token);
             }
         });
-        //localStorage.clear();
-
+        localStorage.clear();
+        initPing(timeout, ping_url, terminal);
         loadItems();
 
         $(".posbutton").on('touchstart', function(event) {
@@ -58,6 +57,7 @@ var posCode = (function () {
             timing.restartTimer();
             event.preventDefault();
         });
+
         // Click event for testing in browser
         $(".posbutton").on('click', function(event) {
             pos.itemAdd(Number(event.currentTarget.id));
@@ -77,6 +77,11 @@ var posCode = (function () {
           $('#idLogoBanner').hide();
         }else{
           $('#idLogoBanner').show();
+        }
+        if (pageId === '#idPageStart') {
+            startPing();
+        }else{
+            stopPing();
         }
         $(pageId).show();
     };
@@ -322,7 +327,7 @@ var posCode = (function () {
         // post the transaction to the server
         // the response is the next screen to show
         timer.stopTimer();
-        stamp = new Date().getTime();
+        var stamp = new Date().getTime();
         var payObj = {
             'pay_type': payType,
             'people': personList,
@@ -333,10 +338,10 @@ var posCode = (function () {
         receipt.push(payObj);
         var transaction = JSON.stringify(receipt);
 
-        $('#save_message').text('Saving transaction to server ...');
-        $('#save_error').text(' ');
-        $('#save-footer').hide();
-        $('#save_modal').modal('show');
+        // $('#save_message').text('Saving transaction to server ...');
+        // $('#save_error').text(' ');
+        // $('#save-footer').hide();
+        // $('#save_modal').modal('show');
         var fatal = false;
         var message = '';
         $.ajax({
@@ -355,60 +360,89 @@ var posCode = (function () {
                 }else{
                     console.log('Transaction error - save locally');
                     saveTransaction(transaction, stamp);
+                    pos.startApp();
                 }
             },
             error: function (xhr, textStatus, errorThrown) {
-                console.log ('Error {xhr} {textStatus}')
+                console.log ('Error {xhr} {textStatus}');
                 saveTransaction(transaction, stamp);
+                pos.startApp();
             }
         });
     }
 
 
     function saveTransaction(trans, stamp){
-        // Save trans in local storage
-        var key = 'Trans:{stamp}';
+        // Save transaction in local storage
+        var key = 'Trans:' + stamp;
         localStorage.setItem(key, trans);
-        var index = localStorage.getItem('index');
-        if (!index){
-            index = [];
-        }
-        index.push(stamp);
+        var contents = getContents();
+        contents.push(key);
+        localStorage.setItem('contents', JSON.stringify(contents));
+        $('#idSaved').text(contents.length);
     }
 
 
-    function removeTransaction(stamp){
-        // Save trans in local storage
-        var key = 'Trans:{stamp}';
-        localStorage.setItem(key, trans);
-        var index = localStorage.getItem('index');
-        if (!index){
-            index = [];
+    function getContents(){
+        // Return the list of transaction keys for locally saved transactions
+        var jsonContents = localStorage.getItem('contents');
+        if (jsonContents) {
+            return JSON.parse(jsonContents);
+        }else{
+            return [];
         }
-        index.push(stamp);
     }
 
-    function unsaveTransaction(stamp){
-        var transaction = localStorage.getItem(stamp);
-        $.ajax({
-            type: "POST",
-            url: postUrl,
-            data: transaction,
-            dataType: 'text',
-            timeout: 10000,
-            success: function (response) {
-                if (response === 'saved') {
-                    console.log('Recovery {stamp} written to server');
-                    removeTransaction(stamp);
-                }else{
-                    console.log('Recovery server error {stamp}');
+    function removeTransaction(){
+        var contents = getContents();
+        localStorage.removeItem(contents[0]);
+        console.log('removed ' + contents[0]);
+        contents.splice(0, 1);
+        localStorage.setItem('contents', JSON.stringify(contents));
+        $('#idSaved').text(contents.length);
+        return contents;
+    }
+
+
+    pos.recoverTransactions = function(){
+        recoverTransactions();
+    };
+
+    function recoverTransactions(){
+        // If there are saved transactions, try to send them to the server
+        // The server will ensure that transactions are only saved once
+        // stop if an error occurs
+        var contents = getContents();
+        if (contents.length > 0){
+            $.ajax({
+                type: "POST",
+                url: postUrl,
+                data: localStorage.getItem(contents[0]),
+                dataType: 'text',
+                timeout: 10000,
+                success: function(response){
+                    console.log(response);
+                    if (response.slice(0, 5) === 'saved'){
+                        contents = removeTransaction();
+                        if (contents.length > 0){
+                            console.log('Next item ' + contents[0]);
+                            this.data = localStorage.getItem(contents[0]);
+                            $.ajax(this);
+                        }
+                    }else{
+                        console.log('Server error - abort recovery');
+                    }
+                },
+                error: function(xhr, textStatus, errorThrown){
+                    console.log('Error ' + xhr + ' ' + textStatus);
                 }
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                console.log ('Recovery error {xhr} {textStatus} {stamp}');
-            }
-        });
+            });
+        }
     }
+
+
+
+
 
     function newReceipt() {
         receipt = [];
@@ -416,23 +450,7 @@ var posCode = (function () {
         createTable(receipt);
     }
 
-    // function loadItems() {
-    //     // AJAX request to download items with description & price
-    //     var xhttp = new XMLHttpRequest();
-    //     xhttp.onreadystatechange = function () {
-    //         if (this.readyState === 4 && this.status === 200) {
-    //             var jsonData = this.responseText;
-    //             items = JSON.parse(JSON.parse(this.responseText));
-    //             $('.flex-left').show();
-    //             $('.flex-right').show();
-    //         }
-    //     };
-    //     xhttp.open("GET", itemsUrl, true);
-    //     xhttp.send();
-    // }
-
     function loadItems() {
-
         var savedItems = localStorage.getItem('items');
         if (savedItems) {
             console.log('Using items from storage');
@@ -447,7 +465,7 @@ var posCode = (function () {
                 url: itemsUrl,
                 timeout: 10000,
                 success: function (response) {
-                    console.log('saving items')
+                    console.log('saving items');
                     localStorage.setItem('items', response);
                     items = JSON.parse(response);
                     $('.flex-left').show();
@@ -516,5 +534,59 @@ var posCode = (function () {
         formattedTotal = '£ ' + Number(total/100).toFixed(2);
         totalArea.innerHTML = "Total : " + formattedTotal;
     }
+
+    var pingTimer;
+    var pingTimeout = "";
+    var pingUrl = "";
+    var terminal = 0;
+
+    function initPing(timeout, url, term) {
+        // Initialise a regular ping message
+        pingTimeout = timeout;
+        pingUrl = url;
+        terminal = term;
+        ping();
+    }
+
+    function stopPing () {
+        clearTimeout(pingTimer);
+    }
+
+    function startPing() {
+        pingTimer = setTimeout(ping, pingTimeout);
+    }
+
+    function ping() {
+        // post a message to the server with terminal number
+        $.ajax({
+            type: "POST",
+            url: pingUrl,
+            data: 'terminal=' + terminal,
+            timeout: pingTimeout,
+            success: function (data, status, xhr) {
+                $('#idOfflineMessage').hide();
+                $('#idOnlineMessage').show();
+                $('#idOnline').text('Online');
+                if (data === 'OK') {
+                    if (getContents().length > 0){
+                        recoverTransactions();
+                    }
+                    startPing();
+                }else{
+                    pos.startApp();
+                }
+            },
+            error: function (data, status, xhr) {
+                $('#idOfflineMessage').show().text('Sorry, the server is temporarily available. Please try later');
+                $('#idOnlineMessage').hide();
+                $('#idOnline').text('OffLine');
+                startPing();
+            }
+        });
+    }
+
+
+
+
     return pos;
 })();

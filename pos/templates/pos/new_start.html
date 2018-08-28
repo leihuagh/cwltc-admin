@@ -50,14 +50,14 @@
           {% endif %}
           <br>
       </div>
-
+<button class="btn btn-danger" onclick="posCode.recoverTransactions()">Recover</button>
       <p class="hint">All members who have paid their subscription can use this system after registration.<br>
           You can register now by pressing any button above and searching for your name.</p>
     </div>
     <p id="idOfflineMessage">Sorry, the server is offline. Please try later.</p><!-- division is visible if ping fails -->
   </div>
   <div class="terminal">Terminal: {{ request.session.terminal }}
-    <span id="idOnline"></span></div>
+    <span id="idOnline"></span> <span id="idSaved"></span></div>
   <div class="last-transaction">
     Last transaction: {{ request.session.last_person }}: £ {{ request.session.last_total }}
   </div>
@@ -154,8 +154,8 @@
 <script>
   $(document).ready(function () {
 
-    posCode.init('{{ items_url }}', '{{ post_url }}', '{{ exit_url }}', {{ is_attended }},
-        '{{ layout.id }}', '{{ csrf_token }}', timingCode);
+    posCode.init('{{ items_url }}', '{{ post_url }}', '{{ ping_url }}', {{ is_attended }},
+        '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}', '{{ timeout }}', timingCode);
 
     $(".posbutton").on('touchstart', function (event) {
         event.currentTarget.classList.add('posbutton-down');
@@ -177,62 +177,5 @@
       // Executed when name selected in typeahead
 
   });
-  /*
-  var person_id;
-
-  function showPage(pageId){
-      $('#idPageStart').hide();
-      $('#idPageGetUser').hide();
-      $('#idPageGetPassword').hide();
-      if (pageId == '#idPagePos') {
-          $('#idLogoBanner').hide();
-      }else{
-          $('#idLogoBanner').show()
-      }
-      $(pageId).show()
-  }
-
-  function startApp(){
-      showPage('#idPageStart');
-  }
-
-  function getUser() {
-      showPage('#idPageGetUser');
-      $('#idNameInput').val('');
-  }
-
-  function gotUser(person) {
-      person_id = person;
-      $('#idPerson_id').val(person.id);
-      $('.typeahead').typeahead('val', '');
-      showPage('#idPageGetPassword');
-  }
-
-  function submitPassword() {
-      $.ajax({
-          type: 'GET',
-          url: '{% url 'pos_ajax_password' %}',
-          data: $('#idPasswordForm').serialize(),
-          timeout: 10000,
-          success: function (response) {
-              if (response === 'pass'){
-                  showPos();
-              }else{
-                  console.log(data);
-                  startApp();
-              }
-            },
-          error: function (xhr, textStatus, errorThrown) {
-              if (textStatus === 'timeout') {
-                  console.log('timeout');
-              }
-            }
-          })
-      }
-
-  function showPos(){
-      posCode.newReceipt();
-      showPage('#idPagePos');
-  } */
-   </script>
+</script>
 {% endblock %}

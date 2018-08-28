@@ -99,7 +99,6 @@ class NewStartView(LoginRequiredMixin, TemplateView):
         context['terminal'] = self.request.session['terminal']
         context['layout'] = layout
         context['rows'], used_items = build_pos_array(layout)
-        #context = add_context(context, self.request)
         if app.attended and has_attended_cookie(self.request):
             if app.is_bar_app():
                 context['exit_url'] = reverse('pos_new_start')
@@ -115,27 +114,30 @@ class NewStartView(LoginRequiredMixin, TemplateView):
         """ Write transaction to database"""
 
         if request.is_ajax():
+            #return HttpResponse('error')
+
             receipt = json.loads(request.body)
             pay_record = receipt.pop()
-            creation_date = datetime.fromtimestamp(pay_record['stamp']/1000)
+            creation_date = datetime.fromtimestamp(pay_record['stamp']/1000, tz = timezone.get_current_timezone())
             system, terminal = read_cookie(request)
-
-            try:
-                trans = create_transaction_from_receipt(request.user.id,
-                                                        terminal,
-                                                        pay_record['layout_id'],
-                                                        receipt,
-                                                        pay_record['total'],
-                                                        pay_record['people'],
-                                                        request.session['attended'],
-                                                        creation_date=creation_date
-                                                        )
-                # request.session['last_person'] = trans[0]
-                # request.session['last_total'] = trans[1]
-            except PosServicesError:
-                return HttpResponse('error')
-            return HttpResponse('saved')
-
+            existing = Transaction.objects.filter(creation_date=creation_date, terminal=terminal)
+            if not existing:
+                try:
+                    trans = create_transaction_from_receipt(request.user.id,
+                                                            terminal,
+                                                            pay_record['layout_id'],
+                                                            receipt,
+                                                            pay_record['total'],
+                                                            pay_record['people'],
+                                                            request.session['attended'],
+                                                            creation_date=creation_date
+                                                            )
+                    # request.session['last_person'] = trans[0]
+                    # request.session['last_total'] = trans[1]
+                except PosServicesError:
+                    return HttpResponse('error')
+                return HttpResponse(f'saved {trans[0]} Total:{trans[1]}')
+            return HttpResponse(f'saved Id:{existing[0].id} Total:{existing[0].total} already in database')
         # should not get here - all posts are ajax
         return redirect('pos_new_start')
 

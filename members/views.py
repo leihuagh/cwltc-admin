@@ -461,6 +461,13 @@ def ajax_people(request):
         return HttpResponse(data, mimetype)
 
 
+def ajax_all_members(request):
+    people = Person.objects.values('first_name', 'last_name', 'id').filter(
+        membership__is_adult=True, state=Person.ACTIVE, sub__paid=True)
+    result = list(people)
+    return JsonResponse(result)
+
+
 def ajax_person(request):
     id = request.GET.get('id', '')
     person = Person.objects.get(pk=id)
