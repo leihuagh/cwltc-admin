@@ -2,6 +2,7 @@ import factory
 import datetime
 from factory.django import DjangoModelFactory
 from django.test import TestCase
+from django.utils import timezone
 from .models import *
 from members.models import Person, InvoiceItem, ItemType, Subscription
 import logging
@@ -32,7 +33,7 @@ class TournamentFactory(DjangoModelFactory):
     class Meta:
         model = Tournament
     event_cost = 5
-    draw_date = datetime.datetime.now()
+    draw_date = timezone.now()
     finals_date = draw_date
 
 class ItemTypeFactory(DjangoModelFactory):
@@ -60,7 +61,7 @@ class EventTestCase(TestCase):
         for i in range(10):
             self.assertEqual(items[i].amount, 10)
             self.assertEqual(items[i].item_type_id, ItemType.SOCIAL)
-            self.assertEqual(items[i].description, 'My event')
+            self.assertEqual(items[i].description, 'event_name_0')
             self.assertEqual(items[i].person.first_name, f'first_name_{i}')
 
     def test_bill_tournament(self):
@@ -71,6 +72,9 @@ class EventTestCase(TestCase):
         self.assertEqual(main_events.count(), 5)
         plate_events = Event.objects.filter(active=False)
         self.assertEqual(plate_events.count(), 3)
+        # test make all events active
+        tournament.make_active(True)
+        self.assertEqual(Event.objects.filter(active=True).count(), 8)
         # Each main event has 1 entrant so 5 people
         for event in main_events:
             event.add_person(PersonFactory())

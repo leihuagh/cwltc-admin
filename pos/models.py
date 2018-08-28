@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 from events.models import Event
 from members.models import Person, ItemType
@@ -96,7 +97,7 @@ class Transaction(models.Model):
     def save(self, *args, **kwargs):
         """ simulate auto now for backwards compatibility but normally date come from the pos """
         if self.creation_date is None:
-            self.creation_date = datetime.now()
+            self.creation_date = timezone.now()
         super().save(*args, **kwargs)
 
     def __str__(self):
