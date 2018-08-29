@@ -470,7 +470,8 @@ var posCode = (function (){
                     console.log('saving items');
                     localStorage.setItem('items', response);
                     items = JSON.parse(response);
-                    alert('items loaded');
+                    var test = localStorage.getItem('items');
+                    alert(test.length.toString() + ' items loaded');
                     $('.flex-left').show();
                     $('.flex-right').show();
                 },
