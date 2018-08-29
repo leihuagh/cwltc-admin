@@ -48,7 +48,7 @@ var posCode = (function (){
                 xhr.setRequestHeader('X-CSRFToken', csrf_token);
             }
         });
-        localStorage.clear();
+        //localStorage.clear();
         initPing(timeout, ping_url, terminal);
         loadItems();
         loadPeople();
@@ -113,7 +113,7 @@ var posCode = (function (){
             type: 'GET',
             url: '/pos/ajax/password/',
             data: $('#idPasswordForm').serialize(),
-            timeout: 10000,
+            timeout: 3,
             success: function (response) {
                 if (response === 'pass'){
                   pos.newReceipt();
@@ -455,7 +455,7 @@ var posCode = (function (){
     function loadItems() {
         var savedItems = localStorage.getItem('items');
         if (savedItems) {
-            console.log('Using items from storage');
+            alert('Using items from storage');
             items = JSON.parse(savedItems);
             $('.flex-left').show();
             $('.flex-right').show();
