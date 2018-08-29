@@ -41,6 +41,7 @@ urlpatterns = [
     # url(r'^markdownx/', include('markdownx.urls')),
     url(r'^ajax/people/', ajax_people, name="ajax-people"),
     url(r'^ajax/person/', ajax_person, name="ajax-person"),
+    url(r'^ajax/adults/', ajax_adults, name="ajax-adults"),
     url(r'^search/person/', search_person, name="search-person"),
 
     # YEAR END

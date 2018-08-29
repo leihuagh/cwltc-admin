@@ -7,6 +7,7 @@ from django.views.generic.edit import FormView, FormMixin
 from django.contrib import messages
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.serializers import serialize
 from braces.views import StaffuserRequiredMixin
 
 from django_tables2 import SingleTableView
@@ -451,7 +452,7 @@ def ajax_people(request):
                 person_json = {}
                 person_json['id'] = person.id
                 person_json['value'] = person.fullname
-                if request.GET.get('id',''):
+                if request.GET.get('id', ''):
                     person_json['value'] += ' (id = {})'.format(person.id)
                 results.append(person_json)
         return JsonResponse(results, safe=False)
@@ -461,14 +462,30 @@ def ajax_people(request):
         return HttpResponse(data, mimetype)
 
 
-def ajax_all_members(request):
-    people = Person.objects.values('first_name', 'last_name', 'id').filter(
-        membership__is_adult=True, state=Person.ACTIVE, sub__paid=True)
-    result = list(people)
-    return JsonResponse(result)
+def ajax_adults(request):
+    """ return json of all paid adults for bloodhound prefetch """
+    # people = Person.objects.filter(
+    #     membership__is_adult=True, state=Person.ACTIVE, sub__paid=True)
+    # data = serialize('json', people, fields=('first_name', 'last_name', 'id'))
+    # return HttpResponse(data, 'application/json')
+    #
+    people = list(Person.objects.filter(membership__is_adult=True, state=Person.ACTIVE, sub__paid=True).values(
+        'first_name', 'last_name', 'id'))
+    # return JsonResponse(people, safe=False)
+    # people = Person.objects.filter(
+    #     membership__is_adult=True, state=Person.ACTIVE, sub__paid=True)
+    result = []
+    for person in people:
+        person_json = {}
+        person_json['value'] = person['first_name'] + ' ' + person['last_name']
+        #person_json['value'] = person.fullname
+        person_json['id'] = person['id']
+        result.append(person_json)
+    return JsonResponse(result, safe=False)
 
 
 def ajax_person(request):
+    """ Used for member lookup """
     id = request.GET.get('id', '')
     person = Person.objects.get(pk=id)
     json = {}
@@ -518,9 +535,9 @@ class PeopleResignView(StaffuserRequiredMixin, TemplateView):
         return Person.objects.filter(pk__in=id_list).order_by('first_name', 'last_name')
 
     def post(self, request, **kwargs):
+        people = self.get_people(request)
         if 'resign' in request.POST:
             count = 0
-            people = self.get_people(request)
             for person in people:
                 try:
                     person_resign(person)

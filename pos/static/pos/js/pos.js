@@ -19,6 +19,7 @@ var posCode = (function (){
     var total;
     var formattedTotal;
     var line;
+    var online = false;
 
     // Django context variables
     var itemsUrl, postUrl, exitUrl;
@@ -50,6 +51,7 @@ var posCode = (function (){
         localStorage.clear();
         initPing(timeout, ping_url, terminal);
         loadItems();
+        loadPeople();
 
         $(".posbutton").on('touchstart', function(event) {
             pos.itemAdd(Number(event.currentTarget.id));
@@ -480,6 +482,21 @@ var posCode = (function (){
         }
     }
 
+    function loadPeople(){
+        $.ajax({
+            type: 'GET',
+            url: '/ajax/adults',
+            timeout: 10000,
+            success: function (response) {
+                console.log('saving people');
+                localStorage.setItem('people', JSON.stringify(response));
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                console.log('Error loadPeople ' + textStatus);
+            }
+        });
+    }
+
     var lookup = function (id) {
         var index;
         for (index = 0; index < items.length; index++) {
@@ -535,6 +552,17 @@ var posCode = (function (){
         totalArea.innerHTML = "Total : " + formattedTotal;
     }
 
+
+    function setOnline(){
+        online = true;
+        $('#idOnline').text('Online');
+    }
+
+    function setOffline(){
+        online = false;
+        $('#idOnline').text('Offline');
+    }
+
     var pingTimer;
     var pingTimeout = "";
     var pingUrl = "";
@@ -566,7 +594,7 @@ var posCode = (function (){
             success: function (data, status, xhr) {
                 $('#idOfflineMessage').hide();
                 $('#idOnlineMessage').show();
-                $('#idOnline').text('Online');
+                setOnline();
                 if (data === 'OK') {
                     if (getContents().length > 0){
                         recoverTransactions();
@@ -579,7 +607,7 @@ var posCode = (function (){
             error: function (data, status, xhr) {
                 $('#idOfflineMessage').show().text('Sorry, the server is temporarily available. Please try later');
                 $('#idOnlineMessage').hide();
-                $('#idOnline').text('OffLine');
+                setOffline();
                 startPing();
             }
         });

@@ -95,7 +95,7 @@ class Transaction(models.Model):
     attended = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        """ simulate auto now for backwards compatibility but normally date come from the pos """
+        """ simulate auto now for backwards compatibility but normally date comes from the pos """
         if self.creation_date is None:
             self.creation_date = timezone.now()
         super().save(*args, **kwargs)
