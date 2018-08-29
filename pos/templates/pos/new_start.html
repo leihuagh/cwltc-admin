@@ -14,7 +14,7 @@
         <p class="ipad-error">{{ request.session.message }}</p>
           {% if is_bar %}
             {% for app in apps %}
-              <button type="button" class="posbutton btn-large btn-block" onclick="posCode.getUser()" name="app_{{ app.id }}">Member Login</button>
+              <button type="button" class="posbutton btn-large btn-block" onclick="posCode.getUser()" name="app_{{ app.id }}" id="idLogin">Member Login</button>
             {% endfor %}
             {% if attended %}
               <br/><br/><br/>
@@ -157,12 +157,14 @@
     posCode.init('{{ items_url }}', '{{ post_url }}', '{{ ping_url }}', {{ is_attended }},
         '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}', '{{ timeout }}', timingCode);
 
-    $(".posbutton").on('touchstart', function (event) {
+    $('#idLogin').on('touchstart', function (event) {
         event.currentTarget.classList.add('posbutton-down');
+        posCode.getUser();
     });
     $(".posbutton").on('touchend', function (event) {
         event.currentTarget.classList.remove('posbutton-down');
     });
+
     bind_typeahead('#idNameInput', posCode.gotUser, '{{ filter }}');
     bind_typeahead('#member_search', posCode.selectedPerson, true);
 
