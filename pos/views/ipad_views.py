@@ -135,9 +135,9 @@ class NewStartView(LoginRequiredMixin, TemplateView):
                     # request.session['last_person'] = trans[0]
                     # request.session['last_total'] = trans[1]
                 except PosServicesError:
-                    return HttpResponse('error')
-                return HttpResponse(f'saved {trans[0]} Total:{trans[1]}')
-            return HttpResponse(f'saved Id:{existing[0].id} Total:{existing[0].total} already in database')
+                    return HttpResponse(status=500)
+                return HttpResponse(f'Saved;{trans[0]};{trans[1]}')
+            return HttpResponse(f'Exists;{existing[0].id};{existing[0].total}')
         # should not get here - all posts are ajax
         return redirect('pos_new_start')
 

@@ -116,16 +116,17 @@ var posCode = (function (){
             timeout: 3000,
             success: function (response) {
                 if (response === 'pass'){
-                  pos.newReceipt();
+                    pos.newReceipt();
                 }else{
-                  console.log(response);
-                  pos.startApp();
+                    console.log(response);
+                    pos.startApp();
                 }
             },
             error: function (xhr, textStatus, errorThrown) {
                 if (textStatus === 'timeout') {
-                  console.log('timeout');
+                    console.log('timeout - ignore password');
                 }
+                pos.startApp();
             }
         });
     };
@@ -339,11 +340,6 @@ var posCode = (function (){
         };
         receipt.push(payObj);
         var transaction = JSON.stringify(receipt);
-
-        // $('#save_message').text('Saving transaction to server ...');
-        // $('#save_error').text(' ');
-        // $('#save-footer').hide();
-        // $('#save_modal').modal('show');
         var fatal = false;
         var message = '';
         $.ajax({
@@ -355,19 +351,23 @@ var posCode = (function (){
             retryLimit: 1,
             timeout: 10000,
             success: function (response) {
-                if (response === 'saved') {
+                var result = response.split(';');
+                if (result[0] === 'Saved') {
                     console.log('Transaction saved');
-                    // TODO last transaction
-                    pos.startApp();
+                    $('#idLastTransaction').text(result[1]);
+                    $('#idLastTotal').text(result[2]);
+                }else if (result[0] === 'Exists'){
+                    console.log('Transaction exists with id ' + result[1]);
                 }else{
-                    console.log('Transaction error - save locally');
-                    saveTransaction(transaction, stamp);
-                    pos.startApp();
+                    console.log('Unknown server response');
                 }
+                pos.startApp();
             },
             error: function (xhr, textStatus, errorThrown) {
                 console.log ('Error {xhr} {textStatus}');
                 saveTransaction(transaction, stamp);
+                $('#idLastTransaction').text('local');
+                $('#idLastTotal').text(payObj.total);
                 pos.startApp();
             }
         });
