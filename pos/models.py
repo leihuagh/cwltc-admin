@@ -203,6 +203,7 @@ class PosApp(models.Model):
 class PosPing(models.Model):
     terminal = models.SmallIntegerField()
     time = models.DateTimeField()
+    # url = models.CharField(max_length=30)
 
     def __str__(self):
         return f'Terminal: {terminal} time: {time}'

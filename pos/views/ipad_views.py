@@ -293,7 +293,7 @@ class GetPasswordView(LoginRequiredMixin, TemplateView):
 # TODO redirects for new_start
 
 def ajax_password_view(request):
-    id = request.GET.get('person_id', None)
+    id = request.POST.get('person_id', None)
     if not id:
         raise Http404
     request.session['person_id'] = id
@@ -301,7 +301,7 @@ def ajax_password_view(request):
         person = Person.objects.get(pk=id)
     except Person.DoesNotExist:
         raise Http404
-    pin = request.GET.get('pin', None)
+    pin = request.POST.get('pin', None)
     if pin and check_password(pin, person.pin):
         return HttpResponse('pass')
     else:
@@ -612,6 +612,7 @@ def ajax_ping_view(request):
         else:
             record = PosPing.objects.create(terminal=terminal, time=timezone.now())
         return HttpResponse('OK')
+        #return HttpResponse('Restart ' + reverse('pos_new_start'))
     return HttpResponse('Bad terminal')
 
 

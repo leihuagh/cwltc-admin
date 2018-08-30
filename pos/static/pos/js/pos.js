@@ -110,10 +110,10 @@ var posCode = (function (){
 
     pos.submitPassword = function() {
         $.ajax({
-            type: 'GET',
+            type: 'POST',
             url: '/pos/ajax/password/',
             data: $('#idPasswordForm').serialize(),
-            timeout: 3,
+            timeout: 3000,
             success: function (response) {
                 if (response === 'pass'){
                   pos.newReceipt();
@@ -455,7 +455,7 @@ var posCode = (function (){
     function loadItems() {
         var savedItems = localStorage.getItem('items');
         if (savedItems) {
-            alert('Using items from storage');
+            #alert('Using items from storage');
             items = JSON.parse(savedItems);
             $('.flex-left').show();
             $('.flex-right').show();
@@ -471,7 +471,7 @@ var posCode = (function (){
                     localStorage.setItem('items', response);
                     items = JSON.parse(response);
                     var test = localStorage.getItem('items');
-                    alert(test.length.toString() + ' items loaded');
+                    #alert(test.length.toString() + ' items loaded');
                     $('.flex-left').show();
                     $('.flex-right').show();
                 },
@@ -598,10 +598,12 @@ var posCode = (function (){
                 $('#idOnlineMessage').show();
                 setOnline();
                 if (data === 'OK') {
-                    if (getContents().length > 0){
+                    if (getContents().length > 0) {
                         recoverTransactions();
                     }
                     startPing();
+                }else if (data.slice(0, 7) === 'Restart') {
+                    window.location.replace(data.slice(8));
                 }else{
                     pos.startApp();
                 }
