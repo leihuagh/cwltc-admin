@@ -455,7 +455,7 @@ var posCode = (function (){
     function loadItems() {
         var savedItems = localStorage.getItem('items');
         if (savedItems) {
-            //alert('Using items from storage');
+            alert('Using items from storage');
             items = JSON.parse(savedItems);
             $('.flex-left').show();
             $('.flex-right').show();
@@ -471,7 +471,7 @@ var posCode = (function (){
                     localStorage.setItem('items', response);
                     items = JSON.parse(response);
                     var test = localStorage.getItem('items');
-                    //alert(test.length.toString() + ' items loaded');
+                    alert(test.length.toString() + ' items loaded');
                     $('.flex-left').show();
                     $('.flex-right').show();
                 },
