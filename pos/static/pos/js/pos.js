@@ -109,43 +109,56 @@ var posCode = (function (){
     };
 
     pos.submitPassword = function() {
-        var query
-        $.ajax({
-            type: 'POST',
-            url: '/pos/ajax/password/',
-            data: $('#idPasswordForm').serialize(),
-            timeout: 2000,
-            success: function (response) {
-                if (response === 'pass'){
-                    query = parseQuery(this.data);
-                    if (query.pin){
-                        localStorage.setItem('id:' + query.person_id, btoa(query.pin))
-                    }
-                    pos.newReceipt();
-                } else {
-                    console.log(response);
-                    pos.startApp();
-                }
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                console.log(textStatus + ' ignore password');
-                query = parseQuery(this.data);;
-                var p = localStorage.getItem('id:' + query.person_id);
-                if (p){
-                    if (atob(p) === query.pin){
-                        console.log('Good offline pin');
+        var formData = $('#idPasswordForm').serialize();
+        var query = parseQuery(formData);
+        if (online){
+            $.ajax({
+                type: 'POST',
+                url: '/pos/ajax/password/',
+                data: formData,
+                timeout: 2000,
+                success: function (response) {
+                    if (response === 'pass'){
+                        setOnline();
+                        if (query.pin){
+                            localStorage.setItem('id:' + query.person_id, btoa(query.pin))
+                        }
                         pos.newReceipt();
                     } else {
-                        console.log('Bad offline pin');
+                        console.log(response);
                         pos.startApp();
                     }
-                } else {
-                    console.log('Ignore offline pin');
-                    pos.newReceipt();
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.log(textStatus + ' ignore password');
+                    setOffline();
+                    testOfflinePin(query);
                 }
-            }
-        });
+            });
+        } else {
+            testOfflinePin(query);
+        }
     };
+
+    function testOfflinePin(query){
+        // test submitted query against stored offline pin
+        // if its present and matches start pos
+        // if present and wrong -> error
+        // if not present, start pos
+        var pin = localStorage.getItem('id:' + query.person_id);
+        if (pin){
+            if (atob(pin) === query.pin){
+                console.log('Good offline pin');
+                pos.newReceipt();
+            } else {
+                console.log('Bad offline pin');
+                pos.startApp();
+            }
+        } else {
+            console.log('Ignore offline pin');
+            pos.newReceipt();
+        }
+    }
 
     pos.newReceipt = function(){
         newReceipt();
@@ -646,8 +659,8 @@ var posCode = (function (){
                 }
             },
             error: function (data, status, xhr) {
-                $('#idOfflineMessage').show().text('Sorry, the server is temporarily available. Please try later');
-                $('#idOnlineMessage').hide();
+                // $('#idOfflineMessage').show().text('Sorry, the server is temporarily available. Please try later');
+                // $('#idOnlineMessage').hide();
                 setOffline();
                 startPing();
             }
