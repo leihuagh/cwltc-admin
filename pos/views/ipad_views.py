@@ -55,7 +55,8 @@ class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
         if 'start' in request.POST:
             terminal = request.POST['terminal']
             system = request.POST['system']
-            response = HttpResponseRedirect(reverse('pos_start'))
+            start = 'pos_new_start' if system == 'bar' else 'pos_start'
+            response = HttpResponseRedirect(reverse(start))
             max_age = 10 * 365 * 24 * 60 * 60
             response.set_cookie('pos', system + ';' + terminal, max_age=max_age)
             return response
@@ -132,16 +133,12 @@ class NewStartView(LoginRequiredMixin, TemplateView):
                                                             request.session['attended'],
                                                             creation_date=creation_date
                                                             )
-                    # request.session['last_person'] = trans[0]
-                    # request.session['last_total'] = trans[1]
                 except PosServicesError:
                     return HttpResponse(status=500)
                 return HttpResponse(f'Saved;{trans[0]};{trans[1]}')
             return HttpResponse(f'Exists;{existing[0].id};{existing[0].total}')
         # should not get here - all posts are ajax
         return redirect('pos_new_start')
-
-
 
 
 class StartView(LoginRequiredMixin, TemplateView):

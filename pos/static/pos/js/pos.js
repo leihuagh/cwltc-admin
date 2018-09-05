@@ -109,24 +109,40 @@ var posCode = (function (){
     };
 
     pos.submitPassword = function() {
+        var query
         $.ajax({
             type: 'POST',
             url: '/pos/ajax/password/',
             data: $('#idPasswordForm').serialize(),
-            timeout: 3000,
+            timeout: 2000,
             success: function (response) {
                 if (response === 'pass'){
+                    query = parseQuery(this.data);
+                    if (query.pin){
+                        localStorage.setItem('id:' + query.person_id, btoa(query.pin))
+                    }
                     pos.newReceipt();
-                }else{
+                } else {
                     console.log(response);
                     pos.startApp();
                 }
             },
             error: function (xhr, textStatus, errorThrown) {
-                if (textStatus === 'timeout') {
-                    console.log('timeout - ignore password');
+                console.log(textStatus + ' ignore password');
+                query = parseQuery(this.data);;
+                var p = localStorage.getItem('id:' + query.person_id);
+                if (p){
+                    if (atob(p) === query.pin){
+                        console.log('Good offline pin');
+                        pos.newReceipt();
+                    } else {
+                        console.log('Bad offline pin');
+                        pos.startApp();
+                    }
+                } else {
+                    console.log('Ignore offline pin');
+                    pos.newReceipt();
                 }
-                pos.startApp();
             }
         });
     };
@@ -373,6 +389,30 @@ var posCode = (function (){
         });
     }
 
+    function parseQuery(queryString) {
+        var query = {};
+        var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+        for (var i = 0; i < pairs.length; i++) {
+            var pair = pairs[i].split('=');
+            query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+        }
+    return query;
+}
+    function savePin(id, pin){
+        // Save obfuscated pin in local storage
+        var key = 'Id:' + id;
+        localStorage.setItem(key, btoa(pin));
+    }
+
+    function checkPin(id, pin){
+        var p = localStorage.getItem('Id:' + id);
+        if (p){
+            return atob(p) === pin;
+        }else{
+            return false;
+        }
+    }
+
 
     function saveTransaction(trans, stamp){
         // Save transaction in local storage
@@ -405,7 +445,6 @@ var posCode = (function (){
         return contents;
     }
 
-
     pos.recoverTransactions = function(){
         recoverTransactions();
     };
@@ -424,7 +463,8 @@ var posCode = (function (){
                 timeout: 10000,
                 success: function(response){
                     console.log(response);
-                    if (response.slice(0, 5) === 'saved'){
+                    var result = response.split(';');
+                    if (result[0] === 'Saved' || result[0] === 'Exists') {
                         contents = removeTransaction();
                         if (contents.length > 0){
                             console.log('Next item ' + contents[0]);
@@ -436,14 +476,11 @@ var posCode = (function (){
                     }
                 },
                 error: function(xhr, textStatus, errorThrown){
-                    console.log('Error ' + xhr + ' ' + textStatus);
+                    console.log('Error ' + xhr + ' ' + textStatus + 'abort recovery');
                 }
             });
         }
     }
-
-
-
 
 
     function newReceipt() {
