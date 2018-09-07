@@ -84,7 +84,6 @@
     $('#startLogin').on('touchstart click', function (event) {
         posCode.touch(event, posCode.getUser);
     });
-
     $('#startAttended').on('touchstart click', function (event) {
         posCode.touch(event, posCode.attended);
     });
@@ -93,14 +92,68 @@
         posCode.touch(event, posCode.logOut);
     });
 
+    // PASSWORD
+    $('#passwordBack').on('touchstart click', function (event) {
+        posCode.touch(event, posCode.logOut);
+    });
+    $('#passwordSubmit').on('touchstart click', function (event) {
+        posCode.touch(event, posCode.submitPassword);
+    });
+
+    // MENU
     $('#menuPurchase').on('touchstart click', function(event) {
         posCode.touch(event, posCode.newReceipt);
     });
-
     $('#menuTransactions').on('touchstart click', function(event) {
         posCode.touch(event, posCode.transactions);
     });
+    $('#menuLogOut').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.logOut);
+    });
 
+    // POS
+    $('#posPay').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.pay);
+    });
+    $('#posCancel').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.newReceipt);
+    });
+    $('#posLogOut').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.logOut);
+    });
+    // Attended modal
+    $('#posAccount').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.account);
+    });
+    $('#posCash').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.cash);
+    });
+    $('#posResume').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.resume);
+    });
+    // Member modal
+    $('#posCommit').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.commitSingle);
+    });
+    $('#posSplit').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.split);
+    });
+    $('#posBack').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.resume);
+    });
+    // Select modal
+    $('#posBack1').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.back1);
+    });
+    $('#posCharge').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.commit);
+    });
+    $('#posAddMember').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.addMember);
+    });
+    $('#posBack2').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.back1);
+    });
     bind_typeahead('#idNameInput', posCode.getPin, '{{ filter }}');
     bind_typeahead('#member_search', posCode.selectedPerson, true);
     posCode.startApp();

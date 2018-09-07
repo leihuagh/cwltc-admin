@@ -30,25 +30,19 @@
     <div class="name-area" id="id_PosName"></div>
     <div id="receipt-area">
       <table id="id_table">
-
+        <!-- Receipt appears here -->
       </table>
     </div>
     <div id="total-area"></div>
     <div id="id_payment">
       <div class="col-md-6 buttons-active">
-        <button class="btn btn-warning btn-lg btn-block timed touch" id="id_pay" onclick="posCode.pay()">
-          Payment
-        </button>
+        <button class="btn btn-warning btn-lg btn-block timed touch" id="posPay">Payment</button>
       </div>
       <div class="col-md-6 buttons-active">
-        <button class="btn btn-danger btn-lg btn-block timed touch" id="id_cancel" onclick="posCode.newReceipt()">
-          Cancel all
-        </button>
+        <button class="btn btn-danger btn-lg btn-block timed touch" id="posCancel">Cancel all</button>
       </div>
       <div class="col-md-12 button-exit">
-        <button class="btn btn-lg btn-block btn-warning touch" id="id_exit" onclick="posCode.logOut()">
-          Exit
-        </button>
+        <button class="btn btn-lg btn-block btn-warning touch" id="posLogOut">Exit</button>
       </div>
     </div>
   </div>
@@ -61,22 +55,15 @@
   <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
             <h3 class="modal-title">Select payment type</h3>
         </div>
         <div class="modal-body">
           <h4>Total is <span id="attended_total">xxx</span></h4>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-lg btn-success" id="account" data-dismiss="modal" onclick="posCode.account()">
-            Charge to member account
-          </button>
-          <button class="btn btn-lg btn-success" id="cash" data-dismiss="modal" onclick="posCode.cash()">
-            Cash sale
-          </button>
-          <button class="btn btn-lg btn-danger" data-dismiss="modal" id="back" onclick="posCode.resume()">
-            Back
-          </button>
+          <button class="btn btn-lg btn-success" id="posAccount">Charge to member account</button>
+          <button class="btn btn-lg btn-success" id="posCash">Cash sale</button>
+          <button class="btn btn-lg btn-danger" id="posResume">Back</button>
         </div>
     </div>
   </div>
@@ -87,24 +74,17 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
           <h3 class="modal-title">Charge to account</h3>
       </div>
       <div class="modal-body">
         <h3>Confirm charge of <span id="member_total"></span> to <span id="member_name"></span></h3>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="posCode.commitSingle()">
-          Charge to account
-        </button>
+        <button class="btn btn-lg btn-success" id="posCommit">Charge to account</button>
         {% if person_id != -1 %}
-        <button class="btn btn-lg btn-success" data-dismiss="modal" onclick="posCode.split()">
-          Split account
-        </button>
+        <button class="btn btn-lg btn-success" id="posSplit">Split account</button>
         {% endif %}
-        <button class="btn btn-lg btn-danger" data-dismiss="modal" onclick="posCode.resume()">
-          Back
-        </button>
+        <button class="btn btn-lg btn-danger" id="posBack">Back</button>
       </div>
     </div>
   </div>
@@ -115,7 +95,6 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h3 class="modal-title" id="modal_title">
           <span id="title_1"></span> <span id="title_total"></span> <span id="title_2"></span>
         </h3>
@@ -134,39 +113,14 @@
             </div>
           </div>
           <div class="col-md-3">
-            <button class="btn btn-lg btn-danger" onclick="posCode.back1()">
-              Back
-            </button>
+            <button class="btn btn-lg btn-danger" id="posBack1">Back</button>
           </div>
         </div>
         <div id="pay_buttons">
-          <button class="btn btn-lg btn-success"  data-dismiss="modal" id="chargeMemberBtn" onclick="posCode.commit()">
-            Charge to account
-          </button>
-          <button class="btn btn-lg btn-success" id="add_member_btn" onclick="posCode.addMember()">
-            Add another member
-          </button>
-          <button class="btn btn-lg btn-danger" data-dismiss="modal" onclick="posCode.back1()">
-            Back
-          </button>
+          <button class="btn btn-lg btn-success" id="posCharge">Charge to account</button>
+          <button class="btn btn-lg btn-success" id="posAddMember">Add another member</button>
+          <button class="btn btn-lg btn-danger" id="posBack2">Back</button>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-  <!-- Modal to show saving data -->
-<div id="save_modal" class="modal" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body">
-        <h3 id="save_message"></h3>
-        <h4 id="save_error"></h4>
-      </div>
-      <div class="modal-footer" id="save-footer"  hidden>
-        <button class="btn btn-lg btn-success"  data-dismiss="modal">
-          Close
-        </button>
       </div>
     </div>
   </div>

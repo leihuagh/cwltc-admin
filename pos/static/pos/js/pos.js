@@ -8,9 +8,7 @@ var posCode = (function (){
     var totalArea = document.getElementById('total-area');
     var receiptArea = document.getElementById('receipt-area');
     var peopleTable = document.getElementById('peopleTable');
-    var payButton = document.getElementById('id_pay');
-    var exitButton = document.getElementById('id_exit');
-    var cancelButton = document.getElementById('id_cancel');
+
     var payClass = $('.buttons-active');
     var exitClass = $('.button-exit');
 
@@ -120,7 +118,6 @@ var posCode = (function (){
     }
 
     function doAction(event, action){
-        console.log(event.type + 'action ' + action );
         if (action) {
             if (action === 'item') {
                 pos.itemAdd(Number(event.currentTarget.id));
@@ -134,6 +131,7 @@ var posCode = (function (){
     pos.logOut = function(){
         personId = '';
         personName = '';
+        hideModals();
         pos.showPage('#idPageStart');
     };
 
@@ -163,6 +161,7 @@ var posCode = (function (){
     };
 
     pos.startApp = function(){
+        isAttended = false;
         if (personId) {
             pos.showMenu();
         }else{
@@ -170,10 +169,12 @@ var posCode = (function (){
         }
     };
 
-    pos.attended = function(){
+    pos.attended = function() {
         isAttended = true;
-        pos.newReceipt()
-    };
+        personName = 'Attended mode';
+        personId = '';
+        pos.newReceipt();
+    }
 
     pos.getUser = function(){
         pos.showPage('#idPageGetUser');
@@ -260,7 +261,7 @@ var posCode = (function (){
 
     pos.newReceipt = function(){
         newReceipt();
-        $('#id_PosName').val(personName);
+        $('#id_PosName').text(personName);
         pos.showPage('#idPagePos');
     };
 
@@ -311,18 +312,21 @@ var posCode = (function (){
     };
 
     pos.cash = function () {
+        hideModals();
         personList = [];
         sendTransaction('cash');
     };
 
     pos.commitSingle = function () {
         // charge to single logged on member
+        hideModals();
         personList = [{'id': personId, 'name': personName, 'amount': total}];
         sendTransaction('account');
     };
 
     pos.commit = function () {
         // charge to list of members
+        hideModals();
         sendTransaction('account');
     };
 
@@ -362,7 +366,7 @@ var posCode = (function (){
 
     pos.back1 = function() {
         // back from select member dialog
-        $('#select_modal').modal('hide');
+        hideModals()
         switch(personList.length) {
             case 0:
                 $('attended_modal').modal('show');
@@ -380,8 +384,15 @@ var posCode = (function (){
     };
 
     pos.resume = function () {
-        $('#pay_modal').modal('hide');
+        hideModals();
     };
+
+    function hideModals(){
+        $('#pay_modal').modal('hide');
+        $('#attended_modal').modal('hide');
+        $('#member_modal').modal('hide');
+        $('#select_modal').modal('hide');
+    }
 
 
 
@@ -443,6 +454,7 @@ var posCode = (function (){
             $('#add_member_typeahead').hide();
             $('#pay_buttons').show();
         }
+        hideModals();
         $('#select_modal').modal('show');
     }
 
