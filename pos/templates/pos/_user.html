@@ -1,0 +1,31 @@
+<!-- Get user page --->
+
+<div class="container bg" id="idPageGetUser" style="display: none">
+  <h2 class="text-center"><b>{{ request.session.app.name }}</b></h2>
+  <h2 class="text-center">
+    {% if filter == 'adults' %} Adult Member Login{% else %}Adult or Junior Member Login{% endif %}
+  </h2>
+  <br/>
+  <div class="row">
+    <div class="col-md-2">
+        <button class="btn btn-success btn-lg btn-block touch stop-timer" id="userBack">Back</button>
+    </div>
+    <div class="col-md-3 ipad-prompt"> Search for name:</div>
+      <div class="col-md-2 input-group input-group-lg">
+        <input type="text" class="form-control typeahead tt-query timed bsfix" maxlength="15"
+               id ="idNameInput" autocomplete="off" spellcheck="false" autocapitalize="off">
+      </div>
+  </div>
+  <br><br>
+  <div class="row">
+    <div class="col-md-11 col-md-push-1 hint">
+      You can search by first name, last name or both names separated by a space. <br>
+      You only need to type the first few letters of each name. Case does not matter.<br>
+      In most cases entering your 1st initial then 2 characters of your last name is enough.<br>
+      Tap your name when it appears in the list. &nbsp &nbsp
+      E.g. <strong>jsm</strong> would find <strong>John Smith</strong>
+    </div>
+  </div>
+  <div class="hint text-center">
+   </div>
+</div>

@@ -213,6 +213,7 @@
     box-shadow: 4px 6px 12px rgba(0, 0, 0, 0.4);
     white-space: normal;
 }
+
 .posbutton:active {
     filter: brightness(85%);!important
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.4);
@@ -223,6 +224,10 @@
     filter: brightness(85%);!important
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.4);
     transform: translateY(2px) translateX(1px);
+}
+
+.posbutton:focus {
+  outline: 0;
 }
 
 .pospanel {
@@ -253,9 +258,11 @@
     transform: translateY(2px) translateX(1px);
 }
 
-.posbutton:focus {
-  outline: 0;
+.btn.focus, .btn:focus, .btn:hover {
+    color: white;
+    text-decoration: none;
 }
+
 
 .layout {
     width: 100px;

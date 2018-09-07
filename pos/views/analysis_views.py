@@ -1,6 +1,6 @@
 import logging
 from django.views.generic import DetailView, CreateView, UpdateView, TemplateView, View
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
@@ -46,11 +46,16 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
     cash = False
     comp = False
     filter = ''
+    person_id = None
+
+    def get(self, request, *args, **kwargs):
+        request.session['pos'] =  request.GET.get('pos', None)
+        return super().get(request, *args, **kwargs)
 
     def get_table_data(self):
-        person_id = self.kwargs.get('person_id', None)
-        if person_id:
-            self.qs = Transaction.objects.filter(person_id=person_id, billed=False)
+        self.person_id = self.kwargs.get('person_id', None)
+        if self.person_id:
+            self.qs = Transaction.objects.filter(person_id=self.person_id, billed=False)
         elif self.cash:
             self.qs = Transaction.objects.filter(cash=True, billed=False)
         elif self.comp:
@@ -72,7 +77,17 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
         context['bar'] = self.filter == 'bar'
         context['teas'] = self.filter == 'teas'
         context['all'] = self.filter == 'all'
-        person_id = self.kwargs.get('person_id', None)
+        if self.request.session.get('pos', None):
+            if self.person_id == -1:
+                context['exit_url'] = reverse('pos_new_start_person', kwargs={'person_id': self.person_id})
+            else:
+                context['exit_url'] = reverse('pos_new_start')
+        elif self.main_menu:
+            context['exit_url'] = reverse('home')
+        else:
+            #todo remove this when old pos is obsolete
+            context['exit_url'] = reverse('pos_menu')
+        person_id = self.kwargs.get('self.person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)
         self.request.session['last_path'] = self.request.path + '?' + self.request.GET.urlencode()

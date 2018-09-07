@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^admin/$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
     url(r'^new_start/$', NewStartView.as_view(), name='pos_new_start'),
+    url(r'^new_start/(?P<person_id>\d+)/$', NewStartView.as_view(), name='pos_new_start_person'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
 

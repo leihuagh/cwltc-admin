@@ -1,6 +1,6 @@
 <!-- The main POS screen -->
 
-<div class="flex-container" id="idPagePos" style="display: none;">
+<div class="flex-container" id="idPagePos" hidden>
   <div class="flex-left" hidden>
     {% for row in rows %}
       {% for loc in row %}
@@ -13,12 +13,7 @@
 
           <div class="col col-md-2">
             {% if loc.2 %}
-{#              <button class="posbutton timed" id="{{ loc.2.id }}"#}
-{#                      style="background-color: {{ loc.2.colour.back_colour }};#}
-{#                          color: {{ loc.2.colour.fore_colour }}">#}
-{#                <span>{{ loc.2.button_text }}</span>#}
-{#              </button>#}
-              <input type="submit" class="posbutton timed" id="{{ loc.2.id }}"
+              <input type="submit" class="posbutton item-button timed" id="{{ loc.2.id }}"
                       style="background-color: {{ loc.2.colour.back_colour }};
                           color: {{ loc.2.colour.fore_colour }};"
                 value="{{ loc.2.button_text }}">
@@ -41,17 +36,17 @@
     <div id="total-area"></div>
     <div id="id_payment">
       <div class="col-md-6 buttons-active">
-        <button class="btn btn-warning btn-lg btn-block timed" id="id_pay" onclick="posCode.pay()">
+        <button class="btn btn-warning btn-lg btn-block timed touch" id="id_pay" onclick="posCode.pay()">
           Payment
         </button>
       </div>
       <div class="col-md-6 buttons-active">
-        <button class="btn btn-danger btn-lg btn-block timed" id="id_cancel" onclick="posCode.newReceipt()">
+        <button class="btn btn-danger btn-lg btn-block timed touch" id="id_cancel" onclick="posCode.newReceipt()">
           Cancel all
         </button>
       </div>
       <div class="col-md-12 button-exit">
-        <button class="btn btn-lg btn-block btn-warning" id="id_exit" onclick="posCode.exitPos()">
+        <button class="btn btn-lg btn-block btn-warning touch" id="id_exit" onclick="posCode.logOut()">
           Exit
         </button>
       </div>

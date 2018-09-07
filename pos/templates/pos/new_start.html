@@ -4,7 +4,7 @@
 
 {%  include '_logo_banner.html' %}
 
-<div class="container" id="idPageStart" style="display: none">
+<div class="container bg" id="idPageStart">
   <div class="text-center bg {% if is_bar %}jumbotron{% endif %}">
     <h1 class="text-center"><strong>
       {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
@@ -14,11 +14,11 @@
         <p class="ipad-error">{{ request.session.message }}</p>
           {% if is_bar %}
             {% for app in apps %}
-              <button type="button" class="posbutton btn-large btn-block" onclick="posCode.getUser()" name="app_{{ app.id }}" id="idLogin">Member Login</button>
+              <button type="button" id="startLogin" class="btn posbutton btn-large btn-block touch">Member Login</button>
             {% endfor %}
             {% if attended %}
               <br/><br/><br/>
-              <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
+              <button type="button" id="startAttended" class="btn posbutton btn-large btn-block">Attended mode</button>
             {% endif %}
              <br><br>
           {% else %}
@@ -50,11 +50,11 @@
           {% endif %}
           <br>
       </div>
-<button class="btn btn-danger" onclick="posCode.recoverTransactions()">Recover</button>
+{#<button class="btn btn-danger" onclick="posCode.recoverTransactions()">Recover</button>#}
       <p class="hint">All members who have paid their subscription can use this system after registration.<br>
           You can register now by pressing any button above and searching for your name.</p>
     </div>
-    <p id="idOfflineMessage">Sorry, the server is offline. Please try later.</p><!-- division is visible if ping fails -->
+    <p id="idOfflineMessage" hidden>The server is offline - limited functionality</p><!-- division is visible if ping fails -->
   </div>
   <div class="terminal">Terminal: {{ request.session.terminal }}
     <span id="idOnline"></span> <span id="idSaved"></span></div>
@@ -63,88 +63,10 @@
   </div>
 </div>
 
-<!-- Get user page --->
 
-<div class="container bg" id="idPageGetUser" style="display: none">
-  <h2 class="text-center"><b>{{ request.session.app.name }}</b></h2>
-  <h2 class="text-center">
-    {% if filter == 'adults' %} Adult Member Login{% else %}Adult or Junior Member Login{% endif %}
-  </h2>
-  <br/>
-  <div class="row">
-    <div class="col-md-2">
-        <button class="btn btn-success btn-lg btn-block" onclick="posCode.startApp()">Back</button>
-    </div>
-    <div class="col-md-3 ipad-prompt"> Search for name:</div>
-      <div class="col-md-2 input-group input-group-lg">
-        <input type="text" class="form-control typeahead tt-query timed bsfix" maxlength="15"
-               id ="idNameInput" autocomplete="off" spellcheck="false" autocapitalize="off">
-      </div>
-  </div>
-  <br><br>
-  <div class="row">
-    <div class="col-md-11 col-md-push-1 hint">
-      You can search by first name, last name or both names separated by a space. <br>
-      You only need to type the first few letters of each name. Case does not matter.<br>
-      In most cases entering your 1st initial then 2 characters of your last name is enough.<br>
-      Tap your name when it appears in the list. &nbsp &nbsp
-      E.g. <strong>jsm</strong> would find <strong>John Smith</strong>
-    </div>
-  </div>
-  <div class="hint text-center">
-   </div>
-</div>
-
-<!-- Get password page-->
-
-<div class="container bg" id="idPageGetPassword" style="display: none">
-  <div class="row">
-    <h2 class="text-center"><b>{{ request.session.app.name }}</b></h2>
-    <h2 class="text-center" id="idPasswordName"></h2>
-  </div>
-  <br/>
-
-  <form id="idPasswordForm">
-    <input type="hidden" id="idPersonId" name="person_id" value="">
-    <div class="row">
-      <div class="col-md-2">
-        <button type="button" class="btn btn-success btn-lg btn-block stop-timer" onclick="posCode.startApp()">Back</button>
-      </div>
-      <h4 class="col-md-3 ipad-prompt"> PIN:</h4>
-      <div class="col-md-2">
-          <div class="input-group input-group-lg"  style="width: 100%!important;">
-            <input id='idPinInput' type="password" class="form-control" name="pin" pattern="[0-9]*" value="" spellcheck="false"
-                   maxlength="8" autofocus>
-          </div>
-      </div>
-      <div class="col-md-3"></div>
-      <div class="col-md-2">
-        <button type="button" class="btn btn-success btn-lg btn-block stop-timer" onclick="posCode.submitPassword()">Go</button>
-      </div>
-    </div>
-    <br>
-    <div class="row">
-      <div class="col-md-2"></div>
-      <div class="col-md-3 ipad-prompt"> Or password:</div>
-      <div class="col-md-2">
-        <div class="input-group input-group-lg" style="width: 100%!important;">
-          <input id="idPasswordInput" type="password" class="form-control" name="password" value="" spellcheck="false" maxlength="50">
-          </div>
-      </div>
-    </div>
-    <br>
-    <div class="text-center hint">
-      Enter your PIN or the password you created when you registered.<br><br><br>
-      If you have forgotten your PIN or password click below.<br><br>
-      <div class="row">
-        <div class="col-md-2 col-md-offset-5">
-          <a href="{% url 'pos_register_again' %}" class="btn btn-warning btn-lg btn-block btn-default stop-timer">Register again</a>
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
-
+  {% include 'pos/_user.html' %}
+  {% include 'pos/_password.html' %}
+  {% include 'pos/_menu.html' %}
   {% include 'pos/_pos.html' %}
 
 {% endblock %}
@@ -155,30 +77,33 @@
 <script>
   $(document).ready(function () {
 
-    posCode.init('{{ items_url }}', '{{ post_url }}', '{{ ping_url }}', {{ is_attended }},
-        '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}', '{{ timeout }}', timingCode);
+    posCode.init('{{ items_url }}', '{{ post_url }}', '{{ ping_url }}',
+        '{{ is_attended }}', '{{ person.id }}', '{{ person.fullname }}',
+        '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}');
 
-    $('#idLogin').on('touchstart', function (event) {
-        event.currentTarget.classList.add('posbutton-down');
-        posCode.getUser();
-    });
-    $(".posbutton").on('touchend', function (event) {
-        event.currentTarget.classList.remove('posbutton-down');
+    $('#startLogin').on('touchstart click', function (event) {
+        posCode.touch(event, posCode.getUser);
     });
 
-    bind_typeahead('#idNameInput', posCode.gotUser, '{{ filter }}');
+    $('#startAttended').on('touchstart click', function (event) {
+        posCode.touch(event, posCode.attended);
+    });
+
+    $('#userBack').on('touchstart click', function (event) {
+        posCode.touch(event, posCode.logOut);
+    });
+
+    $('#menuPurchase').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.newReceipt);
+    });
+
+    $('#menuTransactions').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.transactions);
+    });
+
+    bind_typeahead('#idNameInput', posCode.getPin, '{{ filter }}');
     bind_typeahead('#member_search', posCode.selectedPerson, true);
-
     posCode.startApp();
-
-    timingCode.startTimer({{ timeout }}, "{{ timeout_url }}");
-
-
-
-      //timingCode.initPing({{ timeout }}, '{{ ping_url }}', '{{ csrf_token }}', '{{ request.session.terminal }}', 'idMessage');
-
-      // Executed when name selected in typeahead
-
   });
 </script>
 {% endblock %}

@@ -30,17 +30,30 @@ var posCode = (function (){
     var person;
     var personName;
     var personList;
+    var touched = false;
+
+
+    var pingTimer;
+    var pingTimeout = "";
+    var pingUrl = "";
+    var terminal = 0;
 
     var timer;
+    var timeout = 60000;
+
+
+
+
 
     /* Public methods*/
-    pos.init = function (items_url, post_url, ping_url, is_attended, layout_id, csrf_token, terminal, timeout, timing) {
+    pos.init = function (items_url, post_url, ping_url, is_attended, person_id, person_name, layout_id, csrf_token, terminal) {
         itemsUrl = items_url;
         postUrl = post_url;
         pingUrl = ping_url;
         isAttended = is_attended;
+        personId = person_id;
+        personName = person_name;
         layoutId = layout_id;
-        timer = timing;
         payClass.hide();
         exitClass.hide();
         $.ajaxSetup({
@@ -52,28 +65,89 @@ var posCode = (function (){
         initPing(timeout, ping_url, terminal);
         loadItems();
         loadPeople();
+        clearTimeout(timer);
 
-        $(".posbutton").on('touchstart', function(event) {
-            pos.itemAdd(Number(event.currentTarget.id));
+        $(".touch").on('touchstart', function(event) {
             event.currentTarget.classList.add('posbutton-down');
-            timing.restartTimer();
+            event.preventDefault();
+        });
+        // $(".touch").on('touchend', function(event) {
+        //     event.currentTarget.classList.remove('posbutton-down');
+        //     event.preventDefault();
+        // });
+
+        $(".item-button").on('touchstart click', function(event) {
+            event.currentTarget.classList.add('posbutton-down');
+            handleTouch(event, 'item');
+        });
+
+        $(".item-button").on('touchend click', function(event) {
+            event.currentTarget.classList.remove('posbutton-down');
             event.preventDefault();
         });
 
-        // Click event for testing in browser
-        $(".posbutton").on('click', function(event) {
-            pos.itemAdd(Number(event.currentTarget.id));
+        $('.timed').on('touchstart click', function () {
+            clearTimeout(timer);
+            timer = setTimeout(pos.logOut, timeout);
         });
-        $(".posbutton").on('touchend', function(event) {
-            event.currentTarget.classList.remove('posbutton-down');
+
+        $('.stop-timer').on('touchstart click', function () {
+            clearTimeout(timer);
         });
+
         newReceipt();
     };
 
+    pos.touch = function(event, action) {
+        handleTouch(event, action);
+    };
+
+    pos.touchEnd = function(event, action) {
+        handleTouch(event, action);
+    };
+
+    function handleTouch(event, action) {
+        event.preventDefault();
+        if (event.type === 'click') {
+            if (!touched) {
+                doAction(event, action);
+            }
+            touched = false;
+        } else {
+            touched = true;
+            doAction(event, action);
+        }
+    }
+
+    function doAction(event, action){
+        console.log(event.type + 'action ' + action );
+        if (action) {
+            if (action === 'item') {
+                pos.itemAdd(Number(event.currentTarget.id));
+            } else {
+                action();
+            }
+        }
+    }
+
+
+    pos.logOut = function(){
+        personId = '';
+        personName = '';
+        pos.showPage('#idPageStart');
+    };
+
+    pos.href = function(href){
+        clearTimeout(timer);
+        window.location.replace(href);
+    };
+
     pos.showPage = function(pageId){
+        console.log(pageId);
         $('#idPageStart').hide();
         $('#idPageGetUser').hide();
         $('#idPageGetPassword').hide();
+        $('#idPageMenu').hide();
         $('#idPagePos').hide();
         if (pageId === '#idPagePos') {
           $('#idLogoBanner').hide();
@@ -88,8 +162,17 @@ var posCode = (function (){
         $(pageId).show();
     };
 
-    pos.startApp = function (){
-        pos.showPage('#idPageStart');
+    pos.startApp = function(){
+        if (personId) {
+            pos.showMenu();
+        }else{
+            pos.showPage('#idPageStart');
+        }
+    };
+
+    pos.attended = function(){
+        isAttended = true;
+        pos.newReceipt()
     };
 
     pos.getUser = function(){
@@ -97,7 +180,7 @@ var posCode = (function (){
         $('#idNameInput').val('').focus();
     };
 
-    pos.gotUser = function(person) {
+    pos.getPin = function(person) {
         personId = person.id;
         personName = person.value;
         $('.typeahead').typeahead('val', '');
@@ -121,9 +204,9 @@ var posCode = (function (){
                     if (response === 'pass'){
                         setOnline();
                         if (query.pin){
-                            localStorage.setItem('id:' + query.person_id, btoa(query.pin))
+                            localStorage.setItem('id:' + query.person_id, btoa(query.pin));
                         }
-                        pos.newReceipt();
+                        pos.showMenu();
                     } else {
                         console.log(response);
                         pos.startApp();
@@ -140,6 +223,21 @@ var posCode = (function (){
         }
     };
 
+    pos.showMenu = function(){
+        $('#menuFullName').text(personName);
+        pos.showPage('#idPageMenu');
+    };
+
+    pos.transactions = function() {
+        clearTimeout(timer);
+        if (personId === -1){
+            window.location.href = '/pos/transactions/comp/' + '?pos=true';
+        } else {
+            window.location.href = '/pos/transactions/person/' + personId + '?pos=true';
+        }
+    };
+
+
     function testOfflinePin(query){
         // test submitted query against stored offline pin
         // if its present and matches start pos
@@ -149,14 +247,14 @@ var posCode = (function (){
         if (pin){
             if (atob(pin) === query.pin){
                 console.log('Good offline pin');
-                pos.newReceipt();
+                pos.showMenu();
             } else {
                 console.log('Bad offline pin');
                 pos.startApp();
             }
         } else {
             console.log('Ignore offline pin');
-            pos.newReceipt();
+            pos.showMenu();
         }
     }
 
@@ -181,10 +279,6 @@ var posCode = (function (){
         createTable(receipt);
     };
 
-    // pos.newReceipt = function () {
-    //     newReceipt();
-    // };
-
     pos.itemRemove = function (target) {
         var index;
         for (index = 0; index < receipt.length; ++index) {
@@ -195,7 +289,6 @@ var posCode = (function (){
             }
         }
     };
-
 
     pos.pay = function () {
         // initiate payment sequence
@@ -211,10 +304,6 @@ var posCode = (function (){
         }
         $('#member_search').val('');
         $('.typeahead').typeahead('val', '');
-    };
-
-    pos.exitPos = function () {
-        pos.startApp();
     };
 
     pos.selectMember = function () {
@@ -294,6 +383,8 @@ var posCode = (function (){
         $('#pay_modal').modal('hide');
     };
 
+
+
     function showSplit(withSelect) {
         // calculate split amounts and show list of members with amounts
         // withSelect controls whether typeahead or buttons are shown
@@ -358,7 +449,7 @@ var posCode = (function (){
     function sendTransaction(payType) {
         // post the transaction to the server
         // the response is the next screen to show
-        timer.stopTimer();
+        clearTimeout(timer);
         var stamp = new Date().getTime();
         var payObj = {
             'pay_type': payType,
@@ -385,6 +476,7 @@ var posCode = (function (){
                     console.log('Transaction saved');
                     $('#idLastTransaction').text(result[1]);
                     $('#idLastTotal').text(result[2]);
+                    $('#menuLastTransaction').text('Last purchase: £' + result[2]);
                 }else if (result[0] === 'Exists'){
                     console.log('Transaction exists with id ' + result[1]);
                 }else{
@@ -397,6 +489,7 @@ var posCode = (function (){
                 saveTransaction(transaction, stamp);
                 $('#idLastTransaction').text('local');
                 $('#idLastTotal').text(payObj.total);
+                $('#menuLastTransaction').text('Last purchase: £ ' + payObj.total/100);
                 pos.startApp();
             }
         });
@@ -504,34 +597,30 @@ var posCode = (function (){
 
     function loadItems() {
         var savedItems = localStorage.getItem('items');
-        if (savedItems) {
-            alert('Using items from storage');
-            items = JSON.parse(savedItems);
-            $('.flex-left').show();
-            $('.flex-right').show();
-
-        }else{
-            console.log('Start get items');
-            $.ajax({
-                type: 'GET',
-                url: itemsUrl,
-                timeout: 10000,
-                success: function (response) {
-                    console.log('saving items');
-                    localStorage.setItem('items', response);
-                    items = JSON.parse(response);
-                    var test = localStorage.getItem('items');
-                    alert(test.length.toString() + ' items loaded');
+        console.log('Start get items');
+        $.ajax({
+            type: 'GET',
+            url: itemsUrl,
+            timeout: 10000,
+            success: function (response) {
+                console.log('Saving items');
+                localStorage.setItem('items', response);
+                items = JSON.parse(response);
+                $('.flex-left').show();
+                $('.flex-right').show();
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                console.log('Error reading items ' + textStatus);
+                if (savedItems) {
+                    alert('Using items from storage');
+                    items = JSON.parse(savedItems);
                     $('.flex-left').show();
                     $('.flex-right').show();
-                },
-                error: function (xhr, textStatus, errorThrown) {
-                    if (textStatus === 'timeout') {
-                        console.log('timeout');
-                    }
+                } else {
+                    alert('Cannot access items');
                 }
-            });
-        }
+            }
+        });
     }
 
     function loadPeople(){
@@ -608,17 +697,15 @@ var posCode = (function (){
     function setOnline(){
         online = true;
         $('#idOnline').text('Online');
+        $('#menuTransactions').show();
     }
 
     function setOffline(){
         online = false;
         $('#idOnline').text('Offline');
+        $('#menuTransactions').hide();
     }
-
-    var pingTimer;
-    var pingTimeout = "";
-    var pingUrl = "";
-    var terminal = 0;
+    
 
     function initPing(timeout, url, term) {
         // Initialise a regular ping message

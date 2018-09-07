@@ -71,6 +71,11 @@ class NewStartView(LoginRequiredMixin, TemplateView):
     """ Member login or attended mode selection """
     template_name = 'pos/new_start.html'
     system = ''
+    person_id = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self. person_id = kwargs.pop('person_id', None)
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         request.session['person_id'] = None
@@ -92,6 +97,11 @@ class NewStartView(LoginRequiredMixin, TemplateView):
         layout = app.layout
         context['message'] = self.request.session.get('message', "")
         self.request.session['message'] = ""
+        if self.person_id:
+            try:
+                context['person'] = Person.objects.get(pk=self.person_id)
+            except Person.DoesNotExist:
+                pass
         context['timeout'] = LONG_TIMEOUT
         context['ping_url'] = reverse('pos_ajax_ping')
         context['items_url'] = reverse('pos_ajax_items')
