@@ -132,6 +132,8 @@ var posCode = (function (){
         personId = '';
         personName = '';
         hideModals();
+        document.activeElement.blur();
+        $("input").blur();
         pos.showPage('#idPageStart');
     };
 
@@ -152,13 +154,18 @@ var posCode = (function (){
         }else{
           $('#idLogoBanner').show();
         }
-        if (pageId === '#idPageStart') {
-            $('#startLogin').focus();
-            startPing();
-        }else{
-            stopPing();
+        stopPing();
+        document.activeElement.blur();
+        switch (pageId) {
+            case 'idPageStart':
+                startPing();
+                break;
+            case 'idPageGetUser':
+               $('#userNameInput').focus();
+               break;
+            case 'idPageGetPassword':
+                $('idPinInput').focus();
         }
-        $(pageId).show();
     };
 
     pos.startApp = function(){
