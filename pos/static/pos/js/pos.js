@@ -134,7 +134,7 @@ var posCode = (function (){
         hideModals();
         document.activeElement.blur();
         $("input").blur();
-        pos.showPage('#idPageStart');
+        pos.showPage('#pageStart');
     };
 
     pos.href = function(href){
@@ -143,14 +143,8 @@ var posCode = (function (){
     };
 
     pos.showPage = function(pageId){
-        console.log(pageId);
-        $('#idPagePos').hide();
-
-        $('#idPageStart').hide();
-        $('#idPageGetUser').hide();
-        $('#idPageGetPassword').hide();
-        $('#idPageMenu').hide();
-        if (pageId === '#idPagePos') {
+        $('.page').hide();
+        if (pageId === '#pagePos') {
           $('#idLogoBanner').hide();
         }else{
           $('#idLogoBanner').show();
@@ -159,14 +153,17 @@ var posCode = (function (){
         stopPing();
         document.activeElement.blur();
         switch (pageId) {
-            case '#idPageStart':
+            case '#pageStart':
                 startPing();
                 break;
-            case '#idPageGetUser':
+            case '#pageUser':
                $('#userNameInput').focus();
                break;
-            case '#idPageGetPassword':
-                $('#idPinInput').focus();
+            case '#pagePassword':
+                $('#passwordPin').focus();
+                break;
+            case '#pageResetPin':
+                $('#resetPostCode').focus();
         }
     };
 
@@ -175,7 +172,7 @@ var posCode = (function (){
         if (personId) {
             pos.showMenu();
         }else{
-            pos.showPage('#idPageStart');
+            pos.showPage('#pageStart');
         }
     };
 
@@ -187,7 +184,7 @@ var posCode = (function (){
     }
 
     pos.getUser = function(){
-        pos.showPage('#idPageGetUser');
+        pos.showPage('#pageUser');
         $('#idNameInput').val('').focus();
     };
 
@@ -195,7 +192,7 @@ var posCode = (function (){
         personId = person.id;
         personName = person.value;
         $('.typeahead').typeahead('val', '');
-        pos.showPage('#idPageGetPassword');
+        pos.showPage('#pagePassword');
         $('#idPasswordName').text(personName);
         $('#idPersonId').val(personId); // hidden field on form
         $('#idPinInput').val('').focus();
@@ -234,9 +231,13 @@ var posCode = (function (){
         }
     };
 
+    pos.resetPin = function(){
+        pos.showPage('#pageResetPin');
+    };
+
     pos.showMenu = function(){
         $('#menuFullName').text(personName);
-        pos.showPage('#idPageMenu');
+        pos.showPage('#pageMenu');
     };
 
     pos.transactions = function() {
@@ -272,7 +273,7 @@ var posCode = (function (){
     pos.newReceipt = function(){
         newReceipt();
         $('#id_PosName').text(personName);
-        pos.showPage('#idPagePos');
+        pos.showPage('#pagePos');
     };
 
     pos.itemAdd = function (id) {

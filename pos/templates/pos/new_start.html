@@ -4,7 +4,7 @@
 
 {%  include '_logo_banner.html' %}
 
-<div class="container bg" id="idPageStart">
+<div class="container bg page" id="pageStart">
   <div class="text-center bg {% if is_bar %}jumbotron{% endif %}">
     <h1 class="text-center"><strong>
       {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
@@ -66,6 +66,7 @@
 
   {% include 'pos/_user.html' %}
   {% include 'pos/_password.html' %}
+  {% include 'pos/_reset_pin.html' %}
   {% include 'pos/_menu.html' %}
   {% include 'pos/_pos.html' %}
 
@@ -98,6 +99,19 @@
     });
     $('#passwordSubmit').on('touchstart click', function (event) {
         posCode.touch(event, posCode.submitPassword);
+    });
+    $('#passwordReset').on('touchstart click', function (event) {
+        posCode.touch(event, posCode.resetPin);
+    });
+    $('#passwordPin').keydown(function (e){
+        if(e.keyCode === 13){
+            posCode.submitPassword();
+        }
+    });
+    $('#passwordInput').keydown(function (e){
+        if(e.keyCode === 13){
+            posCode.submitPassword();
+        }
     });
 
     // MENU

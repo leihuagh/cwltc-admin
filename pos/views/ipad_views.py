@@ -594,7 +594,11 @@ class LookupMemberView(LoginRequiredMixin, TemplateView):
 
 
 class PosEventRegisterView(EventRegisterView):
+    """ Overirde the standard event register form"""
     template_name = 'pos/event_register.html'
+
+    def get_template_names(self):
+        return ['pos/event_register.html']
 
     def post(self, request, *args, **kwargs):
         self.person = Person.objects.get(id=self.request.session['person_id'])
