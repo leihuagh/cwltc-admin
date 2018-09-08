@@ -154,17 +154,18 @@ var posCode = (function (){
         }else{
           $('#idLogoBanner').show();
         }
+        $(pageid).show();
         stopPing();
         document.activeElement.blur();
         switch (pageId) {
-            case 'idPageStart':
+            case '#idPageStart':
                 startPing();
                 break;
-            case 'idPageGetUser':
+            case '#idPageGetUser':
                $('#userNameInput').focus();
                break;
-            case 'idPageGetPassword':
-                $('idPinInput').focus();
+            case '#idPageGetPassword':
+                $('#idPinInput').focus();
         }
     };
 
