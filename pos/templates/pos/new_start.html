@@ -154,7 +154,7 @@
     $('#posBack2').on('touchstart click', function(event) {
         posCode.touch(event, posCode.back1);
     });
-    bind_typeahead('#idNameInput', posCode.getPin, '{{ filter }}');
+    bind_typeahead('#userNameInput', posCode.getPin, '{{ filter }}');
     bind_typeahead('#member_search', posCode.selectedPerson, true);
     posCode.startApp();
   });

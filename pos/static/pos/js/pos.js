@@ -153,6 +153,7 @@ var posCode = (function (){
           $('#idLogoBanner').show();
         }
         if (pageId === '#idPageStart') {
+            $('#startLogin').focus();
             startPing();
         }else{
             stopPing();
