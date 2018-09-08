@@ -144,17 +144,18 @@ var posCode = (function (){
 
     pos.showPage = function(pageId){
         console.log(pageId);
+        $('#idPagePos').hide();
+
         $('#idPageStart').hide();
         $('#idPageGetUser').hide();
         $('#idPageGetPassword').hide();
         $('#idPageMenu').hide();
-        $('#idPagePos').hide();
         if (pageId === '#idPagePos') {
           $('#idLogoBanner').hide();
         }else{
           $('#idLogoBanner').show();
         }
-        $(pageid).show();
+        $(pageId).show();
         stopPing();
         document.activeElement.blur();
         switch (pageId) {
