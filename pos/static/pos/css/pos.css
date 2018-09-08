@@ -332,6 +332,10 @@ p.invalid-feedback {
   width: 100% !important;
 }
 
+input[type=number] {
+    -webkit-text-security: disc;
+}
+
 span.twitter-typeahead .tt-menu,
 span.twitter-typeahead .tt-dropdown-menu {
   position: absolute;
