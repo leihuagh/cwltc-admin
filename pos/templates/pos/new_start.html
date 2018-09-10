@@ -2,80 +2,25 @@
 {% load static %}
 {% block content %}
 
-{%  include '_logo_banner.html' %}
-
-<div class="container bg page" id="pageStart">
-  <div class="text-center bg {% if is_bar %}jumbotron{% endif %}">
-    <h1 class="text-center"><strong>
-      {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
-    <br>
-    <div id="idOnlineMessage"> <!-- division is hidden if ping fails -->
-      <div class="row">
-        <p class="ipad-error">{{ request.session.message }}</p>
-          {% if is_bar %}
-            {% for app in apps %}
-              <button type="button" id="startLogin" class="btn posbutton btn-large btn-block touch">Member Login</button>
-            {% endfor %}
-            {% if attended %}
-              <br/><br/><br/>
-              <button type="button" id="startAttended" class="btn posbutton btn-large btn-block">Attended mode</button>
-            {% endif %}
-             <br><br>
-          {% else %}
-            <div class="row">
-              <div class="col-md-4">
-                {% for app in apps %}
-                  {% if app.event %}
-                    <input type="image" name="event_{{ app.event.id }}" src="{{ app.event.image.url }}" class="img-responsive">
-                    <h3>Touch the picture to book</h3>
-                  {% endif %}
-                {% endfor %}
-              </div>
-              <div class="col-md-8">
-                {% for app in apps %}
-                  {% if not app.event %}
-                    <div class="row">
-                      <div class="col-md-6 text-center">
-                        <button class="posbutton btn-large btn-block" type="submit" name="app_{{ app.id }}">{{ app.name }}</button>
-                      </div>
-                      <div class="col-md-6">
-                        <p class="hint">{{ app.description }}</p>
-                      </div>
-                    </div>
-                    <br>
-                  {% endif %}
-                {% endfor %}
-              </div>
-            </div>
-          {% endif %}
-          <br>
-      </div>
-{#<button class="btn btn-danger" onclick="posCode.recoverTransactions()">Recover</button>#}
-      <p class="hint">All members who have paid their subscription can use this system after registration.<br>
-          You can register now by pressing any button above and searching for your name.</p>
-    </div>
-    <p id="idOfflineMessage" hidden>The server is offline - limited functionality</p><!-- division is visible if ping fails -->
-  </div>
-  <div class="terminal">Terminal: {{ request.session.terminal }}
-    <span id="idOnline"></span> <span id="idSaved"></span></div>
-  <div class="last-transaction">
-    Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
-  </div>
-</div>
-
-
+  {% include '_logo_banner.html' %}
+  {% include 'pos/_start.html' %}
   {% include 'pos/_user.html' %}
   {% include 'pos/_password.html' %}
   {% include 'pos/_reset_pin.html' %}
   {% include 'pos/_menu.html' %}
   {% include 'pos/_pos.html' %}
+  <div class="terminal">Terminal: {{ request.session.terminal }}
+    <span id="idOnline"></span> <span id="idSaved"></span></div>
+  <div class="last-transaction">
+    Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
+  </div>
 
 {% endblock %}
 {% block scripts %}
-<script src= {% static 'js/typeahead.bundle.js' %}></script>
-<script src="{% static 'pos/js/pos-cached-typeahead.js' %}"></script>
-<script src="{% static 'pos/js/pos.js' %}"></script>
-<script>
+  <script src= {% static 'js/typeahead.bundle.js' %}></script>
+  <script src="{% static 'pos/js/pos-cached-typeahead.js' %}"></script>
+  <script src="{% static 'pos/js/pos.js' %}"></script>
+  <script>
   $(document).ready(function () {
 
     posCode.init(
@@ -86,7 +31,7 @@
         posCode.touch(event, posCode.showPage('#pageUser'));
     });
     $('#startAttended').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.attended);
+        posCode.touch(event, posCode.startAttended);
     });
 
     // USER
@@ -124,6 +69,9 @@
     $('#resetDone').on('touchstart click', function (event) {
         posCode.touch(event, posCode.submitPostCode());
     });
+    $('#resetGo').on('touchstart click', function (event) {
+        posCode.touch(event, posCode.submitPin());
+    });
     $('#resetPostCode').keydown(function (e){
       if(e.keyCode === 13 && $('#resetPostCode').val().length >= 6){
           e.preventDefault();
@@ -136,10 +84,16 @@
           posCode.submitPostCode();
       }
      });
-    $('#resetPin').keydown(function (e){
-      if(e.keyCode === 13 && $('#resetPIN').val().length > 4){
-          e.preventDefault();
-          posCode.submitPin();
+    $('#resetPin').keyup(function (e){
+        console.log($('#resetPin').val().length);
+      if ($('#resetPin').val().length >= 4) {
+          $('#resetGo').show();
+          if (e.keyCode === 13) {
+              e.preventDefault();
+              posCode.submitPin();
+          }
+      }else{
+          $('#resetGo').hide();
       }
     });
 
@@ -154,6 +108,22 @@
     $('#menuLogOut').on('touchstart click', function(event) {
         posCode.touch(event, posCode.logOut);
     });
+    $('#menuAttendedOn').on('touchstart click', function(event) {
+        $('#startAttended').show();
+        posCode.touch(event, posCode.logOut);
+    });
+    $('#menuTransactionsAll').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.transactions('all'));
+    });
+    $('#menuTransactionsMember').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.transactions('member'));
+    });
+    $('#menuTransactionsComp').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.transactions('comp'));
+    });
+    $('#menuTransactionsCash').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.transactions('cash'));
+    });
 
     // POS
     $('#posPay').on('touchstart click', function(event) {
@@ -163,6 +133,10 @@
         posCode.touch(event, posCode.newReceipt);
     });
     $('#posLogOut').on('touchstart click', function(event) {
+        posCode.touch(event, posCode.logOut);
+    });
+    $('#posEndAttended').on('touchstart click', function(event) {
+        $('#startAttended').hide();
         posCode.touch(event, posCode.logOut);
     });
     // Attended modal
@@ -198,6 +172,7 @@
     $('#posBack2').on('touchstart click', function(event) {
         posCode.touch(event, posCode.back1);
     });
+    bind_typeahead('#selectNameInput', posCode.transactions(person.id), true);
     bind_typeahead('#userNameInput', posCode.getPin, '{{ filter }}');
     bind_typeahead('#member_search', posCode.selectedPerson, true);
     posCode.startApp();
