@@ -7,7 +7,7 @@ var timingCode = (function () {
 
     var timing = {};
 
-    var timer = 0;
+    var timer;
     var timeout = 1000;
     var timeoutUrl = "";
 
@@ -80,7 +80,6 @@ var timingCode = (function () {
                 $('#idOfflineMessage').hide();
                 $('#idOnlineMessage').show();
                 $('#idOnline').text('Online');
-                // $('.posbutton').show();
                 if (data === 'OK') {
                     timing.startPing();
                 }else{

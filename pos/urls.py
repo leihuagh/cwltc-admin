@@ -22,7 +22,6 @@ urlpatterns = [
 
     url(r'^ajax/items/$', ajax_items_view, name='pos_ajax_items'),
     url(r'^ajax/ping/$', ajax_ping_view, name='pos_ajax_ping'),
-    url(r'^ajax/password/$', ajax_password_view, name='pos_ajax_password'),
 
     url(r'^visitor/menu/$', VisitorMenuView.as_view(), name='pos_visitor_menu'),
     url(r'^visitor/adult/$', VisitorCreateView.as_view(), name='pos_visitor_adult'),

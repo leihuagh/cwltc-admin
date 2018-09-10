@@ -7,6 +7,7 @@ from django.views.generic.edit import FormView, FormMixin
 from django.contrib import messages
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.hashers import check_password
 from django.core.serializers import serialize
 from braces.views import StaffuserRequiredMixin
 
@@ -506,6 +507,45 @@ def ajax_person(request):
     json['dob'] = person.dob
     return JsonResponse(json)
 
+def ajax_password(request):
+    id = request.POST.get('person_id', None)
+    if not id:
+        raise Http404
+    request.session['person_id'] = id
+    try:
+        person = Person.objects.get(pk=id)
+    except Person.DoesNotExist:
+        raise Http404
+    pin = request.POST.get('pin', None)
+    if pin and check_password(pin, person.pin):
+        return HttpResponse('pass')
+    else:
+        user = User.objects.get(pk=person.auth_id)
+        password = request.POST.get('password', None)
+        if password and user.check_password(password):
+            return HttpResponse('pass')
+    return HttpResponse('fail')
+
+def ajax_postcode(request):
+    """ validate post code & phone for POS PIN reset """
+    id = request.POST.get('person_id', '')
+    person = Person.objects.get(pk=id)
+    code = request.POST.get('postcode', '').replace(' ', '').lower()
+    phone = request.POST.get('phone', '')
+    if person.address.post_code.replace(' ', '').lower() == code:
+        if phone == person.mobile_phone.replace(' ', '') or phone == person.address.home_phone.replace(' ', ''):
+            return HttpResponse('OK')
+        else:
+            return HttpResponse('Wrong phone or mobile number')
+    return HttpResponse('Wrong post code')
+
+def ajax_set_pin(request):
+    """ Set pin from POS """
+    id = request.POST.get('person_id', '')
+    person = Person.objects.get(pk=id)
+    pin = request.POST.get('pin', '')
+    person.set_pin(pin)
+    return HttpResponse('Pin set')
 
 def search_person(request):
     """

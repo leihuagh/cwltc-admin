@@ -126,6 +126,9 @@ class Person(models.Model):
         self.pin = make_password(pin)
         self.save()
 
+    def set_pin(self, pin):
+        self.pin = make_password(pin)
+
     @property
     def fullname(self):
         return self.first_name + " " + self.last_name

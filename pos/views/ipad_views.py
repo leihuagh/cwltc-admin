@@ -7,9 +7,9 @@ from django.views.generic import TemplateView, FormView
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.hashers import check_password
+
 from django.shortcuts import redirect
-from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django_tables2 import SingleTableView
 from braces.views import GroupRequiredMixin
 from public.views import RegisterView, RegisterTokenView, ConsentTokenView
@@ -107,6 +107,15 @@ class NewStartView(LoginRequiredMixin, TemplateView):
         context['items_url'] = reverse('pos_ajax_items')
         context['post_url'] = reverse('pos_new_start')
         context['exit_url'] = reverse('pos_menu')
+        context['urls'] = mark_safe(json.dumps({
+            'ping': reverse('pos_ajax_ping'),
+            'items': reverse('pos_ajax_items'),
+            'sendTransaction': reverse('pos_new_start'),
+            'adults': reverse('ajax-adults'),
+            'password': reverse('ajax-password'),
+            'postCode': reverse('ajax-postcode'),
+            'setPin': reverse('ajax-set-pin'),
+        }))
         context['terminal'] = self.request.session['terminal']
         context['layout'] = layout
         context['rows'], used_items = build_pos_array(layout)
@@ -299,24 +308,7 @@ class GetPasswordView(LoginRequiredMixin, TemplateView):
 
 # TODO redirects for new_start
 
-def ajax_password_view(request):
-    id = request.POST.get('person_id', None)
-    if not id:
-        raise Http404
-    request.session['person_id'] = id
-    try:
-        person = Person.objects.get(pk=id)
-    except Person.DoesNotExist:
-        raise Http404
-    pin = request.POST.get('pin', None)
-    if pin and check_password(pin, person.pin):
-        return HttpResponse('pass')
-    else:
-        user = User.objects.get(pk=person.auth_id)
-        password = request.POST.get('password', None)
-        if password and user.check_password(password):
-            return HttpResponse('pass')
-    return HttpResponse('fail')
+
 
 
 class GetDobView(LoginRequiredMixin, FormView):

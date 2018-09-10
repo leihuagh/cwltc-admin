@@ -5,7 +5,6 @@ var posCode = (function (){
     var pos = {};
 
     // DOM objects
-    var totalArea = document.getElementById('total-area');
     var receiptArea = document.getElementById('receipt-area');
     var peopleTable = document.getElementById('peopleTable');
 
@@ -20,9 +19,9 @@ var posCode = (function (){
     var online = false;
 
     // Django context variables
-    var itemsUrl, postUrl, exitUrl;
     var layoutId;
     var isAttended = false;
+    var urls;
 
     var personId;
     var person;
@@ -37,21 +36,15 @@ var posCode = (function (){
     var terminal = 0;
 
     var timer;
-    var timeout = 60000;
-
-
-
-
+    var timeout = 120000;
 
     /* Public methods*/
-    pos.init = function (items_url, post_url, ping_url, is_attended, person_id, person_name, layout_id, csrf_token, terminal) {
-        itemsUrl = items_url;
-        postUrl = post_url;
-        pingUrl = ping_url;
+    pos.init = function (is_attended, person_id, person_name, layout_id, csrf_token, terminal, url_dict) {
         isAttended = is_attended;
         personId = person_id;
         personName = person_name;
         layoutId = layout_id;
+        urls = JSON.parse(url_dict);
         payClass.hide();
         exitClass.hide();
         $.ajaxSetup({
@@ -60,7 +53,7 @@ var posCode = (function (){
             }
         });
         //localStorage.clear();
-        initPing(timeout, ping_url, terminal);
+        initPing(timeout, urls.ping, terminal);
         loadItems();
         loadPeople();
         clearTimeout(timer);
@@ -69,10 +62,7 @@ var posCode = (function (){
             event.currentTarget.classList.add('posbutton-down');
             event.preventDefault();
         });
-        // $(".touch").on('touchend', function(event) {
-        //     event.currentTarget.classList.remove('posbutton-down');
-        //     event.preventDefault();
-        // });
+
 
         $(".item-button").on('touchstart click', function(event) {
             event.currentTarget.classList.add('posbutton-down');
@@ -84,13 +74,15 @@ var posCode = (function (){
             event.preventDefault();
         });
 
-        $('.timed').on('touchstart click', function () {
+        $('.timeout').on('touchstart click keydown', function () {
             clearTimeout(timer);
             timer = setTimeout(pos.logOut, timeout);
+            console.log('Set timer');
         });
 
         $('.stop-timer').on('touchstart click', function () {
             clearTimeout(timer);
+            console.log('clear timer');
         });
 
         newReceipt();
@@ -151,19 +143,25 @@ var posCode = (function (){
         }
         $(pageId).show();
         stopPing();
+
         document.activeElement.blur();
         switch (pageId) {
             case '#pageStart':
                 startPing();
                 break;
             case '#pageUser':
-               $('#userNameInput').focus();
+               $('#userNameInput').val('').focus();
                break;
             case '#pagePassword':
                 $('#passwordPin').focus();
                 break;
             case '#pageResetPin':
-                $('#resetPostCode').focus();
+                $('#resetForm').show();
+                $('#resetDone').show();
+                $('#resetPostCode').val('').focus();
+                $('#resetPhone').val();
+                $('#resetActionArea').hide();
+                $('#resetError').text('');
         }
     };
 
@@ -180,23 +178,64 @@ var posCode = (function (){
         isAttended = true;
         personName = 'Attended mode';
         personId = '';
+        $('.personName').text(personName);
+        $('.personId').val(personId);
         pos.newReceipt();
-    }
-
-    pos.getUser = function(){
-        pos.showPage('#pageUser');
-        $('#idNameInput').val('').focus();
     };
 
     pos.getPin = function(person) {
-        personId = person.id;
-        personName = person.value;
+        if (person){
+            personId = person.id;
+            personName = person.value;
+        }
+        $('.personName').text(personName);
+        $('.personId').val(personId);
         $('.typeahead').typeahead('val', '');
         pos.showPage('#pagePassword');
-        $('#idPasswordName').text(personName);
-        $('#idPersonId').val(personId); // hidden field on form
         $('#idPinInput').val('').focus();
         $('#idPasswordInput').val('');
+    };
+
+    pos.submitPostCode = function() {
+        var formData = $('#resetForm').serialize();
+        $.ajax({
+            type: 'POST',
+            url: urls.postCode,
+            data: formData,
+            timeout: 2000,
+            success: function (response) {
+                if (response === 'OK'){
+                    $('#resetForm').hide();
+                    $('#resetDone').hide();
+                    $('#resetError').text('');
+                    $('#resetActionArea').show();
+                    $('#resetPin').val().focus()
+                } else {
+                    $('#resetError').text(response);
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                setOffline();
+                pos.logOut();
+            }
+        });
+    };
+
+    pos.submitPin = function() {
+        var formData = $('#resetPinForm').serialize();
+        $.ajax({
+            type: 'POST',
+            url: urls.setPin,
+            data: formData,
+            timeout: 2000,
+            success: function (response) {
+                pos.showPage('#pagePassword');
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                setOffline();
+                pos.logOut();
+            }
+        });
     };
 
     pos.submitPassword = function() {
@@ -205,7 +244,7 @@ var posCode = (function (){
         if (online){
             $.ajax({
                 type: 'POST',
-                url: '/pos/ajax/password/',
+                url: urls.password,
                 data: formData,
                 timeout: 2000,
                 success: function (response) {
@@ -231,12 +270,7 @@ var posCode = (function (){
         }
     };
 
-    pos.resetPin = function(){
-        pos.showPage('#pageResetPin');
-    };
-
     pos.showMenu = function(){
-        $('#menuFullName').text(personName);
         pos.showPage('#pageMenu');
     };
 
@@ -377,7 +411,7 @@ var posCode = (function (){
 
     pos.back1 = function() {
         // back from select member dialog
-        hideModals()
+        hideModals();
         switch(personList.length) {
             case 0:
                 $('attended_modal').modal('show');
@@ -487,7 +521,7 @@ var posCode = (function (){
         var message = '';
         $.ajax({
             type: "POST",
-            url: postUrl,
+            url: urls.sendTransaction,
             data: transaction,
             dataType: 'text',
             tryCount: 0,
@@ -586,7 +620,7 @@ var posCode = (function (){
         if (contents.length > 0){
             $.ajax({
                 type: "POST",
-                url: postUrl,
+                url: urls.sendtransaction,
                 data: localStorage.getItem(contents[0]),
                 dataType: 'text',
                 timeout: 10000,
@@ -623,7 +657,7 @@ var posCode = (function (){
         console.log('Start get items');
         $.ajax({
             type: 'GET',
-            url: itemsUrl,
+            url: urls.items,
             timeout: 10000,
             success: function (response) {
                 console.log('Saving items');
@@ -649,7 +683,7 @@ var posCode = (function (){
     function loadPeople(){
         $.ajax({
             type: 'GET',
-            url: '/ajax/adults',
+            url: urls.adults,
             timeout: 10000,
             success: function (response) {
                 console.log('saving people');
@@ -713,7 +747,7 @@ var posCode = (function (){
             exitClass.show();
         }
         formattedTotal = '£ ' + Number(total/100).toFixed(2);
-        totalArea.innerHTML = "Total : " + formattedTotal;
+        $('#total-area').text("Total : " + formattedTotal);
     }
 
 
@@ -750,7 +784,7 @@ var posCode = (function (){
         // post a message to the server with terminal number
         $.ajax({
             type: "POST",
-            url: pingUrl,
+            url: urls.ping,
             data: 'terminal=' + terminal,
             timeout: pingTimeout,
             success: function (data, status, xhr) {

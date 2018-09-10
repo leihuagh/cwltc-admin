@@ -78,17 +78,18 @@
 <script>
   $(document).ready(function () {
 
-    posCode.init('{{ items_url }}', '{{ post_url }}', '{{ ping_url }}',
+    posCode.init(
         '{{ is_attended }}', '{{ person.id }}', '{{ person.fullname }}',
-        '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}');
+        '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}', '{{ urls }}');
 
     $('#startLogin').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.getUser);
+        posCode.touch(event, posCode.showPage('#pageUser'));
     });
     $('#startAttended').on('touchstart click', function (event) {
         posCode.touch(event, posCode.attended);
     });
 
+    // USER
     $('#userBack').on('touchstart click', function (event) {
         posCode.touch(event, posCode.logOut);
     });
@@ -101,18 +102,47 @@
         posCode.touch(event, posCode.submitPassword);
     });
     $('#passwordReset').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.resetPin);
+        posCode.touch(event, posCode.showPage('#pageResetPin'));
     });
     $('#passwordPin').keydown(function (e){
         if(e.keyCode === 13){
+            e.preventDefault();
             posCode.submitPassword();
         }
     });
     $('#passwordInput').keydown(function (e){
         if(e.keyCode === 13){
+            e.preventDefault();
             posCode.submitPassword();
         }
     });
+
+    // RESET PIN
+    $('#resetBack').on('touchstart click', function (event) {
+        posCode.touch(event, posCode.showPage('#pagePassword'));
+    });
+    $('#resetDone').on('touchstart click', function (event) {
+        posCode.touch(event, posCode.submitPostCode());
+    });
+    $('#resetPostCode').keydown(function (e){
+      if(e.keyCode === 13 && $('#resetPostCode').val().length >= 6){
+          e.preventDefault();
+          $('#resetPhone').focus();
+      }
+     });
+    $('#resetPhone').keydown(function (e){
+      if(e.keyCode === 13 && $('#resetPostCode').val().length >= 6 && $('#resetPhone').val().length >=10){
+          e.preventDefault();
+          posCode.submitPostCode();
+      }
+     });
+    $('#resetPin').keydown(function (e){
+      if(e.keyCode === 13 && $('#resetPIN').val().length > 4){
+          e.preventDefault();
+          posCode.submitPin();
+      }
+    });
+
 
     // MENU
     $('#menuPurchase').on('touchstart click', function(event) {

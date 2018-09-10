@@ -42,6 +42,9 @@ urlpatterns = [
     url(r'^ajax/people/', ajax_people, name="ajax-people"),
     url(r'^ajax/person/', ajax_person, name="ajax-person"),
     url(r'^ajax/adults/', ajax_adults, name="ajax-adults"),
+    url(r'^ajax/password/$', ajax_password, name='ajax-password'),
+    url(r'^ajax/postcode/', ajax_postcode, name="ajax-postcode"),
+    url(r'^ajax/set_pin/', ajax_set_pin, name="ajax-set-pin"),
     url(r'^search/person/', search_person, name="search-person"),
 
     # YEAR END

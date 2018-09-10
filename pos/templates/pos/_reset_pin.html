@@ -1,42 +1,75 @@
 <div class="container bg page" id="pageResetPin" hidden>
   <div class="row">
-    <h2 class="text-center" id="idResetName"></h2>
-  </div>
-  <br/>
-
-
-  <div class="row">
-    <h4 class="col-md-5 ipad-prompt">Post Code:</h4>
-    <div class="col-md-2">
-        <div class="input-group input-group-lg"  style="width: 100%!important;">
-          <input id='resetPostCode' type="text"  class="form-control" name="postcode" value="" spellcheck="false"
-                 maxlength="10">
-        </div>
-    </div>
-    <div class="col-md-3"></div>
-    <div class="col-md-2">
-      <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id=postcodeSubmit">Go</button>
-    </div>
+    <h2 class="text-center personName"></h2>
   </div>
   <br>
-  <div class="row" id="resetTextArea">
-    <div class="col-md-1"></div>
-    <div class="col-md-4">
-      <h2>Fast PIN Reset</h2>
-      <p>This gives you access to the bar system and other online systems in the club house.</p>
-      <p>You cannot use the PIN to log on to the members' web site.</p>
+  <div class="row">
+    <div class="col-md-2">
+      <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetBack">Back</button>
+    </div>
+    <form id="resetForm">
+      <div class="col-md-8">
+        <h3 class="text-center">Please confirm these details:</h3><br>
+        <div class="row">
+          <h4 class="col-md-4 ipad-prompt">Post code:</h4>
+          <div class="col-md-4">
+            <input type="hidden" class="personId"  name="person_id" value="">
+            <div class="input-group input-group-lg"  style="width: 100%!important;">
+              <input id='resetPostCode' type="text"  class="form-control timeout" name="postcode" value="" spellcheck="false"
+                     maxlength="10" autocapitalize="characters">
+            </div>
+          </div>
+        </div>
+        <br>
+        <div class="row">
+          <h4 class="col-md-4 ipad-prompt">Phone or mobile:</h4>
+          <div class="col-md-4">
+            <input type="hidden" class="personId"  name="person_id" value="">
+            <div class="input-group input-group-lg"  style="width: 100%!important;">
+              <input id='resetPhone' type="tel"  class="form-control timeout" name="phone" value="" spellcheck="false"
+                     maxlength="15">
+            </div>
+          </div>
+        </div>
+        <br>
+        <div id="resetError" class="ipad-error text-center"></div>
+      </div>
+    </form>
+    <div class="col-md-2">
+      <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetDone">Done</button>
+    </div>
+
+  </div>
+
+  <div class="row" id="resetActionArea" hidden>
+    <div class="col-md-5">
+      <h2 class="text-center">Reset PIN</h2>
+      <p class="hint">Choose a PIN between 4 and 8 digits to give you access to the bar system
+        and other online systems in the club house.<br>
+      You cannot use the PIN to log on to the members' web site.</p>
       <br>
-      <p>Choose a new PIN with length 4 to 8 digits</p>
-      <input id='resetPin' type="number"  class="form-control" name="pin" pattern="[0-9]*" value="" spellcheck="false"
-        minlength="4" maxlength="8">
+      <p class="hint">PIN is 4 to 8 digits</p>
+      <div class="row">
+        <div class="col-md-5 ipad-prompt">New PIN:</div>
+        <div class="col-md-6">
+          <form id="resetPinForm">
+            <input type="hidden" class="personId" name="person_id" value="">
+            <div class="input-group input-group-lg"  style="width: 100%!important;">
+              <input id='resetPin' type="tel"  class="form-control timeout" name="pin" pattern="[0-9]*" value="" spellcheck="false"
+                minlength="4" maxlength="8">
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
     <div class="col-md-2"></div>
-    <div class="col-md-4">
-      <h2>Full Registration</h2>
-      <p>This gives you access to the bar system and other online systems in the club house and also
-        lets you choose a password for the members' web site. a
+    <div class="col-md-5">
+      <h2 class="text-center">Full Registration</h2>
+      <p class="hint">Register for the bar system and other online systems in the club house and also
+        choose a password for access to the the members' web site.<br>
+        Recommended for new users.
       </p>
-      <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id=resetRegister">Register</button>
+      <button type="button" class="btn btn-success btn-lg stop-timer" id=resetRegister">Register</button>
     </div>
   </div>
 </div>
