@@ -7,7 +7,7 @@
     <div class="col-md-2">
       <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetBack">Back</button>
     </div>
-    <form id="resetForm">
+    <form id="resetForm" method="post">
       <div class="col-md-8">
         <h3 class="text-center">Please confirm these details:</h3><br>
         <div class="row">
@@ -34,42 +34,39 @@
         <br>
         <div id="resetError" class="ipad-error text-center"></div>
       </div>
+      <div class="col-md-2 resetDoneArea">
+        <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetDone">Done</button>
+      </div>
     </form>
-    <div class="col-md-2">
-      <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetDone">Done</button>
-    </div>
 
-  </div>
-
-  <div class="row" id="resetActionArea" hidden>
-    <div class="col-md-5">
-      <h2 class="text-center">Reset PIN</h2>
-      <p class="hint">Choose a PIN between 4 and 8 digits to give you access to the bar system
-        and other online systems in the club house.<br>
-      You cannot use the PIN to log on to the members' web site.</p>
-      <br>
-      <p class="hint">PIN is 4 to 8 digits</p>
-      <div class="row">
-        <div class="col-md-5 ipad-prompt">New PIN:</div>
-        <div class="col-md-6">
-          <form id="resetPinForm">
-            <input type="hidden" class="personId" name="person_id" value="">
-            <div class="input-group input-group-lg"  style="width: 100%!important;">
-              <input id='resetPin' type="tel"  class="form-control timeout" name="pin" pattern="[0-9]*" value="" spellcheck="false"
-                minlength="4" maxlength="8">
-            </div>
-          </form>
+    <div id="resetActionArea" hidden>
+      <div class="col-md-5">
+        <h2 class="text-center">Reset PIN</h2>
+        <p class="hint">Choose a 4 to 8 digit PIN to give you access to online systems in the club house.<br>
+        You cannot use the PIN to log on to the members' web site.</p>
+        <div class="row">
+          <div class="col-md-4 ipad-prompt">New PIN:</div>
+          <div class="col-md-6">
+            <form id="resetPinForm" method="post">
+              <input type="hidden" class="personId" name="person_id" value="">
+              <div class="input-group input-group-lg" >
+                <input id='resetPin' type="tel"  class="form-control timeout" name="pin" pattern="[0-9]*" value="" spellcheck="false"
+                  minlength="4" maxlength="8">
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-2"></div>
-    <div class="col-md-5">
-      <h2 class="text-center">Full Registration</h2>
-      <p class="hint">Register for the bar system and other online systems in the club house and also
-        choose a password for access to the the members' web site.<br>
-        Recommended for new users.
-      </p>
-      <button type="button" class="btn btn-success btn-lg stop-timer" id=resetRegister">Register</button>
+      <div class="col-md-5">
+        <h2 class="text-center">Full Registration</h2>
+        <p class="hint">Register for online systems in the club house and also
+          choose a password for access to the members' web site.<br><br>
+          Recommended for new users.
+        </p>
+        <button type="button" class="btn btn-success btn-lg stop-timer" id=resetRegister">Register</button>
+      </div>
     </div>
   </div>
+
+
 </div>

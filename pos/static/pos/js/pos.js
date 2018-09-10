@@ -159,7 +159,7 @@ var posCode = (function (){
                 $('#resetForm').show();
                 $('#resetDone').show();
                 $('#resetPostCode').val('').focus();
-                $('#resetPhone').val();
+                $('#resetPhone').val('');
                 $('#resetActionArea').hide();
                 $('#resetError').text('');
         }
@@ -206,10 +206,9 @@ var posCode = (function (){
             success: function (response) {
                 if (response === 'OK'){
                     $('#resetForm').hide();
-                    $('#resetDone').hide();
                     $('#resetError').text('');
                     $('#resetActionArea').show();
-                    $('#resetPin').val().focus()
+                    $('#resetPin').val('').focus();
                 } else {
                     $('#resetError').text(response);
                 }
