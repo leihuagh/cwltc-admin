@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime
+from django.contrib.auth.hashers import check_password
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, Http404
 from django.views.generic import TemplateView, FormView
@@ -115,6 +115,10 @@ class NewStartView(LoginRequiredMixin, TemplateView):
             'password': reverse('ajax-password'),
             'postCode': reverse('ajax-postcode'),
             'setPin': reverse('ajax-set-pin'),
+            'transactions': reverse('pos_transactions'),
+            'transactionsPerson': reverse('pos_transactions_person', kwargs={'person_id': '9999'}),
+            'transactionsComp': reverse('pos_transactions_comp'),
+            'transactionsCash': reverse('pos_transactions_cash'),
         }))
         context['terminal'] = self.request.session['terminal']
         context['layout'] = layout

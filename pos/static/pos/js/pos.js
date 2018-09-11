@@ -27,6 +27,7 @@ var posCode = (function (){
     var person;
     var personName;
     var personList;
+    var supervisor;
     var touched = false;
 
 
@@ -36,7 +37,8 @@ var posCode = (function (){
     var terminal = 0;
 
     var timer;
-    var timeout = 120000;
+    var timeout = 12000000;
+    var ajaxTimeout = 20000;
 
     /* Public methods*/
     pos.init = function (is_attended, person_id, person_name, layout_id, csrf_token, terminal, url_dict) {
@@ -88,11 +90,9 @@ var posCode = (function (){
         newReceipt();
     };
 
+    // Common code to make touch events as fast as click
+    // Can be used for touch start or touchend
     pos.touch = function(event, action) {
-        handleTouch(event, action);
-    };
-
-    pos.touchEnd = function(event, action) {
         handleTouch(event, action);
     };
 
@@ -153,6 +153,7 @@ var posCode = (function (){
                $('#userNameInput').val('').focus();
                break;
             case '#pagePassword':
+                $('#passwordError').hide();
                 $('#passwordPin').focus();
                 break;
             case '#pageResetPin':
@@ -162,19 +163,25 @@ var posCode = (function (){
                 $('#resetPhone').val('');
                 $('#resetActionArea').hide();
                 $('#resetError').text('');
+                $('#resetGo').hide();
+                break;
+            case '#pageSelectMember':
+                $('#selectNameInput').val('');
         }
     };
 
     pos.startApp = function(){
         isAttended = false;
         if (personId) {
+            $('.personName').text(personName);
+            $('.personId').val(personId);
             pos.showMenu();
         }else{
             pos.showPage('#pageStart');
         }
     };
 
-    pos.attended = function() {
+    pos.startAttended = function() {
         isAttended = true;
         personName = 'Attended mode';
         personId = '';
@@ -202,13 +209,14 @@ var posCode = (function (){
             type: 'POST',
             url: urls.postCode,
             data: formData,
-            timeout: 2000,
+            timeout: ajaxTimeout,
             success: function (response) {
                 if (response === 'OK'){
                     $('#resetForm').hide();
                     $('#resetError').text('');
                     $('#resetActionArea').show();
                     $('#resetPin').val('').focus();
+                    $('#resetGo').hide();
                 } else {
                     $('#resetError').text(response);
                 }
@@ -226,7 +234,7 @@ var posCode = (function (){
             type: 'POST',
             url: urls.setPin,
             data: formData,
-            timeout: 2000,
+            timeout: ajaxTimeout,
             success: function (response) {
                 pos.showPage('#pagePassword');
             },
@@ -240,22 +248,28 @@ var posCode = (function (){
     pos.submitPassword = function() {
         var formData = $('#idPasswordForm').serialize();
         var query = parseQuery(formData);
+        $('#menuSupervisor').hide();
         if (online){
             $.ajax({
                 type: 'POST',
                 url: urls.password,
                 data: formData,
-                timeout: 2000,
+                timeout: ajaxTimeout,
                 success: function (response) {
-                    if (response === 'pass'){
+                    if (response.authenticated){
                         setOnline();
                         if (query.pin){
                             localStorage.setItem('id:' + query.person_id, btoa(query.pin));
                         }
+                        if (response.supervisor){
+                            $('#menuSupervisor').show();
+                        }
                         pos.showMenu();
                     } else {
                         console.log(response);
-                        pos.startApp();
+                        $('#passwordError').show();
+                        $('#passwordPin').val('').focus();
+                        $('#passwordInput').val('');
                     }
                 },
                 error: function (xhr, textStatus, errorThrown) {
@@ -273,13 +287,27 @@ var posCode = (function (){
         pos.showPage('#pageMenu');
     };
 
-    pos.transactions = function() {
+    pos.transactionsPerson = function(person){
+        pos.transactions(person.id);
+    };
+
+    pos.transactions = function(id) {
         clearTimeout(timer);
-        if (personId === -1){
-            window.location.href = '/pos/transactions/comp/' + '?pos=true';
-        } else {
-            window.location.href = '/pos/transactions/person/' + personId + '?pos=true';
+        $('.page').hide();
+        var url;
+        if (id === 'all'){
+            url = urls.transactions;
+        }else if(id === 'cash'){
+            url = urls.transactionsCash;
+        }else if (personId === -1 || id === 'comp') {
+            url = urls.transactionsComp;
+        }else if(id === 'member'){
+            pos.showPage('#pageSelectMember');
+            return;
+        }else {
+            url = urls.transactionsPerson.replace('9999', personId);
         }
+        window.location.href = url + '?id=' + personId;
     };
 
 
@@ -287,7 +315,7 @@ var posCode = (function (){
         // test submitted query against stored offline pin
         // if its present and matches start pos
         // if present and wrong -> error
-        // if not present, start pos
+        // if not present, start pos anyway
         var pin = localStorage.getItem('id:' + query.person_id);
         if (pin){
             if (atob(pin) === query.pin){
@@ -525,7 +553,7 @@ var posCode = (function (){
             dataType: 'text',
             tryCount: 0,
             retryLimit: 1,
-            timeout: 10000,
+            timeout: ajaxTimeout,
             success: function (response) {
                 var result = response.split(';');
                 if (result[0] === 'Saved') {
@@ -622,7 +650,7 @@ var posCode = (function (){
                 url: urls.sendtransaction,
                 data: localStorage.getItem(contents[0]),
                 dataType: 'text',
-                timeout: 10000,
+                timeout: ajaxTimeout,
                 success: function(response){
                     console.log(response);
                     var result = response.split(';');
@@ -657,7 +685,7 @@ var posCode = (function (){
         $.ajax({
             type: 'GET',
             url: urls.items,
-            timeout: 10000,
+            timeout: ajaxTimeout,
             success: function (response) {
                 console.log('Saving items');
                 localStorage.setItem('items', response);
@@ -683,7 +711,7 @@ var posCode = (function (){
         $.ajax({
             type: 'GET',
             url: urls.adults,
-            timeout: 10000,
+            timeout: ajaxTimeout,
             success: function (response) {
                 console.log('saving people');
                 localStorage.setItem('people', JSON.stringify(response));

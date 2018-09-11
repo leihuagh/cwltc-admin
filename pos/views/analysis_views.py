@@ -49,7 +49,8 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
     person_id = None
 
     def get(self, request, *args, **kwargs):
-        request.session['pos'] =  request.GET.get('pos', None)
+        request.session['pos_id'] =  request.GET.get('id', None)
+
         return super().get(request, *args, **kwargs)
 
     def get_table_data(self):
@@ -77,11 +78,8 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
         context['bar'] = self.filter == 'bar'
         context['teas'] = self.filter == 'teas'
         context['all'] = self.filter == 'all'
-        if self.request.session.get('pos', None):
-            if self.person_id == -1:
-                context['exit_url'] = reverse('pos_new_start_person', kwargs={'person_id': self.person_id})
-            else:
-                context['exit_url'] = reverse('pos_new_start')
+        if self.request.session.get('pos_id', None):
+            context['exit_url'] = reverse('pos_new_start_person', kwargs={'person_id': self.request.session['pos_id']})
         elif self.main_menu:
             context['exit_url'] = reverse('home')
         else:

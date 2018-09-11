@@ -8,6 +8,7 @@
   {% include 'pos/_password.html' %}
   {% include 'pos/_reset_pin.html' %}
   {% include 'pos/_menu.html' %}
+  {% include 'pos/_select_member.html' %}
   {% include 'pos/_pos.html' %}
   <div class="terminal">Terminal: {{ request.session.terminal }}
     <span id="idOnline"></span> <span id="idSaved"></span></div>
@@ -172,7 +173,7 @@
     $('#posBack2').on('touchstart click', function(event) {
         posCode.touch(event, posCode.back1);
     });
-    bind_typeahead('#selectNameInput', posCode.transactions(person.id), true);
+    bind_typeahead('#selectNameInput', posCode.transactionsPerson, true);
     bind_typeahead('#userNameInput', posCode.getPin, '{{ filter }}');
     bind_typeahead('#member_search', posCode.selectedPerson, true);
     posCode.startApp();

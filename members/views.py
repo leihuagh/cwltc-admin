@@ -477,38 +477,42 @@ def ajax_adults(request):
     #     membership__is_adult=True, state=Person.ACTIVE, sub__paid=True)
     result = []
     for person in people:
-        person_json = {}
-        person_json['value'] = person['first_name'] + ' ' + person['last_name']
-        #person_json['value'] = person.fullname
-        person_json['id'] = person['id']
-        result.append(person_json)
+        dict = {}
+        dict['value'] = person['first_name'] + ' ' + person['last_name']
+        dict['id'] = person['id']
+        result.append(dict)
     return JsonResponse(result, safe=False)
 
 
 def ajax_person(request):
-    """ Used for member lookup """
+    """ Used for member details lookup """
     id = request.GET.get('id', '')
     person = Person.objects.get(pk=id)
-    json = {}
-    json['name'] = person.fullname
+    dict = {}
+    dict['name'] = person.fullname
     if person.allow_phone:
-        json['mobile'] = person.mobile_phone
-        json['phone'] = person.address.home_phone
+        dict['mobile'] = person.mobile_phone
+        dict['phone'] = person.address.home_phone
     else:
-        json['mobile'] = 'Not shared'
-        json['phone'] = 'Not shared'
+        dict['mobile'] = 'Not shared'
+        dict['phone'] = 'Not shared'
     if person.allow_email:
-        json['email'] = person.email
+        dict['email'] = person.email
     else:
-        json['email'] = 'Not shared'
-    json['membership'] = person.membership.description
-    json['auth'] = person.auth
-    json['age'] = person.age_today()
-    json['dob'] = person.dob
-    return JsonResponse(json)
+        dict['email'] = 'Not shared'
+    dict['membership'] = person.membership.description
+    dict['auth'] = person.auth
+    dict['age'] = person.age_today()
+    dict['dob'] = person.dob
+    return JsonResponse(dict)
+
 
 def ajax_password(request):
     id = request.POST.get('person_id', None)
+    pin = request.POST.get('pin', None)
+    password = request.POST.get('password', None)
+    dict = {'authenticated': False,
+            'supervisor': False}
     if not id:
         raise Http404
     request.session['person_id'] = id
@@ -516,15 +520,15 @@ def ajax_password(request):
         person = Person.objects.get(pk=id)
     except Person.DoesNotExist:
         raise Http404
-    pin = request.POST.get('pin', None)
-    if pin and check_password(pin, person.pin):
-        return HttpResponse('pass')
-    else:
+    try:
         user = User.objects.get(pk=person.auth_id)
-        password = request.POST.get('password', None)
-        if password and user.check_password(password):
-            return HttpResponse('pass')
-    return HttpResponse('fail')
+    except User.DoesNotExist:
+        user = None
+    if pin and check_password(pin, person.pin) or password and user.check_password(password):
+        dict['authenticated'] = True
+        dict['supervisor'] = True if (user and user.groups.filter(name='Pos').exists()) or user.is_staff else False
+    return JsonResponse(dict)
+
 
 def ajax_postcode(request):
     """ validate post code & phone for POS PIN reset """
@@ -539,6 +543,7 @@ def ajax_postcode(request):
             return HttpResponse('Wrong phone or mobile number')
     return HttpResponse('Wrong post code')
 
+
 def ajax_set_pin(request):
     """ Set pin from POS """
     id = request.POST.get('person_id', '')
@@ -546,6 +551,7 @@ def ajax_set_pin(request):
     pin = request.POST.get('pin', '')
     person.set_pin(pin)
     return HttpResponse('Pin set')
+
 
 def search_person(request):
     """

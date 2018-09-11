@@ -1,0 +1,51 @@
+<div class="container bg page" id="pageStart">
+  <div class="text-center bg {% if is_bar %}jumbotron{% endif %}">
+    <h1 class="text-center"><strong>
+      {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
+    <br>
+    <div id="idOnlineMessage"> <!-- division is hidden if ping fails -->
+      <div class="row">
+        <p class="ipad-error">{{ request.session.message }}</p>
+          {% if is_bar %}
+            {% for app in apps %}
+              <button type="button" id="startLogin" class="btn posbutton btn-large btn-block touch">Member Login</button>
+            {% endfor %}
+              <br/><br/><br/>
+              <button type="button" id="startAttended" class="btn posbutton btn-large btn-block">Attended mode</button>
+             <br><br>
+          {% else %}
+            <div class="row">
+              <div class="col-md-4">
+                {% for app in apps %}
+                  {% if app.event %}
+                    <input type="image" name="event_{{ app.event.id }}" src="{{ app.event.image.url }}" class="img-responsive">
+                    <h3>Touch the picture to book</h3>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <div class="col-md-8">
+                {% for app in apps %}
+                  {% if not app.event %}
+                    <div class="row">
+                      <div class="col-md-6 text-center">
+                        <button class="posbutton btn-large btn-block" type="submit" name="app_{{ app.id }}">{{ app.name }}</button>
+                      </div>
+                      <div class="col-md-6">
+                        <p class="hint">{{ app.description }}</p>
+                      </div>
+                    </div>
+                    <br>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+          <br>
+      </div>
+{#<button class="btn btn-danger" onclick="posCode.recoverTransactions()">Recover</button>#}
+      <p class="hint">All members who have paid their subscription can use this system after registration.<br>
+          You can register now by pressing any button above and searching for your name.</p>
+    </div>
+    <p id="idOfflineMessage" hidden>The server is offline - limited functionality</p><!-- division is visible if ping fails -->
+  </div>
+</div>

@@ -41,27 +41,27 @@
 
     <div id="resetActionArea" hidden>
       <div class="col-md-5">
-        <h2 class="text-center">Fast reset PIN</h2>
-        <p class="hint">Choose a 4 to 8 digit PIN for use in the clubhouse only.</p>
+        <h2 class="text-center">Fast Reset PIN</h2>
+        <p class="hint">Choose a 4 to 8 digit PIN for use with the iPads in the clubhouse.</p>
         <div class="row">
           <div class="col-md-3 ipad-prompt">PIN:</div>
           <div class="col-md-5">
             <form id="resetPinForm" method="post">
               <input type="hidden" class="personId" name="person_id" value="">
               <div class="input-group input-group-lg" >
-                <input id='resetPin' type="tel"  class="form-control timeout" name="pin" pattern="[0-9]*" value="" spellcheck="false"
+                <input id='resetPin' type="tel"  class="form-control timeout masked" name="pin" pattern="[0-9]*" value="" spellcheck="false"
                   minlength="4" maxlength="8">
               </div>
             </form>
           </div>
           <div class="col-md-3">
-            <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetDone">Go</button>
+            <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetGo">Reset</button>
           </div>
         </div>
       </div>
       <div class="col-md-5">
         <h2 class="text-center">Full Registration</h2>
-        <p class="hint">Register for online systems including the members' website.
+        <p class="hint">Register for all online systems including the members' website.
         </p>
         <div class="text-center">
           <button type="button" class="btn btn-success btn-lg stop-timer" id=resetRegister">Register</button>
