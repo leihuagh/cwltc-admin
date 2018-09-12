@@ -20,8 +20,8 @@ urlpatterns = [
     url(r'^menu/timeout/$', MemberMenuView.as_view(timeout=10000), name='pos_menu_timeout'),
     url(r'^run/$', PosView.as_view(), name='pos_run'),
 
-    url(r'^ajax/items/$', ajax_items_view, name='pos_ajax_items'),
-    url(r'^ajax/ping/$', ajax_ping_view, name='pos_ajax_ping'),
+    url(r'^ajax/items/$', ajax_items, name='pos_ajax_items'),
+    url(r'^ajax/ping/$', ajax_ping, name='pos_ajax_ping'),
 
     url(r'^visitor/menu/$', VisitorMenuView.as_view(), name='pos_visitor_menu'),
     url(r'^visitor/adult/$', VisitorCreateView.as_view(), name='pos_visitor_adult'),

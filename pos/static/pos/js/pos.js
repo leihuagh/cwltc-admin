@@ -12,6 +12,8 @@ var posCode = (function (){
     var exitClass = $('.button-exit');
 
     var items;
+    var layouts;
+
     var receipt;
     var total;
     var formattedTotal;
@@ -27,7 +29,6 @@ var posCode = (function (){
     var person;
     var personName;
     var personList;
-    var supervisor;
     var touched = false;
 
 
@@ -56,8 +57,8 @@ var posCode = (function (){
         });
         //localStorage.clear();
         initPing(timeout, urls.ping, terminal);
-        loadItems();
-        loadPeople();
+        loadData();
+
         clearTimeout(timer);
 
         $(".touch").on('touchstart', function(event) {
@@ -112,13 +113,12 @@ var posCode = (function (){
     function doAction(event, action){
         if (action) {
             if (action === 'item') {
-                pos.itemAdd(Number(event.currentTarget.id));
+                pos.itemAdd(event.currentTarget.item);
             } else {
                 action();
             }
         }
     }
-
 
     pos.logOut = function(){
         personId = '';
@@ -333,22 +333,21 @@ var posCode = (function (){
 
     pos.newReceipt = function(){
         newReceipt();
-        $('#id_PosName').text(personName);
+        applyLayout(layoutId);
         pos.showPage('#pagePos');
     };
 
-    pos.itemAdd = function (id) {
+    pos.itemAdd = function (item) {
         // Add item to receipt array
-        var obj = lookup(id);
-        var item = {};
-        item.id = id;
-        item.lineId = 'line_' + line;
+        var receiptItem = {};
+        receiptItem.id = item.id;
+        receiptItem.lineId = 'line_' + line;
         line++;
-        item.description = obj.description;
-        item.sale_price = obj.sale_price;
-        item.cost_price = obj.cost_price;
-        item.price = Math.fround(parseFloat(item.sale_price)*100);
-        receipt.push(item);
+        receiptItem.description = item.description;
+        receiptItem.sale_price = item.sale_price;
+        receiptItem.cost_price = item.cost_price;
+        receiptItem.price = Math.fround(parseFloat(receiptItem.sale_price)*100);
+        receipt.push(receiptItem);
         createTable(receipt);
     };
 
@@ -544,8 +543,6 @@ var posCode = (function (){
         };
         receipt.push(payObj);
         var transaction = JSON.stringify(receipt);
-        var fatal = false;
-        var message = '';
         $.ajax({
             type: "POST",
             url: urls.sendTransaction,
@@ -679,32 +676,63 @@ var posCode = (function (){
         createTable(receipt);
     }
 
-    function loadItems() {
-        var savedItems = localStorage.getItem('items');
-        console.log('Start get items');
+
+    function loadData() {
+        // Load items, colours and all layouts from the server
         $.ajax({
             type: 'GET',
             url: urls.items,
             timeout: ajaxTimeout,
             success: function (response) {
-                console.log('Saving items');
-                localStorage.setItem('items', response);
-                items = JSON.parse(response);
-                $('.flex-left').show();
-                $('.flex-right').show();
+                console.log('Saving ' + this.url);
+                localStorage.setItem('data', JSON.stringify(response));
+                processData();
             },
             error: function (xhr, textStatus, errorThrown) {
-                console.log('Error reading items ' + textStatus);
-                if (savedItems) {
-                    alert('Using items from storage');
-                    items = JSON.parse(savedItems);
-                    $('.flex-left').show();
-                    $('.flex-right').show();
-                } else {
-                    alert('Cannot access items');
-                }
+                console.log('Error' + this.url);
+                processData();
             }
         });
+    }
+
+
+    function processData() {
+        // Creates an item dictionary and a layout dictionary
+        var data = JSON.parse(localStorage.getItem('data'));
+        if (data) {
+            var colours = JSON.parse(data.colours);
+            var itemArray = JSON.parse(data.items);
+            layouts = data.layouts;
+            // Build an item dictionary that includes its colours
+            items = {};
+            for (var i = 0; i < itemArray.length; i++) {
+                console.log(itemArray[i].pk + " " + itemArray[i].fields);
+                if (!itemArray[i].fields.colour){
+                    itemArray[i].fields.colour = 0;
+                }
+                var colour = lookupColour(itemArray[i].fields.colour, colours);
+                itemArray[i].fields.forecolour = colour.fore_colour;
+                itemArray[i].fields.backcolour = colour.back_colour;
+                items[itemArray[i].pk] = itemArray[i].fields;
+            }
+        }
+    }
+
+    function applyLayout(id){
+        var col;
+        var item;
+        var layout = JSON.parse(layouts[id]);
+        $('.item-button').hide();
+        Object.keys(layout).forEach(function (value) {
+            col = value[5];
+            if (col === '0') {
+                $(value).text(layout[value]).show();
+            } else {
+                item = items[layout[value]];
+                $(value).prop('value', item.description).show().css('background-color', item.backcolour).prop('item', item);
+            }
+        });
+
     }
 
     function loadPeople(){
@@ -722,15 +750,25 @@ var posCode = (function (){
         });
     }
 
-    var lookup = function (id) {
-        var index;
-        for (index = 0; index < items.length; index++) {
-            if (items[index].pk === id) {
-                return items[index].fields;
+    function lookupColour(id, colours) {
+        var i;
+        for (i = 0; i < colours.length; i++) {
+            if (colours[i].pk === id) {
+                return colours[i].fields;
             }
         }
-        return false;
-    };
+        return colours[0].fields;
+    }
+
+    function lookupItem(id) {
+        return items[id];
+        // var i;
+        // for (i = 0; i < items.length; i++) {
+        //     if (items[i].pk === id) {
+        //         return items[i].fields;
+        //     }
+        // }
+    }
 
     function createTable(receipt) {
         var tableBody = document.createElement('tbody');
@@ -830,16 +868,10 @@ var posCode = (function (){
                 }
             },
             error: function (data, status, xhr) {
-                // $('#idOfflineMessage').show().text('Sorry, the server is temporarily available. Please try later');
-                // $('#idOnlineMessage').hide();
                 setOffline();
                 startPing();
             }
         });
     }
-
-
-
-
     return pos;
 })();

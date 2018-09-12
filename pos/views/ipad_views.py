@@ -2,7 +2,7 @@ import json
 import logging
 from django.contrib.auth.hashers import check_password
 from django.core.serializers import serialize
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.views.generic import TemplateView, FormView
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
@@ -103,10 +103,6 @@ class NewStartView(LoginRequiredMixin, TemplateView):
             except Person.DoesNotExist:
                 pass
         context['timeout'] = LONG_TIMEOUT
-        context['ping_url'] = reverse('pos_ajax_ping')
-        context['items_url'] = reverse('pos_ajax_items')
-        context['post_url'] = reverse('pos_new_start')
-        context['exit_url'] = reverse('pos_menu')
         context['urls'] = mark_safe(json.dumps({
             'ping': reverse('pos_ajax_ping'),
             'items': reverse('pos_ajax_items'),
@@ -122,7 +118,7 @@ class NewStartView(LoginRequiredMixin, TemplateView):
         }))
         context['terminal'] = self.request.session['terminal']
         context['layout'] = layout
-        context['rows'], used_items = build_pos_array(layout)
+        context['rows'], _ = build_pos_array(layout)
         if app.attended and has_attended_cookie(self.request):
             if app.is_bar_app():
                 context['exit_url'] = reverse('pos_new_start')
@@ -602,25 +598,70 @@ class PosEventRegisterView(EventRegisterView):
         return redirect('pos_event_register', pk=self.event.id)
 
 
-def ajax_items_view(request):
-    """ responds to ajax request for item list"""
-    data = serialize('json', Item.objects.all())
-    return JsonResponse(data, safe=False)
+def ajax_items(request):
+    """ Responds to ajax request for item list"""
+
+    if request.is_ajax() and request.method == 'GET':
+        dict = {}
+        dict['items'] = serialize('json', Item.objects.all())
+        #dict['items1'] = json.dumps(list(Item.objects.all()))
+        dict['colours'] = serialize('json', Colour.objects.all())
+        layouts = Layout.objects.all()
+        layout_dict = {}
+        for layout in layouts:
+            locs_dict ={}
+            locs = Location.objects.filter(layout_id=layout.id)
+            for loc in locs:
+                key = f'#btn{loc.row}{loc.col}'
+                if loc.col == 0:
+                    locs_dict[key] = loc.description
+                else:
+                    locs_dict[key] = loc.item_id
+            layout_dict[layout.id] = json.dumps(locs_dict)
+        dict['layouts'] = layout_dict
+        return JsonResponse(dict, safe=False)
+    return HttpResponseBadRequest
+
+def ajax_colours(request):
+    """ Responds to ajax request for item colours """
+    if request.is_ajax() and request.method == 'GET':
+        data = serialize('json', Colour.objects.all())
+        return JsonResponse(data, safe=False)
+    return HttpResponseBadRequest
 
 
-def ajax_ping_view(request):
+def ajax_locations(request):
+    """ Return a dictionary of locations that have an associated item """
+    if request.is_ajax() and request.method == 'GET':
+        id = request.GET.get('layout_id', None)
+        if id:
+            dict = {}
+            locations = Location.objects.filter(layout_id=id)
+            for loc in locations:
+                key = f'#btn{loc.row}{loc.col}'
+                if loc.col == 0:
+                    dict[key] = loc.description
+                else:
+                    dict[key] = loc.item_id
+            return JsonResponse(dict)
+    return HttpResponseBadRequest
+
+
+def ajax_ping(request):
     """ responds to keep alive from pos"""
-    terminal = request.POST.get('terminal', None)
-    if terminal:
-        records = PosPing.objects.filter(terminal=terminal)
-        if records:
-            records[0].time = timezone.now()
-            records[0].save()
-        else:
-            record = PosPing.objects.create(terminal=terminal, time=timezone.now())
-        return HttpResponse('OK')
-        #return HttpResponse('Restart ' + reverse('pos_new_start'))
-    return HttpResponse('Bad terminal')
+    if request.is_ajax() and request.method == 'POST':
+        terminal = request.POST.get('terminal', None)
+        if terminal:
+            records = PosPing.objects.filter(terminal=terminal)
+            if records:
+                records[0].time = timezone.now()
+                records[0].save()
+            else:
+                record = PosPing.objects.create(terminal=terminal, time=timezone.now())
+            return HttpResponse('OK')
+            #return HttpResponse('Restart ' + reverse('pos_new_start'))
+        return HttpResponse('Bad terminal')
+    return HttpResponseBadRequest
 
 
 def read_cookie(request):
