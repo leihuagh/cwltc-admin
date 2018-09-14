@@ -23,6 +23,10 @@
     {% include 'pos/_menu.html' %}
     {% include 'pos/_select_member.html' %}
     {% include 'pos/_pos.html' %}
+    <script>
+        var urls = '{{ urls }}';
+        var csrf_token = '{{ csrf_token }}';
+    </script>
     <div class="terminal">Terminal: {{ request.session.terminal }}
       <span id="idOnline"></span> <span id="idSaved"></span></div>
     <div class="last-transaction">
@@ -37,9 +41,7 @@
         .then(function(){
             basket.require({url: "{% static 'pos/js/pos.js' %}", key: 'pos'})
                 .then(function() {
-                    posCode.init(
-                        '{{ is_attended }}', '{{ person.id }}', '{{ person.fullname }}',
-                        '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}', '{{ urls }}')
+                    posCode.init(csrf_token, urls);
                 })
         });
 </script>
