@@ -12,6 +12,8 @@
   <script src="{% static 'pos/js/rsvp.min.js' %}"></script>
   <script src="{% static 'pos/js/basket.js' %}"></script>
   <script src="{% static 'pos/js/jquery3.3.1.min.js' %}"></script>
+  <script src="{% static 'pos/js/bootstrap3.3.7.min.js' %}"></script>
+  <script src="{% static 'js/typeahead.bundle.js' %}"></script>
 </head>
 <body class="bg">
   <div id="wrapper">
@@ -35,14 +37,9 @@
   </div>
   <script>
     localStorage.setItem('pos_page', $('#wrapper').html());
-    basket.require(
-        {url: "{% static 'pos/js/bootstrap3.3.7.min.js' %}", key: 'bootstrap'},
-        {url: "{% static 'js/typeahead.bundle.js' %}", key: 'typeahead'})
-        .then(function(){
-            basket.require({url: "{% static 'pos/js/pos.js' %}", key: 'pos'})
-                .then(function() {
-                    posCode.init(csrf_token, urls);
-                })
-        });
+        basket.require({url: "{% static 'pos/js/pos.js' %}", key: 'pos'})
+            .then(function() {
+                posCode.init(csrf_token, urls);
+            })
 </script>
 </body>
