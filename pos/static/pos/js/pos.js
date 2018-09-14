@@ -38,17 +38,11 @@ var posCode = (function (){
     var terminal = 0;
 
     var timer;
-    var timeout = 12000000;
-    var ajaxTimeout = 20000;
+    var timeout = 120000;
+    var ajaxTimeout = 2000;
 
     /* Public methods*/
     pos.init = function (csrf_token, url_dict) {
-        // Bloodhound = Blood_hound;
-        // typeAhead = type_ahead;
-        // isAttended = is_attended;
-        // personId = person_id;
-        // personName = person_name;
-        // layoutId = layout_id;
         urls = JSON.parse(url_dict);
         payClass.hide();
         exitClass.hide();
@@ -923,16 +917,6 @@ var posCode = (function (){
             }
         }
         return colours[0].fields;
-    }
-
-    function lookupItem(id) {
-        return items[id];
-        // var i;
-        // for (i = 0; i < items.length; i++) {
-        //     if (items[i].pk === id) {
-        //         return items[i].fields;
-        //     }
-        // }
     }
 
     function createTable(receipt) {
