@@ -58,7 +58,7 @@ var posCode = (function (){
         //localStorage.clear();
         initPing(timeout, urls.ping, terminal);
         loadData();
-
+        newReceipt();
         clearTimeout(timer);
 
         $(".touch").on('touchstart', function(event) {
@@ -88,7 +88,7 @@ var posCode = (function (){
             console.log('clear timer');
         });
 
-        newReceipt();
+
     };
 
     // Common code to make touch events as fast as click
@@ -154,7 +154,8 @@ var posCode = (function (){
                break;
             case '#pagePassword':
                 $('#passwordError').hide();
-                $('#passwordPin').focus();
+                $('#passwordPin').val('').focus();
+                $('#passwordInput').val('');
                 break;
             case '#pageResetPin':
                 $('#resetForm').show();
@@ -246,6 +247,7 @@ var posCode = (function (){
     };
 
     pos.submitPassword = function() {
+        //var data = "person_id=" + personId + '&pin=' + $('#passwordPin').val() + '&password=' + $('#passwordInput').val();
         var formData = $('#idPasswordForm').serialize();
         var query = parseQuery(formData);
         $('#menuSupervisor').hide();
@@ -331,9 +333,11 @@ var posCode = (function (){
         }
     }
 
-    pos.newReceipt = function(){
+    pos.newReceipt = function(layoutId){
         newReceipt();
-        applyLayout(layoutId);
+        if (layoutId){
+            applyLayout(layoutId);
+        }
         pos.showPage('#pagePos');
     };
 

@@ -2,19 +2,7 @@
 {% load static %}
 {% block content %}
 <div id="wrapper">
-  {% include '_logo_banner.html' %}
-  {% include 'pos/_start.html' %}
-  {% include 'pos/_user.html' %}
-  {% include 'pos/_password.html' %}
-  {% include 'pos/_reset_pin.html' %}
-  {% include 'pos/_menu.html' %}
-  {% include 'pos/_select_member.html' %}
-  {% include 'pos/_pos.html' %}
-  <div class="terminal">Terminal: {{ request.session.terminal }}
-    <span id="idOnline"></span> <span id="idSaved"></span></div>
-  <div class="last-transaction">
-    Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
-  </div>
+
 </div>
 {% endblock %}
 {% block scripts %}
@@ -23,7 +11,7 @@
   <script src="{% static 'pos/js/pos.js' %}"></script>
   <script>
   $(document).ready(function () {
-    localStorage.setItem('pos_page', $('#wrapper').html());
+    $('#wrapper').html(localStorage.getItem('pos_page'));
     posCode.init(
         '{{ is_attended }}', '{{ person.id }}', '{{ person.fullname }}',
         '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}', '{{ urls }}');

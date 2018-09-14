@@ -1,37 +1,13 @@
 <!-- The main POS screen -->
 
 <div class="flex-container page" id="pagePos" hidden>
-{#  <div class="flex-left" hidden>#}
-{#    {% for row in rows %}#}
-{#      {% for loc in row %}#}
-{#        {% if loc.1 == 0 %}#}
-{#          <div class="row">#}
-{#            <div class="col row-description"><strong>{{ loc.2 }}</strong></div>#}
-{#          </div>#}
-{#          <div class="row row-buttons">#}
-{#        {% else %}#}
-{##}
-{#          <div class="col col-md-2">#}
-{#            {% if loc.2 %}#}
-{#              <input type="submit" class="posbutton item-button timed" id="{{ loc.2.id }}"#}
-{#                      style="background-color: {{ loc.2.colour.back_colour }};#}
-{#                          color: {{ loc.2.colour.fore_colour }};"#}
-{#                value="{{ loc.2.button_text }}">#}
-{#            {% endif %}#}
-{#          </div>#}
-{#        {% endif %}#}
-{#      {% endfor %}#}
-{#      </div>#}
-{#      <br/>#}
-{#    {% endfor %}#}
-{#  </div>#}
   <div class="flex-left">
     {% for row in rows %}
       {% for loc in row %}
         {% if forloop.counter0 == 0 %}
           <div class="row">
             <div class="col row-description" id="btn{{ forloop.parentloop.counter }}{{ forloop.counter0 }}">
-              <strong>{{ forloop.parentloop.counter }}-{{ forloop.counter0 }}</strong>
+              <strong></strong>
             </div>
           </div>
           <div class="row row-buttons">

@@ -11,6 +11,8 @@ urlpatterns = [
     url(r'^new_start/(?P<person_id>\d+)/$', NewStartView.as_view(), name='pos_new_start_person'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
+    url(r'^offline/$', OfflineView.as_view(), name='pos_disabled'),
+
 
     url(r'lookup/member/$', LookupMemberView.as_view(), name='pos_lookup_member'),
     url(r'^user/$', GetUserView.as_view(), name='pos_user'),
