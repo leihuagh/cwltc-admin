@@ -10,12 +10,29 @@
   <link rel="stylesheet" href="{% static 'pos/css/bootstrap3.3.7.min.css' %}">
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro|Montserrat:700" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
+  <script src="{% static 'pos/js/rsvp.min.js' %}"></script>
+  <script src="{% static 'pos/js/basket.js' %}"></script>
+  <script src="{% static 'pos/js/jquery3.3.1.min.js' %}"></script>
+
 </head>
 <body class="bg">
 {% block content %}
 {% endblock %}
-<script src="{% static 'pos/js/jquery3.3.1.min.js' %}"></script>
-<script src="{% static 'pos/js/bootstrap3.3.7.min.js'%} "></script>
+
+<script>
+    basket.require(
+        {url: "{% static 'pos/js/bootstrap3.3.7.min.js' %}", key: 'bootstrap'},
+        {url: "{% static 'js/typeahead.bundle.js' %}", key: 'typeahead'})
+        .then(function(){
+            basket.require({url: "{% static 'pos/js/pos.js' %}", key: 'pos'})
+                .then(function() {
+                    posCode.init(
+                        '{{ is_attended }}', '{{ person.id }}', '{{ person.fullname }}',
+                        '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}', '{{ urls }}')
+                })
+        });
+
+</script>
 {% block scripts %}
 {% endblock %}
 </body>

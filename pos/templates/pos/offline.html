@@ -1,178 +1,33 @@
-{% extends 'pos/online_base.html' %}
-{% load static %}
-{% block content %}
-<div id="wrapper">
-
-</div>
-{% endblock %}
-{% block scripts %}
-  <script src= {% static 'js/typeahead.bundle.js' %}></script>
-  <script src="{% static 'pos/js/pos-cached-typeahead.js' %}"></script>
-  <script src="{% static 'pos/js/pos.js' %}"></script>
+<!DOCTYPE html>
+{% load staticfiles %}
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CWLTC POS</title>
+  <link rel="stylesheet" href="{% static 'pos/css/bootstrap3.3.7.min.css' %}">
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro|Montserrat:700" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
+  <script src="{% static 'pos/js/rsvp.min.js' %}"></script>
+  <script src="{% static 'pos/js/basket.js' %}"></script>
+  <script src="{% static 'pos/js/jquery3.3.1.min.js' %}"></script>
+</head>
+<body class="bg">
+  <div id="wrapper">
+  </div>
   <script>
-  $(document).ready(function () {
     $('#wrapper').html(localStorage.getItem('pos_page'));
-    posCode.init(
-        '{{ is_attended }}', '{{ person.id }}', '{{ person.fullname }}',
-        '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}', '{{ urls }}');
-
-    $('#startLogin').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.showPage('#pageUser'));
-    });
-    $('#startAttended').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.startAttended);
-    });
-
-    // USER
-    $('#userBack').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.logOut);
-    });
-
-    // PASSWORD
-    $('#passwordBack').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.logOut);
-    });
-    $('#passwordSubmit').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.submitPassword);
-    });
-    $('#passwordReset').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.showPage('#pageResetPin'));
-    });
-    $('#passwordPin').keydown(function (e){
-        if(e.keyCode === 13){
-            e.preventDefault();
-            posCode.submitPassword();
-        }
-    });
-    $('#passwordInput').keydown(function (e){
-        if(e.keyCode === 13){
-            e.preventDefault();
-            posCode.submitPassword();
-        }
-    });
-
-    // RESET PIN
-    $('#resetBack').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.showPage('#pagePassword'));
-    });
-    $('#resetDone').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.submitPostCode());
-    });
-    $('#resetGo').on('touchstart click', function (event) {
-        posCode.touch(event, posCode.submitPin());
-    });
-    $('#resetPostCode').keydown(function (e){
-      if(e.keyCode === 13 && $('#resetPostCode').val().length >= 6){
-          e.preventDefault();
-          $('#resetPhone').focus();
-      }
-    });
-    $('#resetPhone').keydown(function (e){
-        if(e.keyCode === 13 && $('#resetPostCode').val().length >= 6 && $('#resetPhone').val().length >=10){
-            e.preventDefault();
-            posCode.submitPostCode();
-      }
-     });
-    $('#resetPin').keydown(function (e){
-        if (e.keyCode === 13) {
-            e.preventDefault();
-        }
-    });
-
-    $('#resetPin').keyup(function (e){
-        if ($('#resetPin').val().length >= 4) {
-            $('#resetGo').show();
-            if (e.keyCode === 13) {
-                e.preventDefault();
-                posCode.submitPin();
-            }
-        }else{
-            $('#resetGo').hide();
-        }
-    });
-
-
-    // MENU
-    $('#menuPurchaseBar').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.newReceipt(3));
-    });
-    $('#menuPurchaseTeas').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.newReceipt(4));
-    });
-    $('#menuTransactions').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.transactions);
-    });
-    $('#menuLogOut').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.logOut);
-    });
-    $('#menuAttendedOn').on('touchstart click', function(event) {
-        $('#startAttended').show();
-        posCode.touch(event, posCode.logOut);
-    });
-    $('#menuTransactionsAll').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.transactions('all'));
-    });
-    $('#menuTransactionsMember').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.transactions('member'));
-    });
-    $('#menuTransactionsComp').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.transactions('comp'));
-    });
-    $('#menuTransactionsCash').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.transactions('cash'));
-    });
-
-    // POS
-    $('#posPay').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.pay);
-    });
-    $('#posCancel').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.newReceipt);
-    });
-    $('#posLogOut').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.logOut);
-    });
-    $('#posEndAttended').on('touchstart click', function(event) {
-        $('#startAttended').hide();
-        posCode.touch(event, posCode.logOut);
-    });
-    // Attended modal
-    $('#posAccount').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.account);
-    });
-    $('#posCash').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.cash);
-    });
-    $('#posResume').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.resume);
-    });
-    // Member modal
-    $('#posCommit').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.commitSingle);
-    });
-    $('#posSplit').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.split);
-    });
-    $('#posBack').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.resume);
-    });
-    // Select modal
-    $('#posBack1').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.back1);
-    });
-    $('#posCharge').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.commit);
-    });
-    $('#posAddMember').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.addMember);
-    });
-    $('#posBack2').on('touchstart click', function(event) {
-        posCode.touch(event, posCode.back1);
-    });
-    bind_typeahead('#selectNameInput', posCode.transactionsPerson, true);
-    bind_typeahead('#userNameInput', posCode.getPin, '{{ filter }}');
-    bind_typeahead('#member_search', posCode.selectedPerson, true);
-    posCode.startApp();
-  });
-</script>
-{% endblock %}
+    basket.require(
+        {url: "{% static 'pos/js/bootstrap3.3.7.min.js' %}", key: 'bootstrap'},
+        {url: "{% static 'js/typeahead.bundle.js' %}", key: 'typeahead'})
+        .then(function(){
+            basket.require({url: "{% static 'pos/js/pos.js' %}", key: 'pos'})
+                .then(function() {
+                    posCode.init(
+                        '{{ is_attended }}', '{{ person.id }}', '{{ person.fullname }}',
+                        '{{ layout.id }}', '{{ csrf_token }}', '{{ request.session.terminal }}', '{{ urls }}')
+                })
+        });
+  </script>
+</body>

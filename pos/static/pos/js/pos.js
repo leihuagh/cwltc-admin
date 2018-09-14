@@ -43,6 +43,8 @@ var posCode = (function (){
 
     /* Public methods*/
     pos.init = function (is_attended, person_id, person_name, layout_id, csrf_token, terminal, url_dict) {
+        // Bloodhound = Blood_hound;
+        // typeAhead = type_ahead;
         isAttended = is_attended;
         personId = person_id;
         personName = person_name;
@@ -55,7 +57,7 @@ var posCode = (function (){
                 xhr.setRequestHeader('X-CSRFToken', csrf_token);
             }
         });
-        //localStorage.clear();
+
         initPing(timeout, urls.ping, terminal);
         loadData();
         newReceipt();
@@ -88,7 +90,167 @@ var posCode = (function (){
             console.log('clear timer');
         });
 
+        $('#startLogin').on('touchstart click', function (event) {
+            pos.touch(event, pos.showPage('#pageUser'));
+        });
+        $('#startAttended').on('touchstart click', function (event) {
+            pos.touch(event, pos.startAttended);
+        });
 
+        // USER
+        $('#userBack').on('touchstart click', function (event) {
+            pos.touch(event, pos.logOut);
+        });
+
+        // PASSWORD
+        $('#passwordBack').on('touchstart click', function (event) {
+            pos.touch(event, pos.logOut);
+        });
+        $('#passwordSubmit').on('touchstart click', function (event) {
+            pos.touch(event, pos.submitPassword);
+        });
+        $('#passwordReset').on('touchstart click', function (event) {
+            pos.touch(event, pos.showPage('#pageResetPin'));
+        });
+        $('#passwordPin').keydown(function (e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                pos.submitPassword();
+            }
+        });
+        $('#passwordInput').keydown(function (e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                pos.submitPassword();
+            }
+        });
+
+        // RESET PIN
+        $('#resetBack').on('touchstart click', function (event) {
+            pos.touch(event, pos.showPage('#pagePassword'));
+        });
+        $('#resetDone').on('touchstart click', function (event) {
+            pos.touch(event, pos.submitPostCode());
+        });
+        $('#resetGo').on('touchstart click', function (event) {
+            pos.touch(event, pos.submitPin());
+        });
+        $('#resetPostCode').keydown(function (e){
+          if(e.keyCode === 13 && $('#resetPostCode').val().length >= 6){
+              e.preventDefault();
+              $('#resetPhone').focus();
+          }
+        });
+        $('#resetPhone').keydown(function (e){
+            if(e.keyCode === 13 && $('#resetPostCode').val().length >= 6 && $('#resetPhone').val().length >=10){
+                e.preventDefault();
+                pos.submitPostCode();
+          }
+         });
+        $('#resetPin').keydown(function (e){
+            if (e.keyCode === 13) {
+                e.preventDefault();
+            }
+        });
+
+        $('#resetPin').keyup(function (e){
+            if ($('#resetPin').val().length >= 4) {
+                $('#resetGo').show();
+                if (e.keyCode === 13) {
+                    e.preventDefault();
+                    pos.submitPin();
+                }
+            }else{
+                $('#resetGo').hide();
+            }
+        });
+
+
+        // MENU
+        $('#menuPurchaseBar').on('touchstart click', function(event) {
+            pos.touch(event, pos.newReceipt(3));
+        });
+        $('#menuPurchaseTeas').on('touchstart click', function(event) {
+            pos.touch(event, pos.newReceipt(4));
+        });
+        $('#menuTransactions').on('touchstart click', function(event) {
+            pos.touch(event, pos.transactions);
+        });
+        $('#menuLogOut').on('touchstart click', function(event) {
+            pos.touch(event, pos.logOut);
+        });
+        $('#menuAttendedOn').on('touchstart click', function(event) {
+            $('#startAttended').show();
+            pos.touch(event, pos.logOut);
+        });
+        $('#menuTransactionsAll').on('touchstart click', function(event) {
+            pos.touch(event, pos.transactions('all'));
+        });
+        $('#menuTransactionsMember').on('touchstart click', function(event) {
+            pos.touch(event, pos.transactions('member'));
+        });
+        $('#menuTransactionsComp').on('touchstart click', function(event) {
+            pos.touch(event, pos.transactions('comp'));
+        });
+        $('#menuTransactionsCash').on('touchstart click', function(event) {
+            pos.touch(event, pos.transactions('cash'));
+        });
+
+        // POS
+        $('#posPay').on('touchstart click', function(event) {
+            pos.touch(event, pos.pay);
+        });
+        $('#posCancel').on('touchstart click', function(event) {
+            pos.touch(event, pos.newReceipt);
+        });
+        $('#posLogOut').on('touchstart click', function(event) {
+            pos.touch(event, pos.logOut);
+        });
+        $('#posEndAttended').on('touchstart click', function(event) {
+            $('#startAttended').hide();
+            pos.touch(event, pos.logOut);
+        });
+
+        // Attended modal
+        $('#posAccount').on('touchstart click', function(event) {
+            pos.touch(event, pos.account);
+        });
+        $('#posCash').on('touchstart click', function(event) {
+            pos.touch(event, pos.cash);
+        });
+        $('#posResume').on('touchstart click', function(event) {
+            pos.touch(event, pos.resume);
+        });
+        // Member modal
+        $('#posCommit').on('touchstart click', function(event) {
+            pos.touch(event, pos.commitSingle);
+        });
+        $('#posSplit').on('touchstart click', function(event) {
+            pos.touch(event, pos.split);
+        });
+        $('#posBack').on('touchstart click', function(event) {
+            pos.touch(event, pos.resume);
+        });
+
+        // Select modal
+        $('#posBack1').on('touchstart click', function(event) {
+            pos.touch(event, pos.back1);
+        });
+        $('#posCharge').on('touchstart click', function(event) {
+            pos.touch(event, pos.commit);
+        });
+        $('#posAddMember').on('touchstart click', function(event) {
+            pos.touch(event, pos.addMember);
+        });
+        $('#posBack2').on('touchstart click', function(event) {
+            pos.touch(event, pos.back1);
+        });
+
+        bind_typeAhead('#selectNameInput', pos.transactionsPerson, true);
+        bind_typeAhead('#userNameInput', pos.getPin, '{{ filter }}');
+        bind_typeAhead('#member_search', pos.selectedPerson, true);
+
+        pos.startApp();
     };
 
     // Common code to make touch events as fast as click
@@ -198,7 +360,7 @@ var posCode = (function (){
         }
         $('.personName').text(personName);
         $('.personId').val(personId);
-        $('.typeahead').typeahead('val', '');
+        $('.typeAhead').typeahead('val', '');
         pos.showPage('#pagePassword');
         $('#idPinInput').val('').focus();
         $('#idPasswordInput').val('');
@@ -379,7 +541,7 @@ var posCode = (function (){
             $('#member_modal').modal('show');
         }
         $('#member_search').val('');
-        $('.typeahead').typeahead('val', '');
+        $('.typeAhead').typeahead('val', '');
     };
 
     pos.selectMember = function () {
@@ -473,7 +635,7 @@ var posCode = (function (){
 
     function showSplit(withSelect) {
         // calculate split amounts and show list of members with amounts
-        // withSelect controls whether typeahead or buttons are shown
+        // withSelect controls whether typeAhead or buttons are shown
         var row;
         var cell;
         var i;
@@ -523,10 +685,10 @@ var posCode = (function (){
         $('#title_total').text(formattedTotal);
         $('#title_2').text("between members");
         if (withSelect) {
-            $('#add_member_typeahead').show().focus();
+            $('#add_member_typeAhead').show().focus();
             $('#pay_buttons').hide();
         } else {
-            $('#add_member_typeahead').hide();
+            $('#add_member_typeAhead').hide();
             $('#pay_buttons').show();
         }
         hideModals();
@@ -710,7 +872,6 @@ var posCode = (function (){
             // Build an item dictionary that includes its colours
             items = {};
             for (var i = 0; i < itemArray.length; i++) {
-                console.log(itemArray[i].pk + " " + itemArray[i].fields);
                 if (!itemArray[i].fields.colour){
                     itemArray[i].fields.colour = 0;
                 }
@@ -877,5 +1038,79 @@ var posCode = (function (){
             }
         });
     }
+
+    function bind_typeAhead(typeAhead_id, setPerson, filter) {
+        // https://digitalfortress.tech/tutorial/smart-search-using-twitter-typeAhead-bloodhound/
+        var people = new Bloodhound({
+            datumTokenizer: function (d) {
+                return Bloodhound.tokenizers.whitespace(d.value);
+            },
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            prefetch: {
+                url: '/ajax/adults'
+            },
+            dupDetector: function (remoteMatch, localMatch) {
+                return remoteMatch.id === localMatch.id;
+            },
+            remote: {
+                url: '/ajax/people/?term=%QUERY&adult=true',
+                wildcard: '%QUERY'
+            }
+        });
+
+        var lastItem;
+        var qualifier = '';
+            if (filter==='adults') {
+                qualifier = '&adult=true';
+            }else if (filter==='members') {
+                qualifier = '&members=true';
+            }
+
+        $(typeAhead_id).typeahead({
+            hint: true,
+            highlight: true,
+            minLength: 3
+        }, {
+            name: 'people',
+            displayKey: 'value',
+            source: people   // Bloodhound instance is passed as the source
+        });
+
+        // Selecting an item sets person_id
+        $(typeAhead_id).bind('typeahead:select', function (event, item) {
+            setPerson(item);
+        });
+
+        // Record selected item when cursor changes it
+        $(typeAhead_id).bind('typeahead:cursorchange', function (event, item) {
+            lastItem = item;
+        });
+
+        // Autocomplete sets the item
+        $(typeAhead_id).bind('typeahead:autocomplete', function (event, item) {
+            setPerson(item);
+        });
+
+        // http://bwbecker.github.io/blog/2015/08/29/pain-with-twitter-typeAhead-widget/
+
+        // Enter key behaviour
+        $(typeAhead_id).on('keydown', function (e) {
+            if (e.keyCode === 13) {
+                // if no suggestions ignore the keypress
+                if ($('.tt-suggestion').length === 0) {
+                    e.preventDefault();
+                } else {
+                    if (lastItem === undefined) {
+                        // Trigger the default (first) suggestion
+                        $('.tt-suggestion:first-child').trigger('click');
+                    } else {
+                        // The suggestion they chose with arrow keys
+                        setPerson(lastItem);
+                    }
+                }
+            }
+        });
+    }
+
     return pos;
 })();
