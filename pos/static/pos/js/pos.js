@@ -498,7 +498,7 @@ var posCode = (function (){
                 pos.showMenu();
             } else {
                 console.log('Bad offline pin');
-                pos.startApp();
+                pos.logOut();
             }
         } else {
             console.log('Ignore offline pin');
