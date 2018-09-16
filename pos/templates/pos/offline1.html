@@ -27,14 +27,12 @@
 </head>
 <body class="bg">
   <div id="wrapper">
-    <a class= "btn btn-success" href="https://sandbox.coombewoodltc.com/pos/new_start">START</a>
   </div>
   <script>
-    localStorage.setItem('test', 'TEST');
-    var result="";
-    Object.keys(localStorage).forEach(function(key){
-          result += "\n" + key;
-      });
-    alert(result);
+    $('#wrapper').html(localStorage.getItem('pos_page'));
+    basket.require({url: "pos.js", key: 'pos'})
+        .then(function() {
+            posCode.init(csrf_token, urls);
+        })
   </script>
 </body>

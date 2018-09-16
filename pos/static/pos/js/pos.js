@@ -84,11 +84,12 @@ var posCode = (function (){
             console.log('clear timer');
         });
 
+        // START PAGE
         $('#startLogin').on('touchstart click', function (event) {
-            pos.touch(event, pos.showPage('#pageUser'));
+            pos.touch(event, pos.login);
         });
         $('#startAttended').on('touchstart click', function (event) {
-            pos.touch(event, pos.startAttended);
+            pos.touch(event, pos.startAttended(this.value));
         });
 
         // USER
@@ -161,11 +162,8 @@ var posCode = (function (){
 
 
         // MENU
-        $('#menuPurchaseBar').on('touchstart click', function(event) {
-            pos.touch(event, pos.newReceipt(3));
-        });
-        $('#menuPurchaseTeas').on('touchstart click', function(event) {
-            pos.touch(event, pos.newReceipt(4));
+        $('.menu').on('touchstart click', function(event) {
+            pos.touch(event, pos.startLayout(this.value));
         });
         $('#menuTransactions').on('touchstart click', function(event) {
             pos.touch(event, pos.transactions);
@@ -195,7 +193,7 @@ var posCode = (function (){
             pos.touch(event, pos.pay);
         });
         $('#posCancel').on('touchstart click', function(event) {
-            pos.touch(event, pos.newReceipt);
+            pos.touch(event, newReceipt);
         });
         $('#posLogOut').on('touchstart click', function(event) {
             pos.touch(event, pos.logOut);
@@ -279,7 +277,6 @@ var posCode = (function (){
     pos.logOut = function(){
         personId = '';
         personName = '';
-        hideModals();
         document.activeElement.blur();
         $("input").blur();
         pos.showPage('#pageStart');
@@ -291,6 +288,7 @@ var posCode = (function (){
     };
 
     pos.showPage = function(pageId){
+        hideModals();
         $('.page').hide();
         if (pageId === '#pagePos') {
           $('#idLogoBanner').hide();
@@ -329,6 +327,8 @@ var posCode = (function (){
 
     pos.startApp = function(){
         isAttended = false;
+        terminal = readCookie('terminal');
+        $('#terminal').text(terminal);
         if (personId) {
             $('.personName').text(personName);
             $('.personId').val(personId);
@@ -338,13 +338,24 @@ var posCode = (function (){
         }
     };
 
-    pos.startAttended = function() {
+    pos.login = function() {
+        isAttended = false;
+        personName = '';
+        personId = '';
+        $('.personName').text(personName);
+        $('.personId').val(personId);
+        $('#posEndAttended').hide();
+        pos.showPage('#pageUser');
+    };
+
+    pos.startAttended = function(layout_id) {
         isAttended = true;
         personName = 'Attended mode';
         personId = '';
         $('.personName').text(personName);
         $('.personId').val(personId);
-        pos.newReceipt();
+        $('#posEndAttended').show();
+        pos.startLayout(layout_id);
     };
 
     pos.getPin = function(person) {
@@ -445,6 +456,12 @@ var posCode = (function (){
         pos.showPage('#pageMenu');
     };
 
+    pos.startLayout = function(layout){
+        newReceipt();
+        applyLayout(layout);
+        pos.showPage('#pagePos');
+    };
+
     pos.transactionsPerson = function(person){
         pos.transactions(person.id);
     };
@@ -488,14 +505,6 @@ var posCode = (function (){
             pos.showMenu();
         }
     }
-
-    pos.newReceipt = function(layoutId){
-        newReceipt();
-        if (layoutId){
-            applyLayout(layoutId);
-        }
-        pos.showPage('#pagePos');
-    };
 
     pos.itemAdd = function (item) {
         // Add item to receipt array
@@ -623,8 +632,10 @@ var posCode = (function (){
         $('#attended_modal').modal('hide');
         $('#member_modal').modal('hide');
         $('#select_modal').modal('hide');
+        $('#help_modal').modal('hide');
+        $('#save_modal').modal('hide');
+        $('.modal.in').modal('hide');
     }
-
 
 
     function showSplit(withSelect) {
@@ -677,12 +688,17 @@ var posCode = (function (){
         // default header message gets overwritten for the first person
         $('#title_1').text('Split');
         $('#title_total').text(formattedTotal);
-        $('#title_2').text("between members");
+        $('#title_2').text("between up to 4 members");
         if (withSelect) {
-            $('#add_member_typeAhead').show().focus();
+            $('#add_member_typeahead').show().focus();
             $('#pay_buttons').hide();
         } else {
-            $('#add_member_typeAhead').hide();
+            $('#add_member_typeahead').hide();
+            if (personList.length === 4) {
+                $('#posAddMember').hide();
+            }else{
+                $('#posAddMember').show();
+            }
             $('#pay_buttons').show();
         }
         hideModals();
@@ -692,6 +708,7 @@ var posCode = (function (){
     function sendTransaction(payType) {
         // post the transaction to the server
         // the response is the next screen to show
+        $('#save_modal').show();
         clearTimeout(timer);
         var stamp = new Date().getTime();
         var payObj = {
@@ -699,7 +716,9 @@ var posCode = (function (){
             'people': personList,
             'total': total,
             'stamp': stamp,
-            'layout_id': layoutId
+            'layout_id': layoutId,
+            'attended' : isAttended,
+            'terminal' : terminal
         };
         receipt.push(payObj);
         var transaction = JSON.stringify(receipt);
@@ -715,6 +734,7 @@ var posCode = (function (){
                 var result = response.split(';');
                 if (result[0] === 'Saved') {
                     console.log('Transaction saved');
+                    $('#save_modal').hide();
                     $('#idLastTransaction').text(result[1]);
                     $('#idLastTotal').text(result[2]);
                     $('#menuLastTransaction').text('Last purchase: £' + result[2]);
@@ -723,15 +743,25 @@ var posCode = (function (){
                 }else{
                     console.log('Unknown server response');
                 }
-                pos.startApp();
+                if (isAttended) {
+                    pos.logOut();
+                }else{
+                    pos.showPage('#pageMenu');
+                }
             },
             error: function (xhr, textStatus, errorThrown) {
                 console.log ('Error {xhr} {textStatus}');
+                $('#save_modal').hide();
                 saveTransaction(transaction, stamp);
                 $('#idLastTransaction').text('local');
-                $('#idLastTotal').text(payObj.total);
-                $('#menuLastTransaction').text('Last purchase: £ ' + payObj.total/100);
-                pos.startApp();
+                var localTotal = (payObj.total/100).toFixed(2);
+                $('#idLastTotal').text(localTotal);
+                $('#menuLastTransaction').text('Last purchase: £ ' + localTotal);
+                if (isAttended) {
+                    pos.logOut();
+                }else{
+                    pos.showPage('#pageMenu');
+                }
             }
         });
     }
@@ -872,6 +902,8 @@ var posCode = (function (){
                 var colour = lookupColour(itemArray[i].fields.colour, colours);
                 itemArray[i].fields.forecolour = colour.fore_colour;
                 itemArray[i].fields.backcolour = colour.back_colour;
+                // django model serialization does not include id as field so add it
+                itemArray[i].fields.id = itemArray[i].pk;
                 items[itemArray[i].pk] = itemArray[i].fields;
             }
         }
@@ -880,18 +912,20 @@ var posCode = (function (){
     function applyLayout(id){
         var col;
         var item;
+        layoutId = id;
         var layout = JSON.parse(layouts[id]);
         $('.item-button').hide();
+        $('.row-description').hide().text('');
         Object.keys(layout).forEach(function (value) {
             col = value[5];
             if (col === '0') {
                 $(value).text(layout[value]).show();
             } else {
                 item = items[layout[value]];
-                $(value).prop('value', item.description).show().css('background-color', item.backcolour).prop('item', item);
+                $(value).prop('value', item.description).show(
+                ).css('background-color', item.backcolour).css('color', item.forecolour).prop('item', item);
             }
         });
-
     }
 
     function loadPeople(){
@@ -1065,6 +1099,22 @@ var posCode = (function (){
             $('.typeahead').typeahead('val', '');
         });
 
+    }
+
+    function readCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
     }
 
     return pos;

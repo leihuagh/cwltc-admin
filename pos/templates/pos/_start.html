@@ -8,10 +8,10 @@
         <p class="ipad-error">{{ request.session.message }}</p>
           {% if is_bar %}
             {% for app in apps %}
-              <button type="button" id="startLogin" class="btn posbutton btn-large btn-block touch">Member Login</button>
-            {% endfor %}
+              <button type="button" id="startLogin" class="btn posbutton btn-large btn-block touch timeout">Member Login</button>
               <br/><br/><br/>
-              <button type="button" id="startAttended" class="btn posbutton btn-large btn-block">Attended mode</button>
+              <button type="button" id="startAttended" class="btn posbutton btn-large btn-block timeout" value="{{app.layout_id}}">Attended mode</button>
+            {% endfor %}
              <br><br>
           {% else %}
             <div class="row">
@@ -46,6 +46,6 @@
       <p class="hint">All members who have paid their subscription can use this system after registration.<br>
           You can register now by pressing any button above and searching for your name.</p>
     </div>
-    <p id="idOfflineMessage" hidden>The server is offline - limited functionality</p><!-- division is visible if ping fails -->
+{#    <p id="idOfflineMessage" hidden>The server is offline - limited functionality</p><!-- division is visible if ping fails -->#}
   </div>
 </div>

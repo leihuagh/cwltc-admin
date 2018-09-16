@@ -16,6 +16,10 @@
   <script src="{% static 'js/typeahead.bundle.js' %}"></script>
 </head>
 <body class="bg">
+  <div class="terminal">Terminal: <span id="terminal"></span> <span id="idOnline"></span> <span id="idSaved"></span></div>
+  <div class="last-transaction">
+    Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
+  </div>
   <div id="wrapper">
     {% include '_logo_banner.html' %}
     {% include 'pos/_start.html' %}
@@ -29,17 +33,19 @@
         var urls = '{{ urls }}';
         var csrf_token = '{{ csrf_token }}';
     </script>
-    <div class="terminal">Terminal: {{ request.session.terminal }}
-      <span id="idOnline"></span> <span id="idSaved"></span></div>
-    <div class="last-transaction">
-      Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
-    </div>
+
   </div>
+  <script src="{% static 'pos/js/pos.js' %}"></script>
   <script>
+    posCode.init(csrf_token, urls);
+    /*
     localStorage.setItem('pos_page', $('#wrapper').html());
+
         basket.require({url: "{% static 'pos/js/pos.js' %}", key: 'pos'})
             .then(function() {
                 posCode.init(csrf_token, urls);
             })
-</script>
+  */
+  </script>
+
 </body>

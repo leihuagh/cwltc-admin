@@ -1,28 +1,32 @@
 <div class="container bg page" id="pageMenu" hidden>
   <div class="row">
     <h2 class="text-center personName"></h2>
-
-    <div class="col-md-4 col-md-push-4 text-center">
       {% if messages %}
         {% for message in messages %}
           <h4>{{ message }}</h4>
         {% endfor %}
       {% endif %}
+    <div class="col-md-4 col-md-push-4 text-center">
       <br>
-      <p><button id="menuPurchaseBar" class="btn btn-success btn-lg btn-block stop-timer touch">Bar purchase</button></p>
-      <p><button id="menuPurchaseTeas" class="btn btn-success btn-lg btn-block stop-timer touch">Teas purchase</button></p>
+        {% for app in apps %}
+          {% if app.layout_id %}
+            <p><button type="button" value="{{app.layout_id}}" class="btn posbutton btn-large btn-block menu touch">
+              {{ app.name }}
+            </button></p>
+          {% endif %}
+        {% endfor %}
       <p><button id="menuTransactions" class="btn btn-success btn-lg btn-block stop-timer touch">View my account</button></p>
       <p><button id="menuLogOut" class="btn btn-success btn-lg btn-block stop-timer">Log out</button></p>
-      <div id="menuSupervisor">
-        <p><button id="menuTransactionsAll" class="btn btn-warning btn-lg btn-block stop-timer touch">All transactions</button></p>
-        <p><button id="menuTransactionsMember" class="btn btn-warning btn-lg btn-block stop-timer touch">Transactions for member</button></p>
-        <p><button id="menuTransactionsCash" class="btn btn-warning btn-lg btn-block stop-timer touch">Cash transactions</button></p>
-        <p><button id="menuTransactionsComp" class="btn btn-warning btn-lg btn-block stop-timer touch">Complimentary transactions</button></p>
-        <p><a href="{% url 'pos_admin' %}" class="btn btn-warning btn-lg btn-block stop-timer">POS admin</a></p>
-        <p><button id="menuAttendedOn" class="btn btn-warning btn-lg btn-block stop-timer">Start attended mode</button></p>
-      </div>
-      <br><br>
-        <h3 id="menuLastTransaction"></h3>
+      <h3 id="menuLastTransaction"></h3>
+    </div>
+    <div class="col-md-4 col-md-push-4" id="menuSupervisor">
+      <br>
+      <p><button id="menuTransactionsAll" class="btn btn-warning btn-lg btn-block timeout touch">All transactions</button></p>
+      <p><button id="menuTransactionsMember" class="btn btn-warning btn-lg btn-block timeout touch">Transactions for member</button></p>
+      <p><button id="menuTransactionsCash" class="btn btn-warning btn-lg btn-block timeout touch">Cash transactions</button></p>
+      <p><button id="menuTransactionsComp" class="btn btn-warning btn-lg btn-block timeout touch">Complimentary transactions</button></p>
+      <p><a href="{% url 'pos_admin' %}" class="btn btn-warning btn-lg btn-block timeout">POS admin</a></p>
+      <p><button id="menuAttendedOn" class="btn btn-warning btn-lg btn-block timeout">Start attended mode</button></p>
     </div>
   </div>
 </div>

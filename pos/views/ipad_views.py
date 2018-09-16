@@ -59,6 +59,7 @@ class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
             response = HttpResponseRedirect(reverse(start))
             max_age = 10 * 365 * 24 * 60 * 60
             response.set_cookie('pos', system + ';' + terminal, max_age=max_age)
+            response.set_cookie('terminal', terminal, max_age=max_age)
             return response
         return redirect('pos_admin')
 
@@ -71,7 +72,7 @@ class OfflineView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/offline.html'
 
 
-class NewStartView(LoginRequiredMixin, TemplateView):
+class NewStartView(TemplateView):
     """ Member login or attended mode selection """
     template_name = 'pos/new_start.html'
     system = ''
@@ -148,12 +149,12 @@ class NewStartView(LoginRequiredMixin, TemplateView):
             if not existing:
                 try:
                     trans = create_transaction_from_receipt(request.user.id,
-                                                            terminal,
+                                                            pay_record['terminal'],
                                                             pay_record['layout_id'],
                                                             receipt,
                                                             pay_record['total'],
                                                             pay_record['people'],
-                                                            request.session['attended'],
+                                                            pay_record['attended'],
                                                             creation_date=creation_date
                                                             )
                 except PosServicesError:
@@ -608,7 +609,6 @@ def ajax_items(request):
     if request.is_ajax() and request.method == 'GET':
         dict = {}
         dict['items'] = serialize('json', Item.objects.all())
-        #dict['items1'] = json.dumps(list(Item.objects.all()))
         dict['colours'] = serialize('json', Colour.objects.all())
         layouts = Layout.objects.all()
         layout_dict = {}
