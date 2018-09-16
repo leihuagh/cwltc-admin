@@ -189,28 +189,30 @@ def dump_layout_to_excel(layout):
     return response
 
 
-def build_pos_array(layout):
+def build_pos_array(layout=None):
     """
     Build an array of rows and columns
     Col[0] is the description for a row
-    Cells contain items
+    Cells will contain items
     Returns the used items for managing the layout
     """
-    locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col').prefetch_related('item').prefetch_related('item__colour')
-    items = Item.objects.filter(item_type_id=layout.item_type_id).order_by('button_text')
     rows = []
     for r in range(1, Location.ROW_MAX + 1):
         cols = []
         for c in range(0, Location.COL_MAX + 1):
             cols.append([r, c])
         rows.append(cols)
-    for loc in locations:
-        if loc.col == 0:
-            rows[loc.row - 1][loc.col].append(loc.description)
-        else:
-            rows[loc.row - 1][loc.col].append(loc.item)
-            if items:
-                item = [item for item in items if item.button_text == loc.item.button_text]
-                if item:
-                    item[0].used = True
+    items = None
+    if layout: # true when managing a layout
+        locations = Location.objects.filter(layout_id=layout.id).order_by('row', 'col').prefetch_related('item').prefetch_related('item__colour')
+        items = Item.objects.filter(item_type_id=layout.item_type_id).order_by('button_text')
+        for loc in locations:
+            if loc.col == 0:
+                rows[loc.row - 1][loc.col].append(loc.description)
+            else:
+                rows[loc.row - 1][loc.col].append(loc.item)
+                if items:
+                    item = [item for item in items if item.button_text == loc.item.button_text]
+                    if item:
+                        item[0].used = True
     return rows, items

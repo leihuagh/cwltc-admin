@@ -79,7 +79,7 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
         context['teas'] = self.filter == 'teas'
         context['all'] = self.filter == 'all'
         if self.request.session.get('pos_id', None):
-            context['exit_url'] = reverse('pos_new_start_person', kwargs={'person_id': self.request.session['pos_id']})
+            context['exit_url'] = reverse('pos_start_person', kwargs={'person_id': self.request.session['pos_id']})
         elif self.main_menu:
             context['exit_url'] = reverse('home')
         else:

@@ -7,20 +7,15 @@ from pos.views.analysis_views import *
 urlpatterns = [
     url(r'^admin/$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
-    url(r'^new_start/$', NewStartView.as_view(), name='pos_new_start'),
-    url(r'^new_start/(?P<person_id>\d+)/$', NewStartView.as_view(), name='pos_new_start_person'),
+    url(r'^start/(?P<person_id>\d+)/$', StartView.as_view(), name='pos_start_person'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
     url(r'^offline/$', OfflineView.as_view(), name='pos_disabled'),
 
 
-    url(r'lookup/member/$', LookupMemberView.as_view(), name='pos_lookup_member'),
-    url(r'^user/$', GetUserView.as_view(), name='pos_user'),
-    url(r'^password/$', GetPasswordView.as_view(), name='pos_password'),
+    url(r'^lookup/member/$', LookupMemberView.as_view(), name='pos_lookup_member'),
     url(r'^dob/$', GetDobView.as_view(), name='pos_dob'),
-    url(r'^menu/$', MemberMenuView.as_view(), name='pos_menu'),
-    url(r'^menu/timeout/$', MemberMenuView.as_view(timeout=10000), name='pos_menu_timeout'),
-    url(r'^run/$', PosView.as_view(), name='pos_run'),
+    url(r'^redirect/(?P<view>[\w\-]+)/$', pos_redirect, name='pos_redirect'),
 
     url(r'^ajax/items/$', ajax_items, name='pos_ajax_items'),
     url(r'^ajax/ping/$', ajax_ping, name='pos_ajax_ping'),
@@ -39,7 +34,6 @@ urlpatterns = [
 
     url(r'^event/register/(?P<pk>\d+)/$', PosEventRegisterView.as_view(), name='pos_event_register'),
 
-    url(r'^member/$', MemberSelectView.as_view(), name='pos_member'),
     url(r'^transactions/$', TransactionListView.as_view(), name='pos_transactions'),
     url(r'^transactions/main/$', TransactionListView.as_view(main_menu=True), name='pos_transactions_main'),
     url(r'^transactions/person/(?P<person_id>\d+)/$', TransactionListView.as_view(), name='pos_transactions_person'),

@@ -8,20 +8,25 @@
       {% endif %}
     <div class="col-md-4 col-md-push-4 text-center">
       <br>
-        {% for app in apps %}
-          {% if app.layout_id %}
-            <p><button type="button" value="{{app.layout_id}}" class="btn posbutton btn-large btn-block menu touch">
-              {{ app.name }}
-            </button></p>
-          {% endif %}
-        {% endfor %}
-      <p><button id="menuTransactions" class="btn btn-success btn-lg btn-block stop-timer touch">View my account</button></p>
+      {% if is_bar %}
+        <p><button type="button" value="{{bar_app.layout_id}}" class="btn posbutton btn-large btn-block menu touch">
+          Bar purchase
+        </button></p><br>
+        <p><button type="button" value="{{teas_app.layout_id}}" class="btn btn-success btn-lg btn-block menu stop-time touch">Teas purchase</button></p>
+      {% else %}
+        Teas
+      {% endif %}
+    {% for app in apps %}
+      <p><button type="button" value="{{app.view_name}}" class="btn btn-success btn-lg btn-block stop-time menu-app touch">{{ app.name}}</button></p>
+    {% endfor %}
+      <p><button id="menuTransactions" class="btn btn-success btn-lg btn-block stop-timer touch">View account</button></p>
+      <p></p>
       <p><button id="menuLogOut" class="btn btn-success btn-lg btn-block stop-timer">Log out</button></p>
       <h3 id="menuLastTransaction"></h3>
     </div>
     <div class="col-md-4 col-md-push-4" id="menuSupervisor">
       <br>
-      <p><button id="menuTransactionsAll" class="btn btn-warning btn-lg btn-block timeout touch">All transactions</button></p>
+      <p><button id="menuTransactionsAll" class="btn btn-success btn-lg btn-block timeout touch">All transactions</button></p>
       <p><button id="menuTransactionsMember" class="btn btn-warning btn-lg btn-block timeout touch">Transactions for member</button></p>
       <p><button id="menuTransactionsCash" class="btn btn-warning btn-lg btn-block timeout touch">Cash transactions</button></p>
       <p><button id="menuTransactionsComp" class="btn btn-warning btn-lg btn-block timeout touch">Complimentary transactions</button></p>

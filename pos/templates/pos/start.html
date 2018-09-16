@@ -1,81 +1,51 @@
-﻿{% extends 'pos/base.html' %}
-{% load static %}
-{% block content %}
-
-  {%  include '_logo_banner.html' %}
-
-  <div class="container">
-  <div class="text-center bg {% if is_bar %}jumbotron{% endif %}">
-    <h1 class="text-center"><strong>
-      {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
-    <br>
-    <div id="idOnlineMessage"> <!-- division is hidden if ping fails -->
-      <div class="row">
-        <p class="ipad-error">{{ request.session.message }}</p>
-        <form method="post">{% csrf_token %}
-          {% if is_bar %}
-            {% for app in apps %}
-              <button class="posbutton btn-large btn-block" type="submit" name="app_{{ app.id }}">{{ app.name }}</button>
-            {% endfor %}
-            {% if attended %}
-              <br/><br/><br/>
-              <input class="posbutton btn-large" type="submit" name="attended" value="Attended mode">
-            {% endif %}
-             <br><br>
-          {% else %}
-            <div class="row">
-              <div class="col-md-4">
-                {% for app in apps %}
-                  {% if app.event %}
-                    <input type="image" name="event_{{ app.event.id }}" src="{{ app.event.image.url }}" class="img-responsive">
-                    <h3>Touch the picture to book</h3>
-                  {% endif %}
-                {% endfor %}
-              </div>
-              <div class="col-md-8">
-                {% for app in apps %}
-                  {% if not app.event %}
-                    <div class="row">
-                      <div class="col-md-6 text-center">
-                        <button class="posbutton btn-large btn-block" type="submit" name="app_{{ app.id }}">{{ app.name }}</button>
-                      </div>
-                      <div class="col-md-6">
-                        <p class="hint">{{ app.description }}</p>
-                      </div>
-                    </div>
-                    <br>
-                  {% endif %}
-                {% endfor %}
-              </div>
-            </div>
-          {% endif %}
-          <br>
-        </form>
-      </div>
-
-      <p class="hint">All members who have paid their subscription can use this system after registration.<br>
-          You can register now by pressing any button above and searching for your name.</p>
-    </div>
-    <h3 id="idOfflineMessage">Sorry, the server is offline. Please try later.</h3><!-- division is visible if ping fails -->
-  </div>
-
-  <div class="terminal">Terminal: {{ request.session.terminal }}
-    <span id="idOnline"></span></div>
+﻿<!DOCTYPE html>
+{% load staticfiles %}
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CWLTC POS</title>
+  <link rel="stylesheet" href="{% static 'pos/css/bootstrap3.3.7.min.css' %}">
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro|Montserrat:700" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
+  <script src="{% static 'pos/js/rsvp.min.js' %}"></script>
+  <script src="{% static 'pos/js/basket.js' %}"></script>
+  <script src="{% static 'pos/js/jquery3.3.1.min.js' %}"></script>
+  <script src="{% static 'pos/js/bootstrap3.3.7.min.js' %}"></script>
+  <script src="{% static 'js/typeahead.bundle.js' %}"></script>
+</head>
+<body class="bg">
+  <div class="terminal">Terminal: <span id="terminal"></span> <span id="idOnline"></span> <span id="idSaved"></span></div>
   <div class="last-transaction">
-    Last transaction: {{ request.session.last_person }}: £ {{ request.session.last_total }}
+    Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
   </div>
-</div>
-{% endblock %}
-{% block scripts %}
-<script>
-  $(document).ready(function () {
-    $(".posbutton").on('touchstart', function(event) {
-      event.currentTarget.classList.add('posbutton-down');
-    });
-    $(".posbutton").on('touchend', function(event) {
-      event.currentTarget.classList.remove('posbutton-down');
-    });
-    timingCode.initPing({{ timeout }}, '{{ ping_url }}', '{{ csrf_token }}', '{{ request.session.terminal }}', 'idMessage');
-  });
-</script>
-{% endblock %}
+  <div id="wrapper">
+    {% include '_logo_banner.html' %}
+    {% include 'pos/_start.html' %}
+    {% include 'pos/_user.html' %}
+    {% include 'pos/_password.html' %}
+    {% include 'pos/_reset_pin.html' %}
+    {% include 'pos/_menu.html' %}
+    {% include 'pos/_select_member.html' %}
+    {% include 'pos/_pos.html' %}
+    <script>
+        var urls = '{{ urls }}';
+        var csrf_token = '{{ csrf_token }}';
+    </script>
+
+  </div>
+  <script src="{% static 'pos/js/pos.js' %}"></script>
+  <script>
+    posCode.init(csrf_token, urls);
+    /*
+    localStorage.setItem('pos_page', $('#wrapper').html());
+
+        basket.require({url: "{% static 'pos/js/pos.js' %}", key: 'pos'})
+            .then(function() {
+                posCode.init(csrf_token, urls);
+            })
+  */
+  </script>
+
+</body>

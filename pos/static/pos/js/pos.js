@@ -166,6 +166,9 @@ var posCode = (function (){
         $('.menu').on('touchstart click', function(event) {
             pos.touch(event, pos.startLayout(this.value));
         });
+        $('.menu-app').on('touchstart click', function(event) {
+            pos.touch(event, redirect(this.value));
+        });
         $('#menuTransactions').on('touchstart click', function(event) {
             pos.touch(event, pos.transactions);
         });
@@ -287,6 +290,12 @@ var posCode = (function (){
         clearTimeout(timer);
         window.location.replace(href);
     };
+
+
+    function redirect(viewName){
+        clearTimeout(timer);
+        window.location.replace(urls.redirect.replace('xxxx', viewName));
+    }
 
     pos.showPage = function(pageId){
         hideModals();

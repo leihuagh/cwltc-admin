@@ -7,11 +7,9 @@
       <div class="row">
         <p class="ipad-error">{{ request.session.message }}</p>
           {% if is_bar %}
-            {% for app in apps %}
               <button type="button" id="startLogin" class="btn posbutton btn-large btn-block touch timeout">Member Login</button>
               <br/><br/><br/>
-              <button type="button" id="startAttended" class="btn posbutton btn-large btn-block timeout" value="{{app.layout_id}}">Attended mode</button>
-            {% endfor %}
+              <button type="button" id="startAttended" class="btn posbutton btn-large btn-block timeout" value="{{bar_app.layout_id}}">Attended mode</button>
              <br><br>
           {% else %}
             <div class="row">
@@ -24,11 +22,20 @@
                 {% endfor %}
               </div>
               <div class="col-md-8">
+                <div class="row">
+                  <div class="col-md-6 text-center">
+                    <button class="posbutton btn-large btn-block" type="button" value="{{ teas_app.layout_id }}">{{ teas_app.name }}</button>
+                  </div>
+                  <div class="col-md-6">
+                    <p class="hint">{{ teas_app.description }}</p>
+                  </div>
+                </div>
+                <br>
                 {% for app in apps %}
                   {% if not app.event %}
                     <div class="row">
                       <div class="col-md-6 text-center">
-                        <button class="posbutton btn-large btn-block" type="submit" name="app_{{ app.id }}">{{ app.name }}</button>
+                        <button class="posbutton btn-large btn-block" type="button" value="{{ app.id }}">{{ app.name }}</button>
                       </div>
                       <div class="col-md-6">
                         <p class="hint">{{ app.description }}</p>

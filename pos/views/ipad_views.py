@@ -1,11 +1,9 @@
 import json
 import logging
-from django.contrib.auth.hashers import check_password
 from django.core.serializers import serialize
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.views.generic import TemplateView, FormView
 from django.urls import reverse
-from django.urls.exceptions import NoReverseMatch
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from django.shortcuts import redirect
@@ -55,8 +53,7 @@ class SetTerminalView(LoginRequiredMixin, GroupRequiredMixin, FormView):
         if 'start' in request.POST:
             terminal = request.POST['terminal']
             system = request.POST['system']
-            start = 'pos_new_start' if system == 'bar' else 'pos_start'
-            response = HttpResponseRedirect(reverse(start))
+            response = HttpResponseRedirect(reverse('pos_start'))
             max_age = 10 * 365 * 24 * 60 * 60
             response.set_cookie('pos', system + ';' + terminal, max_age=max_age)
             response.set_cookie('terminal', terminal, max_age=max_age)
@@ -72,9 +69,9 @@ class OfflineView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/offline.html'
 
 
-class NewStartView(TemplateView):
+class StartView(TemplateView):
     """ Member login or attended mode selection """
-    template_name = 'pos/new_start.html'
+    template_name = 'pos/start.html'
     system = ''
     person_id = None
 
@@ -93,25 +90,19 @@ class NewStartView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        apps = PosApp.objects.filter(main_system=False, enabled=True).order_by('index')
-        context['apps'] = apps
-        app = apps[0]
-        if len(apps) == 1 and apps[0].is_bar_app():
-            context['is_bar'] = True
-            context['attended'] = apps[0].attended
-        layout = app.layout
-        context['message'] = self.request.session.get('message', "")
-        self.request.session['message'] = ""
-        if self.person_id:
-            try:
-                context['person'] = Person.objects.get(pk=self.person_id)
-            except Person.DoesNotExist:
-                pass
-        context['timeout'] = LONG_TIMEOUT
+        apps = PosApp.objects.filter(enabled=True, layout__item_type = ItemType.BAR)
+        if apps:
+            context['bar_app'] = apps[0]
+        apps = PosApp.objects.filter(enabled=True, layout__item_type = ItemType.TEAS)
+        if apps:
+            context['teas_app'] = apps[0]
+        context['apps'] = PosApp.objects.filter(enabled=True, layout_id=None)
+        context['is_bar'] = self.system == 'bar'
         context['urls'] = mark_safe(json.dumps({
             'ping': reverse('pos_ajax_ping'),
             'items': reverse('pos_ajax_items'),
-            'sendTransaction': reverse('pos_new_start'),
+            'sendTransaction': reverse('pos_start'),
+            'redirect': reverse('pos_redirect', kwargs={'view': 'xxxx'} ),
             'adults': reverse('ajax-adults'),
             'password': reverse('ajax-password'),
             'postCode': reverse('ajax-postcode'),
@@ -121,18 +112,7 @@ class NewStartView(TemplateView):
             'transactionsComp': reverse('pos_transactions_comp'),
             'transactionsCash': reverse('pos_transactions_cash'),
         }))
-        context['terminal'] = self.request.session['terminal']
-        context['layout'] = layout
-        context['rows'], _ = build_pos_array(layout)
-        if app.attended and has_attended_cookie(self.request):
-            if app.is_bar_app():
-                context['exit_url'] = reverse('pos_new_start')
-            else:
-                context['exit_url'] = reverse('pos_menu')
-            context['is_attended'] = 'true' # javascript true
-            context['full_name'] = 'Attended mode'
-        else:
-            context['is_attended'] = 'false' # javascript false
+        context['rows'], _ = build_pos_array()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -162,156 +142,7 @@ class NewStartView(TemplateView):
                 return HttpResponse(f'Saved;{trans[0]};{trans[1]}')
             return HttpResponse(f'Exists;{existing[0].id};{existing[0].total}')
         # should not get here - all posts are ajax
-        return redirect('pos_new_start')
-
-
-class StartView(LoginRequiredMixin, TemplateView):
-    """ Member login or attended mode selection """
-    template_name = 'pos/start.html'
-    system = ''
-
-    def get(self, request, *args, **kwargs):
-        request.session['person_id'] = None
-        request.session['app'] = None
-        request.session['attended'] = False
-        self.system, request.session['terminal'] = read_cookie(request)
-        if self.system:
-            return super().get(request, *args, **kwargs)
-        return redirect('pos_disabled')
-
-    def post(self, request, *args, **kwargs):
-        if 'attended' in request.POST:
-            #
-            apps = PosApp.objects.filter(main_system=False, enabled=True,
-                                         layout__item_type=ItemType.BAR)
-            if len(apps) > 0:
-                request.session['app'] = apps[0]
-                request.session['attended'] = True
-                return redirect('pos_run')
-            return redirect('pos_start')
-
-        for key, value in request.POST.items():
-            if key[0:4] == 'app_':
-                app = PosApp.objects.get(id=key[4:])
-                request.session['app'] = PosApp.objects.get(id=key[4:])
-                return redirect('pos_user')
-            if key[0:6] == 'event_':
-                parts = key[6:].split('.')
-                request.session['app'] = PosApp.objects.filter(event_id=parts[0])[0]
-                return redirect('pos_user')
-
         return redirect('pos_start')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        apps = PosApp.objects.filter(main_system=self.system == 'main', enabled=True).order_by('index')
-        context['apps'] = apps
-        if len(apps) == 1 and apps[0].is_bar_app():
-            context['is_bar'] = True
-            context['attended'] = apps[0].attended
-        context['message'] = self.request.session.get('message', "")
-        self.request.session['message'] = ""
-        context['timeout'] = LONG_TIMEOUT
-        context['ping_url'] = reverse('pos_ajax_ping')
-        return context
-
-
-class MemberSelectView(LoginRequiredMixin, TemplateView):
-    """ Select member for transactions view"""
-    template_name = 'pos/select_member.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['filter'] = 'members'
-        return add_context(context, self.request)
-
-    def post(self, request, *args, **kwargs):
-        return redirect('pos_transactions_person', person_id=request.POST['person_id'])
-
-
-class GetUserView(LoginRequiredMixin, TemplateView):
-    """ User identification """
-    template_name = 'pos/get_user.html'
-
-    def post(self, request, *args, **kwargs):
-        if request.POST['person_id']:
-            request.session['person_id'] = request.POST['person_id']
-            if int(request.POST['person_id']) > 0:
-                person = Person.objects.get(pk=request.POST['person_id'])
-                if person.auth_id:
-                    return redirect('pos_password')
-                else:
-                    if person.dob:
-                        age = person.age_for_membership()
-                        if age <= 10:
-                            return redirect('pos_start')
-                        if age > 13:
-                            return redirect('pos_register')
-                        return redirect('pos_dob')
-                return redirect('pos_register')
-            else:
-                # Complimentary sale, id = -1
-                return redirect('pos_password')
-        return redirect('pos_start')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['filter'] = 'members' if self.request.session['app'].allow_juniors else 'adults'
-        return add_context(context, self.request)
-
-
-class GetPasswordView(LoginRequiredMixin, TemplateView):
-    """ User's password or PIN """
-    template_name = 'pos/get_password.html'
-
-    def post(self, request, *args, **kwargs):
-
-        if request.POST['submit']:
-            if request.session['person_id']:  # There is a bug where this is None
-                id = int(request.session['person_id'])
-                if id > 0:
-                    try:
-                        person = Person.objects.get(pk=request.session['person_id'])
-                    except Person.DoesNotExist:
-                        return redirect('pos_start')
-
-                    authorised = False
-                    pin = request.POST['pin']
-                    if pin and check_password(pin, person.pin):
-                        authorised = True
-                    else:
-                        user = User.objects.get(pk=person.auth_id)
-                        password = request.POST['password']
-                        if password and user.check_password(password):
-                            authorised = True
-                    if authorised:
-                        # Redirect to selected app
-                        app = request.session.get('app', None)
-                        if app:
-                            if app.event:
-                                return redirect('pos_event_register', pk=app.event.id)
-                            try:
-                                url = reverse(app.view_name)
-                                return redirect(url)
-                            except NoReverseMatch:
-                                request.session['message'] = f'Bad view name for app {app}'
-                                return redirect('pos_start')
-
-                        # if request.session['layout'].item_type.id == ItemType.VISITORS:
-                        #     return redirect('pos_visitors_person', person_id=person.id)
-                        # return redirect(menu_url(request))
-                    request.session['message'] = "Incorrect PIN or password"
-
-                else:  # Complimentary Bar sale
-                    if request.POST['pin'] == str(datetime.now().year):
-                        return redirect('pos_run')
-        return redirect('pos_start')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return add_context(context, self.request)
-
-# TODO redirects for new_start
 
 
 
@@ -403,86 +234,6 @@ class PosConsentView(LoginRequiredMixin, ConsentTokenView):
 
     def get_success_url(self):
         return reverse(menu_url(self.request))
-
-
-class MemberMenuView(LoginRequiredMixin, TemplateView):
-    """ Menu of options for members
-    This has a shorter timeout, defined in the url """
-    template_name = 'pos/menu.html'
-    timeout = LONG_TIMEOUT
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['attended'] = self.request.session['app'].attended and has_attended_cookie(self.request)
-        return add_context(context, self.request, self.timeout)
-
-    def post(self, request, *args, **kwargs):
-        """ Attended mode is enabled if session['app'].attended is True and cookie 'attended' is 'on' """
-        state = 'off'
-        if 'attended_on' in request.POST:
-            state = 'on'
-            request.session['app'].attended = True
-        elif 'attended_off' in request.POST:
-            request.session['app'].attended = False
-        request.session['app'].save()
-        response = HttpResponseRedirect(reverse('pos_start'))
-        max_age = 8 * 60 * 60 # 8 hours lifetime
-        response.set_cookie('attended', state, max_age=max_age)
-        return response
-
-
-class PosView(LoginRequiredMixin, TemplateView):
-    """ The main POS screen """
-    template_name = 'pos/pos.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(PosView, self).get_context_data(**kwargs)
-        app = self.request.session['app']
-        layout = app.layout
-        context['rows'], used_items = build_pos_array(layout)
-        context['items_url'] = reverse('pos_ajax_items')
-        context['post_url'] = reverse('pos_run')
-        context['exit_url'] = reverse('pos_menu')
-        context['terminal'] = self.request.session['terminal']
-        context = add_context(context, self.request)
-        if app.attended and has_attended_cookie(self.request):
-            if app.is_bar_app():
-                context['exit_url'] = reverse('pos_start')
-            else:
-                context['exit_url'] = reverse('pos_menu')
-            context['is_attended'] = 'true' # javascript true
-            context['full_name'] = 'Attended mode'
-        else:
-            context['is_attended'] = 'false' # javascript false
-        return context
-
-    def post(self, request, *args, **kwargs):
-        """ Write transaction to database"""
-
-        if request.is_ajax():
-            receipt = json.loads(request.body)
-            pay_record = receipt.pop()
-            system, terminal = read_cookie(request)
-            layout_id = request.session['app'].layout_id
-            try:
-                trans = create_transaction_from_receipt(request.user.id,
-                                                        terminal,
-                                                        layout_id,
-                                                        receipt,
-                                                        pay_record['total'],
-                                                        pay_record['people'],
-                                                        request.session['attended']
-                                                        )
-                request.session['last_person'] = trans[0]
-                request.session['last_total'] = trans[1]
-            except PosServicesError:
-                return HttpResponse(reverse('Error'))
-            if self.request.session['attended']:
-                return HttpResponse(reverse('pos_start'))
-            else:
-                return HttpResponse(reverse('pos_menu_timeout'))
-        # should not get here - all posts are ajax
-        return redirect('pos_start')
 
 
 class VisitorBookView(LoginRequiredMixin, SingleTableView):
@@ -603,6 +354,10 @@ class PosEventRegisterView(EventRegisterView):
         return redirect('pos_event_register', pk=self.event.id)
 
 
+def pos_redirect(request, view):
+    return redirect(view)
+
+
 def ajax_items(request):
     """ Responds to ajax request for item list"""
 
@@ -663,7 +418,6 @@ def ajax_ping(request):
             else:
                 record = PosPing.objects.create(terminal=terminal, time=timezone.now())
             return HttpResponse('OK')
-            #return HttpResponse('Restart ' + reverse('pos_new_start'))
         return HttpResponse('Bad terminal')
     return HttpResponseBadRequest
 
@@ -684,7 +438,7 @@ def has_attended_cookie(request):
 def menu_url(request):
     if request.session['app'].is_visitors_app():
         return 'pos_visitors_all'
-    return 'pos_menu'
+    return 'pos_start_person'
 
 
 def add_context(context, request, timeout=LONG_TIMEOUT):
