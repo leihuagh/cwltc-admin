@@ -79,7 +79,7 @@ class NewStartView(TemplateView):
     person_id = None
 
     def dispatch(self, request, *args, **kwargs):
-        self. person_id = kwargs.pop('person_id', None)
+        self.person_id = kwargs.pop('person_id', None)
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):

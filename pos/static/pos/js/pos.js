@@ -51,7 +51,8 @@ var posCode = (function (){
                 xhr.setRequestHeader('X-CSRFToken', csrf_token);
             }
         });
-
+        terminal = readCookie('terminal');
+        $('#terminal').text(terminal);
         initPing(timeout, urls.ping, terminal);
         loadData();
         newReceipt();
@@ -297,7 +298,6 @@ var posCode = (function (){
         }
         $(pageId).show();
         stopPing();
-
         document.activeElement.blur();
         switch (pageId) {
             case '#pageStart':
@@ -327,8 +327,6 @@ var posCode = (function (){
 
     pos.startApp = function(){
         isAttended = false;
-        terminal = readCookie('terminal');
-        $('#terminal').text(terminal);
         if (personId) {
             $('.personName').text(personName);
             $('.personId').val(personId);
@@ -832,9 +830,10 @@ var posCode = (function (){
         // stop if an error occurs
         var contents = getContents();
         if (contents.length > 0){
+            console.log('Start recovery')
             $.ajax({
                 type: "POST",
-                url: urls.sendtransaction,
+                url: urls.sendTransaction,
                 data: localStorage.getItem(contents[0]),
                 dataType: 'text',
                 timeout: ajaxTimeout,
