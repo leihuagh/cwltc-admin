@@ -210,7 +210,7 @@ var posCode = (function (){
             pos.touch(event, newReceipt);
         });
         $('#posExit').on('touchstart click', function(event) {
-            pos.touch(event, pos.Exit);
+            pos.touch(event, pos.exit);
         });
         $('#posEndAttended').on('touchstart click', function(event) {
             $('#startAttended').hide();
@@ -339,12 +339,13 @@ var posCode = (function (){
         }
     };
 
-    pos.Exit = function(){
-        if (appType){
-            pos.showPage('#pageMenu');
-        }else{
-            pos.logOut;
-        }
+    pos.exit = function(){
+        pos.logOut();
+        // if (!isAttended){
+        //     pos.showPage('#pageMenu');
+        // }else{
+        //     pos.logOut;
+        // }
     }
 
     pos.logOut = function(){
