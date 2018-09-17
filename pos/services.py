@@ -90,7 +90,7 @@ def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, to
         if pay_total !=  dec_total:
             stdlogger.error(f'ERROR: POS Transaction total: {dec_total} unequal to Payment total: {pay_total} Id: {trans.id}')
         return (people[0]['name'], dec_total)
-    except:
+    except Exception as e:
         raise PosServicesError('Error creating transaction')
 
 

@@ -69,7 +69,7 @@ class OfflineView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/offline.html'
 
 
-class StartView(TemplateView):
+class StartView(LoginRequiredMixin, TemplateView):
     """ Member login or attended mode selection """
     template_name = 'pos/start.html'
     system = ''
@@ -102,7 +102,8 @@ class StartView(TemplateView):
             'ping': reverse('pos_ajax_ping'),
             'items': reverse('pos_ajax_items'),
             'sendTransaction': reverse('pos_start'),
-            'redirect': reverse('pos_redirect', kwargs={'view': 'xxxx'} ),
+            'redirect': reverse('pos_redirect', kwargs={'view': 'xxxx', 'person_id': '9999'}),
+            'event': reverse('pos_event_register', kwargs={'pk': '9999'}),
             'adults': reverse('ajax-adults'),
             'password': reverse('ajax-password'),
             'postCode': reverse('ajax-postcode'),
@@ -354,8 +355,8 @@ class PosEventRegisterView(EventRegisterView):
         return redirect('pos_event_register', pk=self.event.id)
 
 
-def pos_redirect(request, view):
-    return redirect(view)
+def pos_redirect(request, view, person_id):
+    return redirect(view, person_id=person_id)
 
 
 def ajax_items(request):

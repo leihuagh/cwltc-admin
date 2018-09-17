@@ -1,4 +1,5 @@
 // Version 3 Fully support offline working
+/* globals Bloodhound */
 var posCode = (function (){
     "use strict";
 
@@ -18,7 +19,8 @@ var posCode = (function (){
     var total;
     var formattedTotal;
     var line;
-    var online = false;
+
+
 
     // Django context variables
     var layoutId;
@@ -26,16 +28,20 @@ var posCode = (function (){
     var urls;
 
     var personId;
-    var person;
     var personName;
     var personList;
+
     var touched = false;
 
+    var appName;
+    var appType;
+    var appValue;
 
     var pingTimer;
     var pingTimeout = "";
     var pingUrl = "";
     var terminal = 0;
+    var online = false;
 
     var timer;
     var timeout = 120000;
@@ -44,10 +50,8 @@ var posCode = (function (){
     /* Public methods*/
     pos.init = function (csrf_token, url_dict) {
         urls = JSON.parse(url_dict);
-        payClass.hide();
-        exitClass.hide();
         $.ajaxSetup({
-            beforeSend: function (xhr, settings) {
+            beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRFToken', csrf_token);
             }
         });
@@ -60,17 +64,6 @@ var posCode = (function (){
 
         $(".touch").on('touchstart', function(event) {
             event.currentTarget.classList.add('posbutton-down');
-            event.preventDefault();
-        });
-
-
-        $(".item-button").on('touchstart click', function(event) {
-            event.currentTarget.classList.add('posbutton-down');
-            handleTouch(event, 'item');
-        });
-
-        $(".item-button").on('touchend click', function(event) {
-            event.currentTarget.classList.remove('posbutton-down');
             event.preventDefault();
         });
 
@@ -91,6 +84,15 @@ var posCode = (function (){
         });
         $('#startAttended').on('touchstart click', function (event) {
             pos.touch(event, pos.startAttended(this.value));
+        });
+        $('.app-layout').on('touchstart click', function (event) {
+            pos.touch(event, deferredStart(this, 'app-layout'));
+        });
+        $('.app-view').on('touchstart click', function (event) {
+            pos.touch(event, deferredStart(this, 'app-view'));
+        });
+        $('input:image').on('touchstart click', function (event) {
+            pos.touch(event, deferredStart(this, 'app-event'));
         });
 
         // USER
@@ -147,9 +149,7 @@ var posCode = (function (){
             if (e.keyCode === 13) {
                 e.preventDefault();
             }
-        });
-
-        $('#resetPin').keyup(function (e){
+        }).keyup(function (e){
             if ($('#resetPin').val().length >= 4) {
                 $('#resetGo').show();
                 if (e.keyCode === 13) {
@@ -163,14 +163,14 @@ var posCode = (function (){
 
 
         // MENU
-        $('.menu').on('touchstart click', function(event) {
-            pos.touch(event, pos.startLayout(this.value));
+        $('.menu-layout').on('touchstart click', function(event) {
+            pos.touch(event, runApp('app-layout', this.value));
         });
-        $('.menu-app').on('touchstart click', function(event) {
-            pos.touch(event, redirect(this.value));
+        $('.menu-view').on('touchstart click', function(event) {
+            pos.touch(event, runApp('app-view', this.value));
         });
-        $('#menuTransactions').on('touchstart click', function(event) {
-            pos.touch(event, pos.transactions);
+        $('.menu-event').on('touchstart click', function(event) {
+            pos.touch(event, runApp('app-event', this.value));
         });
         $('#menuLogOut').on('touchstart click', function(event) {
             pos.touch(event, pos.logOut);
@@ -179,28 +179,38 @@ var posCode = (function (){
             $('#startAttended').show();
             pos.touch(event, pos.logOut);
         });
+        $('#menuTransactions').on('touchstart click', function(event) {
+            pos.touch(event, pos.transactions);
+        });
         $('#menuTransactionsAll').on('touchstart click', function(event) {
-            pos.touch(event, pos.transactions('all'));
+            pos.touch(event, pos.transactions, 'all');
         });
         $('#menuTransactionsMember').on('touchstart click', function(event) {
-            pos.touch(event, pos.transactions('member'));
+            pos.touch(event, pos.transactions, 'member');
         });
         $('#menuTransactionsComp').on('touchstart click', function(event) {
-            pos.touch(event, pos.transactions('comp'));
+            pos.touch(event, pos.transactions, 'comp');
         });
         $('#menuTransactionsCash').on('touchstart click', function(event) {
-            pos.touch(event, pos.transactions('cash'));
+            pos.touch(event, pos.transactions, 'cash');
         });
 
         // POS
+        $(".item-button").on('touchstart click', function(event) {
+            event.currentTarget.classList.add('posbutton-down');
+            handleTouch(event, 'item');
+        }).on('touchend click', function(event) {
+            event.currentTarget.classList.remove('posbutton-down');
+            event.preventDefault();
+        });
         $('#posPay').on('touchstart click', function(event) {
             pos.touch(event, pos.pay);
         });
         $('#posCancel').on('touchstart click', function(event) {
             pos.touch(event, newReceipt);
         });
-        $('#posLogOut').on('touchstart click', function(event) {
-            pos.touch(event, pos.logOut);
+        $('#posExit').on('touchstart click', function(event) {
+            pos.touch(event, pos.Exit);
         });
         $('#posEndAttended').on('touchstart click', function(event) {
             $('#startAttended').hide();
@@ -245,45 +255,8 @@ var posCode = (function (){
         bind_typeAhead('#selectNameInput', pos.transactionsPerson, true);
         bind_typeAhead('#userNameInput', pos.getPin, '{{ filter }}');
         bind_typeAhead('#member_search', pos.selectedPerson, true);
-
+        console.log('init');
         pos.startApp();
-    };
-
-    // Common code to make touch events as fast as click
-    // Can be used for touch start or touchend
-    pos.touch = function(event, action) {
-        handleTouch(event, action);
-    };
-
-    function handleTouch(event, action) {
-        event.preventDefault();
-        if (event.type === 'click') {
-            if (!touched) {
-                doAction(event, action);
-            }
-            touched = false;
-        } else {
-            touched = true;
-            doAction(event, action);
-        }
-    }
-
-    function doAction(event, action){
-        if (action) {
-            if (action === 'item') {
-                pos.itemAdd(event.currentTarget.item);
-            } else {
-                action();
-            }
-        }
-    }
-
-    pos.logOut = function(){
-        personId = '';
-        personName = '';
-        document.activeElement.blur();
-        $("input").blur();
-        pos.showPage('#pageStart');
     };
 
     pos.href = function(href){
@@ -291,10 +264,35 @@ var posCode = (function (){
         window.location.replace(href);
     };
 
+    function deferredStart(el, app_type){
+        // store app details and show user page
+        appType = app_type;
+        appValue = el.value;
+        if (app_type === 'app-event'){
+            appName = 'Book ' + el.name;
+        }else {
+            appName = el.innerText;
+        }
+        $('.application').text(appName);
+        pos.showPage('#pageUser');
+    }
 
-    function redirect(viewName){
-        clearTimeout(timer);
-        window.location.replace(urls.redirect.replace('xxxx', viewName));
+    function runApp(appType, appValue) {
+        var url;
+        switch (appType) {
+            case 'app-view':
+                clearTimeout(timer);
+                url = urls.redirect.replace('xxxx', appValue).replace('9999', personId);
+                window.location.replace(url);
+                break;
+            case 'app-layout':
+                isAttended = false;
+                pos.startLayout(appValue);
+                break;
+            case 'app-event':
+                url = urls.event.replace('9999', appValue);
+                window.location.replace(url);
+        }
     }
 
     pos.showPage = function(pageId){
@@ -302,6 +300,13 @@ var posCode = (function (){
         $('.page').hide();
         if (pageId === '#pagePos') {
           $('#idLogoBanner').hide();
+          if (isAttended){
+              $('#posEndAttended').show();
+          }else{
+              $('#posEndAttended').hide();
+          }
+          payClass.hide();
+          exitClass.show();
         }else{
           $('#idLogoBanner').show();
         }
@@ -334,11 +339,23 @@ var posCode = (function (){
         }
     };
 
+    pos.Exit = function(){
+        if (appType){
+            pos.showPage('#pageMenu');
+        }else{
+            pos.logOut;
+        }
+    }
+
+    pos.logOut = function(){
+        clearPerson();
+        document.activeElement.blur();
+        $("input").blur();
+        pos.showPage('#pageStart');
+    };
+
     pos.startApp = function(){
-        isAttended = false;
-        if (personId) {
-            $('.personName').text(personName);
-            $('.personId').val(personId);
+        if (loadPerson()) {
             pos.showMenu();
         }else{
             pos.showPage('#pageStart');
@@ -346,37 +363,29 @@ var posCode = (function (){
     };
 
     pos.login = function() {
+        appType = null;
         isAttended = false;
-        personName = '';
-        personId = '';
-        $('.personName').text(personName);
-        $('.personId').val(personId);
-        $('#posEndAttended').hide();
+        clearPerson();
         pos.showPage('#pageUser');
     };
 
     pos.startAttended = function(layout_id) {
+        appType = null;
         isAttended = true;
+        clearPerson();
         personName = 'Attended mode';
-        personId = '';
         $('.personName').text(personName);
-        $('.personId').val(personId);
-        $('#posEndAttended').show();
         pos.startLayout(layout_id);
     };
 
     pos.getPin = function(person) {
-        if (person){
-            personId = person.id;
-            personName = person.value;
-        }
-        $('.personName').text(personName);
-        $('.personId').val(personId);
+        savePerson(person);
         $('.typeAhead').typeahead('val', '');
-        pos.showPage('#pagePassword');
         $('#idPinInput').val('').focus();
         $('#idPasswordInput').val('');
+        pos.showPage('#pagePassword');
     };
+
 
     pos.submitPostCode = function() {
         var formData = $('#resetForm').serialize();
@@ -404,6 +413,7 @@ var posCode = (function (){
     };
 
     pos.submitPin = function() {
+        // Submit new PIN from reset Pin page
         var formData = $('#resetPinForm').serialize();
         $.ajax({
             type: 'POST',
@@ -421,7 +431,7 @@ var posCode = (function (){
     };
 
     pos.submitPassword = function() {
-        //var data = "person_id=" + personId + '&pin=' + $('#passwordPin').val() + '&password=' + $('#passwordInput').val();
+        // submit pin and password from password page
         var formData = $('#idPasswordForm').serialize();
         var query = parseQuery(formData);
         $('#menuSupervisor').hide();
@@ -440,7 +450,11 @@ var posCode = (function (){
                         if (response.supervisor){
                             $('#menuSupervisor').show();
                         }
-                        pos.showMenu();
+                        if (appType){
+                            runApp(appType, appValue);
+                        }else {
+                            pos.showMenu();
+                        }
                     } else {
                         console.log(response);
                         $('#passwordError').show();
@@ -477,17 +491,19 @@ var posCode = (function (){
         clearTimeout(timer);
         $('.page').hide();
         var url;
-        if (id === 'all'){
+        if(id === 'member') {
+            pos.showPage('#pageSelectMember');
+            return;
+        }else if (id === undefined){
+            url = urls.transactionsPerson.replace('9999', personId);
+        }else if (id === 'all'){
             url = urls.transactions;
         }else if(id === 'cash'){
             url = urls.transactionsCash;
         }else if (personId === -1 || id === 'comp') {
             url = urls.transactionsComp;
-        }else if(id === 'member'){
-            pos.showPage('#pageSelectMember');
-            return;
-        }else {
-            url = urls.transactionsPerson.replace('9999', personId);
+        }else{
+            url = urls.transactionsPerson.replace('9999', id);
         }
         window.location.href = url + '?id=' + personId;
     };
@@ -601,7 +617,6 @@ var posCode = (function (){
 
     pos.selectedPerson = function (p) {
         // user selected a person through the type ahead
-        person = p;
         personList.push({'id': p.id, 'name': p.value});
         showSplit(false);
         if (isAttended && personList.length === 1) {
@@ -665,7 +680,6 @@ var posCode = (function (){
         } else {
             // calculate the split amounts
             var splitPence = Math.floor(total/ personList.length);
-            var firstPence = splitPence;
             var splitTotal = splitPence * personList.length;
             for (i = 0; i < personList.length; i ++) {
                 personList[i].amount = splitPence;
@@ -738,6 +752,7 @@ var posCode = (function (){
             retryLimit: 1,
             timeout: ajaxTimeout,
             success: function (response) {
+                setOnline();
                 var result = response.split(';');
                 if (result[0] === 'Saved') {
                     console.log('Transaction saved');
@@ -758,6 +773,7 @@ var posCode = (function (){
             },
             error: function (xhr, textStatus, errorThrown) {
                 console.log ('Error {xhr} {textStatus}');
+                setOfline();
                 $('#save_modal').hide();
                 saveTransaction(transaction, stamp);
                 $('#idLastTransaction').text('local');
@@ -780,8 +796,9 @@ var posCode = (function (){
             var pair = pairs[i].split('=');
             query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
         }
-    return query;
-}
+        return query;
+    }
+
     function savePin(id, pin){
         // Save obfuscated pin in local storage
         var key = 'Id:' + id;
@@ -839,7 +856,7 @@ var posCode = (function (){
         // stop if an error occurs
         var contents = getContents();
         if (contents.length > 0){
-            console.log('Start recovery')
+            console.log('Start recovery');
             $.ajax({
                 type: "POST",
                 url: urls.sendTransaction,
@@ -848,6 +865,7 @@ var posCode = (function (){
                 timeout: ajaxTimeout,
                 success: function(response){
                     console.log(response);
+                    setOnline();
                     var result = response.split(';');
                     if (result[0] === 'Saved' || result[0] === 'Exists') {
                         contents = removeTransaction();
@@ -861,6 +879,7 @@ var posCode = (function (){
                     }
                 },
                 error: function(xhr, textStatus, errorThrown){
+                    setOffline()
                     console.log('Error ' + xhr + ' ' + textStatus + 'abort recovery');
                 }
             });
@@ -884,10 +903,12 @@ var posCode = (function (){
             success: function (response) {
                 console.log('Saving ' + this.url);
                 localStorage.setItem('data', JSON.stringify(response));
+                setOnline();
                 processData();
             },
             error: function (xhr, textStatus, errorThrown) {
                 console.log('Error' + this.url);
+                setOffline();
                 processData();
             }
         });
@@ -942,11 +963,13 @@ var posCode = (function (){
             url: urls.adults,
             timeout: ajaxTimeout,
             success: function (response) {
+                setOnline();
                 console.log('saving people');
                 localStorage.setItem('people', JSON.stringify(response));
             },
             error: function (xhr, textStatus, errorThrown) {
                 console.log('Error loadPeople ' + textStatus);
+                setOffline();
             }
         });
     }
@@ -1010,13 +1033,14 @@ var posCode = (function (){
     function setOnline(){
         online = true;
         $('#idOnline').text('Online');
-        $('#menuTransactions').show();
+        $('#menuOnline').show();
+        $('.online').show();
     }
 
     function setOffline(){
         online = false;
         $('#idOnline').text('Offline');
-        $('#menuTransactions').hide();
+        $('.online').hide();
     }
     
 
@@ -1109,20 +1133,86 @@ var posCode = (function (){
 
     }
 
+    //---------- Local Storage of person
+
+    function savePerson(person) {
+        if (person){
+            localStorage.setItem('personId', person.id);
+            localStorage.setItem('personName', person.value);
+            personId = person.id;
+            personName = person.value;
+            $('.personName').text(personName);
+            $('.personId').val(personId);
+        }
+    }
+
+    function clearPerson() {
+        localStorage.removeItem('personId');
+        localStorage.removeItem('personName');
+        personId = '';
+        personName = '';
+        $('.personName').text(personName);
+        $('.personId').val(personId);
+    }
+
+    function loadPerson() {
+        personId = localStorage.getItem('personId');
+        if (personId) {
+            personName = localStorage.getItem('personName');
+            $('.personName').text(personName);
+            $('.personId').val(personId);
+            return true;
+        }
+        return false;
+    }
+
     function readCookie(cname) {
         var name = cname + "=";
         var decodedCookie = decodeURIComponent(document.cookie);
         var ca = decodedCookie.split(';');
         for(var i = 0; i <ca.length; i++) {
             var c = ca[i];
-            while (c.charAt(0) == ' ') {
+            while (c.charAt(0) === ' ') {
                 c = c.substring(1);
             }
-            if (c.indexOf(name) == 0) {
+            if (c.indexOf(name) === 0) {
                 return c.substring(name.length, c.length);
             }
         }
         return "";
+    }
+
+    // Common code to make touch events as fast as click
+    // Can be used for touch start or touchend
+    pos.touch = function(event, action, param) {
+        handleTouch(event, action, param);
+    };
+
+    function handleTouch(event, action, param) {
+        event.preventDefault();
+        if (event.type === 'click') {
+            if (!touched) {
+                doAction(event, action, param);
+            }
+            touched = false;
+        } else {
+            touched = true;
+            doAction(event, action, param);
+        }
+    }
+
+    function doAction(event, action, param){
+        if (action) {
+            if (action === 'item') {
+                pos.itemAdd(event.currentTarget.item);
+            } else {
+                if (param){
+                    action(param);
+                }else{
+                    action();
+                }
+            }
+        }
     }
 
     return pos;

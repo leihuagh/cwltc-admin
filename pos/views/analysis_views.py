@@ -49,7 +49,7 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
     person_id = None
 
     def get(self, request, *args, **kwargs):
-        request.session['pos_id'] =  request.GET.get('id', None)
+        self.pos_person =  request.GET.get('id', None)
 
         return super().get(request, *args, **kwargs)
 
@@ -78,13 +78,11 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
         context['bar'] = self.filter == 'bar'
         context['teas'] = self.filter == 'teas'
         context['all'] = self.filter == 'all'
-        if self.request.session.get('pos_id', None):
-            context['exit_url'] = reverse('pos_start_person', kwargs={'person_id': self.request.session['pos_id']})
-        elif self.main_menu:
-            context['exit_url'] = reverse('home')
+        context['pos_person'] = self.pos_person
+        if 'pos' in self.request.COOKIES:
+            context['exit_url'] = reverse('pos_start')
         else:
-            #todo remove this when old pos is obsolete
-            context['exit_url'] = reverse('pos_menu')
+            context['exit_url'] = reverse('home')
         person_id = self.kwargs.get('self.person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)

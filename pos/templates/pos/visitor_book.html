@@ -17,7 +17,7 @@
           {% if all_entries %}
             <a href="{% url 'pos_visitors_person' person_id=person.id %}" class="btn btn-lg btn-block btn-default">Show my entries</a>
           {% else %}
-            <a href="{% url 'pos_visitors_all' %}" class="btn btn-lg btn-block btn-default">Show all entries</a>
+            <a href="{% url 'pos_visitors_all' person_id=person.id %}" class="btn btn-lg btn-block btn-default">Show all entries</a>
             {% endif %}
           </div>
 </div>
@@ -52,7 +52,7 @@
           {% if all_entries %}
             <a href="{% url 'pos_visitors_person' person_id=person.id %}" class="btn btn-lg btn-block btn-success">Show my entries</a>
           {% else %}
-            <a href="{% url 'pos_visitors_all' %}" class="btn btn-lg btn-block btn-success">Show all entries</a>
+            <a href="{% url 'pos_visitors_all' person_id=person.id%}" class="btn btn-lg btn-block btn-success">Show all entries</a>
             {% endif %}
           </div>
         {% else %}

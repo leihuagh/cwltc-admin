@@ -7,15 +7,13 @@ from pos.views.analysis_views import *
 urlpatterns = [
     url(r'^admin/$', AdminView.as_view(), name='pos_admin'),
     url(r'^start/$', StartView.as_view(), name='pos_start'),
-    url(r'^start/(?P<person_id>\d+)/$', StartView.as_view(), name='pos_start_person'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
     url(r'^offline/$', OfflineView.as_view(), name='pos_disabled'),
 
-
     url(r'^lookup/member/$', LookupMemberView.as_view(), name='pos_lookup_member'),
     url(r'^dob/$', GetDobView.as_view(), name='pos_dob'),
-    url(r'^redirect/(?P<view>[\w\-]+)/$', pos_redirect, name='pos_redirect'),
+    url(r'^redirect/(?P<view>[\w\-]+)/(?P<person_id>\d+)/$', pos_redirect, name='pos_redirect'),
 
     url(r'^ajax/items/$', ajax_items, name='pos_ajax_items'),
     url(r'^ajax/ping/$', ajax_ping, name='pos_ajax_ping'),
@@ -24,7 +22,7 @@ urlpatterns = [
     url(r'^visitor/adult/$', VisitorCreateView.as_view(), name='pos_visitor_adult'),
     url(r'^visitor/junior/$', VisitorCreateView.as_view(junior=True), name='pos_visitor_junior'),
     url(r'^visitors/person/(?P<person_id>\d+)/$', VisitorBookView.as_view(), name='pos_visitors_person'),
-    url(r'^visitors/all/$', VisitorBookView.as_view(all_entries=True), name='pos_visitors_all'),
+    url(r'^visitors/all/(?P<person_id>\d+)/$', VisitorBookView.as_view(all_entries=True), name='pos_visitors_all'),
 
     url(r'^register/$', PosRegisterView.as_view(), name='pos_register'),
     url(r'^register/again$', PosRegisterView.as_view(re_register=True), name='pos_register_again'),
