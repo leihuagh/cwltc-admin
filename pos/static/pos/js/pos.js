@@ -340,13 +340,12 @@ var posCode = (function (){
     };
 
     pos.exit = function(){
-        pos.logOut();
-        // if (!isAttended){
-        //     pos.showPage('#pageMenu');
-        // }else{
-        //     pos.logOut;
-        // }
-    }
+        if (!isAttended){
+            pos.showPage('#pageMenu');
+        }else{
+            pos.logOut();
+        }
+    };
 
     pos.logOut = function(){
         clearPerson();
