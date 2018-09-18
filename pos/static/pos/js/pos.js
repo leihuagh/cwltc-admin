@@ -38,14 +38,20 @@ var posCode = (function (){
     var appValue;
 
     var pingTimer;
-    var pingTimeout = "";
-    var pingUrl = "";
+    var pingTimeout = 10000;
     var terminal = 0;
     var online = false;
 
     var timer;
     var timeout = 120000;
+
     var ajaxTimeout = 2000;
+
+    // Bloodhound
+    var lookupPeople;
+    var localPeople;
+    // var localLookup;
+    // var remoteLookup;
 
     /* Public methods*/
     pos.init = function (csrf_token, url_dict) {
@@ -57,8 +63,8 @@ var posCode = (function (){
         });
         terminal = readCookie('terminal');
         $('#terminal').text(terminal);
-        initPing(timeout, urls.ping, terminal);
         loadData();
+        initBloodhound();
         newReceipt();
         clearTimeout(timer);
 
@@ -252,10 +258,11 @@ var posCode = (function (){
             pos.touch(event, pos.back1);
         });
 
-        bind_typeAhead('#selectNameInput', pos.transactionsPerson, true);
-        bind_typeAhead('#userNameInput', pos.getPin, '{{ filter }}');
-        bind_typeAhead('#member_search', pos.selectedPerson, true);
-        console.log('init');
+        // bind_typeAhead('#selectNameInput', pos.transactionsPerson, true);
+        // bind_typeAhead('#userNameInput', pos.getPin, '{{ filter }}');
+        // bind_typeAhead('#member_search', pos.selectedPerson, true);
+        setOnline();
+        bindTypeAheads();
         pos.startApp();
     };
 
@@ -311,11 +318,9 @@ var posCode = (function (){
           $('#idLogoBanner').show();
         }
         $(pageId).show();
-        stopPing();
         document.activeElement.blur();
         switch (pageId) {
             case '#pageStart':
-                startPing();
                 break;
             case '#pageUser':
                $('#userNameInput').val('').focus();
@@ -355,6 +360,7 @@ var posCode = (function (){
     };
 
     pos.startApp = function(){
+        startPing();
         if (loadPerson()) {
             pos.showMenu();
         }else{
@@ -450,11 +456,7 @@ var posCode = (function (){
                         if (response.supervisor){
                             $('#menuSupervisor').show();
                         }
-                        if (appType){
-                            runApp(appType, appValue);
-                        }else {
-                            pos.showMenu();
-                        }
+                        loggedInNextAction();
                     } else {
                         console.log(response);
                         $('#passwordError').show();
@@ -472,6 +474,14 @@ var posCode = (function (){
             testOfflinePin(query);
         }
     };
+
+    function loggedInNextAction(){
+        if (appType){
+            runApp(appType, appValue);
+        }else {
+            pos.showMenu();
+        }
+    }
 
     pos.showMenu = function(){
         pos.showPage('#pageMenu');
@@ -518,14 +528,16 @@ var posCode = (function (){
         if (pin){
             if (atob(pin) === query.pin){
                 console.log('Good offline pin');
-                pos.showMenu();
+                loggedInNextAction();
             } else {
                 console.log('Bad offline pin');
-                pos.logOut();
+                $('#passwordError').show();
+                $('#passwordPin').val('').focus();
+                $('#passwordInput').val('');
             }
         } else {
             console.log('Ignore offline pin');
-            pos.showMenu();
+            loggedInNextAction();
         }
     }
 
@@ -773,7 +785,7 @@ var posCode = (function (){
             },
             error: function (xhr, textStatus, errorThrown) {
                 console.log ('Error {xhr} {textStatus}');
-                setOfline();
+                setOffline();
                 $('#save_modal').hide();
                 saveTransaction(transaction, stamp);
                 $('#idLastTransaction').text('local');
@@ -879,7 +891,7 @@ var posCode = (function (){
                     }
                 },
                 error: function(xhr, textStatus, errorThrown){
-                    setOffline()
+                    setOffline();
                     console.log('Error ' + xhr + ' ' + textStatus + 'abort recovery');
                 }
             });
@@ -1035,29 +1047,23 @@ var posCode = (function (){
         $('#idOnline').text('Online');
         $('#menuOnline').show();
         $('.online').show();
+        switchBloodhound();
     }
 
     function setOffline(){
         online = false;
         $('#idOnline').text('Offline');
         $('.online').hide();
+        switchBloodhound();
     }
     
-
-    function initPing(timeout, url, term) {
-        // Initialise a regular ping message
-        pingTimeout = timeout;
-        pingUrl = url;
-        terminal = term;
-        ping();
-    }
 
     function stopPing () {
         clearTimeout(pingTimer);
     }
 
     function startPing() {
-        pingTimer = setTimeout(ping, pingTimeout);
+        pingTimer = setInterval(ping, pingTimeout);
     }
 
     function ping() {
@@ -1068,66 +1074,107 @@ var posCode = (function (){
             data: 'terminal=' + terminal,
             timeout: pingTimeout,
             success: function (data, status, xhr) {
-                $('#idOfflineMessage').hide();
-                $('#idOnlineMessage').show();
                 setOnline();
                 if (data === 'OK') {
                     if (getContents().length > 0) {
                         recoverTransactions();
                     }
-                    startPing();
                 }else if (data.slice(0, 7) === 'Restart') {
                     window.location.replace(data.slice(8));
                 }else{
-                    pos.startApp();
+                    pos.logOut();
                 }
             },
             error: function (data, status, xhr) {
                 setOffline();
-                startPing();
             }
         });
     }
 
-    function bind_typeAhead(typeAhead_id, setPerson, filter) {
-        // https://digitalfortress.tech/tutorial/smart-search-using-twitter-typeAhead-bloodhound/
-        var people = new Bloodhound({
-            datumTokenizer: function (d) {
-                return Bloodhound.tokenizers.whitespace(d.value);
-            },
+    function whitespaceTokenizer(d){
+        return Bloodhound.tokenizers.whitespace(d.value);
+    }
+
+    function initBloodhound() {
+
+        $.get('/ajax/adults', function(data){
+            localPeople = data;
+        });
+        //localPeople = [{id: 1, value:'abc'}];
+
+        lookupPeople = new Bloodhound({
+            datumTokenizer: whitespaceTokenizer,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
-            prefetch: {
-                url: '/ajax/adults'
-            },
-            dupDetector: function (remoteMatch, localMatch) {
-                return remoteMatch.id === localMatch.id;
-            },
             remote: {
                 url: '/ajax/people/?term=%QUERY&adult=true',
                 wildcard: '%QUERY'
             }
         });
+        // remoteLookupMembers = new Bloodhound({
+        //     datumTokenizer: function (d) {
+        //         return Bloodhound.tokenizers.whitespace(d.value);
+        //     },
+        //     queryTokenizer: Bloodhound.tokenizers.whitespace,
+        //     remote: {
+        //         url: '/ajax/people/?term=%QUERY&members=true',
+        //         wildcard: '%QUERY'
+        //     }
+        // });
+        // localLookup = new Bloodhound({
+        //     datumTokenizer: function (d) {
+        //         return Bloodhound.tokenizers.whitespace(d.value);
+        //     },
+        //     queryTokenizer: Bloodhound.tokenizers.whitespace,
+        //     prefetch: {
+        //         url: '/ajax/adults'
+        //     },
+        //     dupDetector: function (remoteMatch, localMatch) {
+        //         return remoteMatch.id === localMatch.id;
+        //     }
+        // });
+    }
+    var bloodhoundOnline;
+    function switchBloodhound(){
+        if (online && !bloodhoundOnline){
+            lookupPeople.clear();
+            bloodhoundOnline = true;
+            lookupPeople.local = [];
+            lookupPeople.initialize(true);
+            console.log('Bloodhound is online')
+        }else if (!online && bloodhoundOnline){
+            lookupPeople.clear();
+            bloodhoundOnline = false;
+            lookupPeople.local = localPeople;
+            lookupPeople.initialize(true);
+            console.log('Bloodhound is offline')
+        }
+    }
 
-        var qualifier = '';
-            if (filter==='adults') {
-                qualifier = '&adult=true';
-            }else if (filter==='members') {
-                qualifier = '&members=true';
-            }
+    function bindTypeAheads(){
+        //var lookup = (online) ? remoteLookup : localLookup;
+        bind_typeAhead('#selectNameInput', pos.transactionsPerson, lookupPeople);
+        bind_typeAhead('#userNameInput', pos.getPin, lookupPeople);
+        bind_typeAhead('#member_search', pos.selectedPerson, lookupPeople);
+    }
 
-        $(typeAhead_id).typeahead({
+    function bind_typeAhead(typeAhead_id, callback, lookupSource) {
+        // https://digitalfortress.tech/tutorial/smart-search-using-twitter-typeAhead-bloodhound/
+
+        var t = $(typeAhead_id);
+        t.typeahead({
             hint: true,
             highlight: true,
             minLength: 3
         }, {
             name: 'people',
             displayKey: 'value',
-            source: people   // Bloodhound instance is passed as the source
+            source: lookupSource  // Bloodhound instance is passed as the source
         });
 
-        // Selecting an item sets person_id
-        $(typeAhead_id).bind('typeahead:select', function (event, item) {
-            setPerson(item);
+        // Selecting an item sets person
+       t.unbind('typeahead:select');
+       t.bind('typeahead:select', function (event, item) {
+            callback(item);
             $('.typeahead').typeahead('val', '');
         });
 

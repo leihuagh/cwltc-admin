@@ -17,7 +17,7 @@
                 {% for app in apps %}
                   {% if app.event %}
                     <input type="image" value="{{ app.event.id }}" name="{{ app.name }}" src="{{ app.event.image.url }}" class="img-responsive online">
-                    <h3>Touch the picture to book</h3>
+                    <h3 class="online">Touch the picture to book</h3>
                   {% endif %}
                 {% endfor %}
               </div>
@@ -27,7 +27,7 @@
                     <button class="posbutton btn-large btn-block app-layout" type="button" value="{{ teas_app.layout_id }}">{{ teas_app.name }}</button>
                   </div>
                   <div class="col-md-6">
-                    <p class="hint">{{ teas_app.description }}</p>
+                    <p class="hint online">{{ teas_app.description }}</p>
                   </div>
                 </div>
                 <br>
@@ -38,7 +38,7 @@
                         <button class="posbutton btn-large btn-block app-view online" type="button" value="{{ app.view_name}}">{{ app.name }}</button>
                       </div>
                       <div class="col-md-6">
-                        <p class="hint">{{ app.description }}</p>
+                        <p class="hint online">{{ app.description }}</p>
                       </div>
                     </div>
                     <br>
