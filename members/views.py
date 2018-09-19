@@ -453,6 +453,7 @@ def ajax_people(request):
                 person_json = {}
                 person_json['id'] = person.id
                 person_json['value'] = person.fullname
+                person_json['age'] = person.age_for_membership()
                 if request.GET.get('id', ''):
                     person_json['value'] += ' (id = {})'.format(person.id)
                 results.append(person_json)

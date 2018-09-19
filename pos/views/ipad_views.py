@@ -101,7 +101,7 @@ class StartView(LoginRequiredMixin, TemplateView):
         context['urls'] = mark_safe(json.dumps({
             'ping': reverse('pos_ajax_ping'),
             'items': reverse('pos_ajax_items'),
-            'sendTransaction': reverse('pos_start'),
+            'start': reverse('pos_start'),
             'redirect': reverse('pos_redirect', kwargs={'view': 'xxxx', 'person_id': '9999'}),
             'event': reverse('pos_event_register', kwargs={'pk': '9999'}),
             'adults': reverse('ajax-adults'),

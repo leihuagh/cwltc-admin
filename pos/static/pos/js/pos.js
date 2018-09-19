@@ -67,6 +67,7 @@ var posCode = (function (){
         initBloodhound();
         newReceipt();
         clearTimeout(timer);
+        localStorage.clear();
 
         $(".touch").on('touchstart', function(event) {
             event.currentTarget.classList.add('posbutton-down');
@@ -200,6 +201,9 @@ var posCode = (function (){
         $('#menuTransactionsCash').on('touchstart click', function(event) {
             pos.touch(event, pos.transactions, 'cash');
         });
+        $('#menuRestart').on('touchstart click', function(event) {
+            window.location.replace(urls.start);
+        });
 
         // POS
         $(".item-button").on('touchstart click', function(event) {
@@ -304,6 +308,7 @@ var posCode = (function (){
 
     pos.showPage = function(pageId){
         hideModals();
+        $('.typeahead').typeahead('val', '');
         $('.page').hide();
         if (pageId === '#pagePos') {
           $('#idLogoBanner').hide();
@@ -757,7 +762,7 @@ var posCode = (function (){
         var transaction = JSON.stringify(receipt);
         $.ajax({
             type: "POST",
-            url: urls.sendTransaction,
+            url: urls.start,
             data: transaction,
             dataType: 'text',
             tryCount: 0,
@@ -871,7 +876,7 @@ var posCode = (function (){
             console.log('Start recovery');
             $.ajax({
                 type: "POST",
-                url: urls.sendTransaction,
+                url: urls.start,
                 data: localStorage.getItem(contents[0]),
                 dataType: 'text',
                 timeout: ajaxTimeout,
@@ -1078,6 +1083,8 @@ var posCode = (function (){
                 if (data === 'OK') {
                     if (getContents().length > 0) {
                         recoverTransactions();
+                    }else{
+                        doSchedule();
                     }
                 }else if (data.slice(0, 7) === 'Restart') {
                     window.location.replace(data.slice(8));
@@ -1089,6 +1096,29 @@ var posCode = (function (){
                 setOffline();
             }
         });
+    }
+
+    var startHour = 4;
+    var startMinute = 0;
+    var runInterval = 1000 * 60 * 60 * 24;
+
+    function doSchedule(){
+        var now = new Date();
+        var nextRun;
+        console.log(now.toLocaleString());
+        var nextRunString = localStorage.getItem('nextRun');
+        if (!nextRunString){
+            nextRun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, startHour, startMinute, 0, 0);
+            localStorage.setItem('nextRun', nextRun);
+        } else {
+            nextRun = new Date(Date.parse(nextRunString));
+        }
+        if (now >= nextRun){
+            nextRun = new Date( nextRun.getTime() + runInterval);
+            localStorage.setItem('nextRun', nextRun);
+            console.log('running schedule '+ now.toLocaleString() + ' next is at ' + nextRun.toLocaleString() );
+            window.location.replace(urls.start);
+        }
     }
 
     function whitespaceTokenizer(d){
@@ -1140,13 +1170,13 @@ var posCode = (function (){
             bloodhoundOnline = true;
             lookupPeople.local = [];
             lookupPeople.initialize(true);
-            console.log('Bloodhound is online')
+            console.log('Bloodhound is online');
         }else if (!online && bloodhoundOnline){
             lookupPeople.clear();
             bloodhoundOnline = false;
             lookupPeople.local = localPeople;
             lookupPeople.initialize(true);
-            console.log('Bloodhound is offline')
+            console.log('Bloodhound is offline');
         }
     }
 
