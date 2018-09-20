@@ -68,6 +68,7 @@ var posCode = (function (){
         newReceipt();
         clearTimeout(timer);
         localStorage.clear();
+        $('#startAttended').hide();
 
         $(".touch").on('touchstart', function(event) {
             event.currentTarget.classList.add('posbutton-down');
@@ -317,6 +318,8 @@ var posCode = (function (){
           }else{
               $('#posEndAttended').hide();
           }
+          $('.flex-left').show();
+          $('.flex-right').show();
           payClass.hide();
           exitClass.show();
         }else{

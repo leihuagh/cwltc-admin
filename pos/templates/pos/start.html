@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 {% load staticfiles %}
 <html>
 <head>
@@ -20,26 +20,34 @@
   <div class="last-transaction">
     Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
   </div>
-  {% include '_logo_banner.html' %}
-  <div>
-  {% include 'pos/_start.html' %}
-  {% include 'pos/_user.html' %}
-  {% include 'pos/_password.html' %}
-  {% include 'pos/_reset_pin.html' %}
-  {% include 'pos/_menu.html' %}
-  {% include 'pos/_select_member.html' %}
-  {% include 'pos/_pos.html' %}
+  <div id="wrapper">
+    {% include '_logo_banner.html' %}
+    {% include 'pos/_start.html' %}
+    {% include 'pos/_user.html' %}
+    {% include 'pos/_password.html' %}
+    {% include 'pos/_reset_pin.html' %}
+    {% include 'pos/_menu.html' %}
+    {% include 'pos/_select_member.html' %}
+    {% include 'pos/_pos.html' %}
   </div>
-  <div class="ticker-wrap">
-    <div class="ticker">
-      {% for ticker in tickers %}
-        <div class="ticker__item">{{ ticker }}.</div>
-      {% endfor%}
-    </div>
+
+    <script>
+        var urls = '{{ urls }}';
+        var csrf_token = '{{ csrf_token }}';
+    </script>
+
   </div>
   <script src="{% static 'pos/js/pos.js' %}"></script>
   <script>
-    posCode.init('{{ csrf_token }}', '{{ urls }}');
+    posCode.init(csrf_token, urls);
+    /*
+    localStorage.setItem('pos_page', $('#wrapper').html());
+
+        basket.require({url: "{% static 'pos/js/pos.js' %}", key: 'pos'})
+            .then(function() {
+                posCode.init(csrf_token, urls);
+            })
+  */
   </script>
 
 </body>

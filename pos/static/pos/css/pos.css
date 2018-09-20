@@ -58,7 +58,7 @@
 }
 
 .hint {
-  color: #666666;
+  color: #444444;
   font-size: 1.5em;
 }
 
@@ -477,7 +477,7 @@ span.twitter-typeahead .tt-suggestion:focus {
   width: 100%;
   overflow: hidden;
   height: 6rem;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: #004400;
   padding-left: 100%;
   box-sizing: content-box;
 }

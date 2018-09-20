@@ -1,7 +1,7 @@
 <!-- The main POS screen -->
-
-<div class="flex-container page" id="pagePos" hidden>
-  <div class="flex-left">
+<div class="page" id="pagePos" hidden>
+<div class="flex-container">
+  <div class="flex-left" hidden>
     {% for row in rows %}
       {% for loc in row %}
         {% if forloop.counter0 == 0 %}
@@ -23,7 +23,7 @@
     {% endfor %}
   </div>
 
-  <div class="flex-right">
+  <div class="flex-right" hidden>
     <div class="name-area"><span class="personName">aaa</span>
       <button id="posEndAttended" class="btn btn-small btn-danger">End</button>
     </div>
@@ -45,6 +45,7 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <!-- Modal for attended mode -->

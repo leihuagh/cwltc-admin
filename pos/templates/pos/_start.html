@@ -1,23 +1,27 @@
-<div class="container bg page" id="pageStart">
-  <div class="text-center bg {% if is_bar %}jumbotron{% endif %}">
-    <h1 class="text-center"><strong>
-      {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
-    <br>
-    <div id="idOnlineMessage"> <!-- division is hidden if ping fails -->
-      <div class="row">
-        <p class="ipad-error">{{ request.session.message }}</p>
+<div id="pageStart" class="page">
+  <div class="container">
+    <div class="text-center bg {% if is_bar %}jumbotron{% endif %}">
+      <h1 class="text-center"><strong>
+        {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
+      <br>
+      <div id="idOnlineMessage"> <!-- division is hidden if ping fails -->
+        <div class="row">
+          <p class="ipad-error">{{ request.session.message }}</p>
           {% if is_bar %}
-              <button type="button" id="startLogin" class="btn posbutton btn-large btn-block touch timeout">Member Login</button>
-              <br/><br/><br/>
-              <button type="button" id="startAttended" class="btn posbutton btn-large btn-block timeout" value="{{bar_app.layout_id}}">Attended mode</button>
-             <br><br>
+            <button type="button" id="startLogin" class="btn posbutton btn-large btn-block touch timeout">Member Login</button>
+            <br/><br/><br/>
+            <button type="button" id="startAttended" class="btn posbutton btn-large btn-block timeout" value="{{bar_app.layout_id}}">Attended mode</button>
+            <br><br>
+            <button class="btn posbutton btn-warning  btn-large  btn-lg btn-block timeout" data-toggle="modal" data-target="#help-start-modal">Help</button>
           {% else %}
             <div class="row">
               <div class="col-md-4">
                 {% for app in apps %}
                   {% if app.event %}
+                    {% if app.event.active%}
                     <input type="image" value="{{ app.event.id }}" name="{{ app.name }}" src="{{ app.event.image.url }}" class="img-responsive online">
                     <h3 class="online">Touch the picture to book</h3>
+                      {% endif %}
                   {% endif %}
                 {% endfor %}
               </div>
@@ -47,12 +51,30 @@
               </div>
             </div>
           {% endif %}
-          <br>
+        </div>
       </div>
-{#<button class="btn btn-danger" onclick="posCode.recoverTransactions()">Recover</button>#}
-      <p class="hint">All members who have paid their subscription can use this system after registration.<br>
-          You can register now by pressing any button above and searching for your name.</p>
     </div>
-{#    <p id="idOfflineMessage" hidden>The server is offline - limited functionality</p><!-- division is visible if ping fails -->#}
+  </div>
+  <div class="ticker-wrap">
+    <div class="ticker">
+      <div class="ticker__item">Drink beer.</div>
+      <div class="ticker__item">Vice mlkshk crucifix beard chillwave meditation hoodie asymmetrical Helvetica.</div>
+      <div class="ticker__item">Ugh PBR&B kale chips Echo Park.</div>
+      <div class="ticker__item">Gluten-free mumblecore chambray mixtape food truck. </div>
+    </div>
+  </div>
+</div>
+  <!-- Modal for help -->
+<div id="help-start-modal" class="modal" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-body hint">
+        <p> This system lets you charge purchases to your club account<p>
+        <p> Adult members who have paid their subscription can use this system - you need the PIN that you set when you registered. </p>
+        <p> If you have not registered or have forgotten your PIN, you can quickly set a PIN now.</p>
+        <p> Login by searching for your name and follow the instructions.</p>
+        <p class="text-center"><button class="btn btn-lg btn-success timed" data-dismiss="modal">Close help</button></p>
+      </div>
+    </div>
   </div>
 </div>
