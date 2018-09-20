@@ -1,5 +1,5 @@
 import logging
-from django.views.generic import DetailView, CreateView, UpdateView, TemplateView, View
+from django.views.generic import DetailView, CreateView, UpdateView, ListView, TemplateView, View
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
@@ -8,7 +8,7 @@ from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from braces.views import GroupRequiredMixin
 from pos.tables import *
-from pos.forms import ItemForm, LayoutForm, ColourForm, AppForm
+from pos.forms import ItemForm, LayoutForm, ColourForm, AppForm, TickerForm
 from pos.filters import LineItemFilter
 from pos.views.ipad_views import build_pos_array
 from pos.services import dump_layout_to_excel
@@ -429,6 +429,11 @@ class AppCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
     group_required = 'Pos'
     template_name = 'pos/crispy_form.html'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'delete': true})
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
         context['title'] = 'Create new POS application'
@@ -475,3 +480,49 @@ class AppListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
         if 'cancel' in request.POST:
             return redirect(self.success_url)
         return super().post(request, *args, **kwargs)
+
+
+class TickerCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
+    model = Ticker
+    form_class = TickerForm
+    success_url = reverse_lazy('pos_ticker_list')
+    group_required = 'Pos'
+    template_name = 'pos/crispy_form.html'
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['title'] =  'Create POS Ticker Tape Message'
+        return context
+
+
+class TickerUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
+    model = Ticker
+    form_class = TickerForm
+    success_url = reverse_lazy('pos_ticker_list')
+    group_required = 'Pos'
+    template_name = 'pos/crispy_form.html'
+
+    def post(self, request, *args, **kwargs):
+        ticker = self.get_object()
+        if 'delete' in request.POST:
+            ticker.delete()
+            return redirect('pos_ticker_list')
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['title'] = 'Update POS Ticker Tape Message'
+        return context
+
+
+class TickerListView(LoginRequiredMixin, GroupRequiredMixin, ListView):
+    model = Ticker
+    group_required = 'Pos'
+    template_name = 'pos/ticker_list.html'

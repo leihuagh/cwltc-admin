@@ -94,17 +94,18 @@ class Transaction(models.Model):
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
     attended = models.BooleanField(default=False)
 
+    def __str__(self):
+        name = self.person.fullname if self.person else "Cash"
+        return "{} {} {}".format(str(self.id),
+                                 name,
+                                 str(self.total))
+
     def save(self, *args, **kwargs):
         """ simulate auto now for backwards compatibility but normally date comes from the pos """
         if self.creation_date is None:
             self.creation_date = timezone.now()
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        name = self.person.fullname if self.person else "Cash"
-        return "{} {} {}".format(str(self.id),
-                                 name,
-                                 str(self.total))
 
 
 class LineItem(models.Model):
@@ -184,6 +185,9 @@ class PosApp(models.Model):
     attended = models.BooleanField(default=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, blank=True, null=True)
 
+    def __str__(self):
+        return self.name
+
     def is_bar_app(self):
         if self.layout:
             return self.layout.item_type.id == ItemType.BAR
@@ -259,3 +263,11 @@ class VisitorBook(models.Model):
 
     objects = models.Manager()
     billing = VisitorBookBillingManager()
+
+
+class Ticker(models.Model):
+    message = models.CharField(max_length=100)
+    apps = models.ManyToManyField(PosApp)
+
+    def __str__(self):
+        return self.message

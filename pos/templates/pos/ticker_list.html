@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% block content %}
+<div class="container">
+  <h2>POS Ticker Messages</h2>
+  {% for o in object_list %}
+   <h4>{{ o.message }}</h4>
+  {% endfor %}
+  <a href="{% url 'pos_ticker_create' %}" class="btn btn-primary">New message</a>
+  <a href="{% url 'pos_admin' %}" class="btn btn-primary">POS Admin menu</a>
+</div>
+{% endblock %}
