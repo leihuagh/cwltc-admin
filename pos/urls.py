@@ -12,7 +12,6 @@ urlpatterns = [
     url(r'^offline/$', OfflineView.as_view(), name='pos_disabled'),
 
     url(r'^lookup/member/$', LookupMemberView.as_view(), name='pos_lookup_member'),
-    url(r'^dob/$', GetDobView.as_view(), name='pos_dob'),
     url(r'^redirect/(?P<view>[\w\-]+)/(?P<person_id>\d+)/$', pos_redirect, name='pos_redirect'),
 
     url(r'^ajax/items/$', ajax_items, name='pos_ajax_items'),

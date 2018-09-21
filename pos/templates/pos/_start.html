@@ -5,14 +5,14 @@
         {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
       <br>
       <div id="idOnlineMessage"> <!-- division is hidden if ping fails -->
-        <div class="row">
+        <div class="row text-center">
           <p class="ipad-error">{{ request.session.message }}</p>
           {% if is_bar %}
-            <button type="button" id="startLogin" class="btn posbutton btn-large btn-block touch timeout">Member Login</button>
-            <br/><br/><br/>
-            <button type="button" id="startAttended" class="btn posbutton btn-large btn-block timeout" value="{{bar_app.layout_id}}">Attended mode</button>
+            <button class="posbutton btn-success btn-large btn-block app-layout" type="button" value="{{ bar_app.layout_id }}">Member login</button>
             <br><br>
-            <button class="btn posbutton btn-warning  btn-large  btn-lg btn-block timeout" data-toggle="modal" data-target="#help-start-modal">Help</button>
+            <button type="button" id="startAttended" value="{{ bar_app.layout.id }}" class="btn btn-success posbutton btn-large" >Attended mode</button>
+            <br><br>
+            <button class="posbutton btn-success btn-help timeout" data-toggle="modal" data-target="#help-start-modal">Help</button>
           {% else %}
             <div class="row">
               <div class="col-md-4">
@@ -28,7 +28,7 @@
               <div class="col-md-8">
                 <div class="row">
                   <div class="col-md-6 text-center">
-                    <button class="posbutton btn-large btn-block app-layout" type="button" value="{{ teas_app.layout_id }}">{{ teas_app.name }}</button>
+                    <button class="posbutton btn-success btn-large btn-block app-layout" type="button" value="{{ teas_app.layout_id }}">{{ teas_app.name }}</button>
                   </div>
                   <div class="col-md-6">
                     <p class="hint online">{{ teas_app.description }}</p>
@@ -39,7 +39,8 @@
                   {% if not app.event %}
                     <div class="row">
                       <div class="col-md-6 text-center">
-                        <button class="posbutton btn-large btn-block app-view online" type="button" value="{{ app.view_name}}">{{ app.name }}</button>
+                        <button class="posbutton btn-success btn-large btn-block app-view online" type="button"
+                                value="{{ app.view_name}}" data-juniors="{%  if app.allow_juniors %}true{% else %}false{% endif %}">{{ app.name }}</button>
                       </div>
                       <div class="col-md-6">
                         <p class="hint online">{{ app.description }}</p>
@@ -57,10 +58,9 @@
   </div>
   <div class="ticker-wrap">
     <div class="ticker">
-      <div class="ticker__item">Drink beer.</div>
-      <div class="ticker__item">Vice mlkshk crucifix beard chillwave meditation hoodie asymmetrical Helvetica.</div>
-      <div class="ticker__item">Ugh PBR&B kale chips Echo Park.</div>
-      <div class="ticker__item">Gluten-free mumblecore chambray mixtape food truck. </div>
+      {% for ticker in tickers %}
+        <div class="ticker__item">{{ ticker.message }}</div>
+      {% endfor %}
     </div>
   </div>
 </div>

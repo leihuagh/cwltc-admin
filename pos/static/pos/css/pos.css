@@ -198,7 +198,7 @@
 }
 
 .posbutton {
-    background-color: #008800; /* Green */
+    /*background-color: #008800; !* Green *!*/
     cursor: pointer;
     border: none;
     color: white;
@@ -228,6 +228,30 @@
 
 .posbutton:focus {
   outline: 0;
+}
+
+
+.btn.active.focus, .btn.active:focus, .btn.focus, .btn:active.focus, .btn:active:focus, .btn:focus {
+    outline: none;!important
+    border:none:!important
+}
+
+.btn-large {
+  font-size: 18px;
+  width: 150px;
+  height: 100px;
+}
+
+.btn-help {
+  font-size: 18px;
+  width: 150px;
+  height: 50px;
+  border-radius: 10px;
+  border: none;
+}
+
+.btn-help.focus {
+  color: black;
 }
 
 .pospanel {
@@ -305,10 +329,7 @@ span {
   text-align: center;
 }
 
-.btn-large {
-  width: 150px;
-  height: 100px;
-}
+
 
 .btn-small {
   width: 50px !important;

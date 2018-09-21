@@ -44,6 +44,7 @@ urlpatterns = [
     url(r'^ajax/adults/', ajax_adults, name="ajax-adults"),
     url(r'^ajax/password/$', ajax_password, name='ajax-password'),
     url(r'^ajax/postcode/', ajax_postcode, name="ajax-postcode"),
+    url(r'^ajax/dob/', ajax_dob, name="ajax-dob"),
     url(r'^ajax/set_pin/', ajax_set_pin, name="ajax-set-pin"),
     url(r'^search/person/', search_person, name="search-person"),
 

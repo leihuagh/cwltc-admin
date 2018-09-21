@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import check_password
+from django.utils.dateparse import parse_date
 from django.core.serializers import serialize
 from braces.views import StaffuserRequiredMixin
 
@@ -44,7 +45,7 @@ class PagedFilteredTableView(SingleTableView):
     filter_class = None
     formhelper_class = None
     context_filter_name = 'filter'
-    table_pagination={ "per_page": 100000 }
+    table_pagination = {"per_page": 100000}
 
     def get_queryset(self, **kwargs):
         qs = super(PagedFilteredTableView, self).get_queryset()
@@ -65,8 +66,8 @@ class SubsTableView(StaffuserRequiredMixin, SingleTableView):
     juniors = False
     parents = False
     members = False
-    template_name ='members/person_table.html'
-    table_pagination = { "per_page": 10000 }
+    template_name = 'members/person_table.html'
+    table_pagination = {"per_page": 10000}
 
     def get_table_data(self):
         """
@@ -77,15 +78,15 @@ class SubsTableView(StaffuserRequiredMixin, SingleTableView):
         if not self.filter_class:
             self.filter = None
             return Person.objects.all().select_related('sub__membership').order_by('last_name')
-        
+
         qs = Subscription.objects.filter(
             active=True
-            ).select_related('membership').select_related('person_member')
-        
+        ).select_related('membership').select_related('person_member')
+
         if self.juniors or self.parents:
             qs = qs.exclude(membership__is_adult=True).filter(
                 person_member__state=Person.ACTIVE)
- 
+
         # set defaults for first time
         data = self.request.GET.copy()
         if len(data) == 0:
@@ -124,18 +125,18 @@ class SubsTableView(StaffuserRequiredMixin, SingleTableView):
         if action == 'export':
             selected_people = Person.objects.filter(
                 pk__in=request.POST.getlist('selection')
-                    ).select_related(
-                    'sub'
-                    ).select_related(
-                    'sub__membership'
-                    )                                                 
+            ).select_related(
+                'sub'
+            ).select_related(
+                'sub__membership'
+            )
             self.request.session['selected_people_ids'] = []
             sheet_name = 'Juniors' if 'juniors' in request.session['source_path'] else 'People'
             return export_people(sheet_name, selected_people)
 
         if action == 'mail':
             return redirect('email-selection')
-        
+
         if action == 'renew':
             return redirect('sub-renew-list')
 
@@ -178,6 +179,7 @@ class PersonActionMixin(object):
     """
     Overrides form_valid to display a message
     """
+
     @property
     def success_msg(self):
         return NotImplemented
@@ -244,7 +246,7 @@ class PersonLinkView(StaffuserRequiredMixin, TemplateView):
         person = Person.objects.get(pk=self.kwargs['pk'])
         context['title'] = 'Link person'
         context['person'] = person
-        context['info'] = "All invoices, payments and credit notes will be transferred to the person you select below." 
+        context['info'] = "All invoices, payments and credit notes will be transferred to the person you select below."
         context['action1'] = "Link"
         if person.linked:
             context['action2'] = "UnLink"
@@ -253,7 +255,7 @@ class PersonLinkView(StaffuserRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         child = Person.objects.get(pk=self.kwargs['pk'])
-       
+
         if 'action1' in request.POST:
             id = request.POST['person_id']
             if id.isdigit():
@@ -284,13 +286,13 @@ class PersonMergeView(StaffuserRequiredMixin, TemplateView):
         context['title'] = 'Merge person with another'
         context['person'] = Person.objects.get(pk=self.kwargs['pk'])
         context['info'] = "All linked records of {} will be transferred to the person you select below.".format(
-            context['person']) 
+            context['person'])
         context['action1'] = "Merge"
         return context
 
     def post(self, request, *args, **kwargs):
         person = Person.objects.get(pk=self.kwargs['pk'])
-       
+
         if 'action1' in request.POST:
             target = Person.objects.get(pk=request.POST['person_id'])
             person_merge(person, target)
@@ -342,10 +344,10 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
             for err in errs:
                 message += err + '/n'
             messages.error(self.request, err)
-        
+
         elif 'resign' in request.POST:
             person_resign(person)
-        
+
         elif 'remove' in request.POST:
             # remove from group
             slug = request.POST['remove']
@@ -383,7 +385,7 @@ def set_person_context(context, person):
     sub_year = Settings.current_year()
     years = []
     statements = []
-    for year in range(sub_year, sub_year-3, -1):
+    for year in range(sub_year, sub_year - 3, -1):
         years.append(year)
         statements.append(person_statement(person, year))
     context['years'] = years
@@ -531,6 +533,31 @@ def ajax_password(request):
     return JsonResponse(dict)
 
 
+def ajax_dob(request):
+    """ Validate junior by checking the date of birth """
+
+    template_name = 'pos/dob.html'
+    if request.is_ajax() and request.method == 'POST':
+        id = request.POST.get('person_id', None)
+        dob = request.POST.get('dob', None)
+        parts = dob.split('/')
+        try:
+            d = int(parts[0])
+            m = int(parts[1])
+            y = int(parts[2])
+        except ValueError:
+            return HttpResponse('Invalid date')
+        if y < 40:
+            y += 2000
+        elif y < 1900:
+            y += 1900
+        dobDate = date(y, m, d)
+        person = Person.objects.get(pk=id)
+        if person.dob == dobDate:
+            return HttpResponse('OK')
+        return HttpResponse('Wrong date of birth')
+
+
 def ajax_postcode(request):
     """ validate post code & phone for POS PIN reset """
     id = request.POST.get('person_id', '')
@@ -596,6 +623,7 @@ class PeopleResignView(StaffuserRequiredMixin, TemplateView):
             messages.success(self.request, f'Resignation of {len(people)} cancelled')
         return redirect('home')
 
+
 # ============== Address
 
 
@@ -632,6 +660,7 @@ class AddressUpdateView(StaffuserRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk': self.kwargs['person_id']})
+
 
 # ============== Groups
 
@@ -673,7 +702,7 @@ class GroupDetailView(StaffuserRequiredMixin, DetailView):
                 'membership__description',
                 'email',
                 'id'
-                ))
+            ))
             dict = {"data": plist}
             return JsonResponse(dict)
 
@@ -704,7 +733,7 @@ class GroupAddPersonView(StaffuserRequiredMixin, FormView):
         if 'cancel' in form.data:
             return redirect(person)
 
-        if 'submit' in form.data:        
+        if 'submit' in form.data:
             self.group = form.cleaned_data['group']
             person.groups.add(self.group)
             return super(GroupAddPersonView, self).form_valid(form)
@@ -732,12 +761,13 @@ class GroupAddListView(StaffuserRequiredMixin, FormView):
         if 'cancel' in form.data:
             return redirect('members-list')
 
-        if 'submit' in form.data:                 
+        if 'submit' in form.data:
             selection = self.request.session['selected_people_ids']
             if selection:
                 group_add_list(group, selection)
                 self.request.session['selected_people_ids'] = []
         return redirect('group-detail', pk=group.id)
+
 
 # ============== Subscriptions
 
@@ -760,17 +790,17 @@ class SubCreateView(StaffuserRequiredMixin, CreateView):
 
     def form_valid(self, form):
         if 'cancel' in form.data:
-            return redirect(reverse('person-detail', kwargs={'pk':self.kwargs['person_id']}))
-        
-        form.instance.person_member = Person.objects.get(pk=self.kwargs['person_id'])       
+            return redirect(reverse('person-detail', kwargs={'pk': self.kwargs['person_id']}))
+
+        form.instance.person_member = Person.objects.get(pk=self.kwargs['person_id'])
         # ensure a previously inactive or resigned person is now active
-        form.instance.person_member.state = Person.ACTIVE  
+        form.instance.person_member.state = Person.ACTIVE
         form.instance.person_member.save()
         parent = form.instance.person_member.linked
         if parent:
             if parent.state == Person.APPLIED and parent.adultapplication_set.count == 0:
                 parent.state == Person.ACTIVE
-      
+
         form.instance.invoiced_month = 0
         form.instance.membership = Membership.objects.get(pk=form.cleaned_data['membership_id'])
 
@@ -794,7 +824,7 @@ class SubUpdateView(StaffuserRequiredMixin, UpdateView):
         kwargs = super(SubUpdateView, self).get_form_kwargs()
         kwargs.update({'person_id': sub.person_member_id})
         return kwargs
-    
+
     def get_context_data(self, **kwargs):
         context = super(SubUpdateView, self).get_context_data(**kwargs)
         sub = self.get_object()
@@ -824,7 +854,7 @@ class SubUpdateView(StaffuserRequiredMixin, UpdateView):
             person = sub.person_member
             subscription_delete(sub)
             return redirect(person)
-        
+
         if 'resign' in form.data:
             person_resign(form.instance.person_member)
             return redirect(reverse('person-detail', kwargs={'pk': sub.person_member_id}))
@@ -960,12 +990,12 @@ class ChangeYearView(StaffuserRequiredMixin, FormView):
         initial = super().get_initial()
         initial['membership_year'] = Settings.current_year()
         return initial
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Change membership year'
         return context
-    
+
     def form_valid(self, form):
         if 'submit' in form.data:
             qset = Settings.objects.all()
@@ -976,8 +1006,8 @@ class ChangeYearView(StaffuserRequiredMixin, FormView):
             record.membership_year = form.cleaned_data['membership_year']
             record.save()
         return redirect('home')
-        
-        
+
+
 class YearEndView(StaffuserRequiredMixin, TemplateView):
     """
     Year end requires that the year has been changed and the fees set
@@ -1007,7 +1037,7 @@ class YearEndView(StaffuserRequiredMixin, TemplateView):
             Button('Create invoices', name='invoices', css_class='btn-danger'),
             Button('Count mail invoices', name='count', css_class='btn-primary'),
             Button('Mail invoices', name='mail', css_class='btn-danger')
-            ]        
+        ]
         return context
 
     def post(self, request):
@@ -1080,7 +1110,6 @@ class YearEndView(StaffuserRequiredMixin, TemplateView):
             messages.success(self.request, message)
             return redirect('yearend')
 
-
         return redirect('yearend')
 
     def get_unpaid_invoices(self):
@@ -1092,7 +1121,7 @@ class YearEndView(StaffuserRequiredMixin, TemplateView):
 
 class SubInvoiceCancel(StaffuserRequiredMixin, View):
     """ Deletes unpaid items and invoices associated with a sub """
-    
+
     def get(self, request, *args, **kwargs):
         sub = get_object_or_404(Subscription, pk=self.kwargs['pk'])
         for item in sub.invoiceitem_set.all():
@@ -1100,6 +1129,7 @@ class SubInvoiceCancel(StaffuserRequiredMixin, View):
                 invoice_cancel(item.invoice)
             item.delete()
         return redirect(sub)
+
 
 # ============ Fees
 
@@ -1110,14 +1140,14 @@ class FeesCreateView(StaffuserRequiredMixin, CreateView):
     template_name = 'members/generic_crispy_form.html'
 
     def get_success_url(self):
-        return reverse('fees-list')   
+        return reverse('fees-list')
 
 
 class FeesUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Fees
     form_class = FeesForm
-    template_name = 'members/generic_crispy_form.html'                 
-    
+    template_name = 'members/generic_crispy_form.html'
+
     def get_context_data(self, **kwargs):
         context = super(FeesUpdateView, self).get_context_data(**kwargs)
         context['title'] = 'Fees for {}'.format(self.get_object().sub_year)
@@ -1137,7 +1167,7 @@ class FeesUpdateView(StaffuserRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('fees-list',
-                       kwargs={'year': self.get_object().sub_year} 
+                       kwargs={'year': self.get_object().sub_year}
                        )
 
 
@@ -1149,7 +1179,7 @@ class FeesListView(StaffuserRequiredMixin, ListView):
         self.year = int(self.kwargs.get('year', 0))
         self.latest_year = Fees.objects.all().order_by('-sub_year')[0].sub_year
         if self.year == 0:
-            self.year = self.latest_year       
+            self.year = self.latest_year
         return Fees.objects.filter(sub_year=self.year).order_by('membership')
 
     def get_context_data(self, **kwargs):
@@ -1158,10 +1188,10 @@ class FeesListView(StaffuserRequiredMixin, ListView):
         context['latest'] = (self.latest_year == self.year)
         context['forward'] = self.year + 1
         context['back'] = self.year - 1
-        return context 
-    
+        return context
+
     def post(self, request, *args, **kwargs):
-        year = int(request.POST['year'])   
+        year = int(request.POST['year'])
         if 'back' in request.POST:
             return redirect('fees-list', year - 1)
         elif 'forward' in request.POST:
@@ -1193,7 +1223,7 @@ class VisitorFeesUpdateView(StaffuserRequiredMixin, UpdateView):
         context['title'] = 'Visitor fees'
         context['buttons'] = [
             Button('Save', name='save', css_class='btn-default'),
-            Button('Delete', name='delete', css_class='btn-danger'),]
+            Button('Delete', name='delete', css_class='btn-danger'), ]
         return context
 
     def get_success_url(self):
@@ -1225,6 +1255,7 @@ class VisitorFeesListView(StaffuserRequiredMixin, SingleTableView):
                 VisitorFees.objects.create(year=2017, adult_fee=6, junior_fee=3)
         return redirect('visitor-fees-list')
 
+
 # ================ Membership categories
 
 
@@ -1233,11 +1264,12 @@ class MembershipTableView(StaffuserRequiredMixin, SingleTableView):
     table_class = MembershipTable
     template_name = 'members/generic_table.html'
     table_pagination = {"per_page": 10000}
-   
+
     def get_context_data(self, **kwargs):
         context = super(MembershipTableView, self).get_context_data(**kwargs)
         context['title'] = 'Membership categories'
         return context
+
 
 # ================ Invoice items
 
@@ -1309,12 +1341,12 @@ class InvoiceItemTableView(StaffuserRequiredMixin, PagedFilteredTableView):
     model = InvoiceItem
     table_class = InvoiceItemTable
     filter_class = InvoiceItemFilter
-    template_name ='members/invoiceitem_table.html'
+    template_name = 'members/invoiceitem_table.html'
     table_pagination = {"per_page": 10}
 
     def get_queryset(self, **kwargs):
         qs = InvoiceItem.objects.all().select_related('person')
-        
+
         # set defaults for first time
         data = self.request.GET.copy()
         self.filter = self.filter_class(data, qs, request=self.request)
@@ -1327,6 +1359,7 @@ class InvoiceItemTableView(StaffuserRequiredMixin, PagedFilteredTableView):
         context['total'] = self.total if self.total else 0
         return context
 
+
 # ================= INVOICES
 
 
@@ -1337,8 +1370,9 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
     template_name = 'members/invoice_table.html'
 
     def get_queryset(self, **kwargs):
-        qs = Invoice.objects.all().prefetch_related('payment_set').select_related('person').select_related('person__membership')
-        
+        qs = Invoice.objects.all().prefetch_related('payment_set').select_related('person').select_related(
+            'person__membership')
+
         # set defaults for first time
         data = self.request.GET.copy()
         data['membership_year'] = data.get('membership_year', Settings.current_year())
@@ -1372,14 +1406,14 @@ class InvoiceTableView(StaffuserRequiredMixin, PagedFilteredTableView):
         and calls the action routine
         """
         request.session['source_path'] = request.META['HTTP_REFERER']
-        
+
         action = request.POST['action']
         if action == 'none':
             return redirect(request.session['source_path'])
 
         selected_invoices = Invoice.objects.filter(
             pk__in=request.POST.getlist('selection')
-            )
+        )
 
         if action == 'export':
             return export_invoices(selected_invoices)
@@ -1416,7 +1450,7 @@ class InvoiceSummaryView(TemplateView):
         pending = 0
         pending_total = Decimal(0)
         failed = 0
-        failed_total= Decimal(0)
+        failed_total = Decimal(0)
         cancelled = 0
         cancelled_total = Decimal(0)
 
@@ -1463,7 +1497,7 @@ def add_invoice_summary(context):
     no_payment = 0
     no_payment_total = Decimal(0)
     failed = 0
-    failed_total= Decimal(0)
+    failed_total = Decimal(0)
     cancelled = 0
     cancelled_total = Decimal(0)
 
@@ -1649,7 +1683,6 @@ class InvoiceDetailView(StaffuserRequiredMixin, DetailView):
             invoice_update_state(invoice)
             return redirect(invoice)
 
-
     def get_context_data(self, **kwargs):
         context = super(InvoiceDetailView, self).get_context_data(**kwargs)
         invoice = self.get_object()
@@ -1671,7 +1704,7 @@ class InvoiceGenerateView(StaffuserRequiredMixin, View):
             return redirect(invoice)
         else:
             return redirect(person)
-        
+
 
 class InvoicesGenerateSelectionView(StaffuserRequiredMixin, FormView):
     """
@@ -1709,7 +1742,7 @@ class InvoicesGenerateSelectionView(StaffuserRequiredMixin, FormView):
 class InvoiceMailView(StaffuserRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
-        invoice= Invoice.objects.get(pk=self.kwargs['pk'])
+        invoice = Invoice.objects.get(pk=self.kwargs['pk'])
         option = self.kwargs['option']
         result = do_mail(request, invoice, option)
         if option == 'view':
@@ -1784,6 +1817,7 @@ class InvoiceSelectView(StaffuserRequiredMixin, FormView):
         else:
             return HttpResponseRedirect(reverse('person-detail', kwargs={'pk': ref}))
 
+
 # ================ MailType Views
 
 
@@ -1797,7 +1831,6 @@ class MailTypeCreateView(StaffuserRequiredMixin, CreateView):
 
 
 class MailTypeUpdateView(StaffuserRequiredMixin, UpdateView):
-
     model = MailType
     form_class = MailTypeForm
     template_name = 'members/generic_crispy_form.html'
@@ -1825,7 +1858,7 @@ class MailTypeUpdateView(StaffuserRequiredMixin, UpdateView):
         if 'delete' in form.data:
             self.get_object().delete()
             return super(MailTypeUpdateView, self).form_valid(form)
-    
+
     def get_success_url(self):
         return reverse('mailtype-list')
 
@@ -1893,10 +1926,9 @@ class PaymentUpdateView(StaffuserRequiredMixin, UpdateView):
     template_name = 'members/payment_form.html'
 
     def get_context_data(self, **kwargs):
-        context = super(PaymentUpdateView, self).get_context_data(**kwargs)    
+        context = super(PaymentUpdateView, self).get_context_data(**kwargs)
         self.get_object().invoice.add_context(context)
         return context
-
 
     def form_valid(self, form):
         payment = form.save()
@@ -1940,7 +1972,7 @@ class PaymentListView(StaffuserRequiredMixin, PagedFilteredTableView):
     model = Payment
     table_class = PaymentTable
     filter_class = PaymentFilter
-    template_name ='members/invoice_table.html'
+    template_name = 'members/invoice_table.html'
 
     def get_queryset(self, **kwargs):
         qs = Payment.objects.all().select_related(
@@ -1981,7 +2013,7 @@ class PaymentListViewX(StaffuserRequiredMixin, FormMixin, TemplateView):
         self.form = self.get_form(self.form_class)
         if self.form.is_valid():
             self.object_list = self.get_queryset()
-            
+
             if request.is_ajax():
                 context = self.get_context_data()
                 html = render_to_string("members/_payment_list.html", context)
@@ -1990,7 +2022,7 @@ class PaymentListViewX(StaffuserRequiredMixin, FormMixin, TemplateView):
 
             if 'export' in self.form.data:
                 return export_payments(self.object_list)
-                  
+
         context = self.get_context_data()
         return self.render_to_response(context)
 
@@ -2008,7 +2040,7 @@ class PaymentListViewX(StaffuserRequiredMixin, FormMixin, TemplateView):
 
     def get_queryset(self):
         form = self.form
-        year = Settings.current_year()    
+        year = Settings.current_year()
         start_date = date(year, 4, 1)
         end_date = date.today()
         q_direct_debit = Payment.DIRECT_DEBIT
@@ -2018,9 +2050,9 @@ class PaymentListViewX(StaffuserRequiredMixin, FormMixin, TemplateView):
         q_cash = Payment.CASH
         if getattr(form, 'cleaned_data', None):
             if form.cleaned_data['membership_year']:
-                year = form.cleaned_data['membership_year']          
+                year = form.cleaned_data['membership_year']
             if form.cleaned_data['start_date']:
-                start_date = form.cleaned_data['start_date'] 
+                start_date = form.cleaned_data['start_date']
             if form.cleaned_data['end_date']:
                 end_date = form.cleaned_data['end_date'] + timedelta(days=1)
             q_direct_debit = -1
@@ -2046,13 +2078,14 @@ class PaymentListViewX(StaffuserRequiredMixin, FormMixin, TemplateView):
             Q(type=q_bacs) |
             Q(type=q_cheque) |
             Q(type=q_cash) |
-            Q(type=q_other)           
-            ).select_related(
-                'person'
-            ).order_by(
-                'person__last_name'
-            ) 
+            Q(type=q_other)
+        ).select_related(
+            'person'
+        ).order_by(
+            'person__last_name'
+        )
         return self.queryset
+
 
 # ================== CREDIT NOTES
 
@@ -2088,18 +2121,19 @@ class CreditNoteDetailView(StaffuserRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(CreditNoteDetailView, self).get_context_data(**kwargs)
-      
+
         context['person'] = Person.objects.get(pk=self.get_object().person_id)
         context['cnote'] = self.get_object()
         return context
 
     def post(self, request, *args, **kwargs):
         item = self.get_object()
-        person_id = item.person.id       
+        person_id = item.person.id
         if 'delete' in request.POST:
             item.delete()
             messages.info(request, "Credit note deleted")
-        return HttpResponseRedirect(reverse('person-detail', kwargs={'pk':person_id}))
+        return HttpResponseRedirect(reverse('person-detail', kwargs={'pk': person_id}))
+
 
 # ================ MailCampaign Views
 
@@ -2117,18 +2151,17 @@ class MailCampaignCreateView(StaffuserRequiredMixin, CreateView):
     def form_valid(self, form):
         if 'cancel' in form.data:
             return HttpResponseRedirect(reverse('home'))
-        
+
         # Copy template json to campaign
         mail_template = form.cleaned_data['mail_template']
-        form.instance.json = mail_template.json         
+        form.instance.json = mail_template.json
         return super(MailCampaignCreateView, self).form_valid(form)
-    
+
     def get_success_url(self):
         return reverse('mail-campaign-bee', kwargs={'pk': self.object.id})
 
 
 class MailCampaignUpdateView(StaffuserRequiredMixin, UpdateView):
-
     model = MailCampaign
     form_class = MailCampaignForm
     template_name = 'members/generic_crispy_form.html'
@@ -2151,7 +2184,7 @@ class MailCampaignUpdateView(StaffuserRequiredMixin, UpdateView):
     def form_valid(self, form):
         if 'next' in form.data:
             mail_template = form.cleaned_data['mail_template']
-            form.instance.json = mail_template.json           
+            form.instance.json = mail_template.json
             return super(MailCampaignUpdateView, self).form_valid(form)
 
         if 'delete' in form.data:
@@ -2183,7 +2216,7 @@ class MailCampaignBeeView(StaffuserRequiredMixin, TemplateView):
             return JsonResponse(campaign.json, safe=False)
         else:
             return super(MailCampaignBeeView, self).get(request, *args, **kwargs)
-    
+
     def post(self, request, *args, **kwargs):
         action = request.POST['action']
         html = request.POST['html']
@@ -2207,6 +2240,7 @@ class MailCampaignBeeView(StaffuserRequiredMixin, TemplateView):
         context['campaign_id'] = self.kwargs.get('pk', None)
         return context
 
+
 # ================== TEXT BLOCKS
 
 
@@ -2215,7 +2249,7 @@ class TextBlockCreateView(StaffuserRequiredMixin, CreateView):
     form_class = TextBlockForm
     template_name = 'members/textblock_form.html'
 
-    def get_context_data(self, **kwargs):       
+    def get_context_data(self, **kwargs):
         context = super(TextBlockCreateView, self).get_context_data(**kwargs)
         context['title'] = 'Create text block'
         return context
@@ -2224,7 +2258,7 @@ class TextBlockCreateView(StaffuserRequiredMixin, CreateView):
         kwargs = super(TextBlockCreateView, self).get_form_kwargs()
         kwargs.update({'no_delete': True})
         return kwargs
-    
+
     def form_invalid(self, form):
         if 'cancel' in form.data:
             return redirect('text-list')
@@ -2234,7 +2268,7 @@ class TextBlockCreateView(StaffuserRequiredMixin, CreateView):
         if 'cancel' in form.data:
             return redirect('text-list')
         return super(TextBlockCreateView, self).form_valid(form)
-    
+
     def get_success_url(self):
         return reverse('text-list')
 
@@ -2250,7 +2284,7 @@ class TextBlockUpdateView(StaffuserRequiredMixin, UpdateView):
         return context
 
     def form_valid(self, form):
-        
+
         if 'save' in form.data:
             form.save()
         if 'delete' in form.data:
@@ -2264,21 +2298,21 @@ class TextBlockUpdateView(StaffuserRequiredMixin, UpdateView):
             block.delete()
             return redirect(reverse('text-list'))
         return super(TextBlockUpdateView, self).form_invalid(form)
-    
+
 
 class TextBlockListView(StaffuserRequiredMixin, ListView):
-    model = TextBlock               
+    model = TextBlock
     template_name = 'members/textblock_list.html'
-    
+
 
 class EmailView(StaffuserRequiredMixin, FormView):
     form_class = EmailForm
     template_name = 'members/email.html'
     selection = False
-   
+
     def get_context_data(self, **kwargs):
-        context = super(EmailView, self).get_context_data(**kwargs) 
-        target = 'Send email'          
+        context = super(EmailView, self).get_context_data(**kwargs)
+        target = 'Send email'
         context['title'] = target
         blocks = TextBlock.objects.all()
         try:
@@ -2301,11 +2335,11 @@ class EmailView(StaffuserRequiredMixin, FormView):
             self.to = self.person.email
         self.group = self.kwargs.get('group', '-1')
         self.campaign_id = self.kwargs.get('campaign', 0)
-        kwargs = super(EmailView,self).get_form_kwargs()
+        kwargs = super(EmailView, self).get_form_kwargs()
         kwargs.update({'to': self.to,
                        'group': self.group,
                        'selection': self.selection})
-  
+
         return kwargs
 
     def get_initial(self):
@@ -2324,9 +2358,9 @@ class EmailView(StaffuserRequiredMixin, FormView):
         initial['selected'] = self.selection
         initial['text'] = """Dear {{first_name}}"""
         campaign_id = self.kwargs.get('campaign', 0)
-        if campaign_id: 
+        if campaign_id:
             campaign = MailCampaign.objects.get(pk=campaign_id)
-            initial['text'] = campaign.text  
+            initial['text'] = campaign.text
         return initial
 
     def get(self, request, *args, **kwargs):
@@ -2355,7 +2389,7 @@ class EmailView(StaffuserRequiredMixin, FormView):
         mail_type_list = []
         for mail_type in form.cleaned_data['mailtype']:
             mail_type_list.append(mail_type.id)
-        mail_types=MailType.objects.filter(id__in=mail_type_list)
+        mail_types = MailType.objects.filter(id__in=mail_type_list)
 
         if self.person:
             result = send_template_mail(request=self.request,
@@ -2376,7 +2410,7 @@ class EmailView(StaffuserRequiredMixin, FormView):
                                          text, from_email, None, None, subject, mail_types)
             messages.info(self.request, result)
             return redirect('group-detail', pk=group_id)
-                                    
+
         elif selection:
             id_list = self.request.session['selected_people_ids']
             result = send_multiple_mails(self.request, Person.objects.filter(pk__in=id_list),
@@ -2384,7 +2418,7 @@ class EmailView(StaffuserRequiredMixin, FormView):
             self.request.session['selected_people_ids'] = []
             messages.info(self.request, result)
             return redirect(self.request.session['source_path'])
-       
+
         else:
             return redirect('home')
 
@@ -2458,8 +2492,8 @@ class ImportExcelView(StaffuserRequiredMixin, FormView):
 
             # When we save the new one, any old file will be overwritten
             newbook = ExcelBook(file=input_excel)
-            newbook.save() 
-        except Exception:       
+            newbook.save()
+        except Exception:
             messages.error(self.request, "Error reading Excel file \n")
             return redirect(reverse('import'))
 
@@ -2467,17 +2501,17 @@ class ImportExcelView(StaffuserRequiredMixin, FormView):
 
 
 class SelectSheets(StaffuserRequiredMixin, FormView):
-    """ Select itemtype sheets to import """ 
+    """ Select itemtype sheets to import """
     form_class = SelectSheetsForm
     template_name = 'members/generic_crispy_form.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super(SelectSheets, self).get_context_data(**kwargs)
         context['title'] = 'Import invoice items'
         context['message'] = 'Select sheets to import'
-        return context 
-     
-    def form_valid(self,form):
+        return context
+
+    def form_valid(self, form):
         my_book = ExcelBook.objects.all()[0]
         with open_excel_workbook(my_book.file) as book:
             total = 0
@@ -2501,7 +2535,8 @@ class SelectSheets(StaffuserRequiredMixin, FormView):
                     else:
                         error_list.append('Sheet {0} checked OK'.format(k))
             context['errors'] = error_list
-            context['message'] = '{} items were {} from {} sheets'.format(total, 'imported' if do_import else 'checked', sheet_count)
+            context['message'] = '{} items were {} from {} sheets'.format(total, 'imported' if do_import else 'checked',
+                                                                          sheet_count)
             return render(self.request, 'members/generic_result.html', context)
 
 
@@ -2542,14 +2577,14 @@ def bee_test(request):
             template = request.GET['template']
             block = TextBlock.objects.get(type=TextBlock.BEE_TEMPLATE,
                                           name=template)
-            #dict={'template': block.text}
+            # dict={'template': block.text}
             return JsonResponse(block.text, safe=False)
         else:
             html = request.POST['html']
             template = request.POST['template']
             name = "bee_test"
             blocks = TextBlock.objects.filter(type=TextBlock.BEE_TEMPLATE,
-                                    name=name)
+                                              name=name)
             if len(blocks) == 0:
                 block = TextBlock(name=name,
                                   type=TextBlock.BEE_TEMPLATE,

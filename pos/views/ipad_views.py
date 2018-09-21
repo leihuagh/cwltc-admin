@@ -107,6 +107,7 @@ class StartView(LoginRequiredMixin, TemplateView):
             'event': reverse('pos_event_register', kwargs={'pk': '9999'}),
             'adults': reverse('ajax-adults'),
             'password': reverse('ajax-password'),
+            'dob': reverse('ajax-dob'),
             'postCode': reverse('ajax-postcode'),
             'setPin': reverse('ajax-set-pin'),
             'transactions': reverse('pos_transactions'),
@@ -145,28 +146,6 @@ class StartView(LoginRequiredMixin, TemplateView):
             return HttpResponse(f'Exists;{existing[0].id};{existing[0].total}')
         # should not get here - all posts are ajax
         return redirect('pos_start')
-
-
-
-
-class GetDobView(LoginRequiredMixin, FormView):
-    """ Validate junior by checking the date of birth """
-
-    template_name = 'pos/dob.html'
-    form_class = DobForm
-
-    def form_valid(self, form):
-        dob = form.cleaned_data['dob']
-        id = self.request.session.get('person_id', None)
-        person = Person.objects.get(pk=id)
-        if person.dob == dob:
-            return redirect(reverse('pos_visitors_person', kwargs={'person_id': id}))
-        self.request.session['message'] = "Incorrect date of birth"
-        return redirect('pos_start')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return add_context(context, self.request)
 
 
 class PosRegisterView(LoginRequiredMixin, RegisterView):
@@ -422,6 +401,8 @@ def ajax_ping(request):
             return HttpResponse('OK')
         return HttpResponse('Bad terminal')
     return HttpResponseBadRequest
+
+
 
 
 def read_cookie(request):

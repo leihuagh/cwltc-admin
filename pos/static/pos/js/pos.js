@@ -1,6 +1,6 @@
 // Version 3 Fully support offline working
 /* globals Bloodhound */
-var posCode = (function (){
+var posCode = (function () {
     "use strict";
 
     var pos = {};
@@ -21,7 +21,6 @@ var posCode = (function (){
     var line;
 
 
-
     // Django context variables
     var layoutId;
     var isAttended = false;
@@ -30,6 +29,9 @@ var posCode = (function (){
     var personId;
     var personName;
     var personList;
+    var junior;
+    var adultsOnly = true;
+    var allowJuniors;
 
     var touched = false;
 
@@ -38,7 +40,7 @@ var posCode = (function (){
     var appValue;
 
     var pingTimer;
-    var pingTimeout = 10000;
+    var pingTimeout = 60000;
     var terminal = 0;
     var online = false;
 
@@ -67,10 +69,14 @@ var posCode = (function (){
         initBloodhound();
         newReceipt();
         clearTimeout(timer);
-        localStorage.clear();
+        if (!localStorage.warmstart) {
+            localStorage.clear();
+        }
+        localStorage.setItem('warmstart', 'true');
+
         $('#startAttended').hide();
 
-        $(".touch").on('touchstart', function(event) {
+        $(".touch").on('touchstart', function (event) {
             event.currentTarget.classList.add('posbutton-down');
             event.preventDefault();
         });
@@ -87,9 +93,9 @@ var posCode = (function (){
         });
 
         // START PAGE
-        $('#startLogin').on('touchstart click', function (event) {
-            pos.touch(event, pos.login);
-        });
+        // $('#startLogin').on('touchstart click', function (event) {
+        //     pos.touch(event, pos.login(this.value));
+        // });
         $('#startAttended').on('touchstart click', function (event) {
             pos.touch(event, pos.startAttended(this.value));
         });
@@ -107,6 +113,12 @@ var posCode = (function (){
         $('#userBack').on('touchstart click', function (event) {
             pos.touch(event, pos.logOut);
         });
+        $('#userHelp').on('touchstart click', function (event) {
+            pos.touch(event, showHelp);
+        });
+        $('#userHelpClose').on('touchstart click', function (event) {
+            pos.touch(event, closeHelp);
+        });
 
         // PASSWORD
         $('#passwordBack').on('touchstart click', function (event) {
@@ -118,17 +130,25 @@ var posCode = (function (){
         $('#passwordReset').on('touchstart click', function (event) {
             pos.touch(event, pos.showPage('#pageResetPin'));
         });
-        $('#passwordPin').keydown(function (e){
-            if(e.keyCode === 13){
+        $('#passwordPin').keydown(function (e) {
+            if (e.keyCode === 13) {
                 e.preventDefault();
                 pos.submitPassword();
             }
         });
-        $('#passwordInput').keydown(function (e){
-            if(e.keyCode === 13){
+        $('#passwordInput').keydown(function (e) {
+            if (e.keyCode === 13) {
                 e.preventDefault();
                 pos.submitPassword();
             }
+        });
+
+        // DOB
+        $('#dobBack').on('touchstart click', function (event) {
+            pos.touch(event, pos.logOut);
+        });
+        $('#dobSubmit').on('touchstart click', function (event) {
+            pos.touch(event, pos.submitDob);
         });
 
         // RESET PIN
@@ -141,125 +161,125 @@ var posCode = (function (){
         $('#resetGo').on('touchstart click', function (event) {
             pos.touch(event, pos.submitPin());
         });
-        $('#resetPostCode').keydown(function (e){
-          if(e.keyCode === 13 && $('#resetPostCode').val().length >= 6){
-              e.preventDefault();
-              $('#resetPhone').focus();
-          }
+        $('#resetPostCode').keydown(function (e) {
+            if (e.keyCode === 13 && $('#resetPostCode').val().length >= 6) {
+                e.preventDefault();
+                $('#resetPhone').focus();
+            }
         });
-        $('#resetPhone').keydown(function (e){
-            if(e.keyCode === 13 && $('#resetPostCode').val().length >= 6 && $('#resetPhone').val().length >=10){
+        $('#resetPhone').keydown(function (e) {
+            if (e.keyCode === 13 && $('#resetPostCode').val().length >= 6 && $('#resetPhone').val().length >= 10) {
                 e.preventDefault();
                 pos.submitPostCode();
-          }
-         });
-        $('#resetPin').keydown(function (e){
+            }
+        });
+        $('#resetPin').keydown(function (e) {
             if (e.keyCode === 13) {
                 e.preventDefault();
             }
-        }).keyup(function (e){
+        }).keyup(function (e) {
             if ($('#resetPin').val().length >= 4) {
                 $('#resetGo').show();
                 if (e.keyCode === 13) {
                     e.preventDefault();
                     pos.submitPin();
                 }
-            }else{
+            } else {
                 $('#resetGo').hide();
             }
         });
 
 
         // MENU
-        $('.menu-layout').on('touchstart click', function(event) {
+        $('.menu-layout').on('touchstart click', function (event) {
             pos.touch(event, runApp('app-layout', this.value));
         });
-        $('.menu-view').on('touchstart click', function(event) {
+        $('.menu-view').on('touchstart click', function (event) {
             pos.touch(event, runApp('app-view', this.value));
         });
-        $('.menu-event').on('touchstart click', function(event) {
+        $('.menu-event').on('touchstart click', function (event) {
             pos.touch(event, runApp('app-event', this.value));
         });
-        $('#menuLogOut').on('touchstart click', function(event) {
+        $('#menuLogOut').on('touchstart click', function (event) {
             pos.touch(event, pos.logOut);
         });
-        $('#menuAttendedOn').on('touchstart click', function(event) {
+        $('#menuAttendedOn').on('touchstart click', function (event) {
             $('#startAttended').show();
             pos.touch(event, pos.logOut);
         });
-        $('#menuTransactions').on('touchstart click', function(event) {
+        $('#menuTransactions').on('touchstart click', function (event) {
             pos.touch(event, pos.transactions);
         });
-        $('#menuTransactionsAll').on('touchstart click', function(event) {
+        $('#menuTransactionsAll').on('touchstart click', function (event) {
             pos.touch(event, pos.transactions, 'all');
         });
-        $('#menuTransactionsMember').on('touchstart click', function(event) {
+        $('#menuTransactionsMember').on('touchstart click', function (event) {
             pos.touch(event, pos.transactions, 'member');
         });
-        $('#menuTransactionsComp').on('touchstart click', function(event) {
+        $('#menuTransactionsComp').on('touchstart click', function (event) {
             pos.touch(event, pos.transactions, 'comp');
         });
-        $('#menuTransactionsCash').on('touchstart click', function(event) {
+        $('#menuTransactionsCash').on('touchstart click', function (event) {
             pos.touch(event, pos.transactions, 'cash');
         });
-        $('#menuRestart').on('touchstart click', function(event) {
-            window.location.replace(urls.start);
+        $('#menuRestart').on('touchstart click', function (event) {
+            coldStart();
         });
 
         // POS
-        $(".item-button").on('touchstart click', function(event) {
+        $(".item-button").on('touchstart click', function (event) {
             event.currentTarget.classList.add('posbutton-down');
             handleTouch(event, 'item');
-        }).on('touchend click', function(event) {
+        }).on('touchend click', function (event) {
             event.currentTarget.classList.remove('posbutton-down');
             event.preventDefault();
         });
-        $('#posPay').on('touchstart click', function(event) {
+        $('#posPay').on('touchstart click', function (event) {
             pos.touch(event, pos.pay);
         });
-        $('#posCancel').on('touchstart click', function(event) {
+        $('#posCancel').on('touchstart click', function (event) {
             pos.touch(event, newReceipt);
         });
-        $('#posExit').on('touchstart click', function(event) {
+        $('#posExit').on('touchstart click', function (event) {
             pos.touch(event, pos.exit);
         });
-        $('#posEndAttended').on('touchstart click', function(event) {
+        $('#posEndAttended').on('touchstart click', function (event) {
             $('#startAttended').hide();
             pos.touch(event, pos.logOut);
         });
 
         // Attended modal
-        $('#posAccount').on('touchstart click', function(event) {
+        $('#posAccount').on('touchstart click', function (event) {
             pos.touch(event, pos.account);
         });
-        $('#posCash').on('touchstart click', function(event) {
+        $('#posCash').on('touchstart click', function (event) {
             pos.touch(event, pos.cash);
         });
-        $('#posResume').on('touchstart click', function(event) {
+        $('#posResume').on('touchstart click', function (event) {
             pos.touch(event, pos.resume);
         });
         // Member modal
-        $('#posCommit').on('touchstart click', function(event) {
+        $('#posCommit').on('touchstart click', function (event) {
             pos.touch(event, pos.commitSingle);
         });
-        $('#posSplit').on('touchstart click', function(event) {
+        $('#posSplit').on('touchstart click', function (event) {
             pos.touch(event, pos.split);
         });
-        $('#posBack').on('touchstart click', function(event) {
+        $('#posBack').on('touchstart click', function (event) {
             pos.touch(event, pos.resume);
         });
 
         // Select modal
-        $('#posBack1').on('touchstart click', function(event) {
+        $('#posBack1').on('touchstart click', function (event) {
             pos.touch(event, pos.back1);
         });
-        $('#posCharge').on('touchstart click', function(event) {
+        $('#posCharge').on('touchstart click', function (event) {
             pos.touch(event, pos.commit);
         });
-        $('#posAddMember').on('touchstart click', function(event) {
+        $('#posAddMember').on('touchstart click', function (event) {
             pos.touch(event, pos.addMember);
         });
-        $('#posBack2').on('touchstart click', function(event) {
+        $('#posBack2').on('touchstart click', function (event) {
             pos.touch(event, pos.back1);
         });
 
@@ -271,18 +291,123 @@ var posCode = (function (){
         pos.startApp();
     };
 
-    pos.href = function(href){
+    function coldStart() {
+        localStorage.clear();
+        window.location.replace(urls.start);
+    }
+
+    pos.href = function (href) {
         clearTimeout(timer);
         window.location.replace(href);
     };
 
-    function deferredStart(el, app_type){
+    pos.showPage = function (pageId) {
+        hideModals();
+        $('.typeahead').typeahead('val', '');
+        $('.page').hide();
+        if (pageId === '#pagePos') {
+            $('#idLogoBanner').hide();
+            if (isAttended) {
+                $('#posEndAttended').show();
+            } else {
+                $('#posEndAttended').hide();
+            }
+            $('.flex-left').show();
+            $('.flex-right').show();
+            payClass.hide();
+            exitClass.show();
+        } else {
+            $('#idLogoBanner').show();
+        }
+        $(pageId).show();
+        document.activeElement.blur();
+        switch (pageId) {
+            case '#pageStart':
+                break;
+            case '#pageUser':
+                $('#userNameInput').val('').focus();
+                break;
+            case '#pagePassword':
+                $('#passwordError').hide();
+                $('#passwordPin').val('').focus();
+                $('#passwordInput').val('');
+                break;
+            case '#pageDob':
+                $('#dobError').hide();
+                $('#dobInput').val('').focus();
+                break;
+            case '#pageResetPin':
+                $('#resetForm').show();
+                $('#resetDone').show();
+                $('#resetPostCode').val('').focus();
+                $('#resetPhone').val('');
+                $('#resetActionArea').hide();
+                $('#resetError').text('');
+                $('#resetGo').hide();
+                break;
+            case '#pageSelectMember':
+                $('#selectNameInput').val('');
+        }
+    };
+
+    function showHelp() {
+        $("#user-help-modal").modal('show');
+    }
+
+    function closeHelp() {
+        $("#user-help-modal").modal('hide');
+        $('#userNameInput').focus();
+    }
+
+    pos.exit = function () {
+        if (!isAttended) {
+            pos.showPage('#pageMenu');
+        } else {
+            pos.logOut();
+        }
+    };
+
+    pos.logOut = function () {
+        clearPerson();
+        document.activeElement.blur();
+        $("input").blur();
+        pos.showPage('#pageStart');
+    };
+
+    pos.startApp = function () {
+        startPing();
+        if (loadPerson()) {
+            pos.showMenu();
+        } else {
+            pos.showPage('#pageStart');
+        }
+    };
+
+    pos.login = function (app) {
+        appType = null;
+        isAttended = false;
+        clearPerson();
+        pos.showPage('#pageUser');
+    };
+
+    pos.startAttended = function (layout_id) {
+        appType = null;
+        isAttended = true;
+        clearPerson();
+        personName = 'Attended mode';
+        $('.personName').text(personName);
+        pos.startLayout(layout_id);
+    };
+
+    function deferredStart(el, app_type) {
         // store app details and show user page
+        // app wil start after login
         appType = app_type;
         appValue = el.value;
-        if (app_type === 'app-event'){
+        allowJuniors = el.dataset.juniors;
+        if (app_type === 'app-event') {
             appName = 'Book ' + el.name;
-        }else {
+        } else {
             appName = el.innerText;
         }
         $('.application').text(appName);
@@ -307,101 +432,24 @@ var posCode = (function (){
         }
     }
 
-    pos.showPage = function(pageId){
-        hideModals();
-        $('.typeahead').typeahead('val', '');
-        $('.page').hide();
-        if (pageId === '#pagePos') {
-          $('#idLogoBanner').hide();
-          if (isAttended){
-              $('#posEndAttended').show();
-          }else{
-              $('#posEndAttended').hide();
-          }
-          $('.flex-left').show();
-          $('.flex-right').show();
-          payClass.hide();
-          exitClass.show();
-        }else{
-          $('#idLogoBanner').show();
-        }
-        $(pageId).show();
-        document.activeElement.blur();
-        switch (pageId) {
-            case '#pageStart':
-                break;
-            case '#pageUser':
-               $('#userNameInput').val('').focus();
-               break;
-            case '#pagePassword':
-                $('#passwordError').hide();
-                $('#passwordPin').val('').focus();
-                $('#passwordInput').val('');
-                break;
-            case '#pageResetPin':
-                $('#resetForm').show();
-                $('#resetDone').show();
-                $('#resetPostCode').val('').focus();
-                $('#resetPhone').val('');
-                $('#resetActionArea').hide();
-                $('#resetError').text('');
-                $('#resetGo').hide();
-                break;
-            case '#pageSelectMember':
-                $('#selectNameInput').val('');
-        }
-    };
-
-    pos.exit = function(){
-        if (!isAttended){
-            pos.showPage('#pageMenu');
-        }else{
-            pos.logOut();
-        }
-    };
-
-    pos.logOut = function(){
-        clearPerson();
-        document.activeElement.blur();
-        $("input").blur();
-        pos.showPage('#pageStart');
-    };
-
-    pos.startApp = function(){
-        startPing();
-        if (loadPerson()) {
-            pos.showMenu();
-        }else{
-            pos.showPage('#pageStart');
-        }
-    };
-
-    pos.login = function() {
-        appType = null;
-        isAttended = false;
-        clearPerson();
-        pos.showPage('#pageUser');
-    };
-
-    pos.startAttended = function(layout_id) {
-        appType = null;
-        isAttended = true;
-        clearPerson();
-        personName = 'Attended mode';
-        $('.personName').text(personName);
-        pos.startLayout(layout_id);
-    };
-
-    pos.getPin = function(person) {
+    pos.getPin = function (person) {
+        // save user details and switch to get PIN
         savePerson(person);
         $('.typeAhead').typeahead('val', '');
-        $('#idPinInput').val('').focus();
-        $('#idPasswordInput').val('');
+        if (person.age) {
+            if (person.age < 13) {
+                pos.showPage('#pageStart');
+            } else if (person.age < 18) {
+                localStorage.setItem('junior', 'true');
+                pos.showPage('#pageDob');
+                return;
+            }
+        }
+        localStorage.setItem('junior', 'false');
         pos.showPage('#pagePassword');
     };
 
-
-    pos.submitPostCode = function() {
+    pos.submitPostCode = function () {
         var formData = $('#resetForm').serialize();
         $.ajax({
             type: 'POST',
@@ -409,7 +457,7 @@ var posCode = (function (){
             data: formData,
             timeout: ajaxTimeout,
             success: function (response) {
-                if (response === 'OK'){
+                if (response === 'OK') {
                     $('#resetForm').hide();
                     $('#resetError').text('');
                     $('#resetActionArea').show();
@@ -426,7 +474,7 @@ var posCode = (function (){
         });
     };
 
-    pos.submitPin = function() {
+    pos.submitPin = function () {
         // Submit new PIN from reset Pin page
         var formData = $('#resetPinForm').serialize();
         $.ajax({
@@ -444,24 +492,24 @@ var posCode = (function (){
         });
     };
 
-    pos.submitPassword = function() {
+    pos.submitPassword = function () {
         // submit pin and password from password page
-        var formData = $('#idPasswordForm').serialize();
+        var formData = $('passwordForm').serialize();
         var query = parseQuery(formData);
         $('#menuSupervisor').hide();
-        if (online){
+        if (online) {
             $.ajax({
                 type: 'POST',
                 url: urls.password,
                 data: formData,
                 timeout: ajaxTimeout,
                 success: function (response) {
-                    if (response.authenticated){
+                    if (response.authenticated) {
                         setOnline();
-                        if (query.pin){
+                        if (query.pin) {
                             localStorage.setItem('id:' + query.person_id, btoa(query.pin));
                         }
-                        if (response.supervisor){
+                        if (response.supervisor) {
                             $('#menuSupervisor').show();
                         }
                         loggedInNextAction();
@@ -483,58 +531,89 @@ var posCode = (function (){
         }
     };
 
-    function loggedInNextAction(){
-        if (appType){
+    pos.submitDob = function () {
+        var formData = $('#dobForm').serialize();
+        if (online) {
+            $.ajax({
+                type: 'POST',
+                url: urls.dob,
+                data: formData,
+                timeout: ajaxTimeout,
+                success: function (response) {
+                    if (response === 'OK') {
+                        setOnline();
+
+                        loggedInNextAction();
+                    } else {
+                        console.log(response);
+                        $('#dobError').text(response).show();
+                        $('#dobError').show();
+                        $('#dobInput').val('');
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    setOffline();
+                }
+            });
+        }
+    };
+
+    function loggedInNextAction() {
+        if (appType) {
             runApp(appType, appValue);
-        }else {
+        } else {
             pos.showMenu();
         }
     }
 
-    pos.showMenu = function(){
-        pos.showPage('#pageMenu');
+    pos.showMenu = function () {
+        if (!junior) {
+            pos.showPage('#pageMenu');
+        } else {
+            pos.logOut();
+        }
     };
 
-    pos.startLayout = function(layout){
+    pos.startLayout = function (layout) {
         newReceipt();
         applyLayout(layout);
         pos.showPage('#pagePos');
     };
 
-    pos.transactionsPerson = function(person){
+    pos.transactionsPerson = function (person) {
         pos.transactions(person.id);
     };
 
-    pos.transactions = function(id) {
+    pos.transactions = function (id) {
         clearTimeout(timer);
         $('.page').hide();
         var url;
-        if(id === 'member') {
+        if (id === 'member') {
             pos.showPage('#pageSelectMember');
             return;
-        }else if (id === undefined){
+        } else if (id === undefined) {
             url = urls.transactionsPerson.replace('9999', personId);
-        }else if (id === 'all'){
+        } else if (id === 'all') {
             url = urls.transactions;
-        }else if(id === 'cash'){
+        } else if (id === 'cash') {
             url = urls.transactionsCash;
-        }else if (personId === -1 || id === 'comp') {
+        } else if (personId === -1 || id === 'comp') {
             url = urls.transactionsComp;
-        }else{
+        } else {
             url = urls.transactionsPerson.replace('9999', id);
         }
         window.location.href = url + '?id=' + personId;
     };
 
 
-    function testOfflinePin(query){
+    function testOfflinePin(query) {
         // test submitted query against stored offline pin
         // if its present and matches start pos
         // if present and wrong -> error
         // if not present, start pos anyway
         var pin = localStorage.getItem('id:' + query.person_id);
-        if (pin){
-            if (atob(pin) === query.pin){
+        if (pin) {
+            if (atob(pin) === query.pin) {
                 console.log('Good offline pin');
                 loggedInNextAction();
             } else {
@@ -558,7 +637,7 @@ var posCode = (function (){
         receiptItem.description = item.description;
         receiptItem.sale_price = item.sale_price;
         receiptItem.cost_price = item.cost_price;
-        receiptItem.price = Math.fround(parseFloat(receiptItem.sale_price)*100);
+        receiptItem.price = Math.fround(parseFloat(receiptItem.sale_price) * 100);
         receipt.push(receiptItem);
         createTable(receipt);
     };
@@ -629,7 +708,7 @@ var posCode = (function (){
         showSplit(false);
     };
 
-    pos.addMember = function() {
+    pos.addMember = function () {
         // add member button on split sale modal
         showSplit(true);
         $('#member_search').typeahead('val', '').focus();
@@ -646,10 +725,10 @@ var posCode = (function (){
         }
     };
 
-    pos.back1 = function() {
+    pos.back1 = function () {
         // back from select member dialog
         hideModals();
-        switch(personList.length) {
+        switch (personList.length) {
             case 0:
                 $('attended_modal').modal('show');
                 break;
@@ -669,7 +748,7 @@ var posCode = (function (){
         hideModals();
     };
 
-    function hideModals(){
+    function hideModals() {
         $('#pay_modal').modal('hide');
         $('#attended_modal').modal('hide');
         $('#member_modal').modal('hide');
@@ -699,9 +778,9 @@ var posCode = (function (){
             tableBody.appendChild(row);
         } else {
             // calculate the split amounts
-            var splitPence = Math.floor(total/ personList.length);
+            var splitPence = Math.floor(total / personList.length);
             var splitTotal = splitPence * personList.length;
-            for (i = 0; i < personList.length; i ++) {
+            for (i = 0; i < personList.length; i++) {
                 personList[i].amount = splitPence;
             }
             if (splitTotal < total) {
@@ -712,7 +791,7 @@ var posCode = (function (){
                     splitTotal += 1;
                 }
             }
-            for (i = 0; i < personList.length; i ++) {
+            for (i = 0; i < personList.length; i++) {
                 row = document.createElement('tr');
                 cell = document.createElement('td');
                 cell.className = "person-name";
@@ -737,7 +816,7 @@ var posCode = (function (){
             $('#add_member_typeahead').hide();
             if (personList.length === 4) {
                 $('#posAddMember').hide();
-            }else{
+            } else {
                 $('#posAddMember').show();
             }
             $('#pay_buttons').show();
@@ -758,8 +837,8 @@ var posCode = (function (){
             'total': total,
             'stamp': stamp,
             'layout_id': layoutId,
-            'attended' : isAttended,
-            'terminal' : terminal
+            'attended': isAttended,
+            'terminal': terminal
         };
         receipt.push(payObj);
         var transaction = JSON.stringify(receipt);
@@ -780,29 +859,29 @@ var posCode = (function (){
                     $('#idLastTransaction').text(result[1]);
                     $('#idLastTotal').text(result[2]);
                     $('#menuLastTransaction').text('Last purchase: £' + result[2]);
-                }else if (result[0] === 'Exists'){
+                } else if (result[0] === 'Exists') {
                     console.log('Transaction exists with id ' + result[1]);
-                }else{
+                } else {
                     console.log('Unknown server response');
                 }
                 if (isAttended) {
                     pos.logOut();
-                }else{
+                } else {
                     pos.showPage('#pageMenu');
                 }
             },
             error: function (xhr, textStatus, errorThrown) {
-                console.log ('Error {xhr} {textStatus}');
+                console.log('Error {xhr} {textStatus}');
                 setOffline();
                 $('#save_modal').hide();
                 saveTransaction(transaction, stamp);
                 $('#idLastTransaction').text('local');
-                var localTotal = (payObj.total/100).toFixed(2);
+                var localTotal = (payObj.total / 100).toFixed(2);
                 $('#idLastTotal').text(localTotal);
                 $('#menuLastTransaction').text('Last purchase: £ ' + localTotal);
                 if (isAttended) {
                     pos.logOut();
-                }else{
+                } else {
                     pos.showPage('#pageMenu');
                 }
             }
@@ -819,23 +898,23 @@ var posCode = (function (){
         return query;
     }
 
-    function savePin(id, pin){
+    function savePin(id, pin) {
         // Save obfuscated pin in local storage
         var key = 'Id:' + id;
         localStorage.setItem(key, btoa(pin));
     }
 
-    function checkPin(id, pin){
+    function checkPin(id, pin) {
         var p = localStorage.getItem('Id:' + id);
-        if (p){
+        if (p) {
             return atob(p) === pin;
-        }else{
+        } else {
             return false;
         }
     }
 
 
-    function saveTransaction(trans, stamp){
+    function saveTransaction(trans, stamp) {
         // Save transaction in local storage
         var key = 'Trans:' + stamp;
         localStorage.setItem(key, trans);
@@ -846,17 +925,17 @@ var posCode = (function (){
     }
 
 
-    function getContents(){
+    function getContents() {
         // Return the list of transaction keys for locally saved transactions
         var jsonContents = localStorage.getItem('contents');
         if (jsonContents) {
             return JSON.parse(jsonContents);
-        }else{
+        } else {
             return [];
         }
     }
 
-    function removeTransaction(){
+    function removeTransaction() {
         var contents = getContents();
         localStorage.removeItem(contents[0]);
         console.log('removed ' + contents[0]);
@@ -866,16 +945,16 @@ var posCode = (function (){
         return contents;
     }
 
-    pos.recoverTransactions = function(){
+    pos.recoverTransactions = function () {
         recoverTransactions();
     };
 
-    function recoverTransactions(){
+    function recoverTransactions() {
         // If there are saved transactions, try to send them to the server
         // The server will ensure that transactions are only saved once
         // stop if an error occurs
         var contents = getContents();
-        if (contents.length > 0){
+        if (contents.length > 0) {
             console.log('Start recovery');
             $.ajax({
                 type: "POST",
@@ -883,22 +962,22 @@ var posCode = (function (){
                 data: localStorage.getItem(contents[0]),
                 dataType: 'text',
                 timeout: ajaxTimeout,
-                success: function(response){
+                success: function (response) {
                     console.log(response);
                     setOnline();
                     var result = response.split(';');
                     if (result[0] === 'Saved' || result[0] === 'Exists') {
                         contents = removeTransaction();
-                        if (contents.length > 0){
+                        if (contents.length > 0) {
                             console.log('Next item ' + contents[0]);
                             this.data = localStorage.getItem(contents[0]);
                             $.ajax(this);
                         }
-                    }else{
+                    } else {
                         console.log('Server error - abort recovery');
                     }
                 },
-                error: function(xhr, textStatus, errorThrown){
+                error: function (xhr, textStatus, errorThrown) {
                     setOffline();
                     console.log('Error ' + xhr + ' ' + textStatus + 'abort recovery');
                 }
@@ -945,7 +1024,7 @@ var posCode = (function (){
             // Build an item dictionary that includes its colours
             items = {};
             for (var i = 0; i < itemArray.length; i++) {
-                if (!itemArray[i].fields.colour){
+                if (!itemArray[i].fields.colour) {
                     itemArray[i].fields.colour = 0;
                 }
                 var colour = lookupColour(itemArray[i].fields.colour, colours);
@@ -958,7 +1037,7 @@ var posCode = (function (){
         }
     }
 
-    function applyLayout(id){
+    function applyLayout(id) {
         var col;
         var item;
         layoutId = id;
@@ -977,7 +1056,7 @@ var posCode = (function (){
         });
     }
 
-    function loadPeople(){
+    function loadPeople() {
         $.ajax({
             type: 'GET',
             url: urls.adults,
@@ -1016,7 +1095,7 @@ var posCode = (function (){
         }
         total = 0;
         if (receipt.length > 0) {
-           payClass.show();
+            payClass.show();
             receipt.forEach(function (item) {
                 row = document.createElement('tr');
                 cell = document.createElement('td');
@@ -1030,7 +1109,7 @@ var posCode = (function (){
                 cell = document.createElement('td');
                 cell.className = "del-button";
                 button = document.createElement("button");
-                button.className ="btn-danger";
+                button.className = "btn-danger";
                 button.id = item.lineId;
                 button.innerHTML = "X";
                 button.addEventListener("click", function (event) {
@@ -1045,12 +1124,12 @@ var posCode = (function (){
         } else {
             exitClass.show();
         }
-        formattedTotal = '£ ' + Number(total/100).toFixed(2);
+        formattedTotal = '£ ' + Number(total / 100).toFixed(2);
         $('#total-area').text("Total : " + formattedTotal);
     }
 
 
-    function setOnline(){
+    function setOnline() {
         online = true;
         $('#idOnline').text('Online');
         $('#menuOnline').show();
@@ -1058,15 +1137,15 @@ var posCode = (function (){
         switchBloodhound();
     }
 
-    function setOffline(){
+    function setOffline() {
         online = false;
         $('#idOnline').text('Offline');
         $('.online').hide();
         switchBloodhound();
     }
-    
 
-    function stopPing () {
+
+    function stopPing() {
         clearTimeout(pingTimer);
     }
 
@@ -1086,12 +1165,12 @@ var posCode = (function (){
                 if (data === 'OK') {
                     if (getContents().length > 0) {
                         recoverTransactions();
-                    }else{
+                    } else {
                         doSchedule();
                     }
-                }else if (data.slice(0, 7) === 'Restart') {
+                } else if (data.slice(0, 7) === 'Restart') {
                     window.location.replace(data.slice(8));
-                }else{
+                } else {
                     pos.logOut();
                 }
             },
@@ -1101,80 +1180,64 @@ var posCode = (function (){
         });
     }
 
+    /// Scheduled restart at 4am every morning to load latest data
+    // Note because we call cold start, nextRun is always cleared so code setting it is redundant
+
     var startHour = 4;
     var startMinute = 0;
     var runInterval = 1000 * 60 * 60 * 24;
 
-    function doSchedule(){
+    function doSchedule() {
         var now = new Date();
         var nextRun;
         console.log(now.toLocaleString());
         var nextRunString = localStorage.getItem('nextRun');
-        if (!nextRunString){
+        if (!nextRunString) {
             nextRun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, startHour, startMinute, 0, 0);
             localStorage.setItem('nextRun', nextRun);
         } else {
             nextRun = new Date(Date.parse(nextRunString));
         }
-        if (now >= nextRun){
-            nextRun = new Date( nextRun.getTime() + runInterval);
+        if (now >= nextRun) {
+            nextRun = new Date(nextRun.getTime() + runInterval);
             localStorage.setItem('nextRun', nextRun);
-            console.log('running schedule '+ now.toLocaleString() + ' next is at ' + nextRun.toLocaleString() );
-            window.location.replace(urls.start);
+            console.log('running schedule ' + now.toLocaleString() + ' next is at ' + nextRun.toLocaleString());
+            coldStart();
         }
     }
 
-    function whitespaceTokenizer(d){
-        return Bloodhound.tokenizers.whitespace(d.value);
-    }
+
 
     function initBloodhound() {
 
-        $.get('/ajax/adults', function(data){
+        $.get('/ajax/adults', function (data) {
             localPeople = data;
         });
-        //localPeople = [{id: 1, value:'abc'}];
 
         lookupPeople = new Bloodhound({
-            datumTokenizer: whitespaceTokenizer,
+            datumTokenizer: Bloodhound.tokenizers.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
-                url: '/ajax/people/?term=%QUERY&adult=true',
-                wildcard: '%QUERY'
+                url: '/ajax/people/', //?term=%QUERY&adults=true',
+                prepare: function (query, settings) {
+                    settings.url += '?term=' + query + (!allowJuniors ? '&adults=true': '&members=true');
+                    return settings;
+                }
             }
         });
-        // remoteLookupMembers = new Bloodhound({
-        //     datumTokenizer: function (d) {
-        //         return Bloodhound.tokenizers.whitespace(d.value);
-        //     },
-        //     queryTokenizer: Bloodhound.tokenizers.whitespace,
-        //     remote: {
-        //         url: '/ajax/people/?term=%QUERY&members=true',
-        //         wildcard: '%QUERY'
-        //     }
-        // });
-        // localLookup = new Bloodhound({
-        //     datumTokenizer: function (d) {
-        //         return Bloodhound.tokenizers.whitespace(d.value);
-        //     },
-        //     queryTokenizer: Bloodhound.tokenizers.whitespace,
-        //     prefetch: {
-        //         url: '/ajax/adults'
-        //     },
-        //     dupDetector: function (remoteMatch, localMatch) {
-        //         return remoteMatch.id === localMatch.id;
-        //     }
-        // });
     }
+
+
     var bloodhoundOnline;
-    function switchBloodhound(){
-        if (online && !bloodhoundOnline){
+
+    function switchBloodhound() {
+        if (online && !bloodhoundOnline) {
             lookupPeople.clear();
             bloodhoundOnline = true;
             lookupPeople.local = [];
             lookupPeople.initialize(true);
             console.log('Bloodhound is online');
-        }else if (!online && bloodhoundOnline){
+        } else if (!online && bloodhoundOnline) {
             lookupPeople.clear();
             bloodhoundOnline = false;
             lookupPeople.local = localPeople;
@@ -1182,6 +1245,7 @@ var posCode = (function (){
             console.log('Bloodhound is offline');
         }
     }
+
 
     function bindTypeAheads(){
         //var lookup = (online) ? remoteLookup : localLookup;
@@ -1236,12 +1300,14 @@ var posCode = (function (){
     }
 
     function loadPerson() {
+        // True if adult person saved in local storage
+        // Used after visiting external pages to return to menu
         personId = localStorage.getItem('personId');
         if (personId) {
             personName = localStorage.getItem('personName');
             $('.personName').text(personName);
             $('.personId').val(personId);
-            return true;
+            return (!localStorage.getItem('junior') === 'true')
         }
         return false;
     }

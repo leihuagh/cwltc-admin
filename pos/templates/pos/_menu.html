@@ -10,20 +10,21 @@
     <div class="col-md-4 col-md-push-4 text-center">
       <br>
       {% if is_bar %}
-        <p><button type="button" value="{{bar_app.layout_id}}" class="btn posbutton btn-large btn-block menu-layout touch">
-          Bar Purchase
-        </button></p><br>
+        <p><button type="button" value="{{bar_app.layout_id}}" class="btn btn-success btn-lg btn-block menu-layout stop-timer touch">Bar Purchase</button></p>
+        <br>
       {% endif %}
         <p><button type="button" value="{{teas_app.layout_id}}" class="btn btn-success btn-lg btn-block menu-layout stop-timer touch">Teas purchase</button></p>
-    {% for app in apps %}
-      {% if app.event %}
-        <button type="button" value="{{ app.event.id }}" class="btn btn-success btn-lg btn-block stop-timer menu-event touch online">{{ app.name}}</button></p>
-      {% else %}
-        <p><button type="button" value="{{app.view_name}}" class="btn btn-success btn-lg btn-block stop-timer menu-view touch online">{{ app.name}}</button></p>
-      {% endif %}
-    {% endfor %}
+      {% for app in apps %}
+        {% if app.event %}
+            {% if app.event.active%}
+            <button type="button" value="{{ app.event.id }}" class="btn btn-success btn-lg btn-block stop-timer menu-event touch online">{{ app.name}}</button></p>
+            {% endif %}
+          {% else %}
+          <p><button type="button" value="{{app.view_name}}" class="btn btn-success btn-lg btn-block stop-timer menu-view touch online">{{ app.name}}</button></p>
+        {% endif %}
+      {% endfor %}
       <p><button id="menuTransactions" class="btn btn-success btn-lg btn-block stop-timer online touch">View Account</button></p>
-      <p></p>
+      <br>
       <p><button id="menuLogOut" class="btn btn-success btn-lg btn-block stop-timer">Log Out</button></p>
       <h3 id="menuLastTransaction"></h3>
     </div>
