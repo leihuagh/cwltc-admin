@@ -1,0 +1,135 @@
+<!-- The main POS screen -->
+<div class="page" id="pagePos" hidden>
+<div class="flex-container">
+  <div class="flex-left" hidden>
+    {% for row in rows %}
+      {% for loc in row %}
+        {% if forloop.counter0 == 0 %}
+          <div class="row">
+            <div class="col row-description" id="btn{{ forloop.parentloop.counter }}{{ forloop.counter0 }}">
+              <strong></strong>
+            </div>
+          </div>
+          <div class="row row-buttons">
+        {% else %}
+          <div class="col col-md-2">
+              <input type="submit" class="posbutton item-button timeout" id="btn{{ forloop.parentloop.counter }}{{ forloop.counter0 }}"
+                value="{{ forloop.parentloop.counter }}{{ forloop.counter0 }}">
+          </div>
+        {% endif %}
+      {% endfor %}
+      </div>
+      <br/>
+    {% endfor %}
+  </div>
+
+  <div class="flex-right" hidden>
+    <div class="name-area"><span class="personName">aaa</span>
+      <button id="posEndAttended" class="btn btn-small btn-danger">End</button>
+    </div>
+    <div id="receipt-area">
+      <table id="id_table">
+        <!-- Receipt appears here -->
+      </table>
+    </div>
+    <div id="total-area"></div>
+    <div id="id_payment">
+      <div class="col-md-6 buttons-active">
+        <button class="btn btn-warning btn-lg btn-block timeout touch" id="posPay">Payment</button>
+      </div>
+      <div class="col-md-6 buttons-active">
+        <button class="btn btn-danger btn-lg btn-block timeout touch" id="posCancel">Cancel all</button>
+      </div>
+      <div class="col-md-12 button-exit">
+        <button class="btn btn-lg btn-block btn-warning timeout touch" id="posExit">Exit</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Modal for attended mode -->
+<div id="attended_modal" class="modal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Select payment type</h3>
+        </div>
+        <div class="modal-body">
+          <h4>Total is <span id="attended_total">xxx</span></h4>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-lg btn-success timeout" id="posAccount">Charge to member account</button>
+          <button class="btn btn-lg btn-success timeout" id="posCash">Cash sale</button>
+          <button class="btn btn-lg btn-danger timeout" id="posResume">Back</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for member mode -->
+<div id="member_modal" class="modal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+          <h3 class="modal-title">Charge to account</h3>
+      </div>
+      <div class="modal-body">
+        <h3>Confirm charge of <span id="member_total"></span> to <span id="member_name"></span></h3>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-lg btn-success timeout" id="posCommit">Charge to account</button>
+        {% if person_id != -1 %}
+        <button class="btn btn-lg btn-success timeout" id="posSplit">Split account</button>
+        {% endif %}
+        <button class="btn btn-lg btn-danger timeout" id="posBack">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal to select and charge to members account -->
+<div id="select_modal" class="modal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal_title">
+          <span id="title_1"></span> <span id="title_total"></span> <span id="title_2"></span>
+        </h3>
+      </div>
+      <div class="modal-body">
+        <table id="peopleTable">
+        </table>
+      </div>
+      <div class="modal-footer">
+        <div id="add_member_typeahead" class="row">
+          <div class="col-md-4 ipad-prompt">Select member:</div>
+          <div class="col-md-5">
+            <div class="input-group input-group-lg">
+              <input type="text" class="form-control timeout" id="member_search"
+                     autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+           </div>
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-lg btn-danger timeout" id="posBack1">Back</button>
+          </div>
+        </div>
+        <div id="pay_buttons">
+          <button class="btn btn-lg btn-success timeout" id="posCharge">Charge to account</button>
+          <button class="btn btn-lg btn-success timeout" id="posAddMember">Add another member</button>
+          <button class="btn btn-lg btn-danger timeout" id="posBack2">Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Modal to show saving data -->
+<div id="save_modal" class="modal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <h3 class="text-center">Saving transaction</h3>
+    </div>
+  </div>
+</div>

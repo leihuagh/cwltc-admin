@@ -1,0 +1,74 @@
+<div class="container bg page" id="pageResetPin" hidden>
+  <div class="row">
+    <h2 class="text-center personName"></h2>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col-md-2">
+      <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetBack">Back</button>
+    </div>
+    <form id="resetForm" method="post">
+      <div class="col-md-8">
+        <h3 class="text-center">Please confirm these details:</h3><br>
+        <div class="row">
+          <h4 class="col-md-4 ipad-prompt">Post code:</h4>
+          <div class="col-md-4">
+            <input type="hidden" class="personId"  name="person_id" value="">
+            <div class="input-group input-group-lg"  style="width: 100%!important;">
+              <input id='resetPostCode' type="text"  class="form-control timeout" name="postcode" value="" spellcheck="false"
+                     maxlength="10" autocapitalize="characters">
+            </div>
+          </div>
+        </div>
+        <br>
+        <div class="row">
+          <h4 class="col-md-4 ipad-prompt">Phone or mobile:</h4>
+          <div class="col-md-4">
+            <input type="hidden" class="personId"  name="person_id" value="">
+            <div class="input-group input-group-lg"  style="width: 100%!important;">
+              <input id='resetPhone' type="tel"  class="form-control timeout" name="phone" value="" spellcheck="false"
+                     maxlength="15">
+            </div>
+          </div>
+        </div>
+        <br>
+        <div id="resetError" class="ipad-error text-center"></div>
+      </div>
+      <div class="col-md-2 resetDoneArea">
+        <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetDone">Done</button>
+      </div>
+    </form>
+
+    <div id="resetActionArea" hidden>
+      <div class="col-md-5">
+        <h2 class="text-center">Fast Reset PIN</h2>
+        <p class="hint">Choose a 4 to 8 digit PIN for use with the iPads in the clubhouse.</p>
+        <div class="row">
+          <div class="col-md-3 ipad-prompt">PIN:</div>
+          <div class="col-md-5">
+            <form id="resetPinForm">
+              <input type="hidden" class="personId" name="person_id" value="">
+              <div class="input-group input-group-lg" >
+                <input id='resetPin' type="tel"  class="form-control timeout masked" name="pin" pattern="[0-9]*" value="" spellcheck="false"
+                  minlength="4" maxlength="8">
+              </div>
+            </form>
+          </div>
+          <div class="col-md-3">
+            <button type="button" class="btn btn-success btn-lg btn-block stop-timer" id="resetGo">Reset</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <h2 class="text-center">Full Registration</h2>
+        <p class="hint">Register for all online systems including the members' website.
+        </p>
+        <div class="text-center">
+          <button type="button" class="btn btn-success btn-lg stop-timer" id="resetRegister">Register</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>

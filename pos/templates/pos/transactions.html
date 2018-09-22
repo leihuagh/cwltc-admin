@@ -35,11 +35,7 @@
       Total: £ {% if sum %}{{ sum }}{% else %}0{% endif %}
     </div>
   </div>
-  {% if main_menu %}
-    <a href="{% url 'home' %}" class="btn btn-primary" id="exit">Exit</a>
-  {% else %}
-    <a href="{% url 'pos_menu'  %}" class="btn btn-lg btn-success" id="exit">Exit</a>
-  {% endif %}
+    <a href="{{ exit_url }}" class="btn btn-success btn-lg" id="exit">Exit</a>
   </div>
 {% endblock %}
 {% block scripts %}

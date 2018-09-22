@@ -10,15 +10,18 @@
   <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
   <link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:700" rel="stylesheet">
   <link rel="stylesheet" type="text/css"  href="{% static 'css/custom.css' %}">
+  <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
 
   {% block head %}
   {% endblock %}
 </head>
-<body style="background-color: #dde5e5">
+<body class="bg">
+{% for message in messages %}
+  <div class="alert {% if message.tags %}alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %}"{% endif %}>{{ message }}</div>
+{% endfor %}
 {% block content %}
 {% endblock %}
-  <script src="{% static 'pos/js/timeout.js' %}"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"
         integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
         crossorigin="anonymous"></script>

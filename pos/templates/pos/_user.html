@@ -1,0 +1,46 @@
+<!-- Get user page --->
+
+<div class="container bg page" id="pageUser" style="display: none">
+  <h2 class="text-center application" ><b></b></h2>
+  <h2 class="text-center">Please Login</h2>
+  <br/>
+  <div class="row">
+    <div class="col-md-2">
+        <button class="btn btn-success btn-lg btn-block touch stop-timer" id="userBack">Back</button>
+    </div>
+    <div class="col-md-3 ipad-prompt"> Search for name:</div>
+    <div class="col-md-2">
+      <div class="input-group input-group-lg">
+        <input type="text" class="form-control typeahead tt-query timeout bsfix" maxlength="15"
+               id ="userNameInput" autocomplete="off" spellcheck="false" autocapitalize="off">
+      </div>
+    </div>
+    <div class="col-md-2 col-md-offset-3">
+      <button id="userHelp" class="btn btn-success btn-lg btn-block timeout">Help</button>
+    </div>
+
+  </div>
+  <br><br>
+{#  <div class="row">#}
+{#    <div class="col-md-2 col-md-push-5 text-center">#}
+{#      <button id="help" class="btn btn-help btn-block timeout" data-toggle="modal" data-target="#help-modal">Help</button>#}
+{#    </div>#}
+{#  </div>#}
+</div>
+  <!-- Modal for help -->
+<div id="user-help-modal" class="modal" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-body hint">
+          <p>
+            You can search by first name, last name or both names separated by a space. </p>
+          <p>You only need to type the first few letters of each name. Case does not matter.
+          Keep typing until your name appears then tap it.</p>
+          <p>In most cases entering your 1st initial and 2 characters of your last name is enough.
+          </p>
+          <p> E.g. <strong>j sm</strong> would find <strong>John Smith</strong></p>
+          <p id="userHelpClose" class="text-center"><button class="btn btn-lg btn-success timed">Close help</button></p>
+        </div>
+    </div>
+  </div>
+</div>

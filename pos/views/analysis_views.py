@@ -1,6 +1,6 @@
 import logging
-from django.views.generic import DetailView, CreateView, UpdateView, TemplateView, View
-from django.urls import reverse_lazy
+from django.views.generic import DetailView, CreateView, UpdateView, ListView, TemplateView, View
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
@@ -8,7 +8,7 @@ from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from braces.views import GroupRequiredMixin
 from pos.tables import *
-from pos.forms import ItemForm, LayoutForm, ColourForm, AppForm
+from pos.forms import ItemForm, LayoutForm, ColourForm, AppForm, TickerForm
 from pos.filters import LineItemFilter
 from pos.views.ipad_views import build_pos_array
 from pos.services import dump_layout_to_excel
@@ -46,11 +46,17 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
     cash = False
     comp = False
     filter = ''
+    person_id = None
+
+    def get(self, request, *args, **kwargs):
+        self.pos_person =  request.GET.get('id', None)
+
+        return super().get(request, *args, **kwargs)
 
     def get_table_data(self):
-        person_id = self.kwargs.get('person_id', None)
-        if person_id:
-            self.qs = Transaction.objects.filter(person_id=person_id, billed=False)
+        self.person_id = self.kwargs.get('person_id', None)
+        if self.person_id:
+            self.qs = Transaction.objects.filter(person_id=self.person_id, billed=False)
         elif self.cash:
             self.qs = Transaction.objects.filter(cash=True, billed=False)
         elif self.comp:
@@ -72,7 +78,12 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
         context['bar'] = self.filter == 'bar'
         context['teas'] = self.filter == 'teas'
         context['all'] = self.filter == 'all'
-        person_id = self.kwargs.get('person_id', None)
+        context['pos_person'] = self.pos_person
+        if 'pos' in self.request.COOKIES:
+            context['exit_url'] = reverse('pos_start')
+        else:
+            context['exit_url'] = reverse('home')
+        person_id = self.kwargs.get('self.person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)
         self.request.session['last_path'] = self.request.path + '?' + self.request.GET.urlencode()
@@ -439,6 +450,11 @@ class AppUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     group_required = 'Pos'
     template_name = 'pos/crispy_form.html'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'delete': True})
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
         context['title'] = 'Edit POS application'
@@ -464,3 +480,54 @@ class AppListView(LoginRequiredMixin, GroupRequiredMixin, SingleTableView):
         if 'cancel' in request.POST:
             return redirect(self.success_url)
         return super().post(request, *args, **kwargs)
+
+
+class TickerCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
+    model = Ticker
+    form_class = TickerForm
+    success_url = reverse_lazy('pos_ticker_list')
+    group_required = 'Pos'
+    template_name = 'pos/crispy_form.html'
+
+    def post(self, request, *args, **kwargs):
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['title'] =  'Create POS Ticker Tape Message'
+        return context
+
+
+class TickerUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
+    model = Ticker
+    form_class = TickerForm
+    success_url = reverse_lazy('pos_ticker_list')
+    group_required = 'Pos'
+    template_name = 'pos/crispy_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'delete': True})
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        ticker = self.get_object()
+        if 'delete' in request.POST:
+            ticker.delete()
+            return redirect('pos_ticker_list')
+        if 'cancel' in request.POST:
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['title'] = 'Update POS Ticker Tape Message'
+        return context
+
+
+class TickerListView(LoginRequiredMixin, GroupRequiredMixin, ListView):
+    model = Ticker
+    group_required = 'Pos'
+    template_name = 'pos/ticker_list.html'

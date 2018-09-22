@@ -20,7 +20,7 @@
 {% block scripts %}
 <script>
     $(document).ready(function () {
-    timingCode.startTimer(120000, {% url 'pos_start' %});
+    timingCode.startTimer(120000, '{% url 'pos_start' %}');
   });
 </script>
 {% endblock %}

@@ -1,0 +1,32 @@
+  <div class="container bg page" id="pageDob" hidden>
+      <div class="row">
+        <b><h2 class="text-center application" ></h2></b>
+        <h2 class="text-center personName"></h2>
+      </div>
+      <br/>
+      <form id="dobForm">
+        <input type="hidden" class="personId" name="person_id" value="">
+        <div class="row">
+          <div class="col-md-2">
+        <button type="button" class="btn btn-success btn-lg btn-block timeout" id="dobBack">Back</button>
+          </div>
+          <h4 class="col-md-3 ipad-prompt">Date of Birth</h4>
+          <div class="col-md-5">
+            <div class="input-group input-group-lg">
+              <input id="dobInput" type="text" class="form-control timeout" name="dob" placeholder="DD/MM/YY" maxlength="10">
+            </div>
+            <br>
+            <div id="dobError" class="ipad-error text-center">Wrong date of birth</div>
+          </div>
+          <div class="col-md-1"></div>
+          <div class="col-md-2">
+            <button type="button" class="btn btn-success btn-lg btn-block timeout" id="dobSubmit">Go</button>
+          </div>
+        </div>
+      </form>
+    <br>
+      <div class="text-center hint">
+        <p>Confirm your date of birth to add an entry to the visitor book.</p>
+      </div>
+  </div>
+

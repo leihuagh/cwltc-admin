@@ -9,22 +9,19 @@ urlpatterns = [
     url(r'^start/$', StartView.as_view(), name='pos_start'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
+    url(r'^offline/$', OfflineView.as_view(), name='pos_disabled'),
 
-    url(r'lookup/member/$', LookupMemberView.as_view(), name='pos_lookup_member'),
-    url(r'^user/$', GetUserView.as_view(), name='pos_user'),
-    url(r'^password/$', GetPasswordView.as_view(), name='pos_password'),
-    url(r'^dob/$', GetDobView.as_view(), name='pos_dob'),
-    url(r'^menu/$', MemberMenuView.as_view(), name='pos_menu'),
-    url(r'^menu/timeout/$', MemberMenuView.as_view(timeout=10000), name='pos_menu_timeout'),
-    url(r'^run/$', PosView.as_view(), name='pos_run'),
-    url(r'^ajax/items/$', ajax_items_view, name='pos_ajax_items'),
-    url(r'^ajax/ping/$', ajax_ping_view, name='pos_ajax_ping'),
+    url(r'^lookup/member/$', LookupMemberView.as_view(), name='pos_lookup_member'),
+    url(r'^redirect/(?P<view>[\w\-]+)/(?P<person_id>\d+)/$', pos_redirect, name='pos_redirect'),
+
+    url(r'^ajax/items/$', ajax_items, name='pos_ajax_items'),
+    url(r'^ajax/ping/$', ajax_ping, name='pos_ajax_ping'),
 
     url(r'^visitor/menu/$', VisitorMenuView.as_view(), name='pos_visitor_menu'),
     url(r'^visitor/adult/$', VisitorCreateView.as_view(), name='pos_visitor_adult'),
     url(r'^visitor/junior/$', VisitorCreateView.as_view(junior=True), name='pos_visitor_junior'),
     url(r'^visitors/person/(?P<person_id>\d+)/$', VisitorBookView.as_view(), name='pos_visitors_person'),
-    url(r'^visitors/all/$', VisitorBookView.as_view(all_entries=True), name='pos_visitors_all'),
+    url(r'^visitors/all/(?P<person_id>\d+)/$', VisitorBookView.as_view(all_entries=True), name='pos_visitors_all'),
 
     url(r'^register/$', PosRegisterView.as_view(), name='pos_register'),
     url(r'^register/again$', PosRegisterView.as_view(re_register=True), name='pos_register_again'),
@@ -34,7 +31,6 @@ urlpatterns = [
 
     url(r'^event/register/(?P<pk>\d+)/$', PosEventRegisterView.as_view(), name='pos_event_register'),
 
-    url(r'^member/$', MemberSelectView.as_view(), name='pos_member'),
     url(r'^transactions/$', TransactionListView.as_view(), name='pos_transactions'),
     url(r'^transactions/main/$', TransactionListView.as_view(main_menu=True), name='pos_transactions_main'),
     url(r'^transactions/person/(?P<person_id>\d+)/$', TransactionListView.as_view(), name='pos_transactions_person'),
@@ -66,5 +62,9 @@ urlpatterns = [
     url(r'^app/list/$', AppListView.as_view(), name='pos_app_list'),
     url(r'^app/create/$', AppCreateView.as_view(), name='pos_app_create'),
     url(r'^app/(?P<pk>\d+)/$', AppUpdateView.as_view(), name='pos_app_update'),
+
+    url(r'^ticker/list/$', TickerListView.as_view(), name='pos_ticker_list'),
+    url(r'^ticker/create/$', TickerCreateView.as_view(), name='pos_ticker_create'),
+    url(r'^ticker/(?P<pk>\d+)/$', TickerUpdateView.as_view(), name='pos_ticker_update'),
 
     ]

@@ -1,0 +1,44 @@
+<div class="container bg page" id="pageMenu" hidden>
+  <div class="row">
+    <h2 class="text-center">Menu</h2>
+    <h2 class="text-center personName"></h2>
+      {% if messages %}
+        {% for message in messages %}
+          <h4>{{ message }}</h4>
+        {% endfor %}
+      {% endif %}
+    <div class="col-md-4 col-md-push-4 text-center">
+      <br>
+      {% if is_bar %}
+        <p><button type="button" value="{{bar_app.layout_id}}" class="btn btn-success btn-lg btn-block menu-layout stop-timer touch">Bar Purchase</button></p>
+        <br>
+      {% endif %}
+        <p><button type="button" value="{{teas_app.layout_id}}" class="btn btn-success btn-lg btn-block menu-layout stop-timer touch">Teas purchase</button></p>
+      {% for app in apps %}
+        {% if app.event %}
+            {% if app.event.active%}
+            <button type="button" value="{{ app.event.id }}" class="btn btn-success btn-lg btn-block stop-timer menu-event touch online">{{ app.name}}</button></p>
+            {% endif %}
+          {% else %}
+          <p><button type="button" value="{{app.view_name}}" class="btn btn-success btn-lg btn-block stop-timer menu-view touch online">{{ app.name}}</button></p>
+        {% endif %}
+      {% endfor %}
+      <p><button id="menuTransactions" class="btn btn-success btn-lg btn-block stop-timer online touch">View Account</button></p>
+      <br>
+      <p><button id="menuLogOut" class="btn btn-success btn-lg btn-block stop-timer">Log Out</button></p>
+      <h3 id="menuLastTransaction"></h3>
+    </div>
+    <div class="col-md-4 col-md-push-4" id="menuSupervisor">
+      <br>
+      <p><button id="menuTransactionsAll" class="btn btn-warning btn-lg btn-block timeout touch online">All transactions</button></p>
+      <p><button id="menuTransactionsMember" class="btn btn-warning btn-lg btn-block timeout touch online">Transactions for member</button></p>
+      <p><button id="menuTransactionsCash" class="btn btn-warning btn-lg btn-block timeout touch online">Cash transactions</button></p>
+      <p><button id="menuTransactionsComp" class="btn btn-warning btn-lg btn-block timeout touch online">Complimentary transactions</button></p>
+      <p><a href="{% url 'pos_admin' %}" class="btn btn-warning btn-lg btn-block timeout online">POS admin</a></p>
+      <p><button id="menuAttendedOn" class="btn btn-warning btn-lg btn-block timeout">Start attended mode</button></p>
+      <p><Button id="menuRestart" class="btn btn-warning btn-lg btn-block timeout">Restart</button></p>
+    </div>
+  </div>
+</div>
+
+

@@ -1,5 +1,7 @@
+from datetime import datetime
 from decimal import Decimal
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 from events.models import Event
 from members.models import Person, ItemType
@@ -80,7 +82,7 @@ class Location(models.Model):
 
 
 class Transaction(models.Model):
-    creation_date = models.DateTimeField(auto_now_add=True)
+    creation_date = models.DateTimeField()
     creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
@@ -97,6 +99,13 @@ class Transaction(models.Model):
         return "{} {} {}".format(str(self.id),
                                  name,
                                  str(self.total))
+
+    def save(self, *args, **kwargs):
+        """ simulate auto now for backwards compatibility but normally date comes from the pos """
+        if self.creation_date is None:
+            self.creation_date = timezone.now()
+        super().save(*args, **kwargs)
+
 
 
 class LineItem(models.Model):
@@ -176,6 +185,9 @@ class PosApp(models.Model):
     attended = models.BooleanField(default=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, blank=True, null=True)
 
+    def __str__(self):
+        return self.name
+
     def is_bar_app(self):
         if self.layout:
             return self.layout.item_type.id == ItemType.BAR
@@ -195,6 +207,7 @@ class PosApp(models.Model):
 class PosPing(models.Model):
     terminal = models.SmallIntegerField()
     time = models.DateTimeField()
+    # url = models.CharField(max_length=30)
 
     def __str__(self):
         return f'Terminal: {terminal} time: {time}'
@@ -250,3 +263,11 @@ class VisitorBook(models.Model):
 
     objects = models.Manager()
     billing = VisitorBookBillingManager()
+
+
+class Ticker(models.Model):
+    message = models.CharField(max_length=100)
+    apps = models.ManyToManyField(PosApp)
+
+    def __str__(self):
+        return self.message

@@ -61,22 +61,23 @@ class Tournament(models.Model):
         return count
 
     def add_standard_events(self):
+        """ Main events are active, plate events are inactive"""
         Event.objects.create(name="Men's Singles", event_type=EventType.MENS_SINGLES, cost=self.event_cost,
-                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=True)
         Event.objects.create(name="Ladies' Singles", event_type=EventType.LADIES_SINGLES, cost=self.event_cost,
-                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=True)
         Event.objects.create(name="Men's Doubles", event_type=EventType.MENS_DOUBLES, cost=self.event_cost,
-                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=True)
         Event.objects.create(name="Ladies' Doubles", event_type=EventType.LADIES_DOUBLES, cost=self.event_cost,
-                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=True)
         Event.objects.create(name="Mixed Doubles", event_type=EventType.MIXED_DOUBLES, cost=self.event_cost,
-                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self)
+                             date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=True)
         Event.objects.create(name="Men's Plate", event_type=EventType.MENS_DOUBLES, cost=0,
-                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
+                             date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
         Event.objects.create(name="Ladies' Plate", event_type=EventType.LADIES_DOUBLES, cost=0,
-                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
+                             date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
         Event.objects.create(name="Mixed Plate", event_type=EventType.MIXED_DOUBLES, cost=0,
-                             end_date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
+                             date=self.finals_date, item_type_id=ItemType.TOURNAMENT, tournament=self, active=False, online_entry=False)
 
     def players_list(self, for_choice_field=False):
         """ Returns a list of tuples containing player's fullname and id """
@@ -275,7 +276,7 @@ class Event(models.Model):
                         dict[p.partner_id] = self.cost
             records = Event.objects.filter(id=self.id) # need a queryset of records to be updated
             return BillingData(self.item_type, dict, records,
-                               transactions=None, description=self.name, date=self.end_date)
+                               transactions=None, description=self.name, date=self.date)
 
 
 class Participant(models.Model):
