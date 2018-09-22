@@ -47,7 +47,7 @@ var posCode = (function () {
     var timer;
     var timeout = 120000;
 
-    var ajaxTimeout = 2000;
+    var ajaxTimeout = 2500;
 
     // Bloodhound
     var lookupPeople;
@@ -494,7 +494,7 @@ var posCode = (function () {
 
     pos.submitPassword = function () {
         // submit pin and password from password page
-        var formData = $('passwordForm').serialize();
+        var formData = $('#passwordForm').serialize();
         var query = parseQuery(formData);
         $('#menuSupervisor').hide();
         if (online) {
@@ -1190,7 +1190,6 @@ var posCode = (function () {
     function doSchedule() {
         var now = new Date();
         var nextRun;
-        console.log(now.toLocaleString());
         var nextRunString = localStorage.getItem('nextRun');
         if (!nextRunString) {
             nextRun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, startHour, startMinute, 0, 0);
@@ -1201,7 +1200,7 @@ var posCode = (function () {
         if (now >= nextRun) {
             nextRun = new Date(nextRun.getTime() + runInterval);
             localStorage.setItem('nextRun', nextRun);
-            console.log('running schedule ' + now.toLocaleString() + ' next is at ' + nextRun.toLocaleString());
+            //console.log('running schedule ' + now.toLocaleString() + ' next is at ' + nextRun.toLocaleString());
             coldStart();
         }
     }
@@ -1307,7 +1306,8 @@ var posCode = (function () {
             personName = localStorage.getItem('personName');
             $('.personName').text(personName);
             $('.personId').val(personId);
-            return (!localStorage.getItem('junior') === 'true')
+            var junior = localStorage.getItem('junior') === 'true';
+            return !junior;
         }
         return false;
     }
