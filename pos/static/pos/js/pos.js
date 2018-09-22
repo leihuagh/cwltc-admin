@@ -522,7 +522,7 @@ var posCode = (function () {
                     }
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    console.log(textStatus + ' ignore password');
+                    alert(textStatus + ' ignore password');
                     setOffline();
                     testOfflinePin(query);
                 }
