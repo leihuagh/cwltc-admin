@@ -516,6 +516,7 @@ var posCode = (function () {
                         }
                         loggedInNextAction();
                     } else {
+                        alert(response);
                         console.log(response);
                         $('#passwordError').show();
                         $('#passwordPin').val('').focus();
