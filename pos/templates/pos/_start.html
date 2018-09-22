@@ -4,55 +4,52 @@
       <h1 class="text-center"><strong>
         {% if is_bar %}Honesty Bar{% else %}Online Member Services{% endif %}</strong></h1>
       <br>
-      <div id="idOnlineMessage"> <!-- division is hidden if ping fails -->
-        <div class="row text-center">
-          <p class="ipad-error">{{ request.session.message }}</p>
-          {% if is_bar %}
-            <button class="posbutton btn-success btn-large btn-block app-layout" type="button" value="{{ bar_app.layout_id }}">Member login</button>
-            <br><br>
-            <button type="button" id="startAttended" value="{{ bar_app.layout.id }}" class="btn btn-success posbutton btn-large" >Attended mode</button>
-            <br><br>
-            <button class="posbutton btn-success btn-help timeout" data-toggle="modal" data-target="#help-start-modal">Help</button>
-          {% else %}
-            <div class="row">
-              <div class="col-md-4">
-                {% for app in apps %}
-                  {% if app.event %}
-                    {% if app.event.active%}
-                    <input type="image" value="{{ app.event.id }}" name="{{ app.name }}" src="{{ app.event.image.url }}" class="img-responsive online">
-                    <h3 class="online">Touch the picture to book</h3>
-                      {% endif %}
-                  {% endif %}
-                {% endfor %}
-              </div>
-              <div class="col-md-8">
-                <div class="row">
-                  <div class="col-md-6 text-center">
-                    <button class="posbutton btn-success btn-large btn-block app-layout" type="button" value="{{ teas_app.layout_id }}">{{ teas_app.name }}</button>
-                  </div>
-                  <div class="col-md-6">
-                    <p class="hint online">{{ teas_app.description }}</p>
-                  </div>
-                </div>
-                <br>
-                {% for app in apps %}
-                  {% if not app.event %}
-                    <div class="row">
-                      <div class="col-md-6 text-center">
-                        <button class="posbutton btn-success btn-large btn-block app-view online" type="button"
-                                value="{{ app.view_name}}" data-juniors="{%  if app.allow_juniors %}true{% else %}false{% endif %}">{{ app.name }}</button>
-                      </div>
-                      <div class="col-md-6">
-                        <p class="hint online">{{ app.description }}</p>
-                      </div>
-                    </div>
-                    <br>
-                  {% endif %}
-                {% endfor %}
-              </div>
+      <div class="row text-center">
+        {% if is_bar %}
+          <button class="posbutton btn-success btn-large btn-block app-layout" type="button" value="{{ bar_app.layout_id }}">Member login</button>
+          <br><br>
+          <button type="button" id="startAttended" value="{{ bar_app.layout.id }}" class="btn btn-success posbutton btn-large" >Attended mode</button>
+          <br><br>
+          <button class="posbutton btn-success btn-help timeout" data-toggle="modal" data-target="#help-start-modal">Help</button>
+        {% else %}
+          <div class="row">
+            <div class="col-md-4">
+              {% for app in apps %}
+                {% if app.event %}
+                  {% if app.event.active%}
+                  <input type="image" value="{{ app.event.id }}" name="{{ app.name }}" src="{{ app.event.image.url }}" class="img-responsive online">
+                  <h3 class="online">Touch the picture to book</h3>
+                    {% endif %}
+                {% endif %}
+              {% endfor %}
             </div>
-          {% endif %}
-        </div>
+            <div class="col-md-8">
+              <div class="row">
+                <div class="col-md-4 col-md-offset-1 text-center">
+                  <button class="posbutton btn-success btn-large btn-block app-layout" type="button" value="{{ teas_app.layout_id }}">{{ teas_app.name }}</button>
+                </div>
+                <div class="col-md-7">
+                  <p class=" hint online text-left">{{ teas_app.description }}</p>
+                </div>
+              </div>
+              <br>
+              {% for app in apps %}
+                {% if not app.event %}
+                  <div class="row">
+                    <div class="col-md-4 col-md-offset-1 text-center">
+                      <button class="posbutton btn-success btn-large btn-block app-view online" type="button"
+                              value="{{ app.view_name}}" data-juniors="{%  if app.allow_juniors %}true{% else %}false{% endif %}">{{ app.name }}</button>
+                    </div>
+                    <div class="col-md-7">
+                      <p class="hint online text-left">{{ app.description }}</p>
+                    </div>
+                  </div>
+                  <br>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
