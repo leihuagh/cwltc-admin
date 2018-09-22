@@ -128,6 +128,7 @@ class Person(models.Model):
 
     def set_pin(self, pin):
         self.pin = make_password(pin)
+        self.save()
 
     @property
     def fullname(self):
