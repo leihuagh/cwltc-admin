@@ -27,13 +27,11 @@
     Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
   </div>
 
-    <script>
-        var urls = '{{ urls }}';
-        var csrf_token = '{{ csrf_token }}';
-    </script>
-
   <script src="{% static 'pos/js/jquery3.3.1.min.js' %}"></script>
   <script src="{% static 'pos/js/bootstrap3.3.7.min.js' %}"></script>
   <script src="{% static 'js/typeahead.bundle.js' %}"></script>
   <script src="{% static 'pos/js/pos.js' %}"></script>
+  <script>
+    posCode.init('{{ csrf_token }}', '{{ urls }}');
+  </script>
 </body>
