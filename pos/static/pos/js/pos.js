@@ -505,7 +505,7 @@ var posCode = (function () {
                 data: formData,
                 timeout: ajaxTimeout,
                 success: function (response) {
-                    alert(response.authenticated);
+                    //alert(response.authenticated);
                     if (response.authenticated) {
                         setOnline();
                         if (query.pin) {
@@ -516,7 +516,7 @@ var posCode = (function () {
                         }
                         loggedInNextAction();
                     } else {
-                        alert(response);
+                        //alert(response);
                         console.log(response);
                         $('#passwordError').show();
                         $('#passwordPin').val('').focus();
