@@ -524,8 +524,8 @@ var posCode = (function () {
                     }
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    alert('error');
-                    alert(textStatus + ' ignore password ' + errorThrown);
+                    //alert('error');
+                    //alert(textStatus + ' ignore password ' + errorThrown);
                     setOffline();
                     testOfflinePin(query);
                 }

@@ -208,20 +208,15 @@ class TickerForm(ModelForm):
 
     class Meta:
         model = Ticker
-        fields = ['message', 'apps']
+        fields = ['message', 'bar', 'main']
 
-    apps = forms.ModelMultipleChoiceField(queryset=PosApp.objects.filter(layout_id__isnull=False))
 
     def __init__(self, *args, **kwargs):
         delete = kwargs.pop('delete', None)
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.layout = CrispyLayout(
-            Div(
-                'message',
-                'message',
-                'apps',
-                ),
+            Div('message', 'bar', 'main'),
             FormActions(
                 SubmitButton('save', 'Save', css_class='btn-primary'),
                 SubmitButton('cancel', 'Cancel', css_class='btn-default', formnovalidate='formnovalidate')

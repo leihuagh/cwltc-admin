@@ -58,9 +58,15 @@
   </div>
   <div class="ticker-wrap">
     <div class="ticker">
-      {% for ticker in tickers %}
-        <div class="ticker__item">{{ ticker.message }}</div>
-      {% endfor %}
+      {% if is_bar %}
+        {% for ticker in bar_tickers %}
+          <div class="ticker__item">{{ ticker.message }}</div>
+        {% endfor %}
+      {% else %}
+        {% for ticker in main_tickers %}
+          <div class="ticker__item">{{ ticker.message }}</div>
+        {% endfor %}
+      {%  endif %}
     </div>
   </div>
 </div>

@@ -267,7 +267,8 @@ class VisitorBook(models.Model):
 
 class Ticker(models.Model):
     message = models.CharField(max_length=100)
-    apps = models.ManyToManyField(PosApp)
+    bar = models.BooleanField(default=False)
+    main = models.BooleanField(default=False)
 
     def __str__(self):
         return self.message
