@@ -494,6 +494,7 @@ var posCode = (function () {
 
     pos.submitPassword = function () {
         // submit pin and password from password page
+        //
         var formData = $('#passwordForm').serialize();
         var query = parseQuery(formData);
         $('#menuSupervisor').hide();
