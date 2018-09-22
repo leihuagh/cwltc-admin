@@ -463,9 +463,9 @@ span.twitter-typeahead .tt-suggestion:focus {
   font-size: 24px;
   line-height: 24px;
 }
-/* Ticker tape
-   https://codepen.io/lewismcarey/pen/GJZVoG?editors=1010
-*/
+/*!* Ticker tape*/
+   /*https://codepen.io/lewismcarey/pen/GJZVoG?editors=1010*/
+
 * {
   box-sizing: border-box;
 }

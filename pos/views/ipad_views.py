@@ -98,6 +98,9 @@ class StartView(LoginRequiredMixin, TemplateView):
             context['teas_app'] = apps[0]
         context['apps'] = PosApp.objects.filter(enabled=True, layout_id=None)
         context['tickers'] = Ticker.objects.all()
+
+        context['bar_tickers'] = Ticker.objects.all()
+        context['main_tickers'] = Ticker.objects.all()
         context['is_bar'] = self.system == 'bar'
         context['urls'] = mark_safe(json.dumps({
             'ping': reverse('pos_ajax_ping'),

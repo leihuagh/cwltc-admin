@@ -9,18 +9,10 @@
   <link rel="stylesheet" href="{% static 'pos/css/bootstrap3.3.7.min.css' %}">
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro|Montserrat:700" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'pos/css/pos.css' %}">
-  <script src="{% static 'pos/js/rsvp.min.js' %}"></script>
-  <script src="{% static 'pos/js/basket.js' %}"></script>
-  <script src="{% static 'pos/js/jquery3.3.1.min.js' %}"></script>
-  <script src="{% static 'pos/js/bootstrap3.3.7.min.js' %}"></script>
-  <script src="{% static 'js/typeahead.bundle.js' %}"></script>
 </head>
 <body class="bg">
-  <div class="terminal">Terminal: <span id="terminal"></span> <span id="idOnline"></span> <span id="idSaved"></span></div>
-  <div class="last-transaction">
-    Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
-  </div>
-  <div id="wrapper">
+
+
     {% include '_logo_banner.html' %}
     {% include 'pos/_start.html' %}
     {% include 'pos/_user.html' %}
@@ -30,6 +22,9 @@
     {% include 'pos/_menu.html' %}
     {% include 'pos/_select_member.html' %}
     {% include 'pos/_pos.html' %}
+  <div class="terminal">Terminal: <span id="terminal"></span> <span id="idOnline"></span> <span id="idSaved"></span></div>
+  <div class="last-transaction">
+    Last transaction: <span id="idLastTransaction"></span>: £<span id="idLastTotal"></span>
   </div>
 
     <script>
@@ -37,18 +32,8 @@
         var csrf_token = '{{ csrf_token }}';
     </script>
 
-  </div>
+  <script src="{% static 'pos/js/jquery3.3.1.min.js' %}"></script>
+  <script src="{% static 'pos/js/bootstrap3.3.7.min.js' %}"></script>
+  <script src="{% static 'js/typeahead.bundle.js' %}"></script>
   <script src="{% static 'pos/js/pos.js' %}"></script>
-  <script>
-    posCode.init(csrf_token, urls);
-    /*
-    localStorage.setItem('pos_page', $('#wrapper').html());
-
-        basket.require({url: "{% static 'pos/js/pos.js' %}", key: 'pos'})
-            .then(function() {
-                posCode.init(csrf_token, urls);
-            })
-  */
-  </script>
-
 </body>

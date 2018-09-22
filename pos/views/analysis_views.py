@@ -429,11 +429,6 @@ class AppCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
     group_required = 'Pos'
     template_name = 'pos/crispy_form.html'
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs.update({'delete': true})
-        return kwargs
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
         context['title'] = 'Create new POS application'
@@ -454,6 +449,11 @@ class AppUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     success_url = reverse_lazy('pos_app_list')
     group_required = 'Pos'
     template_name = 'pos/crispy_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'delete': True})
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
@@ -506,6 +506,11 @@ class TickerUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     success_url = reverse_lazy('pos_ticker_list')
     group_required = 'Pos'
     template_name = 'pos/crispy_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'delete': True})
+        return kwargs
 
     def post(self, request, *args, **kwargs):
         ticker = self.get_object()
