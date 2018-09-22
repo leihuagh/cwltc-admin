@@ -505,6 +505,7 @@ var posCode = (function () {
                 data: formData,
                 timeout: ajaxTimeout,
                 success: function (response) {
+                    alert(response.authenticated);
                     if (response.authenticated) {
                         setOnline();
                         if (query.pin) {
@@ -522,7 +523,8 @@ var posCode = (function () {
                     }
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    alert(textStatus + ' ignore password');
+                    alert('error');
+                    alert(textStatus + ' ignore password ' + errorThrown);
                     setOffline();
                     testOfflinePin(query);
                 }
