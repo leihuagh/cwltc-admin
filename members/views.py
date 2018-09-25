@@ -155,6 +155,9 @@ class HomeView(StaffuserRequiredMixin, TemplateView):
         context['membership_year'] = Settings.current_year()
         context['db_name'] = settings.DATABASES['default']['NAME']
         add_invoice_summary(context)
+        context['members'] = Subscription.counts.filter(sub_year=2018, paid=True)
+        context['members_1'] = Subscription.counts.filter(sub_year=2017, paid=True)
+        context['members_2'] = Subscription.counts.filter(sub_year=2016, paid=True)
         return context
 
 
@@ -497,16 +500,13 @@ def ajax_person(request):
         dict['mobile'] = person.mobile_phone
         dict['phone'] = person.address.home_phone
     else:
-        dict['mobile'] = 'Not shared'
-        dict['phone'] = 'Not shared'
+        dict['mobile'] = 'Mobile not shared'
+        dict['phone'] = 'Phone not shared'
     if person.allow_email:
         dict['email'] = person.email
     else:
-        dict['email'] = 'Not shared'
+        dict['email'] = 'Email not shared'
     dict['membership'] = person.membership.description
-    dict['auth'] = person.auth
-    dict['age'] = person.age_today()
-    dict['dob'] = person.dob
     return JsonResponse(dict)
 
 

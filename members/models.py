@@ -3,6 +3,7 @@ import os
 from decimal import *
 from enum import IntEnum
 from django.db import models
+from django.db.models import Count
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.urls import reverse
@@ -693,6 +694,16 @@ class InvoiceItem(models.Model):
         item.save()
 
 
+class SubscriptionCountManager(models.Manager):
+
+    def get_queryset(self):
+        """
+        Return count of membership categories
+        """
+        return super().get_queryset().filter(resigned=False).values(
+            'membership__description').annotate(count=Count('membership__description'))
+
+
 class Subscription(models.Model):
     START_MONTH = 5
     END_MONTH = 4
@@ -725,6 +736,8 @@ class Subscription(models.Model):
     invoiced_month = models.SmallIntegerField()
     no_renewal = models.BooleanField(default=False)
     cardless_id = models.CharField(max_length=50, blank=True, null=True)
+    objects = models.Manager()
+    counts = SubscriptionCountManager()
 
     def __str__(self):
         return u'Sub {} {} {} {}'.format(

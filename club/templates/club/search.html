@@ -15,7 +15,7 @@
       You only need to type the first few letters of each name. Case does not matter.<br>
       In most cases entering the 1st initial then 2 characters of the last name is enough.<br>
       Click the name when it appears in the list. &nbsp &nbsp
-      E.g. <strong>jsm</strong> would find <strong>John Smith</strong>
+      E.g. <strong>j sm</strong> would find <strong>John Smith</strong>
   </p>
 
   <div class="row initially-hidden" id="results">
@@ -48,7 +48,7 @@
       $('#search_id').typeahead('val', '');
     });
     function go(person) {
-        $.get("/ajax/person?id=" + person.id, function(person){
+        $.get('{{ search_url }}' + '?id=' + person.id, function(person){
             $('#help_button').hide();
             $('#help_text').hide();
             $('#search').hide();

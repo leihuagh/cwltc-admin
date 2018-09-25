@@ -10,7 +10,7 @@
       {% if site_name  == "Sandbox" %}
        [SANDBOX]
       {% elif site_name == "Dev" %}
-       [Local Develeopment]
+       [Local Development]
       {% endif %}
       </p>
       <p>
@@ -26,6 +26,23 @@
         </div>
       </div>
 
+  </div>
+  <div class="row">
+  <div class="col-md-4">
+    {% for entry in members %}
+    <p>{{ entry.membership__description}} {{ entry.count }}</p>
+    {% endfor %}
+  </div>
+    <div class="col-md-4">
+    {% for entry in members_1%}
+    <p>{{ entry.membership__description}} {{ entry.count }}</p>
+    {% endfor %}
+    </div>
+      <div class="col-md-4">
+    {% for entry in members_2 %}
+    <p>{{ entry.membership__description}} {{ entry.count }}</p>
+    {% endfor %}
+  </div>
   </div>
 {% endblock %}
  

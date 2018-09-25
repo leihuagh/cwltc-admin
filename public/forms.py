@@ -2,11 +2,14 @@ import string
 import re
 import requests
 import json
+import datetime
 from django import forms
 from django.forms import Form, ModelForm, HiddenInput, RadioSelect
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, HTML, Field, Fieldset
+from tempus_dominus.widgets import DatePicker
+
 from members.forms import SubmitButton
 from members.models import AdultApplication, Person, Address, Membership, JuniorProfile
 from members.services import membership_age
@@ -176,8 +179,10 @@ class NameForm(ModelForm):
                 'email',
                 'mobile_phone'
                 ]
-        widgets = {'dob': forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY'})}
-    
+        # widgets = {'dob': forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY'})}
+        widgets = {'dob': DatePicker(
+            options={'format': 'DD/MM/YYYY'}
+        )}
     form_type = forms.CharField(initial='Name', widget=HiddenInput, required=False)
 
     def __init__(self, *args, **kwargs):

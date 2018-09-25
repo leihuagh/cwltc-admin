@@ -106,6 +106,7 @@ class StartView(LoginRequiredMixin, TemplateView):
             'start': reverse('pos_start'),
             'redirect': reverse('pos_redirect', kwargs={'view': 'xxxx', 'person_id': '9999'}),
             'event': reverse('pos_event_register', kwargs={'pk': '9999'}),
+            'people': reverse('ajax-people'),
             'adults': reverse('ajax-adults'),
             'password': reverse('ajax-password'),
             'dob': reverse('ajax-dob'),
@@ -232,10 +233,10 @@ class VisitorBookView(LoginRequiredMixin, SingleTableView):
 
     def get_table_data(self):
         self.id = self.kwargs.get('person_id', None)
-        if self.id:
-            qs = VisitorBook.objects.filter(member_id=self.id)
-        else:
+        if self.all_entries:
             qs = VisitorBook.objects.all()
+        else:
+            qs = VisitorBook.objects.filter(member_id=self.id)
         return list(qs.order_by('-date', '-id').select_related('visitor').select_related('member__membership'))
 
     def get_context_data(self, **kwargs):

@@ -7,6 +7,7 @@
     <div class="col-sm-12 col-md-8 col-lg-6">
       <form method="POST" novalidate="">{% csrf_token %}
         <div class="card my-2">
+        {{ form.media }}
           {% if form_title %}
             <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>
           {% endif %}
@@ -40,9 +41,9 @@
   </div>
 {% endblock content %}
 {% block scripts %}
-    <script>
-        $('#datepicker').datepicker({
-            uiLibrary: 'bootstrap4'
-        });
-    </script>
+{#    <script>#}
+{#        $('#datepicker').datepicker({#}
+{#            uiLibrary: 'bootstrap4'#}
+{#        });#}
+{#    </script>#}
 {% endblock %}

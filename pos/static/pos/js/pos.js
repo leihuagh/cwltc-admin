@@ -52,8 +52,7 @@ var posCode = (function () {
     // Bloodhound
     var lookupPeople;
     var localPeople;
-    // var localLookup;
-    // var remoteLookup;
+
 
     /* Public methods*/
     pos.init = function (csrf_token, url_dict) {
@@ -1213,7 +1212,7 @@ var posCode = (function () {
 
     function initBloodhound() {
 
-        $.get('/ajax/adults', function (data) {
+        $.get(urls.adults, function (data) {
             localPeople = data;
         });
 
@@ -1221,7 +1220,7 @@ var posCode = (function () {
             datumTokenizer: Bloodhound.tokenizers.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
-                url: '/ajax/people/', //?term=%QUERY&adults=true',
+                url: urls.people,
                 prepare: function (query, settings) {
                     settings.url += '?term=' + query + (!allowJuniors ? '&adults=true': '&members=true');
                     return settings;
