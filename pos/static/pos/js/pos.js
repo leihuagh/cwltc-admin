@@ -40,7 +40,7 @@ var posCode = (function () {
     var appValue;
 
     var pingTimer;
-    var pingTimeout = 60000;
+    var pingTimeout = 10000;
     var terminal = 0;
     var online = false;
 
@@ -1153,6 +1153,7 @@ var posCode = (function () {
     }
 
     function startPing() {
+        ping();
         pingTimer = setInterval(ping, pingTimeout);
     }
 

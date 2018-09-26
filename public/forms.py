@@ -179,10 +179,10 @@ class NameForm(ModelForm):
                 'email',
                 'mobile_phone'
                 ]
-        # widgets = {'dob': forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY'})}
-        widgets = {'dob': DatePicker(
-            options={'format': 'DD/MM/YYYY'}
-        )}
+        widgets = {'dob': DatePicker(options={'format': 'DD/MM/YYYY',
+                                              'viewMode': 'decades'}
+                                     )}
+
     form_type = forms.CharField(initial='Name', widget=HiddenInput, required=False)
 
     def __init__(self, *args, **kwargs):
