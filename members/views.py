@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import check_password
+from django.urls.base import reverse_lazy
 from django.utils.dateparse import parse_date
 from django.core.serializers import serialize
 from braces.views import StaffuserRequiredMixin
@@ -579,6 +580,22 @@ def ajax_set_pin(request):
     pin = request.POST.get('pin', '')
     person.set_pin(pin)
     return HttpResponse('Pin set')
+
+
+def ajax_chart_members(request):
+    counts = list(Subscription.counts.filter(sub_year=2018, paid=True))
+    labels = []
+    values = []
+    for c in counts:
+        labels.append(c['membership__description'])
+        values.append(c['count'])
+    data = {
+        'type': 'bar',
+        'name': 'Membership numbers',
+        'labels': labels,
+        'values': values,
+    }
+    return JsonResponse(data)
 
 
 def search_person(request):
@@ -1188,6 +1205,8 @@ class FeesListView(StaffuserRequiredMixin, ListView):
         context['latest'] = (self.latest_year == self.year)
         context['forward'] = self.year + 1
         context['back'] = self.year - 1
+        if not VisitorFees.objects.filter(year=self.year).exists():
+            messages.warning(self.request, f'Warning: No visitors fees exist for {self.year}')
         return context
 
     def post(self, request, *args, **kwargs):
@@ -1266,10 +1285,23 @@ class MembershipTableView(StaffuserRequiredMixin, SingleTableView):
     table_pagination = {"per_page": 10000}
 
     def get_context_data(self, **kwargs):
-        context = super(MembershipTableView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = 'Membership categories'
         return context
 
+
+class MembershipCreateView(StaffuserRequiredMixin, CreateView):
+    model = Membership
+    template_name = 'members/generic_crispy_form_well.html'
+    form_class = MembershipForm
+    success_url = reverse_lazy('categories-list')
+
+
+class MembershipUpdateView(StaffuserRequiredMixin, UpdateView):
+    model = Membership
+    template_name = 'members/generic_crispy_form.html'
+    form_class = MembershipForm
+    success_url = reverse_lazy('categories-list')
 
 # ================ Invoice items
 

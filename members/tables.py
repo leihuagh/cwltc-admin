@@ -119,3 +119,4 @@ class MembershipTable(tables.Table):
     class Meta:
         model = Membership
         attrs = {'class': 'table table-condensed'}
+    edit = tables.LinkColumn('categories-update', text='Edit', args=[A('id')], orderable=False)

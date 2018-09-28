@@ -46,6 +46,7 @@ urlpatterns = [
     url(r'^ajax/postcode/$', ajax_postcode, name="ajax-postcode"),
     url(r'^ajax/dob/$', ajax_dob, name="ajax-dob"),
     url(r'^ajax/set_pin/$', ajax_set_pin, name="ajax-set-pin"),
+    url(r'^ajax/chart/members/$', ajax_chart_members, name="ajax-chart-members"),
     url(r'^search/person/$', search_person, name="search-person"),
 
     # YEAR END
@@ -79,10 +80,10 @@ urlpatterns = [
         name='group-add-list'),
 
     #   MEMBERSHIP CATEGORIES
-    url(r'^categories/list/$',
-        MembershipTableView.as_view(),
-        name='categories-list'
-        ),
+    url(r'^categories/list/$',MembershipTableView.as_view(),name='categories-list'),
+    url(r'^categories/create/$',MembershipCreateView.as_view(),name='categories-create'),
+    url(r'^categories/update/(?P<pk>\d+)$',MembershipUpdateView.as_view(),name='categories-update'),
+
     #   FEES
     url(r'^fees/update/(?P<pk>\d+)/$', FeesUpdateView.as_view(), name='fees-update'),
     url(r'^fees/list/$', FeesListView.as_view(), name='fees-list'),

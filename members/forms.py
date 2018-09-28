@@ -692,6 +692,19 @@ class YearConfirmForm(Form):
         year = cleaned_data.get('sub_year')
 
 
+class MembershipForm(ModelForm):
+
+    class Meta:
+        model = Membership
+        fields = ['description', 'long_description',
+                  'is_adult', 'is_playing', 'is_tennis', 'apply_online', 'cutoff_age']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
+
+
 # class MembersListForm(Form):
 #     # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
 #     categories = forms.ChoiceField()

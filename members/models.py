@@ -249,6 +249,7 @@ class Membership(models.Model):
     long_description = models.CharField(max_length=300, verbose_name='Description', blank=True)
     is_adult = models.BooleanField(default=True)
     is_playing = models.BooleanField(default=True)
+    is_tennis = models.BooleanField(default=True)
     apply_online = models.BooleanField(default=True)
     cutoff_age = models.IntegerField(default=0)
 
