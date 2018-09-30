@@ -2,7 +2,7 @@ from .base import *
 SITE_NAME = "Sandbox"
 DEBUG = False
 LIVE_GO_CARDLESS = True
-
+LIVE_MAIL = True
 
 # We could use the default path but make it explicit for clarity
 env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
@@ -26,9 +26,16 @@ SECRET_KEY = env.str('SECRET_KEY')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
+
+if LIVE_MAIL:
+    print('Warning - Live mail')
+    EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+    ANYMAIL = env.dict('ANYMAIL')
+else:
+    EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
 # Mails go to dummy
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-# EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+
 
 ANYMAIL = env.dict('ANYMAIL')
 

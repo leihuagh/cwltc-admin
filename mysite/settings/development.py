@@ -5,6 +5,7 @@ SITE_NAME = "Development"
 DEBUG = True
 DEBUG_TOOLBAR = False
 LIVE_GO_CARDLESS = False
+LIVE_MAIL = True
 
 
 # We could use the default path but make it explicit for clarity
@@ -36,9 +37,13 @@ SECRET_KEY = env.str('SECRET_KEY')
 BEE_FREE_ID = env.str('BEE_FREE_ID')
 BEE_FREE_SECRET = env.str('BEE_FREE_SECRET')
 
-EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
-# EMAIL_BACKEND = "anymail.backends.mailgun.eMailBackend"
-ANYMAIL = env.dict('ANYMAIL')
+if LIVE_MAIL:
+    print('Warning - Live mail')
+    EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+    ANYMAIL = env.dict('ANYMAIL')
+else:
+    EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
+
 TEMPUS_DOMINUS_LOCALIZE = True
 
 
