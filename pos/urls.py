@@ -9,7 +9,6 @@ urlpatterns = [
     url(r'^start/$', StartView.as_view(), name='pos_start'),
     url(r'^set_terminal$', SetTerminalView.as_view(), name='pos_set_terminal'),
     url(r'^disabled/$', DisabledView.as_view(), name='pos_disabled'),
-    url(r'^offline/$', OfflineView.as_view(), name='pos_disabled'),
 
     url(r'^lookup/member/(?P<person_id>\d+)/$', LookupMemberView.as_view(), name='pos_lookup_member'),
     url(r'^redirect/(?P<view>[\w\-]+)/(?P<person_id>\d+)/$', pos_redirect, name='pos_redirect'),

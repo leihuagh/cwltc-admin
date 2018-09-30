@@ -65,10 +65,6 @@ class DisabledView(LoginRequiredMixin, TemplateView):
     template_name = 'pos/disabled.html'
 
 
-class OfflineView(LoginRequiredMixin, TemplateView):
-    template_name = 'pos/offline.html'
-
-
 class StartView(LoginRequiredMixin, TemplateView):
     """ Member login or attended mode selection """
     template_name = 'pos/start.html'

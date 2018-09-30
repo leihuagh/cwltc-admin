@@ -167,7 +167,7 @@ class Person(models.Model):
         self.consent_date = datetime.now()
 
     def has_consented(self):
-        return self.consent_date != None
+        return self.consent_date is not None
     
     def unregister(self):
         if self.auth:
@@ -672,7 +672,7 @@ class InvoiceItem(models.Model):
     subscription = models.ForeignKey('Subscription', on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
-        return u'%s %d' % (self.description, self.amount)
+        return f'{self.description} {self.amount}'
 
     @property
     def is_invoiced(self):
@@ -699,9 +699,9 @@ class SubscriptionCountManager(models.Manager):
 
     def get_queryset(self):
         """
-        Return count of membership categories
+        Return count of membership categories - normally filtered by year
         """
-        return super().get_queryset().filter(resigned=False).values(
+        return super().get_queryset().values(
             'membership__description').annotate(count=Count('membership__description'))
 
 

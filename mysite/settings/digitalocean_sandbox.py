@@ -38,8 +38,6 @@ else:
 # EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 
 
-ANYMAIL = env.dict('ANYMAIL')
-
 if LIVE_GO_CARDLESS:
     CARDLESS_ACCESS_TOKEN = env.str('CARDLESS_PRODUCTION_TOKEN')
     CARDLESS_ENVIRONMENT = 'live'

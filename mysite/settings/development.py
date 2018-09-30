@@ -5,7 +5,7 @@ SITE_NAME = "Development"
 DEBUG = True
 DEBUG_TOOLBAR = False
 LIVE_GO_CARDLESS = False
-LIVE_MAIL = True
+LIVE_MAIL = False
 
 
 # We could use the default path but make it explicit for clarity

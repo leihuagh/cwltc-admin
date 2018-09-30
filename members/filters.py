@@ -9,7 +9,7 @@ def year_choices(withNone=False):
     choices = []
     if withNone:
         choices.append([0, "Not invoiced"])
-    year = 2018 #Settings.current_year()
+    year = Settings.current_year()
     for y in range(year, year-5, -1):
         choices.append([y, str(y)])
     return choices
