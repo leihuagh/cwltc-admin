@@ -33,7 +33,7 @@ if LIVE_MAIL:
     ANYMAIL = env.dict('ANYMAIL')
 else:
     EMAIL_BACKEND = 'django_mail_viewer.backends.locmem.EmailBackend'
-    INSTALLED_APPS += ('django_mail_viewer')
+    INSTALLED_APPS += ('django_mail_viewer',)
 # Mails go to dummy
 # EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 
