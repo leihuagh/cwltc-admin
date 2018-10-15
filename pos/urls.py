@@ -66,4 +66,5 @@ urlpatterns = [
     url(r'^ticker/create/$', TickerCreateView.as_view(), name='pos_ticker_create'),
     url(r'^ticker/(?P<pk>\d+)/$', TickerUpdateView.as_view(), name='pos_ticker_update'),
 
+    url('^data_entry/$', DataEntryView.as_view(), name='pos_data_entry'),
     ]

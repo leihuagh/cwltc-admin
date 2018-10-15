@@ -219,10 +219,32 @@ class TickerForm(ModelForm):
             Div('message', 'bar', 'main'),
             FormActions(
                 SubmitButton('save', 'Save', css_class='btn-primary'),
-                SubmitButton('cancel', 'Cancel', css_class='btn-default', formnovalidate='formnovalidate')
+                SubmitButton('cancel', 'Cancel', css_class='btn-default', formnovalidate='formnovalidate'),
+                css_class="col")
             )
-        )
         if delete:
             self.helper.layout[1].insert(
                 1, SubmitButton('delete', 'Delete', css_class='btn-danger', formnovalidate='formnovalidate')
             )
+
+
+ACCOUNT_CHOICES = ((ItemType.TEAS, 'Teas'), (ItemType.BAR, 'Bar'))
+
+
+class DataEntryForm(Form):
+
+    member_search = forms.CharField()
+    person_id = forms.CharField(widget=forms.HiddenInput)
+    total = forms.IntegerField(label='Total in pence')
+    item_type = forms.ChoiceField(choices=ACCOUNT_CHOICES, widget=forms.RadioSelect)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = CrispyLayout(
+            Div('member_search', 'person_id', 'total', 'item_type'),
+            FormActions(
+                SubmitButton('save', 'Save', css_class='btn-primary'),
+                SubmitButton('exit', 'Exit', css_class='btn-default', formnovalidate='formnovalidate'),
+                css_class="col")
+        )

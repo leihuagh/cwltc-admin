@@ -83,7 +83,6 @@ def ajax_person(request):
         dict['mobile'] = 'Mobile not shared'
         dict['phone'] = 'Phone not shared'
     dict['email'] = person.email if person.allow_email else 'Email not shared'
-    dict['email'] = 'Email not shared'
     dict['membership'] = person.membership.description
     return JsonResponse(dict)
 

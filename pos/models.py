@@ -107,7 +107,6 @@ class Transaction(models.Model):
         super().save(*args, **kwargs)
 
 
-
 class LineItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True)
     sale_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)

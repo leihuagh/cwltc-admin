@@ -153,6 +153,7 @@ def dump_items_to_excel(item_type_id):
     wb.save(response)
     return response
 
+
 def dump_layout_to_excel(layout):
     """ https://djangotricks.blogspot.co.uk/2013/12/how-to-export-data-as-excel.html """
     array, items = build_pos_array(layout)

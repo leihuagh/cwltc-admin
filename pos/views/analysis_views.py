@@ -1,6 +1,7 @@
 import logging
-from django.views.generic import DetailView, CreateView, UpdateView, ListView, TemplateView, View
+from django.views.generic import DetailView, CreateView, UpdateView, ListView, TemplateView, FormView, View
 from django.urls import reverse, reverse_lazy
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
@@ -8,7 +9,7 @@ from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from braces.views import GroupRequiredMixin
 from pos.tables import *
-from pos.forms import ItemForm, LayoutForm, ColourForm, AppForm, TickerForm
+from pos.forms import ItemForm, LayoutForm, ColourForm, AppForm, TickerForm, DataEntryForm
 from pos.filters import LineItemFilter
 from pos.views.ipad_views import build_pos_array
 from pos.services import dump_layout_to_excel
@@ -72,17 +73,16 @@ class TransactionListView(LoginRequiredMixin, SingleTableView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['main_menu'] = self.main_menu
         context['sum'] = self.qs.aggregate(sum=Sum('total'))['sum']
         context['heading'] = 'POS Transactions'
         context['bar'] = self.filter == 'bar'
         context['teas'] = self.filter == 'teas'
         context['all'] = self.filter == 'all'
         context['pos_person'] = self.pos_person
-        if 'pos' in self.request.COOKIES:
-            context['exit_url'] = reverse('pos_start')
-        else:
+        if self.main_menu:
             context['exit_url'] = reverse('home')
+        else:
+            context['exit_url'] = reverse('pos_start')
         person_id = self.kwargs.get('self.person_id', None)
         if person_id:
             context['person'] = Person.objects.get(pk=person_id)
@@ -531,3 +531,41 @@ class TickerListView(LoginRequiredMixin, GroupRequiredMixin, ListView):
     model = Ticker
     group_required = 'Pos'
     template_name = 'pos/ticker_list.html'
+
+
+class DataEntryView(LoginRequiredMixin, GroupRequiredMixin, FormView):
+    group_required = 'Pos'
+    form_class = DataEntryForm
+    template_name = 'pos/data_entry.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['item_type'] = ItemType.TEAS
+        initial['total'] = 60
+        return initial
+
+    def post(self, request, *args, **kwargs):
+        if 'exit' in request.POST:
+            return redirect('pos_admin')
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        person = Person.objects.get(id=form.cleaned_data['person_id'])
+        total = (Decimal(int(form.cleaned_data['total']))/ 100).quantize(Decimal('.01'))
+        item_type = ItemType.objects.get(id=form.cleaned_data['item_type'])
+        trans = Transaction(
+            creation_date=datetime.now(),
+            creator=self.request.user,
+            person=person,
+            terminal=0,
+            item_type=item_type,
+            total=total,
+            billed=False,
+            cash=False,
+            complimentary=False,
+            split=False,
+            attended=True,
+            )
+        trans.save()
+        messages.success(self.request, f"{total} charged to {person.fullname}'s {item_type.description}")
+        return redirect(self.request.path)
