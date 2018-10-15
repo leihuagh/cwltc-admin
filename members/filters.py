@@ -27,13 +27,13 @@ class SubsBaseFilter(django_filters.FilterSet):
         )
     
 
-    year = django_filters.ChoiceFilter(name='sub_year',
+    year = django_filters.ChoiceFilter(field_name='sub_year',
                                        label='Year',
                                        empty_label=None,
                                        choices=year_choices()
                                       )
 
-    paid = django_filters.ChoiceFilter(name='paid',
+    paid = django_filters.ChoiceFilter(field_name='paid',
                                        label='Subscription',
                                        choices=PAID_CHOICES,
                                        empty_label='Paid & unpaid'
@@ -45,11 +45,11 @@ class SubsBaseFilter(django_filters.FilterSet):
                                                   to_field_name="description",
                                                   empty_label="No filter"
                                                  )
-    first_name = django_filters.CharFilter(name='person_member__first_name',
+    first_name = django_filters.CharFilter(field_name='person_member__first_name',
                                            lookup_expr='istartswith',
                                            label = 'First name starts'
                                           )                                           
-    last_name = django_filters.CharFilter(name='person_member__last_name',
+    last_name = django_filters.CharFilter(field_name='person_member__last_name',
                                           lookup_expr='istartswith',
                                           label='Last name starts'
                                          )
@@ -57,11 +57,11 @@ class SubsBaseFilter(django_filters.FilterSet):
 
 class JuniorFilter(SubsBaseFilter):
 
-    dob1 = django_filters.DateFilter(name='person_member__dob',
+    dob1 = django_filters.DateFilter(field_name='person_member__dob',
                                      label='Born after',
                                      lookup_expr='gt'
                                      )
-    dob2 = django_filters.DateFilter(name='person_member__dob',
+    dob2 = django_filters.DateFilter(field_name='person_member__dob',
                                      label='Born before',
                                      lookup_expr='lt'
                                      )
@@ -75,13 +75,13 @@ class JuniorFilter(SubsBaseFilter):
 
 class SubsFilter(SubsBaseFilter):
 
-    adult = django_filters.BooleanFilter(name='membership__is_adult',
+    adult = django_filters.BooleanFilter(field_name='membership__is_adult',
                                          label='Adult',
                                         )
-    playing = django_filters.BooleanFilter(name='membership__is_playing',
+    playing = django_filters.BooleanFilter(field_name='membership__is_playing',
                                            label='Playing',
                                           )
-    state = django_filters.ChoiceFilter(name='person_member__state',
+    state = django_filters.ChoiceFilter(field_name='person_member__state',
                                         label='State',
                                         choices=Person.STATES,
                                         empty_label=None)
@@ -93,27 +93,27 @@ class InvoiceFilter(django_filters.FilterSet):
         fields = ['membership_year', 'state']
 
 
-    membership_year = django_filters.ChoiceFilter(name='membership_year',
+    membership_year = django_filters.ChoiceFilter(field_name='membership_year',
                                                   label='Year',
                                                   empty_label=None,
                                                   choices=year_choices(withNone=False))
 
     state_choices = [(-1, 'All not cancelled')] + Invoice.STATES
-    state = django_filters.ChoiceFilter(name='state',
+    state = django_filters.ChoiceFilter(field_name='state',
                                         label='State',
                                         choices=state_choices,
                                         method ='state_filter',
                                         empty_label=None)
 
-    pending = django_filters.BooleanFilter(name='pending',
+    pending = django_filters.BooleanFilter(field_name='pending',
                                            label='Pending',
                                            )
 
-    older = django_filters.Filter(name='older',
+    older = django_filters.Filter(field_name='older',
                                   label='Age >=',
                                   method='older_filter')
 
-    younger = django_filters.Filter(name='younger',
+    younger = django_filters.Filter(field_name='younger',
                                     label='Age <',
                                     method='younger_filter')
 
@@ -138,7 +138,7 @@ class InvoiceItemFilter(django_filters.FilterSet):
         model = InvoiceItem
         fields = ['item_type', 'paid']
 
-    invoiced = django_filters.ChoiceFilter(name='invoice',
+    invoiced = django_filters.ChoiceFilter(field_name='invoice',
                                             label='Invoice year',
                                             empty_label=None,
                                             method='has_invoice',
@@ -157,17 +157,17 @@ class PaymentFilter(django_filters.FilterSet):
         model = Payment
         fields = ['membership_year', 'type', 'state']
 
-    membership_year = django_filters.ChoiceFilter(name='membership_year',
+    membership_year = django_filters.ChoiceFilter(field_name='membership_year',
                                                   label='Year',
                                                   empty_label=None,
                                                   choices=year_choices()
                                                   )
-    type = django_filters.ChoiceFilter(name='type',
+    type = django_filters.ChoiceFilter(field_name='type',
                                        label='Type',
                                        empty_label='All',
                                        choices=Payment.TYPES
                                        )
-    state = django_filters.ChoiceFilter(name='state',
+    state = django_filters.ChoiceFilter(field_name='state',
                                        label='State',
                                        empty_label='All',
                                    choices=Payment.STATES
