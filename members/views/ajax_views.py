@@ -93,20 +93,26 @@ def ajax_password(request):
     password = request.POST.get('password', None)
     dict = {'authenticated': False,
             'supervisor': False}
-    if not id:
-        raise Http404
     request.session['person_id'] = id
     try:
         person = Person.objects.get(pk=id)
     except Person.DoesNotExist:
-        raise Http404
+        return JsonResponse(dict)
+
     try:
         user = User.objects.get(pk=person.auth_id)
     except User.DoesNotExist:
         user = None
-    if pin and check_password(pin, person.pin) or password and user.check_password(password):
+
+    authenticated = False
+    if pin and person.pin:
+        authenticated = check_password(pin, person.pin)
+    if not authenticated and user and password:
+        authenticated = user.check_password(password)
+    if authenticated:
         dict['authenticated'] = True
-        dict['supervisor'] = True if (user and user.groups.filter(name='Pos').exists()) or user.is_staff else False
+        if user:
+            dict['supervisor'] = True if user.groups.filter(name='Pos').exists() or user.is_staff else False
     return JsonResponse(dict)
 
 
@@ -187,7 +193,7 @@ def ajax_chart_members(request):
 def create_dataset(year, color):
     counts = Subscription.counts.filter(sub_year=year, active=True, resigned=False, paid=True).order_by(
         'membership__is_adult', '-membership__is_tennis', '-membership__is_playing', 'membership_id')
-    dataset =  {
+    dataset = {
         'label': str(year),
         'backgroundColor': color,
         'data': [c['count'] for c in counts],
