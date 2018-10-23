@@ -1,7 +1,5 @@
 from django.conf.urls import url
-from pos.views.ipad_views import *
-from pos.views.analysis_views import *
-
+from pos.views import *
 # POS App URLs
 
 urlpatterns = [
@@ -66,5 +64,6 @@ urlpatterns = [
     url(r'^ticker/create/$', TickerCreateView.as_view(), name='pos_ticker_create'),
     url(r'^ticker/(?P<pk>\d+)/$', TickerUpdateView.as_view(), name='pos_ticker_update'),
 
-    url('^data_entry/$', DataEntryView.as_view(), name='pos_data_entry'),
+    url('^data_entry/$', PosDataEntryView.as_view(), name='pos_data_entry'),
+    url('^visitors_data_entry/$', VisitorsDataEntryView.as_view(), name='pos_visitors_data_entry'),
     ]

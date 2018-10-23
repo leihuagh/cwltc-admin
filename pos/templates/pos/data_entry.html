@@ -1,11 +1,11 @@
-{% extends "members/layout.html" %}
+{% extends "base_new.html" %}
 {% load static %}
 {% load crispy_forms_tags %} 
 {% block content %}
   <div class="container">
     <div class="row">
+      <h2>{{ title }}</h2>
       <div class="col-md-3">
-        <h2>POS data entry</h2>
         <div class="well">
           {% if form.errors %}
             <div class="invalid-feedback">Please correct the errors below.</div>

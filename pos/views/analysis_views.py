@@ -9,7 +9,7 @@ from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from braces.views import GroupRequiredMixin
 from pos.tables import *
-from pos.forms import ItemForm, LayoutForm, ColourForm, AppForm, TickerForm, DataEntryForm
+from pos.forms import ItemForm, LayoutForm, ColourForm, AppForm, TickerForm
 from pos.filters import LineItemFilter
 from pos.views.ipad_views import build_pos_array
 from pos.services import dump_layout_to_excel
@@ -533,39 +533,3 @@ class TickerListView(LoginRequiredMixin, GroupRequiredMixin, ListView):
     template_name = 'pos/ticker_list.html'
 
 
-class DataEntryView(LoginRequiredMixin, GroupRequiredMixin, FormView):
-    group_required = 'Pos'
-    form_class = DataEntryForm
-    template_name = 'pos/data_entry.html'
-
-    def get_initial(self):
-        initial = super().get_initial()
-        initial['item_type'] = ItemType.TEAS
-        initial['total'] = 60
-        return initial
-
-    def post(self, request, *args, **kwargs):
-        if 'exit' in request.POST:
-            return redirect('pos_admin')
-        return super().post(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        person = Person.objects.get(id=form.cleaned_data['person_id'])
-        total = (Decimal(int(form.cleaned_data['total']))/ 100).quantize(Decimal('.01'))
-        item_type = ItemType.objects.get(id=form.cleaned_data['item_type'])
-        trans = Transaction(
-            creation_date=datetime.now(),
-            creator=self.request.user,
-            person=person,
-            terminal=0,
-            item_type=item_type,
-            total=total,
-            billed=False,
-            cash=False,
-            complimentary=False,
-            split=False,
-            attended=True,
-            )
-        trans.save()
-        messages.success(self.request, f"{total} charged to {person.fullname}'s {item_type.description}")
-        return redirect(self.request.path)

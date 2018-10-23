@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.views.generic import TemplateView, FormView
@@ -15,7 +16,7 @@ from mysite.common import Button
 from members.models import VisitorFees, Settings
 from events.views import EventRegisterView
 from pos.tables import *
-from pos.forms import TerminalForm, VisitorForm, DobForm
+from pos.forms import TerminalForm, VisitorForm
 from pos.services import create_transaction_from_receipt, build_pos_array, PosServicesError
 
 LONG_TIMEOUT = 120000
@@ -286,22 +287,31 @@ class VisitorCreateView(LoginRequiredMixin, FormView):
         member_id = form.cleaned_data['person_id']
         if not member_id:
             member_id = self.request.session['person_id']
+        VisitorCreateView.process_form(form, member_id)
+        return redirect('pos_visitors_person', person_id=member_id)
+
+    @staticmethod
+    def process_form(form, member_id):
+        """ Create book entry for visitor. Static so it can also be used by admin view """
         visitor_id = form.cleaned_data.get('visitors')
+        first_name = form.cleaned_data['first_name']
+        last_name = form.cleaned_data['last_name']
+        junior = form.cleaned_data['junior']
         fees = VisitorFees.objects.filter(year=Settings.current_year())
         fee = 6
         if fees:
-            fee = fees[0].junior_fee if self.junior else fees[0].adult_fee
+            fee = fees[0].junior_fee if junior else fees[0].adult_fee
         if visitor_id == "0":
             # user entered name - check its not a dup
-            existing_visitors = Visitor.objects.filter(first_name=form.cleaned_data['first_name'],
-                                                       last_name=form.cleaned_data['last_name'],
-                                                       junior=self.junior)
+            existing_visitors = Visitor.objects.filter(first_name=first_name,
+                                                       last_name=last_name,
+                                                       junior=junior)
             if existing_visitors.count() > 0:
                 visitor = existing_visitors[0]
             else:
-                visitor = Visitor.objects.create(first_name=form.cleaned_data['first_name'],
-                                                 last_name=form.cleaned_data['last_name'],
-                                                 junior=self.junior)
+                visitor = Visitor.objects.create(first_name=first_name,
+                                                 last_name=last_name,
+                                                 junior=junior)
             visitor_id = visitor.id
         entry = VisitorBook.objects.create(
             member_id=member_id,
@@ -309,7 +319,7 @@ class VisitorCreateView(LoginRequiredMixin, FormView):
             fee=fee,
             billed=False
         )
-        return redirect('pos_visitors_person', person_id=member_id)
+        return f"Visitor: {visitor.fullname} Fee: {fee}"
 
 
 class LookupMemberView(LoginRequiredMixin, TemplateView):
@@ -399,8 +409,6 @@ def ajax_ping(request):
             return HttpResponse('OK')
         return HttpResponse('Bad terminal')
     return HttpResponseBadRequest
-
-
 
 
 def read_cookie(request):

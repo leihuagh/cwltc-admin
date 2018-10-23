@@ -1,5 +1,5 @@
-from datetime import datetime
 from decimal import Decimal
+from datetime import datetime
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -262,6 +262,12 @@ class VisitorBook(models.Model):
 
     objects = models.Manager()
     billing = VisitorBookBillingManager()
+
+    def save(self, *args, **kwargs):
+        """ Override default behaviour for admin data entry case"""
+        if self.date is None:
+            self.date = datetime.now()
+        super().save(*args, **kwargs)
 
 
 class Ticker(models.Model):

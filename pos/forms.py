@@ -1,20 +1,19 @@
 from django import forms
 from django.forms import ModelForm, Form
 from django.forms.widgets import TextInput
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout as CrispyLayout, Div, HTML
 from crispy_forms.bootstrap import FormActions
+from tempus_dominus.widgets import DatePicker
 from .models import *
 from members.forms import SubmitButton
 
 
 class TerminalForm(Form):
-
     terminal = forms.IntegerField(label="Terminal number")
-    system = forms.ChoiceField(choices =(('bar', 'Bar system'),('main', 'Main system')))
+    system = forms.ChoiceField(choices=(('bar', 'Bar system'), ('main', 'Main system')))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,10 +21,11 @@ class TerminalForm(Form):
         self.helper.layout = CrispyLayout(
             Div('terminal', 'system'),
             HTML('<br><br>'),
-                SubmitButton('start', 'Start terminal', css_class='btn-success btn-lg'),
-                SubmitButton('disable', 'Disable terminal', css_class='btn-warning btn-lg', formnovalidate='formnovalidate'),
-                SubmitButton('cancel', 'Cancel', css_class='btn-default btn-lg', formnovalidate='formnovalidate'),
-            )
+            SubmitButton('start', 'Start terminal', css_class='btn-success btn-lg'),
+            SubmitButton('disable', 'Disable terminal', css_class='btn-warning btn-lg',
+                         formnovalidate='formnovalidate'),
+            SubmitButton('cancel', 'Cancel', css_class='btn-default btn-lg', formnovalidate='formnovalidate'),
+        )
 
 
 class ItemForm(ModelForm):
@@ -38,7 +38,7 @@ class ItemForm(ModelForm):
             'cost_price',
             'item_type',
             'colour'
-            ]
+        ]
 
     colour = forms.ModelChoiceField(queryset=Colour.objects.all(), empty_label=None)
 
@@ -56,20 +56,19 @@ class ItemForm(ModelForm):
                 'item_type',
                 'colour',
                 css_class="well"
-                ),
+            ),
             FormActions(
                 SubmitButton('save', 'Save', css_class='btn-primary'),
                 SubmitButton('cancel', 'Cancel', css_class='btn-default', formnovalidate='formnovalidate')
-                )
             )
+        )
         if delete:
             self.helper.layout[1].insert(
-                1, SubmitButton('delete','Delete', css_class='btn-danger', formnovalidate='formnovalidate')
-        )
+                1, SubmitButton('delete', 'Delete', css_class='btn-danger', formnovalidate='formnovalidate')
+            )
 
 
 class LayoutForm(ModelForm):
-
     class Meta:
         model = Layout
         fields = ['name', 'title', 'item_type']
@@ -80,8 +79,8 @@ class LayoutForm(ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = CrispyLayout(
             Div(
-            'name', 'title',
-            'item_type',
+                'name', 'title',
+                'item_type',
                 css_class="well"
             ),
             FormActions(
@@ -91,12 +90,11 @@ class LayoutForm(ModelForm):
         )
         if delete:
             self.helper.layout[1].insert(
-                1, SubmitButton('delete','Delete', css_class='btn-danger', formnovalidate='formnovalidate')
+                1, SubmitButton('delete', 'Delete', css_class='btn-danger', formnovalidate='formnovalidate')
             )
 
 
 class ColourForm(ModelForm):
-
     class Meta:
         model = Colour
         fields = ['name', 'fore_colour', 'back_colour']
@@ -110,7 +108,7 @@ class ColourForm(ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = CrispyLayout(
             Div(
-            'name', 'fore_colour', 'back_colour',
+                'name', 'fore_colour', 'back_colour',
                 css_class="well"
             ),
             FormActions(
@@ -120,11 +118,11 @@ class ColourForm(ModelForm):
         )
         if delete:
             self.helper.layout[1].insert(
-                1, SubmitButton('delete','Delete', css_class='btn-danger', formnovalidate='formnovalidate')
+                1, SubmitButton('delete', 'Delete', css_class='btn-danger', formnovalidate='formnovalidate')
             )
 
-class VisitorForm(ModelForm):
 
+class VisitorForm(ModelForm):
     class Meta:
         model = Visitor
         fields = ['first_name', 'last_name']
@@ -133,14 +131,19 @@ class VisitorForm(ModelForm):
     person_id = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
+        admin = kwargs.pop('admin', None)
         person_id = kwargs.pop('person_id', None)
         junior = kwargs.pop('junior', False)
         super().__init__(*args, **kwargs)
         if person_id:
-            visitor_ids = VisitorBook.objects.filter(member_id=person_id, visitor__junior=junior).values('visitor_id').distinct()
+            visitor_ids = VisitorBook.objects.filter(
+                member_id=person_id, visitor__junior=junior).values('visitor_id').distinct()
         else:
             visitor_ids = VisitorBook.objects.filter(visitor__junior=junior).values('visitor_id').distinct()
-        visitors = Visitor.objects.filter(pk__in=visitor_ids).order_by('first_name', 'last_name')
+        if admin:
+            visitors = Visitor.objects.all().order_by('first_name', 'last_name')
+        else:
+            visitors = Visitor.objects.filter(pk__in=visitor_ids).order_by('first_name', 'last_name')
         self.fields['visitors'].choices = [('0', '-- Select a visitor --')] + [(v.id, v.fullname) for v in visitors]
 
     def clean(self):
@@ -153,7 +156,6 @@ class VisitorForm(ModelForm):
             self.cleaned_data['last_name'] = "x"
         return self.cleaned_data
 
-
     def clean_first_name(self):
         return self.cleaned_data['first_name'].title()
 
@@ -161,8 +163,27 @@ class VisitorForm(ModelForm):
         return self.cleaned_data['last_name'].title()
 
 
-class AppForm(ModelForm):
+class VisitorsDataEntryForm(VisitorForm):
+    member_search = forms.CharField()
+    person_id = forms.CharField(widget=forms.HiddenInput)
+    date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
+    junior = forms.BooleanField(required=False)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = CrispyLayout(
+            Div(
+                'date', 'member_search', 'visitors', 'first_name', 'last_name', 'junior',
+            ),
+            FormActions(
+                SubmitButton('save', 'Save', css_class='btn-primary'),
+                SubmitButton('exit', 'Exit', css_class='btn-default', formnovalidate='formnovalidate'),
+            css_class="col")
+        )
+
+
+class AppForm(ModelForm):
     class Meta:
         model = PosApp
         fields = ['name', 'description', 'layout', 'allow_juniors', 'view_name', 'bar_system', 'main_system',
@@ -187,7 +208,7 @@ class AppForm(ModelForm):
         )
         if delete:
             self.helper.layout[1].insert(
-                1, SubmitButton('delete','Delete', css_class='btn-danger', formnovalidate='formnovalidate')
+                1, SubmitButton('delete', 'Delete', css_class='btn-danger', formnovalidate='formnovalidate')
             )
 
     def clean_view_name(self):
@@ -200,16 +221,13 @@ class AppForm(ModelForm):
 
 
 class DobForm(forms.Form):
-
     dob = forms.DateField(widget=forms.DateInput(attrs={'placeholder': 'DD/MM/YYYY'}))
 
 
 class TickerForm(ModelForm):
-
     class Meta:
         model = Ticker
         fields = ['message', 'bar', 'main']
-
 
     def __init__(self, *args, **kwargs):
         delete = kwargs.pop('delete', None)
@@ -221,7 +239,7 @@ class TickerForm(ModelForm):
                 SubmitButton('save', 'Save', css_class='btn-primary'),
                 SubmitButton('cancel', 'Cancel', css_class='btn-default', formnovalidate='formnovalidate'),
                 css_class="col")
-            )
+        )
         if delete:
             self.helper.layout[1].insert(
                 1, SubmitButton('delete', 'Delete', css_class='btn-danger', formnovalidate='formnovalidate')
@@ -231,8 +249,7 @@ class TickerForm(ModelForm):
 ACCOUNT_CHOICES = ((ItemType.TEAS, 'Teas'), (ItemType.BAR, 'Bar'))
 
 
-class DataEntryForm(Form):
-
+class PosDataEntryForm(Form):
     member_search = forms.CharField()
     person_id = forms.CharField(widget=forms.HiddenInput)
     total = forms.IntegerField(label='Total in pence')
@@ -241,10 +258,6 @@ class DataEntryForm(Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.layout = CrispyLayout(
-            Div('member_search', 'person_id', 'total', 'item_type'),
-            FormActions(
-                SubmitButton('save', 'Save', css_class='btn-primary'),
-                SubmitButton('exit', 'Exit', css_class='btn-default', formnovalidate='formnovalidate'),
-                css_class="col")
-        )
+
+
+
