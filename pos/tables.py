@@ -102,8 +102,8 @@ class VisitorBookTable(tables.Table):
         model = VisitorBook
         fields = ('date', 'member.fullname', 'visitor', 'fee')
         attrs = {'class': 'table', 'style': "font-size: large;"}
-
         sequence = ('date', 'member.fullname', 'membership', 'visitor', 'visitor_junior', 'fee')
+        #template_name = 'django_tables2/bootstrap4.html'
 
     visitor = tables.Column(accessor='visitor.fullname')
     membership = tables.Column(accessor='member.membership.description', verbose_name='Membership')

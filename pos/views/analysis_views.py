@@ -533,3 +533,11 @@ class TickerListView(LoginRequiredMixin, GroupRequiredMixin, ListView):
     template_name = 'pos/ticker_list.html'
 
 
+class VisitorBookTableView(LoginRequiredMixin, SingleTableView):
+    model = VisitorBook
+    table_class = VisitorBookTable
+    template_name = 'pos/visitor_book.html'
+    table_pagination = {'per_page': 10}
+
+    def get_table_data(self):
+        return VisitorBook.objects.all().order_by('-date', '-id')

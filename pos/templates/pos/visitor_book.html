@@ -1,68 +1,17 @@
-﻿{% extends 'pos/base.html' %}
+﻿{% extends 'pos/base_bs4.html' %}
+{% load static %}
 
 {% block content %}
-
-
 {% load render_table from django_tables2 %}
 <div class="container">
-<div class="row">
-  <div class="col-md-6 col-md-offset-3">
-   {% if all_entries %}
-  <h3 class="text-center"><b>Visitors Book - All Entries</b></h3>
-  {% else %}
-  <h3 class="text-center"><b>Visitors Book - Entries for {{ person.first_name }} {{ person.last_name }}</b></h3>
-{% endif %}
+  <h3 class="text-center pt-2"><b>Visitors Book</b></h3>
+  <div class="card">
+    <div class="card-body m-0 p-0">
+      {% render_table table 'django_tables2/bootstrap4.html'%}
+    </div>
+    <div class="card-footer">
+      <a href="{% url 'pos_admin' %}" class="btn btn-primary">Exit</a>
+    </div>
   </div>
-          <div class="col-md-3">
-          {% if all_entries %}
-            <a href="{% url 'pos_visitors_person' person_id=person.id %}" class="btn btn-lg btn-block btn-default">Show my entries</a>
-          {% else %}
-            <a href="{% url 'pos_visitors_all' person_id=person.id %}" class="btn btn-lg btn-block btn-default">Show all entries</a>
-            {% endif %}
-          </div>
 </div>
-
-
-  <div class="panel visitorspanel">
-    <div class="panel-body" style="height:600px; overflow-y: scroll;">
-      {% render_table table 'django_tables2/table.html'%}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-2">
-    {% if main_menu %}
-      <a href="{% url 'home' %}" class="btn btn-primary btn-block ">Exit</a>
-    {% else %}
-      <a href="{% url 'pos_start' %}" class="btn btn-lg btn-success btn-block">Exit</a>
-    {% endif %}
-    </div>
-    {% if not main_menu %}
-
-      {% if person %}
-        <div class="col-md-1"></div>
-        <div class="col-md-3">
-        <a href="{% url 'pos_visitor_junior' %}" class="btn btn-lg btn-block btn-success">Add junior visitor</a>
-        </div>
-
-        {% if person.membership.is_adult %}
-          <div class="col-md-3">
-          <a href="{% url 'pos_visitor_adult' %}" class="btn btn-lg btn-block btn-success">Add adult visitor</a>
-          </div>
-          <div class="col-md-3">
-          {% if all_entries %}
-            <a href="{% url 'pos_visitors_person' person_id=person.id %}" class="btn btn-lg btn-block btn-success">Show my entries</a>
-          {% else %}
-            <a href="{% url 'pos_visitors_all' person_id=person.id%}" class="btn btn-lg btn-block btn-success">Show all entries</a>
-            {% endif %}
-          </div>
-        {% else %}
-          <h4>Note: Juniors are not allowed adult visitors</h4>
-        {% endif %}
-      {% else %}
-        <div class="col-md-3 ">
-          <a href="{% url 'pos_user' %}" class="btn btn-lg btn-block btn-success">Log in to add a visitor</a>
-        </div>
-      {% endif %}
-    {% endif %}
-  </div>
 {% endblock %}

@@ -41,7 +41,7 @@
     <form method="post" id="form">{% csrf_token %}
       <!-- hidden field populated by typeahead in admin mode --->
       <input name="person_id" id="person_id" type="hidden" value="">
-      <!--- hidden field if slection is junior --->
+      <!--- hidden field if selction is junior --->
       <input id="junior" name="junior" type="hidden" value="{% if junior %}true{% else %}false{% endif %}">
       <div class="row" id="select_group" hidden>
         <div class="col-md-6 col-md-push-3">

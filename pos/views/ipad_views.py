@@ -223,7 +223,7 @@ class VisitorBookView(LoginRequiredMixin, SingleTableView):
     """
     model = VisitorBook
     table_class = VisitorBookTable
-    template_name = 'pos/visitor_book.html'
+    template_name = 'pos/visitor_book_pos.html'
     table_pagination = {'per_page': 10}
     id = None
     all_entries = False
@@ -242,8 +242,6 @@ class VisitorBookView(LoginRequiredMixin, SingleTableView):
         if self.id:
             person = Person.objects.get(pk=self.id)
             context['person'] = person
-        context['timeout_url'] = reverse('pos_start')
-        context['timeout'] = LONG_TIMEOUT
         return add_context(context, self.request)
 
 
@@ -294,9 +292,9 @@ class VisitorCreateView(LoginRequiredMixin, FormView):
     def process_form(form, member_id):
         """ Create book entry for visitor. Static so it can also be used by admin view """
         visitor_id = form.cleaned_data.get('visitors')
-        first_name = form.cleaned_data['first_name']
-        last_name = form.cleaned_data['last_name']
-        junior = form.cleaned_data['junior']
+        first_name = form.cleaned_data.get('first_name', '')
+        last_name = form.cleaned_data.get('last_name', '')
+        junior = form.cleaned_data.get('junior', False)
         fees = VisitorFees.objects.filter(year=Settings.current_year())
         fee = 6
         if fees:
@@ -313,6 +311,8 @@ class VisitorCreateView(LoginRequiredMixin, FormView):
                                                  last_name=last_name,
                                                  junior=junior)
             visitor_id = visitor.id
+        else:
+            visitor = Visitor.objects.get(id=visitor_id)
         entry = VisitorBook.objects.create(
             member_id=member_id,
             visitor_id=visitor_id,

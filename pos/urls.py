@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^visitor/junior/$', VisitorCreateView.as_view(junior=True), name='pos_visitor_junior'),
     url(r'^visitors/person/(?P<person_id>\d+)/$', VisitorBookView.as_view(), name='pos_visitors_person'),
     url(r'^visitors/all/(?P<person_id>\d+)/$', VisitorBookView.as_view(all_entries=True), name='pos_visitors_all'),
+    url(r'^visitors/table/$', VisitorBookTableView.as_view(), name='pos_visitors_table'),
 
     url(r'^register/$', PosRegisterView.as_view(), name='pos_register'),
     url(r'^register/again$', PosRegisterView.as_view(re_register=True), name='pos_register_again'),

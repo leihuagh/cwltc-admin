@@ -1,54 +1,71 @@
-{% extends 'base.html' %}
+{% extends 'pos/base_bs4.html' %}
+{% load static %}
+{% block head %}
+  <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
+{% endblock %}
 {% block content %}
 
 <div class="container">
-  <div class="jumbotron">
-  <h1>Point Of Sale Administration</h1>
-  <form method="post">{% csrf_token %}
-    <br><br>
-    <input class="btn btn-success" type="submit" name="start" value="Start POS">
+  <div class="card-body">
+  <h2 class="text-center pb-4">POS and Visitors Book Administration</h2>
 
-    {%  if request.session.attended_allowed%}
-      <input class="btn btn-warning" type="submit" name="attended_off" value="Disable attended mode">
-    {%  else %}
-      <input class="btn btn-success" type="submit" name="attended_on" value="Enable attended mode">
-    {%  endif %}
-      <a href="{% url 'pos_transactions_main' %}" class="btn btn-success">Review POS transactions</a>
-
-    <br><br>
-  {% if pings %}
-    <div class="row">
-      <div class="col-md-2">
-        <p>Terminal</p>
-      </div>
-      <div class="col-md-2">
-        <p>Last ping</p>
+  <div class="row">
+   <div class="col-md-4 mt-2">
+    <div class="card">
+      <h4 class="card-header text-center">POS status</h4>
+      <div class="card-body">
+        <div class="row">
+          <div class="col">
+            <p class="text-center"><b>Terminal</b></p>
+          </div>
+          <div class="col">
+            <p><b>Last ping</b></p>
+          </div>
+        </div>
+        {% if pings %}
+          {% for ping in pings %}
+            <div class="row">
+              <div class="col text-center">
+                <p>{{ ping.terminal }}</p>
+              </div>
+              <div class="col">
+                <p>{{ ping.time }}</p>
+              </div>
+            </div>
+          {% endfor %}
+        {%  else %}
+          <p>No pings from terminals</p>
+        {% endif %}
+        <form method="post">{% csrf_token %}
+          <input class="btn btn-block btn-warning" type="submit" name="clear" value="Clear list">
+          <input class="btn btn-block btn-success" type="submit" name="start" value="Start POS">
+          <a href="{% url 'home' %}" class="btn btn-block btn-primary">Exit admin</a>
+        </form>
       </div>
     </div>
-    {% for ping in pings %}
-      <div class="row">
-        <div class="col-md-2">
-          <p>{{ ping.terminal }}</p>
-        </div>
-        <div class="col-md-3">
-          <p>{{ ping.time }}</p>
-        </div>
+  </div>
+  <div class="col-md-4 mt-2">
+    <div class="card">
+      <h4 class="card-header text-center">POS Admin</h4>
+      <div class="card-body">
+        <a href="{% url 'pos_transactions_main' %}" class="btn btn-block btn-success">Review POS transactions</a>
+        <a href="{% url 'pos_data_entry' %}" class="btn btn-block btn-primary">POS data entry</a>
+        <a href="{% url 'pos_app_list' %}" class="btn btn-block btn-primary">POS applications</a>
+        <a href="{% url 'pos_item_list' %}" class="btn btn-block btn-primary">POS items</a>
+        <a href="{% url 'pos_layout_list' %}" class="btn btn-block btn-primary">POS layouts</a>
+        <a href="{% url 'pos_colour_list' %}" class="btn btn-block btn-primary">POS button colours</a>
+        <a href="{% url 'pos_ticker_list' %}" class="btn btn-block btn-primary">POS ticker messages</a>
       </div>
-    {% endfor %}
-    <input class="btn btn-warning" type="submit" name="clear" value="Clear list">
-  {%  else %}
-    <p>No pings from terminals</p>
-  {% endif %}
-  </form>
-      <h2>Management Menu</h2><br/>
-      <a href="{% url 'pos_app_list' %}" class="btn btn-primary">POS applications</a>
-      <a href="{% url 'pos_item_list' %}" class="btn btn-primary">POS items</a>
-      <a href="{% url 'pos_layout_list' %}" class="btn btn-primary">POS layouts</a>
-      <a href="{% url 'pos_colour_list' %}" class="btn btn-primary">POS button colours</a>
-      <a href="{% url 'pos_ticker_list' %}" class="btn btn-primary">POS ticker messages</a>
-      <a href="{% url 'pos_data_entry' %}" class="btn btn-primary">POS data entry</a>
-      <a href="{% url 'pos_visitors_data_entry' %}" class="btn btn-primary">Visitors data entry</a>
-      <a href="{% url 'home' %}" class="btn btn-info">Exit</a>
+    </div>
+  </div>
+  <div class="col-md-4 mt-2">
+    <div class="card">
+      <h4 class="card-header text-center">Visitors Admin</h4>
+      <div class="card-body">
+        <a href="{% url 'pos_visitors_table' %}" class="btn btn-block btn-success">Review visitors book</a>
+        <a href="{% url 'pos_visitors_data_entry' %}" class="btn btn-block btn-primary">Visitors data entry</a>
+      </div>
+    </div>
   </div>
 </div>
 

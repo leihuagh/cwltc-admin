@@ -42,7 +42,7 @@ class PosDataEntryView(LoginRequiredMixin, GroupRequiredMixin, FormView):
         total = (Decimal(int(form.cleaned_data['total'])) / 100).quantize(Decimal('.01'))
         item_type = ItemType.objects.get(id=form.cleaned_data['item_type'])
         trans = Transaction(
-            creation_date=datetime.now(),
+            creation_date=form.cleaned_data['date'],
             creator=self.request.user,
             person=person,
             terminal=0,

@@ -126,23 +126,24 @@ class VisitorForm(ModelForm):
     class Meta:
         model = Visitor
         fields = ['first_name', 'last_name']
-
     visitors = forms.ChoiceField()
-    person_id = forms.CharField(required=False)
+    person_id = forms.CharField(required=False, widget=forms.widgets.HiddenInput)
 
     def __init__(self, *args, **kwargs):
         admin = kwargs.pop('admin', None)
         person_id = kwargs.pop('person_id', None)
-        junior = kwargs.pop('junior', False)
+        self.junior = kwargs.pop('junior', False)
         super().__init__(*args, **kwargs)
-        if person_id:
-            visitor_ids = VisitorBook.objects.filter(
-                member_id=person_id, visitor__junior=junior).values('visitor_id').distinct()
-        else:
-            visitor_ids = VisitorBook.objects.filter(visitor__junior=junior).values('visitor_id').distinct()
+        self.fields['first_name'].required = False
+        self.fields['last_name'].required = False
+
         if admin:
             visitors = Visitor.objects.all().order_by('first_name', 'last_name')
         else:
+            old_visitors = VisitorBook.objects.filter(visitor__junior=self.junior)
+            if person_id:
+                old_visitors = old_visitors.filter(member_id=person_id)
+            visitor_ids = old_visitors.values('visitor_id').distinct()
             visitors = Visitor.objects.filter(pk__in=visitor_ids).order_by('first_name', 'last_name')
         self.fields['visitors'].choices = [('0', '-- Select a visitor --')] + [(v.id, v.fullname) for v in visitors]
 
@@ -152,8 +153,13 @@ class VisitorForm(ModelForm):
         # if user selected existing visitor, ensure no required errors from name fields
         if visitor_id != '0':
             self.errors.clear()
-            self.cleaned_data['first_name'] = "x"
-            self.cleaned_data['last_name'] = "x"
+            # self.cleaned_data['first_name'] = "x"
+            # self.cleaned_data['last_name'] = "x"
+        else:
+            if not (self.cleaned_data['first_name'] and self.cleaned_data['last_name']):
+                raise forms.ValidationError('First name and last name are required')
+        if self.junior:
+            self.cleaned_data['junior'] = True
         return self.cleaned_data
 
     def clean_first_name(self):
@@ -164,9 +170,10 @@ class VisitorForm(ModelForm):
 
 
 class VisitorsDataEntryForm(VisitorForm):
-    member_search = forms.CharField()
-    person_id = forms.CharField(widget=forms.HiddenInput)
-    date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
+    member_search = forms.CharField(required=False)
+    date = forms.DateField(required=True, widget=DatePicker(
+        options={'format': 'DD/MM/YYYY'},
+        attrs={'autocomplete': 'off'}))
     junior = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -174,12 +181,12 @@ class VisitorsDataEntryForm(VisitorForm):
         self.helper = FormHelper(self)
         self.helper.layout = CrispyLayout(
             Div(
-                'date', 'member_search', 'visitors', 'first_name', 'last_name', 'junior',
+                'date', 'member_search', 'person_id', 'visitors', 'first_name', 'last_name', 'junior',
             ),
             FormActions(
                 SubmitButton('save', 'Save', css_class='btn-primary'),
-                SubmitButton('exit', 'Exit', css_class='btn-default', formnovalidate='formnovalidate'),
-            css_class="col")
+                SubmitButton('exit', 'Exit', css_class='btn-primary', formnovalidate='formnovalidate'),
+            css_class="pl-1")
         )
 
 
@@ -203,7 +210,7 @@ class AppForm(ModelForm):
             ),
             FormActions(
                 SubmitButton('save', 'Save', css_class='btn-primary'),
-                SubmitButton('cancel', 'Cancel', css_class='btn-default', formnovalidate='formnovalidate')
+                SubmitButton('cancel', 'Cancel', css_class='btn-primary', formnovalidate='formnovalidate')
             )
         )
         if delete:
@@ -250,14 +257,26 @@ ACCOUNT_CHOICES = ((ItemType.TEAS, 'Teas'), (ItemType.BAR, 'Bar'))
 
 
 class PosDataEntryForm(Form):
-    member_search = forms.CharField()
-    person_id = forms.CharField(widget=forms.HiddenInput)
+    date = forms.DateField(required=True, widget=DatePicker(
+        options={'format': 'DD/MM/YYYY'},
+        attrs={'autocomplete': 'off'}))
+    member_search = forms.CharField(required=False)
+    person_id = forms.CharField(widget=forms.widgets.HiddenInput)
     total = forms.IntegerField(label='Total in pence')
     item_type = forms.ChoiceField(choices=ACCOUNT_CHOICES, widget=forms.RadioSelect)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
+        self.helper.layout = CrispyLayout(
+            Div(
+                'date', 'member_search', 'person_id', 'total', 'item_type',
+            ),
+            FormActions(
+                SubmitButton('save', 'Save', css_class='btn-primary'),
+                SubmitButton('exit', 'Exit', css_class='btn-primary', formnovalidate='formnovalidate'),
+            css_class="pl-1")
+        )
 
 
 
