@@ -46,7 +46,7 @@ urlpatterns = [
     url(r'^ajax/postcode/$', ajax_postcode, name="ajax-postcode"),
     url(r'^ajax/dob/$', ajax_dob, name="ajax-dob"),
     url(r'^ajax/set_pin/$', ajax_set_pin, name="ajax-set-pin"),
-    url(r'^ajax/chart/members/$', ajax_chart_members, name="ajax-chart-members"),
+    url(r'^ajax/chart/$', ajax_chart, name="ajax-chart-members"),
     url(r'^search/person/$', search_person, name="search-person"),
 
     # YEAR END

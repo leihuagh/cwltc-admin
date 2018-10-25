@@ -59,60 +59,66 @@ def ajax_people(request):
 
 def ajax_adults(request):
     """ return json of all paid adults for bloodhound prefetch """
-    people = list(Person.objects.filter(membership__is_adult=True, state=Person.ACTIVE, sub__paid=True).values(
-        'first_name', 'last_name', 'id'))
-    result = []
-    for person in people:
-        dict = {
-            'value': person['first_name'] + ' ' + person['last_name'],
-            'id': person['id']
-        }
-        result.append(dict)
-    return JsonResponse(result, safe=False)
+    if request.is_ajax():
+        people = list(Person.objects.filter(membership__is_adult=True, state=Person.ACTIVE, sub__paid=True).values(
+            'first_name', 'last_name', 'id'))
+        result = []
+        for person in people:
+            dict = {
+                'value': person['first_name'] + ' ' + person['last_name'],
+                'id': person['id']
+            }
+            result.append(dict)
+        return JsonResponse(result, safe=False)
+    return Http404
 
 
 def ajax_person(request):
     """ Used for member details lookup """
-    id = request.GET.get('id', '')
-    person = Person.objects.get(pk=id)
-    dict = {'name': person.fullname}
-    if person.allow_phone:
-        dict['mobile'] = person.mobile_phone
-        dict['phone'] = person.address.home_phone
-    else:
-        dict['mobile'] = 'Mobile not shared'
-        dict['phone'] = 'Phone not shared'
-    dict['email'] = person.email if person.allow_email else 'Email not shared'
-    dict['membership'] = person.membership.description
-    return JsonResponse(dict)
+    if request.is_ajax():
+        id = request.GET.get('id', '')
+        person = Person.objects.get(pk=id)
+        dict = {'name': person.fullname}
+        if person.allow_phone:
+            dict['mobile'] = person.mobile_phone
+            dict['phone'] = person.address.home_phone
+        else:
+            dict['mobile'] = 'Mobile not shared'
+            dict['phone'] = 'Phone not shared'
+        dict['email'] = person.email if person.allow_email else 'Email not shared'
+        dict['membership'] = person.membership.description
+        return JsonResponse(dict)
+    return Http404
 
 
 def ajax_password(request):
-    id = request.POST.get('person_id', None)
-    pin = request.POST.get('pin', None)
-    password = request.POST.get('password', None)
+
     dict = {'authenticated': False,
             'supervisor': False}
-    request.session['person_id'] = id
-    try:
-        person = Person.objects.get(pk=id)
-    except Person.DoesNotExist:
-        return JsonResponse(dict)
+    if request.is_ajax():
+        id = request.POST.get('person_id', None)
+        pin = request.POST.get('pin', None)
+        password = request.POST.get('password', None)
+        request.session['person_id'] = id
+        try:
+            person = Person.objects.get(pk=id)
+        except Person.DoesNotExist:
+            return JsonResponse(dict)
 
-    try:
-        user = User.objects.get(pk=person.auth_id)
-    except User.DoesNotExist:
-        user = None
+        try:
+            user = User.objects.get(pk=person.auth_id)
+        except User.DoesNotExist:
+            user = None
 
-    authenticated = False
-    if pin and person.pin:
-        authenticated = check_password(pin, person.pin)
-    if not authenticated and user and password:
-        authenticated = user.check_password(password)
-    if authenticated:
-        dict['authenticated'] = True
-        if user:
-            dict['supervisor'] = True if user.groups.filter(name='Pos').exists() or user.is_staff else False
+        authenticated = False
+        if pin and person.pin:
+            authenticated = check_password(pin, person.pin)
+        if not authenticated and user and password:
+            authenticated = user.check_password(password)
+        if authenticated:
+            dict['authenticated'] = True
+            if user:
+                dict['supervisor'] = True if user.groups.filter(name='Pos').exists() or user.is_staff else False
     return JsonResponse(dict)
 
 
@@ -136,63 +142,94 @@ def ajax_dob(request):
         person = Person.objects.get(pk=id)
         if person.dob == dob_date:
             return HttpResponse('OK')
-        return HttpResponse('Wrong date of birth')
+    return HttpResponse('Wrong date of birth')
 
 
 def ajax_postcode(request):
     """ validate post code & phone for POS PIN reset """
-    id = request.POST.get('person_id', '')
-    person = Person.objects.get(pk=id)
-    code = request.POST.get('postcode', '').replace(' ', '').lower()
-    phone = request.POST.get('phone', '')
-    if person.address.post_code.replace(' ', '').lower() == code:
-        if phone == person.mobile_phone.replace(' ', '') or phone == person.address.home_phone.replace(' ', ''):
-            return HttpResponse('OK')
-        else:
-            return HttpResponse('Wrong phone or mobile number')
+    if request.is_ajax():
+        id = request.POST.get('person_id', '')
+        person = Person.objects.get(pk=id)
+        code = request.POST.get('postcode', '').replace(' ', '').lower()
+        phone = request.POST.get('phone', '')
+        if person.address.post_code.replace(' ', '').lower() == code:
+            if phone == person.mobile_phone.replace(' ', '') or phone == person.address.home_phone.replace(' ', ''):
+                return HttpResponse('OK')
+            else:
+                return HttpResponse('Wrong phone or mobile number')
     return HttpResponse('Wrong post code')
 
 
 def ajax_set_pin(request):
     """ Set pin from POS """
-    id = request.POST.get('person_id', '')
-    person = Person.objects.get(pk=id)
-    pin = request.POST.get('pin', '')
-    person.set_pin(pin)
-    return HttpResponse('Pin set')
+    if request.is_ajax():
+        id = request.POST.get('person_id', '')
+        if id:
+            person = Person.objects.get(pk=id)
+            pin = request.POST.get('pin', '')
+            person.set_pin(pin)
+            return HttpResponse('Pin set')
+    return Http404
 
 
-def ajax_chart_members(request):
-    year = Settings.current_year()
-    set1, labels = create_dataset(year - 2, 'red')
-    set2, _ = create_dataset(year - 1, 'green')
-    set3, _ = create_dataset(year, 'blue')
-    data = {
-        'type': 'bar',
-        'title': 'Membership by category',
-        'labels': labels,
-        'datasets': [set1, set2, set3],
-    }
-    return JsonResponse(data)
+def ajax_chart(request):
+    error = 'bad request'
+    if request.is_ajax():
+        year = Settings.current_year()
+        chart = request.GET.get('chart', '')
+        filter = request.GET.get('filter', '')
+        data = {}
+
+        if chart == 'membership':
+            set, labels = create_membership_dataset(year, filter, 'green')
+            data = {
+                'type': 'bar',
+                'title': 'Membership by category',
+                'labels': labels,
+                'datasets': [set],
+            }
+
+        elif chart == 'trend':
+            set1, labels = create_membership_dataset(year - 2, filter, 'red')
+            set2, _ = create_membership_dataset(year - 1, filter, 'blue')
+            set3, _ = create_membership_dataset(year, filter, 'green')
+            data = {
+                'type': 'bar',
+                'title': 'Membership by category',
+                'labels': labels,
+                'datasets': [set1, set2, set3],
+            }
+
+        elif chart == 'ages':
+            buckets, min, max = get_age_buckets()
+            data = {
+                'type': 'bar',
+                'title': 'Juniors age distribution',
+                'labels': [i for i in range(min, max)],
+                'datasets': [{'data': [buckets[i] for i in range(min, max)],
+                              'backgroundColor': 'Green',
+                              'label': ''}]
+            }
+
+        if data:
+            return JsonResponse(data)
+        error = 'Chart type unknown'
+    response = JsonResponse({"error": error})
+    response.status_code = 404
+    return response
 
 
-# def ajax_chart_members3(request):
-#     year = Settings.current_year()
-#     counts1 = Subscription.counts.filter(sub_year=year, active=True, resigned=False, paid=True).order_by(
-#         'membership__is_adult', '-membership__is_tennis', '-membership__is_playing')
-#     labels = [c['membership__description'] for c in counts]
-#     values = [c['count'] for c in counts]
-#     data = {
-#         'type': 'bar',
-#         'name': 'Membership numbers',
-#         'labels': labels,
-#         'values': values,
-#     }
-#     return JsonResponse(data)
-
-def create_dataset(year, color):
+def create_membership_dataset(year, filter, color):
+    """" Create dataset from a count of Subscription by membership category"""
     counts = Subscription.counts.filter(sub_year=year, active=True, resigned=False, paid=True).order_by(
         'membership__is_adult', '-membership__is_tennis', '-membership__is_playing', 'membership_id')
+    if filter:
+        if 'tennis' in filter:
+            counts = counts.filter(membership__is_tennis=True)
+        if 'adults' in filter:
+            counts = counts.filter(membership__is_adult=True)
+        if 'playing' in filter:
+            counts = counts.filter(membership__is_playing=True)
     dataset = {
         'label': str(year),
         'backgroundColor': color,
@@ -200,3 +237,21 @@ def create_dataset(year, color):
     }
     labels = [c['membership__description'] for c in counts]
     return dataset, labels
+
+
+def get_age_buckets():
+    year = Settings.current_year()
+    ids = Subscription.objects.filter(sub_year=year, active=True, resigned=False, paid=True,
+                                       membership__is_adult=False).values_list('person_member_id')
+    people = Person.objects.filter(id__in=ids)
+    buckets = [0 for i in range(19)]
+    for p in people:
+        buckets[p.age_today()] += 1
+    min = 0
+    max = 18
+    for i in range(19):
+        if buckets[i] > 0:
+            if min == 0:
+                min = i
+            max = i
+    return buckets, min, max + 1
