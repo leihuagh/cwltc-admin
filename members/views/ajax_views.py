@@ -201,14 +201,24 @@ def ajax_chart(request):
             }
 
         elif chart == 'ages':
-            buckets, min, max = get_age_buckets()
+            buckets_male, buckets_female, min, max = get_age_buckets()
             data = {
                 'type': 'bar',
                 'title': 'Juniors age distribution',
                 'labels': [i for i in range(min, max)],
-                'datasets': [{'data': [buckets[i] for i in range(min, max)],
+                'datasets': [{'data': [buckets_male[i] for i in range(min, max)],
                               'backgroundColor': 'Green',
-                              'label': ''}]
+                              'label': 'Boys'},
+                             {'data': [buckets_female[i] for i in range(min, max)],
+                              'backgroundColor': '#009688',
+                              'label': ' Girls'},
+                             ],
+                'options': {
+                    'scales': {
+                        'xAxes': [{'stacked': True}],
+                        'yAxes': [{'stacked': True}]
+                    }
+                }
             }
 
         if data:
@@ -242,16 +252,50 @@ def create_membership_dataset(year, filter, color):
 def get_age_buckets():
     year = Settings.current_year()
     ids = Subscription.objects.filter(sub_year=year, active=True, resigned=False, paid=True,
-                                       membership__is_adult=False).values_list('person_member_id')
+                                      membership__is_adult=False).values_list('person_member_id')
     people = Person.objects.filter(id__in=ids)
-    buckets = [0 for i in range(19)]
+    buckets_male = [0 for i in range(19)]
+    buckets_female = [0 for i in range(19)]
     for p in people:
-        buckets[p.age_today()] += 1
+        if p.gender == 'M':
+            buckets_male[p.age(date(year, 5, 1))] += 1
+        else:
+            buckets_female[p.age(date(year, 5, 1))] += 1
     min = 0
     max = 18
     for i in range(19):
-        if buckets[i] > 0:
+        if buckets_male[i] > 0 or buckets_female[i] > 0:
             if min == 0:
                 min = i
             max = i
-    return buckets, min, max + 1
+    return buckets_male, buckets_female, min, max + 1
+
+
+def lta_figures(year):
+    adult_ids = Subscription.objects.filter(sub_year=year, active=True, resigned=False, paid=True,
+                                            membership__is_adult=True, membership__is_playing=True
+                                            ).values_list('person_member_id')
+    adults = Person.objects.filter(id__in=adult_ids)
+    adults_male = adults.filter(gender='M').count()
+    adults_female = adults.filter(gender='F').count()
+    junior_ids = Subscription.objects.filter(sub_year=year, active=True, resigned=False, paid=True,
+                                             membership__is_adult=False, membership__is_playing=True
+                                            ).values_list('person_member_id')
+    mini_date = date(year - 11, 5, 1)
+    juniors = Person.objects.filter(id__in=junior_ids)
+    minis_male = juniors.filter(gender='M', dob__gt=mini_date).count()
+    minis_female = juniors.filter(gender='F', dob__gt=mini_date).count()
+    juniors_male = juniors.filter(gender='M', dob__lte=mini_date).count()
+    juniors_female = juniors.filter(gender='F', dob__lte=mini_date).count()
+
+    return {'adults_male': adults_male,
+            'adults_female': adults_female,
+            'adults_total': adults.count(),
+            'juniors_male': juniors_male,
+            'juniors_female': juniors_female,
+            'juniors_total': juniors_male + juniors_female,
+            'minis_males': minis_male,
+            'minis_females': minis_female,
+            'minis_total': minis_male + minis_female,
+            }
+
