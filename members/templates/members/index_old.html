@@ -1,0 +1,128 @@
+{% extends "members/layout.html" %}
+{% load staticfiles %}
+{% block head %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+{% endblock %}
+{% block content %}
+
+
+  <div class="jumbotron">
+  <img src="{% static "images/CWLTC logo small.png" %}"/>
+      <h2>Coombe Wood Lawn Tennis Club</h2>
+      <p class="lead">Membership system
+      {% if site_name  == "Sandbox" %}
+       [SANDBOX]
+      {% elif site_name == "Dev" %}
+       [Local Development]
+      {% endif %}
+      </p>
+      <p>
+      Membership year: {{ membership_year }}
+      </p>
+      <a href="{% url 'club_home' %}" class="btn btn-primary">Club site</a>
+  </div>
+
+  <div class="row">
+      <div class="col-md-12">
+        <div class="well">
+  {% include 'members/_invoice_summary.html' %}
+        </div>
+      </div>
+
+  </div>
+  <div class="row">
+    <div class="col-md-8">
+      <canvas id="myChart1" width="200" height="150"></canvas>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <canvas id="myChart2" width="200" height="150"></canvas>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <canvas id="myChart3" width="200" height="150"></canvas>
+    </div>
+  </div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+$.ajax({
+    method: 'GET',
+    url: '/ajax/chart/?chart=membership',
+    success: function(data){
+        console.log(data);
+        setChart(data, 'myChart1');
+    },
+    error: function(error){
+        console.log(error)
+    }
+});
+
+$.ajax({
+    method: 'GET',
+    url: '/ajax/chart/?chart=membership&filter=tennis,adults',
+    success: function(data){
+        console.log(data);
+        setChart(data, 'myChart2');
+    },
+    error: function(error){
+        console.log(error)
+    }
+});
+
+$.ajax({
+    method: 'GET',
+    url: '/ajax/chart/?chart=ages',
+    success: function(data){
+        console.log(data);
+        setChart(data, 'myChart3');
+    },
+    error: function(error){
+        console.log(error)
+    }
+});
+
+{#function setChart(data, chartId) {#}
+{#    var ctx = document.getElementById(chartId).getContext('2d');#}
+{#    var myChart = new Chart(ctx, {#}
+{#        type: data.type,#}
+{#        data: {#}
+{#            labels: data.labels,#}
+{#            datasets:data.datasets#}
+{#        },#}
+{#        options: {#}
+{#            title: {#}
+{#                display: true,#}
+{#                text: data.title#}
+{#            },#}
+{#            scales: {#}
+{#                yAxes: [{#}
+{#                    ticks: {#}
+{#                        beginAtZero: true#}
+{#                    }#}
+{#                }]#}
+{#            }#}
+{#        }#}
+{#    });#}
+{#}#}
+
+function setChart(data, chartId) {
+    var ctx = document.getElementById(chartId).getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: data.type,
+        data: {
+            labels: data.labels,
+            datasets: data.datasets
+        },
+        options: data.options
+    });
+}
+
+</script>
+{% endblock %}
+ 

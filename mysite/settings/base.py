@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'djcelery_email',
     'cookielaw',
     'taggit',
+    'menu',
     'members',
     'pos',
     'public',
