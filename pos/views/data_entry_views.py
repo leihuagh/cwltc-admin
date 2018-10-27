@@ -25,6 +25,7 @@ class PosDataEntryView(LoginRequiredMixin, GroupRequiredMixin, FormView):
         initial = super().get_initial()
         initial['item_type'] = ItemType.TEAS
         initial['total'] = 60
+        initial['date'] = self.request.session.get('pos_date', datetime.now())
         return initial
 
     def get_context_data(self, **kwargs):
@@ -55,6 +56,7 @@ class PosDataEntryView(LoginRequiredMixin, GroupRequiredMixin, FormView):
             attended=True,
         )
         trans.save()
+        self.request.session['pos_date'] = form.cleaned_data['date']
         messages.success(self.request, f"{total} charged to {person.fullname}'s {item_type.description}")
         return redirect(self.request.path)
 

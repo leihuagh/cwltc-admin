@@ -210,7 +210,8 @@ def ajax_chart(request):
                               'backgroundColor': 'Green',
                               'label': 'Boys'},
                              {'data': [buckets_female[i] for i in range(min, max)],
-                              'backgroundColor': '#009688',
+                              'backgroundColor': '#009688'
+                                                 '',
                               'label': ' Girls'},
                              ],
                 'options': {

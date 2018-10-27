@@ -34,7 +34,7 @@
       bind_typeahead('#id_member_search', function(person){
          $('#id_person_id').val(person.id);
       });
-      $('#id_date').focus();
+      $('#id_member_search').focus();
       $('#id_visitors').change(function() {
           var sel = $('select[name=visitors]').val();
           if (sel === "0"){
