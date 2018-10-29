@@ -25,7 +25,7 @@ from members.mail import *
 from members.excel import *
 from members.filters import JuniorFilter, SubsFilter, InvoiceFilter, InvoiceItemFilter, PaymentFilter
 from members.tables import InvoiceTable, InvoiceItemTable, PaymentTable, ApplicantTable, MembershipTable
-
+from pos.services import unbilled_transactions_total
 stdlogger = logging.getLogger(__name__)
 
 
@@ -396,8 +396,29 @@ def set_person_context(context, person):
     context['address'] = person.address
     context['subs'] = person.subscription_set.all().order_by('sub_year')
     current_sub = person.subscription_set.filter(sub_year=sub_year, active=True)
+    membership = 'Non member'
+    membership_icon = 'fas fa-user'
+    membership_colour = 'info'
     if len(current_sub) == 1:
+        sub = current_sub[0]
         context['sub'] = current_sub[0]
+        # for widgets
+        if sub.resigned:
+            membership = 'Resigned'
+            membership_colour = 'info'
+            membership_icon = 'fas fa-user-alt-slash'
+        else:
+            membership = sub.membership.description
+            membership_colour = 'primary'
+            membership_icon = 'fas fa-user-check'
+            context['sub_icon'] = 'fas fa-pound-sign'
+            context['sub_colour'] = 'primary' if sub.paid else 'danger'
+            context['sub_state'] = sub.invoice_payment_state()
+
+    context['membership_colour'] = membership_colour
+    context['membership_icon'] = membership_icon
+    context['membership'] = membership
+
     context['invoices'] = person.invoice_set.all().order_by('update_date')
     own_items = person.invoiceitem_set.filter(invoice=None).order_by('update_date')
     family_items = InvoiceItem.objects.filter(
@@ -418,9 +439,10 @@ def set_person_context(context, person):
     context['types'] = Payment.TYPES
     context['payment_types'] = Payment.TYPES
     context['payments'] = person.payment_set.all().order_by('update_date')
+
+    context['bar'] = unbilled_transactions_total(person, ItemType.BAR)
+    context['teas'] = unbilled_transactions_total(person, ItemType.TEAS)
     return context
-
-
 
 
 def search_person(request):
@@ -428,8 +450,10 @@ def search_person(request):
     Redirect to a person detail page
     In response to a search on the navbar
     """
-    id = request.GET.get('person_nav')
-    return redirect(reverse('person-detail', kwargs={'pk': id}))
+    id = request.GET.get('nav_person_id', '')
+    if id:
+        return redirect(reverse('person-detail', kwargs={'pk': id}))
+    return Http404
 
 
 class PersonExportView(StaffuserRequiredMixin, View):

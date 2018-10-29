@@ -3245,7 +3245,7 @@ input[type="button"].btn-block {
   margin-left: 0;
 }
 
-.dropdown-menu {
+.dropdown-menu, span.twitter-typeahead .tt-menu {
   position: absolute;
   top: 100%;
   left: 0;
@@ -3270,7 +3270,7 @@ input[type="button"].btn-block {
   left: auto;
 }
 
-.dropup .dropdown-menu {
+.dropup .dropdown-menu, .dropup span.twitter-typeahead .tt-menu, span.twitter-typeahead .dropup .tt-menu {
   top: auto;
   bottom: 100%;
   margin-top: 0;
@@ -3294,7 +3294,7 @@ input[type="button"].btn-block {
   margin-left: 0;
 }
 
-.dropright .dropdown-menu {
+.dropright .dropdown-menu, .dropright span.twitter-typeahead .tt-menu, span.twitter-typeahead .dropright .tt-menu {
   top: 0;
   right: auto;
   left: 100%;
@@ -3323,7 +3323,7 @@ input[type="button"].btn-block {
   vertical-align: 0;
 }
 
-.dropleft .dropdown-menu {
+.dropleft .dropdown-menu, .dropleft span.twitter-typeahead .tt-menu, span.twitter-typeahead .dropleft .tt-menu {
   top: 0;
   right: 100%;
   left: auto;
@@ -3364,7 +3364,7 @@ input[type="button"].btn-block {
   vertical-align: 0;
 }
 
-.dropdown-menu[x-placement^="top"], .dropdown-menu[x-placement^="right"], .dropdown-menu[x-placement^="bottom"], .dropdown-menu[x-placement^="left"] {
+.dropdown-menu[x-placement^="top"], span.twitter-typeahead .tt-menu[x-placement^="top"], .dropdown-menu[x-placement^="right"], span.twitter-typeahead .tt-menu[x-placement^="right"], .dropdown-menu[x-placement^="bottom"], span.twitter-typeahead .tt-menu[x-placement^="bottom"], .dropdown-menu[x-placement^="left"], span.twitter-typeahead .tt-menu[x-placement^="left"] {
   right: auto;
   bottom: auto;
 }
@@ -3376,7 +3376,7 @@ input[type="button"].btn-block {
   border-top: 1px solid #e9ecef;
 }
 
-.dropdown-item {
+.dropdown-item, span.twitter-typeahead .tt-suggestion {
   display: block;
   width: 100%;
   padding: 8px 20px;
@@ -3389,24 +3389,24 @@ input[type="button"].btn-block {
   border: 0;
 }
 
-.dropdown-item:hover, .dropdown-item:focus {
+.dropdown-item:hover, span.twitter-typeahead .tt-suggestion:hover, .dropdown-item:focus, span.twitter-typeahead .tt-suggestion:focus {
   color: #16181b;
   text-decoration: none;
-  background-color: #f8f9fa;
+  background-color: #96fff5;
 }
 
-.dropdown-item.active, .dropdown-item:active {
+.dropdown-item.active, span.twitter-typeahead .active.tt-suggestion, span.twitter-typeahead .tt-suggestion.tt-cursor, .dropdown-item:active, span.twitter-typeahead .tt-suggestion:active {
   color: #FFF;
   text-decoration: none;
   background-color: #009688;
 }
 
-.dropdown-item.disabled, .dropdown-item:disabled {
+.dropdown-item.disabled, span.twitter-typeahead .disabled.tt-suggestion, .dropdown-item:disabled, span.twitter-typeahead .tt-suggestion:disabled {
   color: #6c757d;
   background-color: transparent;
 }
 
-.dropdown-menu.show {
+.dropdown-menu.show, span.twitter-typeahead .show.tt-menu {
   display: block;
 }
 
@@ -4137,7 +4137,7 @@ input[type="button"].btn-block {
   border-color: #dee2e6 #dee2e6 #FFF;
 }
 
-.nav-tabs .dropdown-menu {
+.nav-tabs .dropdown-menu, .nav-tabs span.twitter-typeahead .tt-menu, span.twitter-typeahead .nav-tabs .tt-menu {
   margin-top: -1px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -4240,7 +4240,7 @@ input[type="button"].btn-block {
   padding-left: 0;
 }
 
-.navbar-nav .dropdown-menu {
+.navbar-nav .dropdown-menu, .navbar-nav span.twitter-typeahead .tt-menu, span.twitter-typeahead .navbar-nav .tt-menu {
   position: static;
   float: none;
 }
@@ -4313,7 +4313,7 @@ input[type="button"].btn-block {
         -ms-flex-direction: row;
             flex-direction: row;
   }
-  .navbar-expand-sm .navbar-nav .dropdown-menu {
+  .navbar-expand-sm .navbar-nav .dropdown-menu, .navbar-expand-sm .navbar-nav span.twitter-typeahead .tt-menu, span.twitter-typeahead .navbar-expand-sm .navbar-nav .tt-menu {
     position: absolute;
   }
   .navbar-expand-sm .navbar-nav .nav-link {
@@ -4361,7 +4361,7 @@ input[type="button"].btn-block {
         -ms-flex-direction: row;
             flex-direction: row;
   }
-  .navbar-expand-md .navbar-nav .dropdown-menu {
+  .navbar-expand-md .navbar-nav .dropdown-menu, .navbar-expand-md .navbar-nav span.twitter-typeahead .tt-menu, span.twitter-typeahead .navbar-expand-md .navbar-nav .tt-menu {
     position: absolute;
   }
   .navbar-expand-md .navbar-nav .nav-link {
@@ -4409,7 +4409,7 @@ input[type="button"].btn-block {
         -ms-flex-direction: row;
             flex-direction: row;
   }
-  .navbar-expand-lg .navbar-nav .dropdown-menu {
+  .navbar-expand-lg .navbar-nav .dropdown-menu, .navbar-expand-lg .navbar-nav span.twitter-typeahead .tt-menu, span.twitter-typeahead .navbar-expand-lg .navbar-nav .tt-menu {
     position: absolute;
   }
   .navbar-expand-lg .navbar-nav .nav-link {
@@ -4457,7 +4457,7 @@ input[type="button"].btn-block {
         -ms-flex-direction: row;
             flex-direction: row;
   }
-  .navbar-expand-xl .navbar-nav .dropdown-menu {
+  .navbar-expand-xl .navbar-nav .dropdown-menu, .navbar-expand-xl .navbar-nav span.twitter-typeahead .tt-menu, span.twitter-typeahead .navbar-expand-xl .navbar-nav .tt-menu {
     position: absolute;
   }
   .navbar-expand-xl .navbar-nav .nav-link {
@@ -4504,7 +4504,7 @@ input[type="button"].btn-block {
           flex-direction: row;
 }
 
-.navbar-expand .navbar-nav .dropdown-menu {
+.navbar-expand .navbar-nav .dropdown-menu, .navbar-expand .navbar-nav span.twitter-typeahead .tt-menu, span.twitter-typeahead .navbar-expand .navbar-nav .tt-menu {
   position: absolute;
 }
 
@@ -10596,7 +10596,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.focus {
   margin-right: -5px;
 }
 
-.datepicker.dropdown-menu {
+.datepicker.dropdown-menu, span.twitter-typeahead .datepicker.tt-menu {
   position: absolute;
   top: 100%;
   left: 0;
@@ -10620,9 +10620,10 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.focus {
   line-height: 1.42857143;
 }
 
-.datepicker.dropdown-menu th,
+.datepicker.dropdown-menu th, span.twitter-typeahead .datepicker.tt-menu th,
 .datepicker.datepicker-inline th,
 .datepicker.dropdown-menu td,
+span.twitter-typeahead .datepicker.tt-menu td,
 .datepicker.datepicker-inline td {
   padding: 0px 5px;
 }
@@ -14033,19 +14034,38 @@ be a descendant of the grid when it is being dragged.
   }
 }
 
-.dropdown-menu {
+.input-group span.twitter-typeahead {
+  display: -webkit-box !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  position: relative;
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 auto;
+          flex: 1 1 auto;
+  width: 1%;
+}
+
+.input-group span.twitter-typeahead .tt-menu, .input-group span.twitter-typeahead .tt-hint, .input-group span.twitter-typeahead .tt-input {
+  width: 100%;
+}
+
+.dropdown-menu, span.twitter-typeahead .tt-menu {
   border-radius: 0;
   -webkit-box-shadow: 0 8px 17px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
           box-shadow: 0 8px 17px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
-.dropdown-menu.dropdown-menu-right {
+.dropdown-menu.dropdown-menu-right, span.twitter-typeahead .dropdown-menu-right.tt-menu {
   left: auto;
   right: 0;
 }
 
-.dropdown-item .fa,
-.dropdown-item .icon {
+.dropdown-item .fa, span.twitter-typeahead .tt-suggestion .fa,
+.dropdown-item .icon,
+span.twitter-typeahead .tt-suggestion .icon {
   margin-right: 5px;
   vertical-align: middle;
 }

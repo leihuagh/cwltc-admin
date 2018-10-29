@@ -2,6 +2,7 @@ import datetime
 import logging
 from decimal import Decimal
 from django.db import transaction
+from django.db.models import Sum
 from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
@@ -26,6 +27,14 @@ class PosServicesError(Error):
     """
     def __init__(self, message):
         self.message = message
+
+
+def unbilled_transactions_total(person, item_type):
+    return Transaction.objects.filter(
+        person=person,
+        billed=False,
+        item_type=item_type
+    ).aggregate(Sum('total'))
 
 
 @transaction.atomic

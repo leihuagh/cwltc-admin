@@ -765,6 +765,12 @@ class Subscription(models.Model):
                 return True
         return False
 
+    def invoice_payment_state(self):
+        for item in self.invoiceitem_set.all():
+            if item.invoice:
+                return item.invoice.payment_state_text
+        return 'No invoice'
+
     def is_special_case(self):
         for item in self.invoiceitem_set.all():
             if item.invoice and item.invoice.special_case:

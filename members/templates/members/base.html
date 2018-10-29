@@ -14,8 +14,11 @@
       <!-- Navbar Right Menu-->
       <ul class="app-nav">
         <li class="app-search">
-          <input class="app-search__input" type="search" placeholder="Search">
-          <button class="app-search__button"><i class="fa fa-search"></i></button>
+          <form class="navbar-form navbar-left" role="search" action="/search/person/" id="nav-form">
+            <input class="app-search__input typeahead tt-query" id="nav_search" placeholder="Search">
+            <input name="nav_person_id" id="nav_person_id" type="hidden" value="">
+            <button class="app-search__button"><i class="fa fa-search"></i></button>
+          </form>
         </li>
         <!--Notification Menu-->
         <li class="dropdown"><a class="app-nav__item" href="#" data-toggle="dropdown" aria-label="Show notifications"><i class="fa fa-bell-o fa-lg"></i></a>
@@ -46,53 +49,54 @@
     <aside class="app-sidebar">
       <div class="mb-3 text-center"><img src="{% static "images/CWLTC logo small.png" %}"/></div>
       <ul class="app-menu">
-        {% for menu in menus.main %}
+        {% for menu in menus.side %}
           {% if not menu.children %}
-            <li><a class="app-menu__item" href="{{ menu.url }}"><i class="app-menu__icon fa fa-dashboard"></i><span class="app-menu__label">{{ menu.title }}</span></a></li>
+            <li>
+              <a class="app-menu__item" href="{{ menu.url }}">
+                <i class="app-menu__icon {{ menu.icon }}"></i>
+                <span class="app-menu__label">{{ menu.title }}</span>
+              </a>
+            </li>
           {% else %}
-            <li class="treeview"><a class="app-menu__item" href="#" data-toggle="treeview"><i class="app-menu__icon fa fa-laptop"></i><span class="app-menu__label">{{ menu.title }}</span><i class="treeview-indicator fa fa-angle-right"></i></a>
+            <li class="treeview">
+              <a class="app-menu__item" href="#" data-toggle="treeview">
+                <i class="app-menu__icon {{ menu.icon }}"></i>
+                <span class="app-menu__label">{{ menu.title }}</span>
+                <i class="treeview-indicator fas fa-angle-right"></i>
+              </a>
             <ul class="treeview-menu">
               {% for item in menu.children %}
-                <li><a class="treeview-item" href="{{ item.url }}"><i class="icon fa fa-circle-o"></i>{{ item.title }}</a></li>
+                <li>
+                  <a class="treeview-item" href="{{ item.url }}">
+                    <i class="icon {{ item.icon }}"></i>{{ item.title }}
+                  </a>
+                </li>
               {% endfor %}
             </ul>
           {% endif %}
         {% endfor %}
-
-        <li><a class="app-menu__item" href="charts.html"><i class="app-menu__icon fa fa-pie-chart"></i><span class="app-menu__label">Charts</span></a></li>
-        <li class="treeview"><a class="app-menu__item" href="#" data-toggle="treeview"><i class="app-menu__icon fa fa-edit"></i><span class="app-menu__label">Forms</span><i class="treeview-indicator fa fa-angle-right"></i></a>
-          <ul class="treeview-menu">
-            <li><a class="treeview-item" href="form-components.html"><i class="icon fa fa-circle-o"></i> Form Components</a></li>
-            <li><a class="treeview-item" href="form-custom.html"><i class="icon fa fa-circle-o"></i> Custom Components</a></li>
-            <li><a class="treeview-item" href="form-samples.html"><i class="icon fa fa-circle-o"></i> Form Samples</a></li>
-            <li><a class="treeview-item" href="form-notifications.html"><i class="icon fa fa-circle-o"></i> Form Notifications</a></li>
-          </ul>
-        </li>
-        <li class="treeview"><a class="app-menu__item" href="#" data-toggle="treeview"><i class="app-menu__icon fa fa-th-list"></i><span class="app-menu__label">Tables</span><i class="treeview-indicator fa fa-angle-right"></i></a>
-          <ul class="treeview-menu">
-            <li><a class="treeview-item" href="table-basic.html"><i class="icon fa fa-circle-o"></i> Basic Tables</a></li>
-            <li><a class="treeview-item" href="table-data-table.html"><i class="icon fa fa-circle-o"></i> Data Tables</a></li>
-          </ul>
-        </li>
-        <li class="treeview"><a class="app-menu__item" href="#" data-toggle="treeview"><i class="app-menu__icon fa fa-file-text"></i><span class="app-menu__label">Pages</span><i class="treeview-indicator fa fa-angle-right"></i></a>
-          <ul class="treeview-menu">
-            <li><a class="treeview-item" href="blank-page.html"><i class="icon fa fa-circle-o"></i> Blank Page</a></li>
-            <li><a class="treeview-item" href="page-login.html"><i class="icon fa fa-circle-o"></i> Login Page</a></li>
-            <li><a class="treeview-item" href="page-lockscreen.html"><i class="icon fa fa-circle-o"></i> Lockscreen Page</a></li>
-            <li><a class="treeview-item" href="page-user.html"><i class="icon fa fa-circle-o"></i> User Page</a></li>
-            <li><a class="treeview-item" href="page-invoice.html"><i class="icon fa fa-circle-o"></i> Invoice Page</a></li>
-            <li><a class="treeview-item" href="page-calendar.html"><i class="icon fa fa-circle-o"></i> Calendar Page</a></li>
-            <li><a class="treeview-item" href="page-mailbox.html"><i class="icon fa fa-circle-o"></i> Mailbox</a></li>
-            <li><a class="treeview-item" href="page-error.html"><i class="icon fa fa-circle-o"></i> Error Page</a></li>
-          </ul>
         </li>
       </ul>
     </aside>
+
     <main class="app-content">
       {% block content %}
       {% endblock %}
     </main>
   </div>
+{% endblock %}
+{% block scripts %}
+  <script src= {% static 'js/typeahead.bundle.js' %}></script>
+  <script src="{% static 'js/wrap_typeahead.js' %}"></script>
+  <script>
+    $(document).ready(function () {
+      document.getElementById('nav-form').reset();
+      wrap_typeahead('#nav_search', '/ajax/people/', '', function(person){
+      $('#nav_person_id').val(person.id);
+      document.getElementById('nav-form').submit();
+      })
+    });
+  </script>
 {% endblock %}
 
 
