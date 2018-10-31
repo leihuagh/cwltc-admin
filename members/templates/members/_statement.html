@@ -1,6 +1,6 @@
 ﻿{% load members_extras %}
 {% if statement %}
-<table class="table table-condensed">
+<table style="width: 100%";>
   <thead>
     <tr>
       <th></th>
@@ -39,7 +39,7 @@
           </tr>
         {% elif modelclass == 'Payment' %}
           <tr>
-            <td><a href="{% url "payment-detail" entry.id %}" class="btn btn-success btn-sm">View</a></td>
+            <td><a href="{% url "payment-detail" entry.id %}" class="badge badge-primary">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Payment</td>
             <td>{{ payment_types|get_option:entry.type }}</td>

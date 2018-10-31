@@ -7,6 +7,7 @@ from django.views.generic.edit import FormView, FormMixin
 from django.contrib import messages
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
+from django.forms import ModelForm
 from django.contrib.auth.hashers import check_password
 from django.urls.base import reverse_lazy
 from django.utils.dateparse import parse_date
@@ -329,7 +330,7 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         person = self.get_object()
-        context = super(PersonDetailView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         add_membership_context(context)
         return set_person_context(context, person)
 
@@ -425,23 +426,38 @@ def set_person_context(context, person):
         invoice=None,
         person__linked=person).order_by('update_date')
     context['items'] = own_items | family_items
+
+    context['bar'] = unbilled_transactions_total(person, ItemType.BAR)
+
+    context['teas'] = unbilled_transactions_total(person, ItemType.TEAS)
     parent = None
+    if person.person_set.count() > 0:
+        parent = person
+        pos_list = []
+        for fam in person.person_set.all():
+            if not fam.pays_own_bill:
+                tot = unbilled_transactions_total(fam, ItemType.BAR)
+                if tot:
+                    pos_list.append([fam.fullname, tot, 'Bar '])
+                tot = unbilled_transactions_total(fam, ItemType.TEAS)
+                if tot > 0:
+                    pos_list.append([fam.fullname, tot, 'Teas '])
+
+        context['pos_list'] = pos_list
+
     if person.linked:
         parent = person.linked
-    else:
-        if person.person_set.count() > 0:
-            parent = person
     if parent:
         context['parent'] = parent
         context['children'] = parent.person_set.all()
+
     context['invoice_states'] = Invoice.STATES
     context['payment_states'] = Payment.STATES
     context['types'] = Payment.TYPES
     context['payment_types'] = Payment.TYPES
     context['payments'] = person.payment_set.all().order_by('update_date')
 
-    context['bar'] = unbilled_transactions_total(person, ItemType.BAR)
-    context['teas'] = unbilled_transactions_total(person, ItemType.TEAS)
+
     return context
 
 
@@ -1823,7 +1839,7 @@ class PaymentUpdateView(StaffuserRequiredMixin, UpdateView):
                        kwargs={'pk': invoice_id})
 
 
-class PaymentDetailView(StaffuserRequiredMixin, DetailView):
+class PaymentDetailViewOld(StaffuserRequiredMixin, DetailView):
     model = Payment
     template_name = 'members/payment_detail.html'
 
@@ -1831,12 +1847,59 @@ class PaymentDetailView(StaffuserRequiredMixin, DetailView):
         context = super(PaymentDetailView, self).get_context_data(**kwargs)
         payment = self.object
         if payment.cardless_id:
-            gc_payment = get_payment(payment.cardless_id)
-            context['gc_payment'] = gc_payment
-            update_payment(payment, gc_payment)
+            try: #catch case when developing without go cardless
+                gc_payment = get_payment(payment.cardless_id)
+                context['gc_payment'] = gc_payment
+                update_payment(payment, gc_payment)
+            except:
+                pass
         context['events'] = payment.events.all()
         context['invoice'] = payment.invoice
         context['user'] = self.request.user
+        return context
+
+    def post(self, request, **kwargs):
+        payment = self.get_object(queryset=None)
+        invoice = payment.invoice
+        if "delete" in request.POST:
+            if invoice:
+                invoice_update_state(invoice)
+            payment.delete()
+        return redirect('invoice-detail', pk=invoice.id)
+
+
+# todo Finish this view
+class PaymentDetailView(StaffuserRequiredMixin, DetailView):
+    model = Payment
+    template_name = 'members/generic_detail.html'
+
+    class DetailForm(ModelForm):
+        class Meta:
+            model = Payment
+            exclude = ['person', 'invoice']
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        payment = self.object
+        if payment.cardless_id:
+            try: #catch case when developing without go cardless
+                gc_payment = get_payment(payment.cardless_id)
+                context['gc_payment'] = gc_payment
+                update_payment(payment, gc_payment)
+            except:
+                pass
+        context.update(
+            {'width': '25rem',
+             'title': 'Payment',
+             'sub_title': ('person-detail', payment.person_id, payment.person.fullname),
+             'form': PaymentDetailView.DetailForm(instance=payment),
+             'fields': [('Number', payment.id)],
+             'links': [('Invoice', 'invoice-detail', payment.invoice.id)],
+             'edit': ('invoice-detail', payment.invoice.id),
+             'delete': True
+             })
         return context
 
     def post(self, request, **kwargs):

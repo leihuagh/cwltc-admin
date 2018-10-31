@@ -7,14 +7,14 @@
     {% csrf_token %}
     <div class="container-fluid">
       <div class="row">
-        <div class="col-lg-4 col-sm-6">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
           <div class="widget-small {{ membership_colour }}">
             <i class="icon {{ membership_icon }}"></i>
             <div class="info"><h4>{{ membership }}</h4></div>
           </div>
         </div>
         {% if sub %}
-          <div class="col-lg-4 col-sm-6">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
             <div class="widget-small {{ sub_colour }}">
               <i class="icon {{ sub_icon }}"></i>
               <div class="info"><h4>Subscription Payment<br>{{ sub_state }}</h4></div>
@@ -23,80 +23,71 @@
         {% endif %}
       </div>
       <div class="row">
-        <div class="col">
-          <div class="card border-primary">
-            <h5 class="card-header">Person detail</h5>
-              <table class="table table-condensed table-detail">
-                <tr><td>Id:</td><td>{{ person.id }} </td></tr>
-                <tr><td>State:</td><td>{{ state }} </td></tr>
-                <tr>
-                    <td>Date of birth:</td>
-                    <td>
-                        {% if person.dob %}{{ person.dob|date }}
-                        {% else %}Unknown{% endif %}
-                    </td>
-                </tr>
-                <tr><td>British tennis:</td><td>{{ person.british_tennis}}</td></tr>
-                <tr><td>Joined date:</td><td>{{ person.date_joined|date}}</td></tr>
-                <tr>
-                    <td>Mobile:</td>
-                    <td>
-                        {% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}
-                    </td>
-                </tr>
-                <tr><td>Email:</td><td>{{ person.email }} </td></tr>
-                <tr><td>Registered:</td><td>{% if person.auth_id %}Yes{% else %}No{% endif %}</td></tr>
-                <tr><td>Profile:</td><td>{% if person.adultapplication_set.count %}
-                  <a href="{% url 'person-profile' pk=person.id %}">View</a>
-                {% elif person.juniorprofile_set.count %}
-                  <a href="{% url 'junior-profile' pk=person.id %}">View</a>
-                  {% else %}
-                  No profile{% endif %}</td></tr>
-                <tr><td>Database-email</td><td>{{ person.allow_email }}</td></tr>
-                <tr><td>Database-phone</td><td>{{ person.allow_phone }}</td></tr>
-                <tr><td>Allow marketing</td><td>{{ person.allow_marketing }}</td></tr>
-                <tr><td>Consent-date</td><td>{{ person.consent_date }}</td></tr>
-              </table>
-
-              <div class="card-footer">
-                <a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a>
-                {% if person.email %}
-                  <a href="{% url "email-person" person=person.id %}" class="btn btn-primary btn-sm">Send email</a>
-                {% endif %}
-                {% if user.is_superuser %}
-                  {% if can_delete %}
-                    {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete person" confirm_yes="Delete" confirm_submit="delete" %}
-                    <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger btn-sm">Delete</a>
-                  {% endif %}
-                  {% if person.auth %}
-                    {% include "members/_confirm.html" with confirm_id="confDeregister" confirm_title="Deregister person" confirm_yes="Deregister" confirm_submit="deregister" %}
-                    <a href="#" data-toggle="modal" data-target="#confDeregister" class="btn btn-danger btn-sm">Deregister</a>
-                  {% endif %}
-                  <a href="{% url "person-merge" pk=person.id %}" class="btn btn-danger btn-sm">Merge</a>
-                {% endif %}
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+          <div class="tile">
+            <h5>Person detail</h5>
+            <div class="row pb-2"><div class="col">Id:</div><div class="col"><b>{{ person.id }}</b></div></div>
+            <div class="row pb-2"><div class="col">State:</div><div class="col"><b>{{ state }}</b></div></div>
+            <div class="row pb-2">
+                <div class="col">Date of birth:</div>
+                <div class="col"><b>
+                    {% if person.dob %}{{ person.dob|date }}
+                    {% else %}Unknown{% endif %}</b>
+                </div>
+            </div>
+            <div class="row pb-2"><div class="col">British tennis:</div><div class="col"><b>{{ person.british_tennis}}</b></div></div>
+            <div class="row pb-2"><div class="col">Joined date:</div><div class="col"><b>{{ person.date_joined|date}}</b></div></div>
+            <div class="row pb-2">
+              <div class="col">Mobile:</div>
+              <div class="col">
+                <b>{% if person.mobile_phone %}{{ person.mobile_phone }} {% else %}No mobile{% endif %}</b>
               </div>
+            </div>
+            <div class="row pb-2"><div class="col">Email:</div><div class="col"><b>{{ person.email }}</b></div></div>
+            <div class="row pb-2"><div class="col">Registered:</div><div class="col">{{ person.auth.id|truth_icon }}</div></div>
+            <div class="row pb-2"><div class="col">Profile:</div><div class="col">{% if person.adultapplication_set.count %}
+              <a href="{% url 'person-profile' pk=person.id %}">View</a>
+            {% elif person.juniorprofile_set.count %}
+              <a href="{% url 'junior-profile' pk=person.id %}">View</a>
+              {% else %}
+              No profile{% endif %}</div></div>
+            <a href="{% url "person-edit" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a>
+            {% if person.email %}
+              <a href="{% url "email-person" person=person.id %}" class="btn btn-primary btn-sm">Send email</a>
+            {% endif %}
+            {% if user.is_superuser %}
+              {% if can_delete %}
+                {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete person" confirm_yes="Delete" confirm_submit="delete" %}
+                <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger btn-sm">Delete</a>
+              {% endif %}
+              {% if person.auth %}
+                {% include "members/_confirm.html" with confirm_id="confDeregister" confirm_title="Deregister person" confirm_yes="Deregister" confirm_submit="deregister" %}
+                <a href="#" data-toggle="modal" data-target="#confDeregister" class="btn btn-danger btn-sm">Deregister</a>
+              {% endif %}
+              <a href="{% url "person-merge" pk=person.id %}" class="btn btn-danger btn-sm">Merge</a>
+            {% endif %}
           </div>
         </div>
+
           <!-- Address panel -->
-        <div class="col">
-          <div class="card border-primary">
-            <h5 class="card-header">Address</h5>
-            <div class="card-body p-3">
-              {{ address.address1 }}<br />
-              {% if address.address2 %}{{ address.address2 }}<br />{% endif %}
-              {{ address.town }}<br />
-              {{ address.post_code }}<br />
-              {{ address.home_phone }}
-            </div>
-            <div class="card-footer">
-              <a href="{% url "person-address" person_id=person.id %}" class="btn btn-primary btn-sm">
-                  Edit address
-              </a>
-            </div>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+          <div class="tile">
+            <h5 >Address</h5>
+          <p><b>
+            {{ address.address1 }}<br />
+            {% if address.address2 %}{{ address.address2 }}<br />{% endif %}
+            {{ address.town }}<br />
+            {{ address.post_code }}<br />
+            {{ address.home_phone }}
+          </b></p>
+            <a href="{% url "person-address" person_id=person.id %}" class="btn btn-primary btn-sm">
+                Edit address
+            </a>
           </div>
         </div>
+
           <!-- Family panel -->
-        <div class="col">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
           <div class="card border-primary">
             <h5 class="card-header">Family</h5>
 
@@ -147,167 +138,179 @@
             </div>
           </div>
         </div><!--/col-->
+
+        <!-- Subscription panel -->
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+          <div class="tile">
+            <h5>Current subscription</h5>
+            {% if sub %}
+              <p><b>
+              {% if sub.resigned %}
+                <b>Resigned {{ sub.membership.description }} membership <br />
+                On {{ sub.end_date }} <br />
+              {% else %}
+                {{ sub.membership.description }}</b> <br />
+                From: <b>{{ sub.start_date }}</b> to: <b>{{ sub.end_date }}</b>  </p>
+                State: <b>
+                {% if sub.paid %}
+                    Paid
+                {% elif sub.has_unpaid_invoice %}
+                    Unpaid invoice
+                {% elif sub.has_items %}
+                    Uninvoiced item
+                {% else %}
+                    Not billed
+                {% endif %}
+                </b>
+                {% if sub.is_special_case %}<span class="label label-info">Special case</span>{% endif %}
+              {% endif %}
+            {% else %}
+              No subscription
+            {% endif %}
+          <p>
+            {% if person.mandates %}
+              <a href="{% url "cardless_mandate_person_list" person_id=person.id %}">GoCardless Mandates</a>
+            {% endif %}
+          </p>
+            {% if sub %}
+              {% if sub.resigned %}
+                <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New sub</a>
+              {% else %}
+                {% if sub.has_paid_invoice %}
+                  <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change sub</a>
+                {% else %}
+                  <a href="{% url "sub-update" pk=sub.id %}" class="btn btn-primary btn-sm">Edit sub</a>
+                {% endif %}
+                {% include "members/_confirm.html" with confirm_id="confResign" confirm_title="Resign person" confirm_yes="Resign" confirm_submit="resign" %}
+                <a href="#" data-toggle="modal" data-target="#confResign" class="btn btn-danger btn-sm">Resign</a>
+                {% if sub.sub_year < years.0 %}
+                  <button type="submit" name="renew" class="btn btn-primary btn-sm">Renew {{ year.0 }}</button>
+                {% endif %}
+              {% endif %}
+            {% else %}
+              <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New sub</a>
+            {% endif %}
+
+            {% if subs %}
+              <a href="{% url "sub-history" person_id=person.id %}" class="btn btn-primary btn-sm">History</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Marketing panel -->
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+          <div class="tile">
+            <h5>Marketing</h5>
+            <div class="row pb-2"><div class="col-8">Consent date:</div><div class="col"><b>{{ person.consent_date }}</b></div></div>
+            <div class="row pb-2"><div class="col-8">Email consent:</div><div class="col">{{ person.allow_email|truth_icon }}</div></div>
+            <div class="row pb-2"><div class="col-8">Phone consent:</div><div class="col">{{ person.allow_phone|truth_icon }}</div></div>
+            <div class="row pb-2"><div class="col-8">Allow marketing mails:</div><div class="col">{{ person.allow_marketing|truth_icon }}</div></div>
+          </div>
+        </div>
+
+        <!-- Groups panel -->
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+          <div class="tile">
+            <h5>Group membership</h5>
+            {% for group in person.groups.all %}
+              <div class="row pb-1">
+              <div class="col-8">{{ group.slug }}</div>
+              <div class="col">
+              <button type="submit" name="remove" value="{{ group.slug }}" class="btn btn-danger btn-sm">Remove</button>
+              </div>
+              </div>
+            {% endfor %}
+          <a href="{% url "group-add-person" person_id=person.id %}" class="btn btn-primary btn-sm">Add to a group</a>
+            </div>
+        </div><!--/col-->
+
+        <!-- Unsubscribed panel -->
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+          <div class="tile">
+            <h5>Unsubscribed list</h5>
+          {% if person.unsubscribed.all %}
+            {% for type in person.unsubscribed.all %}
+              <p>{{ type.name }}</p>
+            {% endfor %}
+          {% else %}
+            <p><b>No entries</b></p>
+          {% endif %}
+            <a href="{% url "mailtype-subscribe" person=person.id %}" class="btn btn-primary btn-sm">Change</a>
+          </div>
+        </div>
       </div><!--/row-->
 
-      <div class="row mt-2">
-        <!-- Subscription panel -->
+      <div class="row">
         <div class="col">
-          <div class="card border-primary">
-            <h5 class="card-header">Current subscription</h5>
-              <div class="card-body">
-                {% if sub %}
-                  {% if sub.resigned %}
-                    Resigned {{ sub.membership.description }} membership <br />
-                    On {{ sub.end_date }} <br />
-                  {% else %}
-                    {{ sub.membership.description }} <br />
-                    From {{ sub.start_date }} to {{ sub.end_date }} <br />
-                    State:
-                    {% if sub.paid %}
-                        Paid
-                    {% elif sub.has_unpaid_invoice %}
-                        Unpaid invoice
-                    {% elif sub.has_items %}
-                        Uninvoiced item
-                    {% else %}
-                        Not billed
-                    {% endif %}
-                    {% if sub.is_special_case %}<span class="label label-info">Special case</span>{% endif %}
-                  {% endif %}
-                {% else %}
-                  No subscription
-                {% endif %}
-                {% if person.mandates %}
-                  <br />
-                  <a href="{% url "cardless_mandate_person_list" person_id=person.id %}">GoCardless Mandates</a>
-                {% endif %}
-              </div>
-              <div class="card-footer">
-                {% if sub %}
-                  {% if sub.resigned %}
-                    <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New sub</a>
-                  {% else %}
-                    {% if sub.has_paid_invoice %}
-                      <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">Change sub</a>
-                    {% else %}
-                      <a href="{% url "sub-update" pk=sub.id %}" class="btn btn-primary btn-sm">Edit sub</a>
-                    {% endif %}                                             
-                    {% include "members/_confirm.html" with confirm_id="confResign" confirm_title="Resign person" confirm_yes="Resign" confirm_submit="resign" %}
-                    <a href="#" data-toggle="modal" data-target="#confResign" class="btn btn-danger btn-sm">Resign</a>
-                    {% if sub.sub_year < years.0 %}
-                      <button type="submit" name="renew" class="btn btn-primary btn-sm">Renew {{ year.0 }}</button>
-                    {% endif %}
-                  {% endif %}
-                {% else %}
-                  <a href="{% url "sub-create" person_id=person.id %}" class="btn btn-primary btn-sm">New sub</a>
-                {% endif %}
-
-                {% if subs %}
-                  <a href="{% url "sub-history" person_id=person.id %}" class="btn btn-primary btn-sm">History</a>                      
-                {% endif %} 
-              </div>
-            </div>
-        </div><!--/col-->
-        <!-- Groups panel -->
-        <div class="col">
-          <div class="card border-primary">
-            <div class="card-header">Groups</div>
-
-              <table class="table table-condensed table-detail">
-              {% for group in person.groups.all %}
-                <tr>
-                <td width="75%">{{ group.slug }}</td>
-                <td>
-                <button type="submit" name="remove" value="{{ group.slug }}" class="btn btn-danger btn-sm">Remove</button>
-              {% endfor %}
-              </table>
-
-            <div class="card-footer">
-              <a href="{% url "group-add-person" person_id=person.id %}" class="btn btn-primary btn-sm">Add to a group</a>
-            </div>
-          </div>
-        </div><!--/col-->
-        <!-- Unsubscribed panel -->
-        <div class="col">
-          <div class="card border-primary">
-            <div class="card-header">Unsubscribed list</div>
-            <div class="card-body">
-              <table class="table-condensed">
-                {% for type in person.unsubscribed.all %}
-                  <tr>
-                  <td>{{ type.name }}</td>
-                  <td>
+          <div class="card mt-2 tile-shadow">
+            <div class="card-header"><h4>Statements</h4>
+              <ul class="nav nav-tabs card-header-tabs"  id="myTab" role="tablist">
+                {% for year in years %}
+                  <li class="nav-item">
+                    <a class="nav-link {% if forloop.first %} active {% endif %}" data-toggle="tab"
+                       href="#id_year{{ forloop.counter }}" role="tab">{{ year }} account</a>
+                  </li>
                 {% endfor %}
-              </table>
+              </ul>
             </div>
-            <div class="card-footer">
-              <a href="{% url "mailtype-subscribe" person=person.id %}" class="btn btn-primary btn-sm">Change</a>
+            <div class="card-body pt-0">
+              <div class="tab-content" id="myTabContent">
+                {% for statement in statements %}
+                  <div id="id_year{{ forloop.counter }}" class="tab-pane fade {% if forloop.first %}  show active {% endif %}"%}
+                  role="tabpanel">
+                    {% include "members/_statement.html" %}
+                  </div>
+                {% endfor %}
+              </div>
             </div>
           </div>
-        </div><!--/col-->
-      </div> <!--/row-->
-
-<div class="card border-primary mt-2">
-  <div class="card-header"><h4>Statements</h4>
-    <ul class="nav nav-tabs card-header-tabs"  id="myTab" role="tablist">
-      {% for year in years %}
-        <li class="nav-item">
-          <a class="nav-link {% if forloop.first %} active {% endif %}" data-toggle="tab"
-             href="#id_year{{ forloop.counter }}" role="tab">{{ year }} account</a>
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
-  <div class="card-body p-0">
-    <div class="tab-content" id="myTabContent">
-      {% for statement in statements %}
-        <div id="id_year{{ forloop.counter }}" class="tab-pane fade {% if forloop.first %}  show active {% endif %}"%}
-        role="tabpanel">
-          {% include "members/_statement.html" %}
         </div>
-      {% endfor %}
-    </div>
-  </div>
-</div>
+      </div>
 
-<div class="card border-primary mt-2">
-  <div class="card-header"><h4>Not yet invoiced</h4>
-    <ul class="nav nav-tabs card-header-tabs"  id="myTab" role="tablist">
-      <li class="nav-item">
-        <a class="nav-link active" data-toggle="tab" href="#id_unbilled" role="tab">Uninvoiced items</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#id_bar" role="tab">Bar purchases</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#id_teas" role="tab">Teas items</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#id_visitors" role="tab">Visitors</a>
-      </li>
-    </ul>
-  </div>
-  <div class="card-body p-0">
-    <div class="tab-content" id="myTabContent">
-      <div id="id_unbilled" class="tab-pane fade show active">
-        {% if items %}
-          {% include "members/_invoiceitem_list.html" %}
-        {% else %}
-          <br/><p class="pl-3">No uninvoiced items</p>
-        {% endif %}
-      </div>
-      <div id="id_bar" class="tab-pane fade" role="tabpanel">
-        bar = {{ bar }}
-      </div>
-      <div id="id_teas" class="tab-pane fade">
-        teas = {{ teas }}
-      </div>
-      <div id="id_visitors" class="tab-pane fade">
-        visitors
+      <div class="row">
+        <div class="col">
+          <div class="card tile-shadow mt-2">
+            <div class="card-header"><h4>Not yet invoiced</h4>
+              <ul class="nav nav-tabs card-header-tabs"  id="myTab" role="tablist">
+                <li class="nav-item">
+                  <a class="nav-link active" data-toggle="tab" href="#id_unbilled" role="tab">Uninvoiced items</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" data-toggle="tab" href="#id_bar" role="tab">Bar purchases</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" data-toggle="tab" href="#id_teas" role="tab">Teas items</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" data-toggle="tab" href="#id_visitors" role="tab">Visitors</a>
+                </li>
+              </ul>
+            </div>
+            <div class="card-body p-0">
+              <div class="tab-content" id="myTabContent">
+                <div id="id_unbilled" class="tab-pane fade show active">
+                  {% if items %}
+                    {% include "members/_invoiceitem_list.html" %}
+                  {% else %}
+                    <br/><p class="pl-3">No uninvoiced items</p>
+                  {% endif %}
+                </div>
+                <div id="id_bar" class="tab-pane fade" role="tabpanel">
+                  bar = {{ bar }}
+                </div>
+                <div id="id_teas" class="tab-pane fade">
+                  teas = {{ teas }}
+                </div>
+                <div id="id_visitors" class="tab-pane fade">
+                  visitors
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
+
 
 {##}
 {#    {% if statements %}#}

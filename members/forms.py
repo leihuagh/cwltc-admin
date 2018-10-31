@@ -952,7 +952,6 @@ class MailTypeForm(ModelForm):
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         if with_delete:
@@ -968,24 +967,18 @@ class PaymentForm(ModelForm):
         if amount:
             self.fields['amount'].initial = amount
         self.helper = FormHelper(self)
-        self.helper.form_id = 'id-InvoiceItemForm'
-
-        self.helper.form_method = 'post'
-        self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
-        self.helper.error_text_inline = True
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
 
-        # self.fields['banked_date'].widget.format = '%d/%m/%Y'
         self.fields['banked_date'].input_formats = settings.DATE_INPUT_FORMATS
 
     class Meta:
         model = Payment
-        fields = ['membership_year', 'type', 'reference', 'amount', 'banked', 'banked_date']
+        fields = ['membership_year', 'type', 'reference', 'amount', 'banked', 'banked_date',]
         widgets = {'banked_date': DateTimePicker(options={'format': 'DD/MM/YYYY',
                                                           'allowInputToggle': True}
                                                  ),
-                   'membership_year': forms.Select(choices=year_choices())
+                   'membership_year': forms.Select(choices=year_choices()),
         }
 
 

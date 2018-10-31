@@ -30,11 +30,15 @@ class PosServicesError(Error):
 
 
 def unbilled_transactions_total(person, item_type):
-    return Transaction.objects.filter(
+    dict = Transaction.objects.filter(
         person=person,
         billed=False,
         item_type=item_type
     ).aggregate(Sum('total'))
+    sum = dict['total__sum']
+    if sum is None:
+        sum = 0
+    return sum
 
 
 @transaction.atomic

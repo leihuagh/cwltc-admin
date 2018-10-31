@@ -309,7 +309,7 @@ class EventRegisterView(FormView):
 
 class EventRegisterDone(TemplateView):
     """ Used when registered without being logged in """
-    template_name = 'events/register_done..html'
+    template_name = 'events/register_done.html'
 
 
 class ParticipantListView(LoginRequiredMixin, DetailView):
