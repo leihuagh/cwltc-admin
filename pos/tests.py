@@ -56,7 +56,11 @@ class ItemFactory(DjangoModelFactory):
     button_text = 'Beer'
     sale_price = 1.50
     cost_price = 1.00
-    
+
+# Useful constants
+UNBILLED = Transaction.BilledState.UNBILLED.value
+PART_BILLED = Transaction.BilledState.PART_BILLED.value
+BILLED = Transaction.BilledState.BILLED.value
 
 class PosTestCase(TestCase):
 
@@ -79,6 +83,7 @@ class PosTestCase(TestCase):
             receipt.append(item.to_dict())
         return receipt
 
+
     def test_create_transaction(self):
         user = UserFactory.create()
         layout = self.create_bar_layout()
@@ -97,32 +102,61 @@ class PosTestCase(TestCase):
         payments = PosPayment.objects.all()
         self.assertEqual(len(payments), 1)
         self.assertEqual(payments[0].total, Decimal(15.0))
+        unbilled = PosPayment.billing.unbilled_total(person, ItemType.BAR)
+        self.assertEqual(unbilled, Decimal(15.0))
 
     def test_create_split_transaction(self):
         user = UserFactory.create()
         layout = self.create_bar_layout()
         receipt = self.init_receipt(10)
-        person = PersonFactory.create()
+        person1 = PersonFactory.create()
         person2 = PersonFactory.create()
-        person_list = [{'id': person.id, 'name': person.fullname, 'amount': 1000},
+        person_list = [{'id': person1.id, 'name': person1.fullname, 'amount': 1000},
                        {'id': person2.id, 'name': person2.fullname, 'amount': 500}]
         create_transaction_from_receipt(user.id, 1, layout.id, receipt, 1500, person_list, attended=False)
+        # There should be single transaction
         self.assertEqual (Transaction.objects.all().count(), 1)
-        payments = PosPayment.objects.all()
+        # with 2 payments
+        payments = Transaction.objects.all()[0].pospayment_set.all()
         self.assertEqual(len(payments), 2)
         p1 = payments[0]
         p2 = payments[1]
+        # person 1 pays 10
         self.assertEqual(p1.total, Decimal(10.0))
-        self.assertEqual(p1.person_id, person.id)
+        self.assertEqual(p1.person_id, person1.id)
+        # person 2 pays 5
         self.assertEqual(p2.total, Decimal(5.0))
         self.assertEqual(p2.person_id, person2.id)
+
+        # test billling split transaction
+        # Transaction starts in unbilled state
+        self.assertEqual(Transaction.objects.filter(billed=UNBILLED).count(), 1)
+        # Unbilled total for person 1 is 10
+        self.assertEqual(PosPayment.billing.unbilled_total(person1, ItemType.BAR), 10)
+        # Unbillled total for person 2 is 5
+        self.assertEqual(PosPayment.billing.unbilled_total(person2, ItemType.BAR), 5)
+        PosPayment.billing.process(person1)
+        # person 1 has been processed so unbilled payments = 0
+        self.assertEqual(PosPayment.billing.unbilled_total(person1, ItemType.BAR), 0)
+        # person 2 still has unbilled payment
+        self.assertEqual(PosPayment.billing.unbilled_total(person2, ItemType.BAR), 5)
+        # Should be 1 transaction with billed state = part paid
+        self.assertEqual(Transaction.objects.filter(billed=PART_BILLED).count(), 1)
+        # Now process person 2
+        PosPayment.billing.process(person2)
+        # no unbilled payments for person 2
+        self.assertEqual(PosPayment.billing.unbilled_total(person2, ItemType.BAR), 0)
+        # Transaction should be fully billed
+        self.assertEqual(Transaction.objects.count(), 1)
+        self.assertEqual(Transaction.objects.filter(billed=BILLED).count(), 1)
+
 
     def test_create_complimentary_transaction(self):
         user = UserFactory.create()
         layout = self.create_bar_layout()
         receipt = self.init_receipt(10)
         person_list = [{'id': -1, 'name': 'complimentary', 'amount': 1500}]
-        result = create_transaction_from_receipt(user.id, 1, layout.id, receipt, 1500, person_list, False)
+        create_transaction_from_receipt(user.id, 1, layout.id, receipt, 1500, person_list, False)
         t0 = Transaction.objects.all()[0]
         self.assertTrue(t0.complimentary)
         self.assertFalse(t0.cash)
@@ -132,10 +166,11 @@ class PosTestCase(TestCase):
         layout = self.create_bar_layout()
         receipt = self.init_receipt(1)
         person_list = []
-        result= create_transaction_from_receipt(user.id, 1, layout.id, receipt, 1500, person_list, False)
+        create_transaction_from_receipt(user.id, 1, layout.id, receipt, 1500, person_list, False)
         t0 = Transaction.objects.all()[0]
         self.assertFalse(t0.complimentary)
         self.assertTrue(t0.cash)
+
 
     def test_create_invoice_items(self):
         user = UserFactory.create()
@@ -149,58 +184,74 @@ class PosTestCase(TestCase):
         person2_list = [{'id': person2.id, 'name': person2.fullname, 'amount': 500}]
         receipt1 = self.init_receipt(10) # £15
         receipt2 = self.init_receipt(5)
-        # person 1 £30 in bar £15 in teas
+
+        # person 1 £30 in bar, £15 in teas
         create_transaction_from_receipt(user.id, 1, layout_bar.id, receipt1, 1500, person1_list, False)
         create_transaction_from_receipt(user.id, 1, layout_bar.id, receipt1, 1500, person1_list, False)
         create_transaction_from_receipt(user.id, 1, layout_teas.id, receipt1, 1500, person1_list, False)
+        # Unbilled amounts should be £30 in bar, £15 in teas
+        self.assertEqual(PosPayment.billing.unbilled_total(person1, ItemType.BAR), Decimal(30.0))
+        self.assertEqual(PosPayment.billing.unbilled_total(person1, ItemType.TEAS), Decimal(15.0))
+
         # person 2 £5 in bar, £10 in teas
         create_transaction_from_receipt(user.id, 1, layout_teas.id, receipt2, 500, person2_list, False)
         create_transaction_from_receipt(user.id, 1, layout_teas.id, receipt2, 500, person2_list, False)
         create_transaction_from_receipt(user.id, 1, layout_bar.id, receipt2, 500, person2_list, False)
-        self.assertEqual(Transaction.objects.filter(billed=False).count(), 6)
+        # Unbilled amounts should be £5 in bar, £10 in teas
+        self.assertEqual(PosPayment.billing.unbilled_total(person2, ItemType.BAR), Decimal(5.0))
+        self.assertEqual(PosPayment.billing.unbilled_total(person2, ItemType.TEAS), Decimal(10.0))
 
+
+
+        # start with no unbilled transactions
+        self.assertEqual(Transaction.objects.filter(billed=UNBILLED).count(), 6)
         # generate data for 1 person only but do not process it
         bill_data_list = PosPayment.billing.data(person1)
         self.assertEqual(len(bill_data_list), 2)
-
+        # validate generated data list for BAR
         bill = bill_data_list[0]
         self.assertEqual(bill.item_type.id, BAR_ITEM_TYPE)
         self.assertEqual(len(bill.transactions), 2)
         self.assertEqual(len(bill.records), 2)
         self.assertEqual(len(bill.dict), 1)
-
+        # validate generated data list for TEAS
         bill = bill_data_list[1]
         self.assertEqual(bill.item_type.id, TEAS_ITEM_TYPE)
         self.assertEqual(len(bill.transactions), 1)
         self.assertEqual(len(bill.records), 1)
         self.assertEqual(len(bill.dict), 1)
-
         # process all the Pos billing data
         self.assertEqual(PosPayment.billing.process(), 4)
         items = InvoiceItem.objects.all()
         # Should be 4 invoice items created
         self.assertEqual(items.count(), 4)
-
+        # person 1 total should be 30 for bar
         bar1 = items.filter(person=person1, item_type_id = BAR_ITEM_TYPE)
         self.assertEqual(len(bar1), 1)
         self.assertEqual(bar1[0].amount, 30)
-
+        # person 1 total should be 15 for teas
         teas1 = items.filter(person=person1, item_type_id = TEAS_ITEM_TYPE)
         self.assertEqual(len(teas1), 1)
         self.assertEqual(teas1[0].amount, 15)
-
+        # person 2 total should be 5 for bar
         bar2 = items.filter(person=person2, item_type_id = BAR_ITEM_TYPE)
         self.assertEqual(len(bar2), 1)
         self.assertEqual(bar2[0].amount, 5)
-
+        # person 2 total should be 10 for teas
         teas2 = items.filter(person=person2, item_type_id = TEAS_ITEM_TYPE)
         self.assertEqual(len(teas2), 1)
         self.assertEqual(teas2[0].amount, 10)
-
-        self.assertEqual(Transaction.objects.filter(billed=True).count(), 6)
+        # Should be 6 billed transactions
+        self.assertEqual(Transaction.objects.filter(billed=BILLED).count(), 6)
+        # Should be 6 billed payments
         self.assertEqual(PosPayment.objects.filter(billed=True).count(), 6)
+        # Unbilled amounts should now be 0
+        self.assertEqual(PosPayment.billing.unbilled_total(person1, ItemType.BAR), 0)
+        self.assertEqual(PosPayment.billing.unbilled_total(person1, ItemType.TEAS), 0)
+        self.assertEqual(PosPayment.billing.unbilled_total(person2, ItemType.BAR), 0)
+        self.assertEqual(PosPayment.billing.unbilled_total(person2, ItemType.TEAS), 0)
 
-    
+
 class VisitorsItemTypeFactory(ItemTypeFactory):
     id = VISITOR_ITEM_TYPE
     description = 'Visitors'

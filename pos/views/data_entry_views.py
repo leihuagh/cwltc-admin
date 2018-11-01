@@ -6,8 +6,8 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from braces.views import GroupRequiredMixin
+from pos.models import ItemType, Transaction, PosPayment, Visitor, VisitorBook
 from pos.forms import PosDataEntryForm, VisitorsDataEntryForm
-from pos.models import ItemType, Transaction, Visitor, VisitorBook
 from pos.views import VisitorCreateView
 from members.models import Person, VisitorFees, Settings
 
@@ -49,13 +49,20 @@ class PosDataEntryView(LoginRequiredMixin, GroupRequiredMixin, FormView):
             terminal=0,
             item_type=item_type,
             total=total,
-            billed=False,
+            billed=Transaction.BilledState.UNBILLED.value,
             cash=False,
             complimentary=False,
             split=False,
             attended=True,
         )
         trans.save()
+        pos_payment = PosPayment(
+            transaction=trans,
+            person=person,
+            billed=False,
+            total=total
+        )
+        pos_payment.save()
         self.request.session['pos_date'] = form.cleaned_data['date']
         messages.success(self.request, f"{total} charged to {person.fullname}'s {item_type.description}")
         return redirect(self.request.path)
