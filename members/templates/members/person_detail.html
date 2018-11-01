@@ -241,7 +241,7 @@
       </div><!--/row-->
 
       <div class="row">
-        <div class="col">
+        <div class="col-lg-12 col-xl-9">
           <div class="card mt-2 tile-shadow">
             <div class="card-header"><h4>Statements</h4>
               <ul class="nav nav-tabs card-header-tabs"  id="myTab" role="tablist">
@@ -256,7 +256,7 @@
             <div class="card-body pt-0">
               <div class="tab-content" id="myTabContent">
                 {% for statement in statements %}
-                  <div id="id_year{{ forloop.counter }}" class="tab-pane fade {% if forloop.first %}  show active {% endif %}"%}
+                  <div id="id_year{{ forloop.counter }}" class="tab-pane fade {% if forloop.first %} show active {% endif %}"%}
                   role="tabpanel">
                     {% include "members/_statement.html" %}
                   </div>
@@ -268,88 +268,15 @@
       </div>
 
       <div class="row">
-        <div class="col">
-          <div class="card tile-shadow mt-2">
-            <div class="card-header"><h4>Not yet invoiced</h4>
-              <ul class="nav nav-tabs card-header-tabs"  id="myTab" role="tablist">
-                <li class="nav-item">
-                  <a class="nav-link active" data-toggle="tab" href="#id_unbilled" role="tab">Uninvoiced items</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" data-toggle="tab" href="#id_bar" role="tab">Bar purchases</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" data-toggle="tab" href="#id_teas" role="tab">Teas items</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" data-toggle="tab" href="#id_visitors" role="tab">Visitors</a>
-                </li>
-              </ul>
-            </div>
-            <div class="card-body p-0">
-              <div class="tab-content" id="myTabContent">
-                <div id="id_unbilled" class="tab-pane fade show active">
-                  {% if items %}
-                    {% include "members/_invoiceitem_list.html" %}
-                  {% else %}
-                    <br/><p class="pl-3">No uninvoiced items</p>
-                  {% endif %}
-                </div>
-                <div id="id_bar" class="tab-pane fade" role="tabpanel">
-                  bar = {{ bar }}
-                </div>
-                <div id="id_teas" class="tab-pane fade">
-                  teas = {{ teas }}
-                </div>
-                <div id="id_visitors" class="tab-pane fade">
-                  visitors
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="col-9">
+          {% include 'members/_card_uninvoiced.html' %}
+        </div>
+        <div class="col-3">
+          {% include 'members/_card_pos_sales.html' %}
         </div>
       </div>
     </div>
 
-
-{##}
-{#    {% if statements %}#}
-{#      <div class="card with-nav-tabs">#}
-{#        <div class="card-header">#}
-{#          <ul class="nav nav-tabs">       #}
-{#            <li><a class="nav-link active" data-toggle="tab" href="#id_unbilled">Uninvoiced items#}
-{#              {% if items %}<span class="badge">{{ items|length }}</span>{% endif %}</a>#}
-{#            </li>#}
-{#            {% for year in years %}#}
-{#              <li class="nav{% if forloop.first %} active {% endif %}">#}
-{#                <a class="nav-link" data-toggle="tab" href="#id_year{{ forloop.counter }}">{{ year }} account</a></li>#}
-{#            {% endfor %}#}
-{#          </ul>#}
-{##}
-{#          <div id="id_unbilled" class="card-body fade">#}
-{#            {% if items %}#}
-{#              {% include "members/_invoiceitem_list.html" %}#}
-{#            {% else %}#}
-{#              <br/><p>No uninvoiced items</p>#}
-{#            {% endif %}#}
-{#          </div>#}
-{#            {% for statement in statements %}#}
-{#              <div id="id_year{{ forloop.counter }}" class="card-body fade {% if forloop.first %} in active {% endif %}"%}>#}
-{#                {% include "members/_statement.html" %}#}
-{#              </div>#}
-{#            {% endfor %}#}
-{#        </div>#}
-{#        <div class="card-footer">#}
-{#          <a href="{% url "item-create" person_id=person.id %}" class="btn btn-primary btn-sm">Create item</a>#}
-{#          {% if items %}#}
-{#            <button type="submit" name="invoice" class="btn btn-primary btn-sm">Generate an invoice</button>#}
-{#          {% endif %}#}
-{#          <a href="{% url "creditnote-create" person_id=person.id %}" class="btn btn-warning btn-sm">Create manual credit note</a>#}
-{#        </div>#}
-{#      </form>#}
-{#    {% else %}#}
-{#      No statement of account#}
-{#    {% endif %}#}
   </form>
 {% endblock %}
 

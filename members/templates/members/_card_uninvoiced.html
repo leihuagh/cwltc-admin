@@ -1,0 +1,30 @@
+<div class="tile mt-2">
+  <h5>Ready to be invoiced</h5>
+  {% if items %}
+    <table style="width:100%">
+      {% for item in items %}
+        <tr>
+          <td><a href="{% url "item-update" item.id %}" class="btn btn-default btn-sm">View</a></td>
+          <td>{{ item.item_date }}</td>
+          <td>{{ item.person.first_name }} {{ item.person.last_name }}</td>
+          <td>{{ item.item_type.description}}</td>
+          <td>{{ item.description}}</td>
+          <td class = "text-right">£ {{ item.amount }}</td>
+        </tr>
+      {% endfor item %}
+      <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class = "text-right"><b>Total</b></td>
+          <td class = "text-right"><b>£ {{ items_total }}</td>
+      </tr>
+    </table>
+    <form>{% csrf_token %}
+      <input type="submit" name="invoice" class='btn btn-primary btn-sm' value="Create invoice">
+    </form>
+  {% else %}
+    <br/><p class="pl-3">No uninvoiced items</p>
+  {% endif %}
+</div>

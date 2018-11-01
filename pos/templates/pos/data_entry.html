@@ -28,10 +28,13 @@
 {% endblock content %}
 {% block scripts %}
   <script src= {% static 'js/typeahead.bundle.js' %}></script>
-  <script src="{% static 'pos/js/pos-typeahead.js' %}"></script>
+  <script src="{% static 'js/wrap_typeahead.js' %}"></script>
+
+
+
   <script>
     $(document).ready(function () {
-      bind_typeahead('#id_member_search', function(person){
+      wrap_typeahead('#id_member_search', '/ajax/people/', '', function(person){
          $('#id_person_id').val(person.id);
       });
       $('#id_member_search').focus();

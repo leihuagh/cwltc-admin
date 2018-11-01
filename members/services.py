@@ -21,6 +21,9 @@ class ServicesError(Error):
 
 
 class BillingData:
+    """
+     Handle the creation of invoice items for POS, Visitors Book and Events
+    """
 
     def __init__(self, item_type:ItemType, dict:Dict, records, transactions=None, description='', date=None):
         self.item_type = item_type
@@ -33,6 +36,7 @@ class BillingData:
     def process(self):
         """
         Processes the dictionary creating invoice items
+        Update POS transactions if any
         Return count of items generated
         """
         count = 0
@@ -52,7 +56,8 @@ class BillingData:
                     inv_item.save()
             self.records.update(billed=True)
             if self.transactions:
-                self.transactions.update(billed=True)
+                for trans in self.transactions:
+                    trans.update_billed()
         return count
 
 

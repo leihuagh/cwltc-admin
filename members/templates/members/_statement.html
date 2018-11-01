@@ -20,9 +20,7 @@
       {% with entry|classname as modelclass %}
         {% if modelclass == 'Invoice' %}
           <tr>
-            <td><a href="{% url "invoice-detail" entry.id %}" class="btn
-            {% if entry.state == 0 %}btn-danger
-            {% else %}btn-default {%  endif %} btn-sm">View</a></td>
+            <td><a href="{% url "invoice-detail" entry.id %}" class="btn btn-default btn-sm">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Invoice</td>
             <td></td>
@@ -39,7 +37,7 @@
           </tr>
         {% elif modelclass == 'Payment' %}
           <tr>
-            <td><a href="{% url "payment-detail" entry.id %}" class="badge badge-primary">View</a></td>
+            <td><a href="{% url "payment-detail" entry.id %}" class="btn btn-default btn-sm">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Payment</td>
             <td>{{ payment_types|get_option:entry.type }}</td>
@@ -67,6 +65,7 @@
       {% endwith %}
     {% endwith %}
   {% endfor %}
+
 </table>
 {% else %}
  <br/><p>No entries for this year</p>

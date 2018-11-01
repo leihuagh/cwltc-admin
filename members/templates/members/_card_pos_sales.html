@@ -1,0 +1,24 @@
+<div class="tile mt-2">
+  <h5>Bar, Teas and Visitors</h5>
+  {% if pos_list %}
+    {% for entry in pos_list %}
+      <div class="row pb-1">
+        <div class="col">{{ entry.0 }}</div>
+        <div class="col">{{ entry.1 }}</div>
+        <div class="col text-right">£ {{ entry.2 }}</div>
+      </div>
+    {% endfor %}
+      <div class="row mb-2">
+        <div class="col"></div>
+        <div class="col text-right"><b>Total:</b></div>
+        <div class="col text-right"><b>£ {{ pos_total }}</b></div>
+      </div>
+    {% if pos_bill %}
+      <form>{% csrf_token %}
+        <input type="submit" name="pos_bill" class='btn btn-primary btn-sm' value="Create invoice items">
+      </form>
+    {% endif %}
+  {% else %}
+    No entries
+  {% endif %}
+</div>

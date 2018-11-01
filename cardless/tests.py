@@ -21,15 +21,3 @@ class Cardless(TestCase):
 
     def test_client_exists(self):
         self.assertNotEqual(self.client, None)
-
-    # def test_no_customers(self):
-    #     customers = self.client.customers.list().records
-    #     self.assertEqual(customers, [])
-
-    def test_bad_redirect_flow(self):
-        c = Client()
-        response = c.get(reverse('cardless_redirect_flow'))
-        # request = self.factory.get(reverse('cardless-redirect-flow'))
-        # response = RedirectFlowView.as_view()(request)
-        self.assertEqual(response.status_code, 400)
-

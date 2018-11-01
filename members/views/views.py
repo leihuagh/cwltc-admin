@@ -26,7 +26,8 @@ from members.mail import *
 from members.excel import *
 from members.filters import JuniorFilter, SubsFilter, InvoiceFilter, InvoiceItemFilter, PaymentFilter
 from members.tables import InvoiceTable, InvoiceItemTable, PaymentTable, ApplicantTable, MembershipTable
-from pos.services import unbilled_transactions_total
+from pos.models import PosPayment, VisitorBook
+
 stdlogger = logging.getLogger(__name__)
 
 
@@ -332,6 +333,7 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
         person = self.get_object()
         context = super().get_context_data(**kwargs)
         add_membership_context(context)
+        context['pos_bill'] = True
         return set_person_context(context, person)
 
     def post(self, request, *args, **kwargs):
@@ -369,6 +371,10 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
 
         elif 'invoice' in request.POST:
             return redirect('invoice-generate', pk=person.id)
+
+        elif 'pos_bill' in request.POST:
+            PosPayment.billing.process(person)
+            VisitorBook.billing.process(person)
 
         return redirect(person)
 
@@ -426,24 +432,33 @@ def set_person_context(context, person):
         invoice=None,
         person__linked=person).order_by('update_date')
     context['items'] = own_items | family_items
+    context['items_total'] = context['items'].aggregate(Sum('amount'))['amount__sum']
 
-    context['bar'] = unbilled_transactions_total(person, ItemType.BAR)
-
-    context['teas'] = unbilled_transactions_total(person, ItemType.TEAS)
+    pos_list = []
+    pos_total = 0
+    tot = PosPayment.billing.unbilled_total(person, ItemType.BAR)
+    if tot:
+        pos_list.append([person.fullname, 'Bar', tot])
+        pos_total += tot
+    tot = PosPayment.billing.unbilled_total(person, ItemType.TEAS)
+    if tot:
+        pos_list.append([person.fullname, 'Teas', tot])
+        pos_total += tot
     parent = None
     if person.person_set.count() > 0:
         parent = person
-        pos_list = []
         for fam in person.person_set.all():
             if not fam.pays_own_bill:
-                tot = unbilled_transactions_total(fam, ItemType.BAR)
+                tot = PosPayment.billing.unbilled_total(fam, ItemType.BAR)
                 if tot:
-                    pos_list.append([fam.fullname, tot, 'Bar '])
-                tot = unbilled_transactions_total(fam, ItemType.TEAS)
-                if tot > 0:
-                    pos_list.append([fam.fullname, tot, 'Teas '])
-
-        context['pos_list'] = pos_list
+                    pos_list.append([fam.fullname, 'Bar', tot])
+                    pos_total += tot
+                tot = PosPayment.billing.unbilled_total(fam, ItemType.TEAS)
+                if tot:
+                    pos_list.append([fam.fullname, 'Teas', tot])
+                    pos_total += tot
+    context['pos_list'] = pos_list
+    context['pos_total'] = pos_total
 
     if person.linked:
         parent = person.linked
@@ -453,11 +468,8 @@ def set_person_context(context, person):
 
     context['invoice_states'] = Invoice.STATES
     context['payment_states'] = Payment.STATES
-    context['types'] = Payment.TYPES
     context['payment_types'] = Payment.TYPES
     context['payments'] = person.payment_set.all().order_by('update_date')
-
-
     return context
 
 
