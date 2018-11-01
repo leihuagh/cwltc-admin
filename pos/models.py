@@ -1,10 +1,11 @@
 from decimal import Decimal
 from datetime import datetime
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
 from django.contrib.auth.models import User
 from events.models import Event
-from members.models import Person, ItemType
+from members.models import Person, ItemType, ModelEnum
 from members.services import BillingData
 
 
@@ -82,13 +83,19 @@ class Location(models.Model):
 
 
 class Transaction(models.Model):
+
+    class BilledState(ModelEnum):
+        UNBILLED = 0
+        PART_BILLED = 1
+        BILLED = 2
+
     creation_date = models.DateTimeField()
     creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     total = models.DecimalField(max_digits=5, decimal_places=2, null=False)
     complimentary = models.BooleanField(default=False)
     cash = models.BooleanField(default=False)
-    billed = models.BooleanField()
+    billed = models.SmallIntegerField(choices=BilledState.choices(), default=0)
     split = models.BooleanField(default=False)
     terminal = models.IntegerField(default=1)
     item_type = models.ForeignKey(ItemType, on_delete=models.CASCADE, default=ItemType.BAR, null=False)
@@ -107,6 +114,21 @@ class Transaction(models.Model):
         super().save(*args, **kwargs)
 
 
+    def update_billed(self):
+        billed_count = 0
+        payments = self.pospayment_set.all()
+        for payment in payments:
+            if payment.billed:
+                billed_count += 1
+        if billed_count == 0:
+            self.billed = self.BilledState.UNBILLED.value
+        elif billed_count == len(payments):
+            self.billed = self.BilledState.BILLED.value
+        else:
+            self.billed = self.BilledState.PART_BILLED.value
+        self.save()
+
+
 class LineItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True)
     sale_price = models.DecimalField(max_digits=5, decimal_places=2, null=False)
@@ -120,11 +142,21 @@ class LineItem(models.Model):
 
 class PosPaymentBillingManager(models.Manager):
 
+    def unbilled_total(self, person, item_type):
+        dict = PosPayment.objects.filter(
+            transaction__item_type=item_type,
+            person=person,
+            billed=False).aggregate(Sum('total'))
+        total = dict['total__sum']
+        return 0 if total is None else total
+
     def data(self, person=None):
         result = []
         item_types = ItemType.objects.filter(pos=True)
         for item_type in item_types:
-            records = PosPayment.objects.filter(transaction__item_type=item_type, billed=False).order_by('person_id')
+            records = PosPayment.objects.filter(
+                transaction__item_type=item_type,
+                billed=False).order_by('person_id')
             if person:
                 records = records.filter(person=person)
 
@@ -227,6 +259,11 @@ class Visitor(models.Model):
 
 
 class VisitorBookBillingManager(models.Manager):
+
+    def unbilled_total(self, person, item_type):
+        dict = VisitorBook.objects.filter(member=person, billed=False).aggregate(Sum('fee'))
+        total = dict['fee__sum']
+        return 0 if total is None else total
 
     def data(self, person=None):
         records = VisitorBook.objects.filter(billed=False).order_by('member_id')
