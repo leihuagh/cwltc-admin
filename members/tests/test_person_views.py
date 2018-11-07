@@ -11,13 +11,13 @@ def settings(db):
 
 @pytest.mark.parametrize('path', ['person-create', 'person-junior-create'])
 def test_person_create_view_status(settings, admin_client, path):
-    response = admin_client.get(reverse('path'))
+    response = admin_client.get(reverse(path))
     assert response.status_code == 200
 
 
 @pytest.mark.parametrize('path', ['person-create', 'person-junior-create'])
 def test_person_create_view_redirects_not_staff(settings, client, path):
-    response = client.get(reverse('path'))
+    response = client.get(reverse(path))
     assert response.status_code == 302
     assert 'login' in response.url
 
