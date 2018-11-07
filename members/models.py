@@ -660,12 +660,12 @@ class ItemType(models.Model):
 class InvoiceItem(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
-    item_date = models.DateField(null=True, blank=True)
+    item_date = models.DateField(null=True, blank=False)
     description = models.CharField(max_length=100, blank=True, null=True)
     amount = models.DecimalField(max_digits=7, decimal_places=2)
     paid = models.BooleanField(default=False)
     #
-    item_type = models.ForeignKey(ItemType, on_delete=models.SET_NULL, blank=True, null=True)
+    item_type = models.ForeignKey(ItemType, on_delete=models.SET_NULL, blank=False, null=True)
     person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, blank=True, null=True, related_name='invoice_items')
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, blank=True, null=True)
@@ -736,7 +736,7 @@ class Subscription(models.Model):
     resigned = models.BooleanField(default=False)
     invoiced_month = models.SmallIntegerField()
     no_renewal = models.BooleanField(default=False)
-    cardless_id = models.CharField(max_length=50, blank=True, null=True)
+
     objects = models.Manager()
     counts = SubscriptionCountManager()
 

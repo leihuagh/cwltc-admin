@@ -3392,7 +3392,7 @@ input[type="button"].btn-block {
 .dropdown-item:hover, span.twitter-typeahead .tt-suggestion:hover, .dropdown-item:focus, span.twitter-typeahead .tt-suggestion:focus {
   color: #16181b;
   text-decoration: none;
-  background-color: #96fff5;
+  background-color: #cceae7;
 }
 
 .dropdown-item.active, span.twitter-typeahead .active.tt-suggestion, span.twitter-typeahead .tt-suggestion.tt-cursor, .dropdown-item:active, span.twitter-typeahead .tt-suggestion:active {
@@ -13530,6 +13530,10 @@ be a descendant of the grid when it is being dragged.
     padding: 0;
     background-color: #fff;
   }
+}
+
+.app-highlight {
+  background-color: #cceae7;
 }
 
 .light-text {

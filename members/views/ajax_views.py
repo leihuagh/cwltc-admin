@@ -1,7 +1,7 @@
 import json
 from datetime import date
 import logging
-from django.http import HttpResponse, JsonResponse, Http404
+from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -17,7 +17,7 @@ def ajax_people(request):
     if ?members=true only return paid members
     if ?adults=true only return paid adult members
     """
-    if request.is_ajax():
+    if request.user.is_authenticated and request.is_ajax():
         results = []
         q = request.GET.get('term', '')
         keys = q.split(" ", 1)
@@ -59,7 +59,7 @@ def ajax_people(request):
 
 def ajax_adults(request):
     """ return json of all paid adults for bloodhound prefetch """
-    if request.is_ajax():
+    if request.user.is_authenticated and request.is_ajax():
         people = list(Person.objects.filter(membership__is_adult=True, state=Person.ACTIVE, sub__paid=True).values(
             'first_name', 'last_name', 'id'))
         result = []
@@ -70,14 +70,17 @@ def ajax_adults(request):
             }
             result.append(dict)
         return JsonResponse(result, safe=False)
-    return Http404
+    return HttpResponseNotFound
 
 
 def ajax_person(request):
     """ Used for member details lookup """
-    if request.is_ajax():
+    if request.user.is_authenticated and request.is_ajax():
         id = request.GET.get('id', '')
-        person = Person.objects.get(pk=id)
+        try:
+            person = Person.objects.get(pk=id)
+        except Person.DoesNotExist:
+            return HttpResponseNotFound
         dict = {'name': person.fullname}
         if person.allow_phone:
             dict['mobile'] = person.mobile_phone
@@ -88,14 +91,14 @@ def ajax_person(request):
         dict['email'] = person.email if person.allow_email else 'Email not shared'
         dict['membership'] = person.membership.description
         return JsonResponse(dict)
-    return Http404
+    return HttpResponseNotFound
 
 
 def ajax_password(request):
 
     dict = {'authenticated': False,
             'supervisor': False}
-    if request.is_ajax():
+    if request.user.is_authenticated and request.is_ajax():
         id = request.POST.get('person_id', None)
         pin = request.POST.get('pin', None)
         password = request.POST.get('password', None)
@@ -124,7 +127,7 @@ def ajax_password(request):
 
 def ajax_dob(request):
     """ Validate junior by checking the date of birth """
-    if request.is_ajax() and request.method == 'POST':
+    if request.user.is_authenticated and request.is_ajax() and request.method == 'POST':
         id = request.POST.get('person_id', None)
         dob = request.POST.get('dob', None)
         parts = dob.split('/')
@@ -139,7 +142,10 @@ def ajax_dob(request):
         elif y < 1900:
             y += 1900
         dob_date = date(y, m, d)
-        person = Person.objects.get(pk=id)
+        try:
+            person = Person.objects.get(pk=id)
+        except Person.DoesNotExist:
+            return HttpResponseNotFound
         if person.dob == dob_date:
             return HttpResponse('OK')
     return HttpResponse('Wrong date of birth')
@@ -147,9 +153,12 @@ def ajax_dob(request):
 
 def ajax_postcode(request):
     """ validate post code & phone for POS PIN reset """
-    if request.is_ajax():
+    if request.user.is_authenticated and request.is_ajax():
         id = request.POST.get('person_id', '')
-        person = Person.objects.get(pk=id)
+        try:
+            person = Person.objects.get(pk=id)
+        except Person.DoesNotExist:
+            return HttpResponseNotFound
         code = request.POST.get('postcode', '').replace(' ', '').lower()
         phone = request.POST.get('phone', '')
         if person.address.post_code.replace(' ', '').lower() == code:
@@ -162,19 +171,22 @@ def ajax_postcode(request):
 
 def ajax_set_pin(request):
     """ Set pin from POS """
-    if request.is_ajax():
+    if request.user.is_authenticated and request.is_ajax():
         id = request.POST.get('person_id', '')
         if id:
-            person = Person.objects.get(pk=id)
+            try:
+                person = Person.objects.get(pk=id)
+            except Person.DoesNotExist:
+                return HttpResponseNotFound
             pin = request.POST.get('pin', '')
             person.set_pin(pin)
             return HttpResponse('Pin set')
-    return Http404
+    return HttpResponseNotFound
 
 
 def ajax_chart(request):
     error = 'bad request'
-    if request.is_ajax():
+    if request.user.is_authenticated and request.is_ajax():
         year = Settings.current_year()
         chart = request.GET.get('chart', '')
         filter = request.GET.get('filter', '')

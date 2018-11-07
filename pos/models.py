@@ -260,7 +260,7 @@ class Visitor(models.Model):
 
 class VisitorBookBillingManager(models.Manager):
 
-    def unbilled_total(self, person, item_type):
+    def unbilled_total(self, person):
         dict = VisitorBook.objects.filter(member=person, billed=False).aggregate(Sum('fee'))
         total = dict['fee__sum']
         return 0 if total is None else total

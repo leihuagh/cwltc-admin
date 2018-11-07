@@ -1,3 +1,4 @@
+{% load static %}
 <div class="tile mt-2">
   <h5>Ready to be invoiced</h5>
   {% if items %}
@@ -21,10 +22,14 @@
           <td class = "text-right"><b>£ {{ items_total }}</td>
       </tr>
     </table>
-    <form>{% csrf_token %}
-      <input type="submit" name="invoice" class='btn btn-primary btn-sm' value="Create invoice">
-    </form>
   {% else %}
     <br/><p class="pl-3">No uninvoiced items</p>
   {% endif %}
+  <form>{% csrf_token %}
+    <a class="btn btn-primary btn-sm" href="{% url 'item-create' person_id=person.id %}">New item</a>
+    {% if items %}
+      <input type="submit" name="invoice" class='btn btn-primary btn-sm' value="Create invoice">
+    {% endif %}
+  </form>
+
 </div>

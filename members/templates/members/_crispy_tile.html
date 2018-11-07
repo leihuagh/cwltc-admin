@@ -1,0 +1,15 @@
+{% load crispy_forms_tags %}
+<div class="tile" styl1e="width: 30rem;">
+  <h3 class="text-center pb-2">{% if form_title %}{{ form_title }}{% else %}{{ form.title }}{% endif %}</h3>
+  <h4 class="text-center">{{ form_subtitle }}</h4>
+  {% if form.errors %}
+    <p class="text-danger">Please correct the errors on the form</p>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    {% crispy form %}
+    <input type="submit" name="submit" class="btn btn-primary" value="Save">
+    {% if delete %}<input type="submit" name="delete" class="btn btn-danger" value="Delete">{% endif %}
+    <a href="{{ view.get_success_url }}" class="btn btn-default">Cancel</a>
+  </form>
+</div>

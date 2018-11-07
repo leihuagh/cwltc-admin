@@ -1,0 +1,10 @@
+{% extends "members/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+  {% if app_title %}
+    <div class="app-title"><h3>{{ app_title }}</h3></div>
+  {% endif %}
+
+      {% crispy form %}
+
+{% endblock content %}

@@ -2,116 +2,111 @@
 {% load static %}
 {% load widget_tweaks %}
 {% load render_table from django_tables2 %}
-
+{% block head %}{{ filter.form.media }}{% endblock %}
 {% block content %}
-<form method="get">
-  <div>
-    <div class="row">
-      {% if filter %}
-        {% if parents %}
-        <div class="col-sm-3 col-md-2">
-          <h3>Parents</h3>
+  <form method="get">
+  <div class="app-title">
+    <div class="container-fluid">
+      <div class="row">
+        {% if filter %}
+          {% if parents %}
+            <div class="col-sm-3 col-md-2">
+              <h3>Parents</h3>
+            </div>
+          {% endif %}
+          <!--  Year and state must be present but are hidden except in members view -->
+
+            <div class="form-group col-sm-6 col-md-4 col-lg pr-0">
+            {{ filter.form.year.label_tag }}
+            {% render_field filter.form.year class="form-control form-control-sm" %}
+          </div>
+          {% if members %}
+            <div class="form-group col-sm-6 col-md-4 col-lg pr-0">
+              {{ filter.form.state.label_tag }}
+              {% render_field filter.form.state class="form-control form-control-sm" %}
+            </div>
+          {% endif %}
+          <!-- -->
+            <div class="form-group col-sm-6 col-md-4 col-lg pr-0">
+            {{ filter.form.membership.label_tag }}
+            {% render_field filter.form.membership class="form-control form-control-sm" %}
+          </div>
+          {% if members %}
+            <div class="form-group col-sm-6 col-md-4 col-lg pr-0">
+              {{ filter.form.adult.label_tag }}
+              {% render_field filter.form.adult class="form-control form-control-sm" %}
+            </div>
+            <div class="form-group col-sm-6 col-md-4 col-lg pr-0">
+              {{ filter.form.playing.label_tag }}
+              {% render_field filter.form.playing class="form-control form-control-sm" %}
+            </div>
+          {% endif %}
+            <div class="form-group col-sm-6 col-md-4 col-lg pr-0">
+            {{ filter.form.paid.label_tag }}
+            {% render_field filter.form.paid class="form-control form-control-sm" %}
+          </div>
+          {% if juniors %}
+            <div class="form-group col-sm-6 col-md-4 col-lg pr-0">
+              {{ filter.form.dob1.label_tag }}
+              {% render_field filter.form.dob1 class="form-control form-control-sm" placeholder="DD/MM/YYYY" %}
+            </div>
+            <div class="form-group col-sm-6 col-md-4 col-lg pr-0">
+              {{ filter.form.dob2.label_tag }}
+              {% render_field filter.form.dob2 class="form-control form-control-sm" placeholder="DD/MM/YYYY" %}
+            </div>
+
+          {% endif %}
+        {% else %}
+          <div class="col-md-6">
+            <h4>All people in database</h4>
+          </div>
+        {% endif %}
+        <!--Search button on right side-->
+        <div class="form-group col-sm-6 col-md-4 col-lg pr-0">
+          <label for="id_search">&nbsp</label>
+          <button class="form-control form-control-sm btn btn-primary btn-sm" id="id_search" type="submit">
+            <i class="fa fa-search"></i> Search
+          </button>
         </div>
-        {% endif %}
-      <!--  Year and state must be present but are hidden except in members view -->
+      </div> <!-- row -->
+    </div> <!-- tile -->
+  </div>
+  </form>
 
-      <div class="form-group col-sm-3 col-md-2 ">
-        {{ filter.form.year.label_tag }}
-        {% render_field filter.form.year class="form-control form-control-sm" %}
-      </div>
-      {% if members %}
-      <div class="form-group col-sm-3 col-md-2">
-        {{ filter.form.state.label_tag }}
-        {% render_field filter.form.state class="form-control" %}
-      </div>
-      {% endif %}
-      <!-- -->
-      <div class="form-group col-sm-3 col-md-2">
-        {{ filter.form.membership.label_tag }}
-        {% render_field filter.form.membership class="form-control" %}
-      </div>
-      {% if members %}
-      <div class="form-group col-sm-3 col-md-2">
-        {{ filter.form.adult.label_tag }}
-        {% render_field filter.form.adult class="form-control" %}
-      </div>
-      <div class="form-group col-sm-3 col-md-2">
-        {{ filter.form.playing.label_tag }}
-        {% render_field filter.form.playing class="form-control" %}
-      </div>
-      {% endif %}
-      <div class="form-group col-sm-3 col-md-2">
-        {{ filter.form.paid.label_tag }}
-        {% render_field filter.form.paid class="form-control" %}
-      </div>
-      {% if parents is False %}
-      <!--Cannot filter on parent names-->
-      <div class="form-group col-sm-3 col-md-2">
-        {{ filter.form.first_name.label_tag }}
-        {% render_field filter.form.first_name class="form-control" %}
-      </div>
-      <div class="form-group col-sm-3 col-md-2">
-        {{ filter.form.last_name.label_tag }}
-        {% render_field filter.form.last_name class="form-control" %}
-      </div>
-      {% endif %}
-      {% if juniors %}
-      <div class="form-group col-sm-3 col-md-2">
-        {{ filter.form.dob1.label_tag }}
-        {% render_field filter.form.dob1 class="form-control" placeholder="DD/MM/YYYY"%}
-      </div>
-      <div class="form-group col-sm-2 col-md-2">
-        {{ filter.form.dob2.label_tag }}
-        {% render_field filter.form.dob2 class="form-control" placeholder="DD/MM/YYYY" %}
-      </div>
-      {% endif %}
-      {% else %}
-      <div class="col-md-6">
-        <h4>All people in database</h4>
-      </div>
-      {% endif %}
-      <!--Search button on right side-->
-      <div class="form-group col-sm-offset-3 col-sm-3 col-md-offset-6 col-md-2">
-        <label for="id_search">&nbsp </label>
-        <button class="form-control btn-primary btn-block" id="id_search" type="submit">
-          <span class="glyphicon glyphicon-search"></span> Search
-        </button>
-      </div>
+  <!-- ACTIONS -->
+  <div class="container-fluid">
+  <div class="row">
+
+      {% csrf_token %}
+        <div class="col-2">
+          <span id="id-count">0</span> of {{ table.rows|length }} rows selected
+        </div>
+        <div class="col-2">
+          <form action="." method="post" class="form-inline">
+            <select class="form-control form-control-sm" id="id_action" , name="action">
+              <option value="none" selected="selected">No action</option>
+              <option value="export">Export</option>
+              <option value="mail">Mail</option>
+              <option value="group">Add to group</option>
+              {% if user.is_staff %}
+                <option value="renew">Renew subscriptions</option>
+                <option value="invoice">Create invoices</option>
+              {% endif %}
+            </select>
+            <button class="form-control form-control-sm btn btn-primary btn-sm" name="go" id="id_go" type="submit">Go</button>
+          </form>
+        </div>
+  </div>
+  </div>
+  <div class="row>">
+
+    <div class="tile p-0">
+{#      {% render_table table 'django_tables2/table.html' %}#}
     </div>
   </div>
-</form>
-
-<!-- ACTIONS -->
-<form action="." method="post" class="form-inline">
-  <div class="container">
-    {% csrf_token %}
-    <div class="row">
-      <div class="col-md-2">
-        <span id="id-count">0</span> of {{ table.rows|length }} rows selected
-      </div>
-      <select class="form-control col-sm-3 col-md-2" id="id_action" , name="action">
-        <option value="none" selected="selected">No action</option>
-        <option value="export">Export</option>
-        <option value="mail">Mail</option>
-        <option value="group">Add to group</option>
-        {% if user.is_staff %}
-        <option value="renew">Renew subscriptions</option>
-        <option value="invoice">Create invoices</option>
-        {% endif %}
-      </select>
-      <button class="form-control button btn-primary" name="go" id="id_go" type="submit">Go</button>
-      &nbsp &nbsp
-      <p></p>
-    </div>
-  </div>
-
-  <div class="tile p-0">
-      {% render_table table 'django_tables2/table.html'%}
-  </div>
-</form>
 
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'members/scripts/table_checkboxes.js' %}"></script>
+  <script src="{% static 'members/scripts/table_checkboxes.js' %}"></script>
 {% endblock %}

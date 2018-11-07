@@ -20,6 +20,8 @@ Menu.add_item('side', MenuItem("People", None, icon='fas fa-user', children=[
     MenuItem('Parents', reverse('parents-list'), icon='fas fa-female'),
     MenuItem('Applications', reverse('applied-list'), icon='fas fa-user-plus'),
     MenuItem('All people', reverse('all-people-list'), icon='fas fa-users'),
+    MenuItem('Create adult', reverse('person-create'), icon='fas fa-user'),
+    MenuItem('Create junior', reverse('person-junior-create'), icon='fas fa-child'),
 ]   ))
 
 Menu.add_item("side", MenuItem("Groups", None, icon='fas fa-users', children=[

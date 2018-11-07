@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'djcelery_email',
     'cookielaw',
     'taggit',
+    'tempus_dominus',
     'menu',
     'members',
     'pos',
@@ -168,6 +169,7 @@ LOGIN_REDIRECT_URL = '/club/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 DJANGO_TABLES2_TEMPLATE = 'django_tables2/bootstrap.html'
+TEMPUS_DOMINUS_LOCALIZE = True
 
 # EMAIL_BACKEND is defined in site specific settings
 

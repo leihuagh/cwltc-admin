@@ -1,23 +1,14 @@
-﻿{% extends "members/layout.html" %}
-
-{% load crispy_forms_tags %} 
+﻿{% extends "members/base.html" %}
+{% load crispy_forms_tags %}
 {% block content %}
-<h2>Change address for:</h2>
-<h4><a href="{% url "person-detail" pk=person.id %}">{{ person.first_name }} {{ person.last_name }}</a></h4>
-{% if children %}
-    {% for child in children %}
-        <h4><a href="{% url "person-detail" pk=child.id %}">{{ child.first_name }} {{ child.last_name }}</a></h4>
-    {% endfor child %}   
-{% endif %}
-<form action="{{ request.get_full_path }}" method="POST">
-{% csrf_token %}
-<div class="row">
-  <div class="col col-sm-6">
-    <div class="well">
-      {% crispy form %}
-    </div>
+  <h2 class="text-center">Change address for:</h2>
+  <h4 class="text-center"><a href="{% url "person-detail" pk=person.id %}">{{ person.first_name }} {{ person.last_name }}</a></h4>
+  {% if children %}
+      {% for child in children %}
+          <h4 class="text-center"><a href="{% url "person-detail" pk=child.id %}">{{ child.first_name }} {{ child.last_name }}</a></h4>
+      {% endfor child %}
+  {% endif %}
+    <div class="row justify-content-md-center">
+    {% include 'members/_crispy_tile.html' %}
   </div>
-</div>
-<input type="submit" name="save" value="Save" class="btn btn-success">
-<a href="{{ view.get_success_url }}" class="btn btn-default">Cancel</a>
 {% endblock content %}

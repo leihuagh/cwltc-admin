@@ -1,11 +1,13 @@
-from django.conf.urls import url, include
+from django.urls import path, include
+from django.conf.urls import url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django_mail_viewer import urls as django_mail_viewer_urls
 from django.views.generic.base import RedirectView
+from members.urls import ajax_patterns, person_patterns
 from mysite.views import *
-from members.views import *
+from members.views.views import *
 from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
 from public.views import *
 from members.tables import *
@@ -21,39 +23,35 @@ router.register(r'Xgroups', GroupViewSet)
 router.register(r'Xinvoices', InvoiceViewSet)
 
 urlpatterns = [
-    url(r'^$', index_view, name='index'),
-    url(r'^', include('authentication.urls')),
-    url(r'^celery/$', test_celery_view, name='celery'),
-    url(r'^public/', include('public.urls')),
-    url(r'^mv/', include(django_mail_viewer_urls)),
-    url(r'^api/', include(router.urls)),
-#    url(r'^rest/', include('rest_framework.urls', namespace='rest_framework')),
-#    url(r'^report_builder/', include('report_builder.urls')),
-    url(r'^pos/', include('pos.urls')),
-    url(r'^club/', include('club.urls')),
-    url(r'^cardless/', include('cardless.urls')),
-    url(r'^wimbledon/', include('wimbledon.urls')),
-    url(r'^events/', include('events.urls')),
-    url(r'^diary/', include('diary.urls')),
+    path('', index_view, name='index'),
+    path('', include('authentication.urls')),
+    path('celery', test_celery_view, name='celery'),
+    path('mv/', include(django_mail_viewer_urls)),
+    path('api/', include(router.urls)),
+    # Apps
+    path('public/', include('public.urls')),
+    path('pos/', include('pos.urls')),
+    path('club/', include('club.urls')),
+    path('cardless/', include('cardless.urls')),
+    path('wimbledon/', include('wimbledon.urls')),
+    path('events/', include('events.urls')),
+    path('diary/', include('diary.urls')),
+    # Members app
+    path('home/', HomeView.as_view(), name='home'),
+    path('ajax/', include(ajax_patterns)),
+    path('person/', include(person_patterns)),
 
-    url(r'^home/', HomeView.as_view(), name='home'),
+    path('search/person/', search_person, name='search-person'),
+#    path('report_builder/', include('report_builder.urls')),
+#    path('rest/', include('rest_framework.urls', namespace='rest_framework')),
 
-    # url(r'^markdownx/', include('markdownx.urls')),
-    url(r'^ajax/people/$', ajax_people, name="ajax-people"),
-    url(r'^ajax/person/$', ajax_person, name="ajax-person"),
-    url(r'^ajax/adults/$', ajax_adults, name="ajax-adults"),
-    url(r'^ajax/password/$', ajax_password, name='ajax-password'),
-    url(r'^ajax/postcode/$', ajax_postcode, name="ajax-postcode"),
-    url(r'^ajax/dob/$', ajax_dob, name="ajax-dob"),
-    url(r'^ajax/set_pin/$', ajax_set_pin, name="ajax-set-pin"),
-    url(r'^ajax/chart/$', ajax_chart, name="ajax-chart-members"),
-    url(r'^search/person/$', search_person, name="search-person"),
 
     # YEAR END
     url(r'^yearend/$', YearEndView.as_view(), name='yearend'),
-    url(r'^yearend/year$',ChangeYearView.as_view(), name='yearend-year'),
+    url(r'^yearend/year$', ChangeYearView.as_view(), name='yearend-year'),
 
 
+    # url(r'^markdownx/', include('markdownx.urls')),
     # GROUPS
     url(r'^group/create/$',
         GroupCreateView.as_view(),
@@ -80,14 +78,14 @@ urlpatterns = [
         name='group-add-list'),
 
     #   MEMBERSHIP CATEGORIES
-    url(r'^categories/list/$',MembershipTableView.as_view(),name='categories-list'),
-    url(r'^categories/create/$',MembershipCreateView.as_view(),name='categories-create'),
-    url(r'^categories/update/(?P<pk>\d+)$',MembershipUpdateView.as_view(),name='categories-update'),
+    url(r'^categories/list/$', MembershipTableView.as_view(), name='categories-list'),
+    url(r'^categories/create/$', MembershipCreateView.as_view(), name='categories-create'),
+    url(r'^categories/update/(?P<pk>\d+)$', MembershipUpdateView.as_view(), name='categories-update'),
 
     #   FEES
     url(r'^fees/update/(?P<pk>\d+)/$', FeesUpdateView.as_view(), name='fees-update'),
     url(r'^fees/list/$', FeesListView.as_view(), name='fees-list'),
-    url(r'^fees/list/(?P<year>[0-9]{4})/$', FeesListView.as_view(),name='fees-list'),
+    url(r'^fees/list/(?P<year>[0-9]{4})/$', FeesListView.as_view(), name='fees-list'),
 
     url(r'^visitor-fees/update/(?P<pk>\d+)/$', VisitorFeesUpdateView.as_view(), name='visitor-fees-update'),
     url(r'^visitor-fees/list/$', VisitorFeesListView.as_view(), name='visitor-fees-list'),
@@ -141,12 +139,8 @@ urlpatterns = [
         InvoicePublicView.as_view(),
         name='invoice-public'
         ),
-    url(r'^invoice/generate/(?P<pk>\d+)/$',
-        InvoiceGenerateView.as_view(),
-        name='invoice-generate'
-        ),
-    url(r'^invoices/generate/$',
-        InvoicesGenerateSelectionView.as_view(),
+    url(r'^invoice/generate/$',
+        InvoiceGenerateSelectionView.as_view(),
         name='invoices-generate'
         ),
     url(r'^invoice/mail/(?P<pk>\d+)/(?P<option>[a-zA-Z]+)$',
@@ -237,65 +231,60 @@ urlpatterns = [
     url(r'^people/resign/$', PeopleResignView.as_view(),
         name='people-resign'),
 
-    # url(r'^list/$',
-    #     PersonList.as_view(),
-    #     name='person-list'
+
+    # url(r'^(?P<pk>\d+)/$',
+    #     PersonDetailView.as_view(),
+    #     name='person-detail'
     #     ),
-    url(r'^(?P<pk>\d+)/$',
-        PersonDetailView.as_view(),
-        name='person-detail'
-        ),
-    url(r'^person/create(?:/(?P<link>\d+))?/$',
-        PersonCreateView.as_view(),
-        name='person-create'
-        ),
-    url(r'^person/update/(?P<pk>\d+)/$',
-        PersonUpdateView.as_view(),
-        name='person-edit'
-        ),
-    url(r'^person/merge/(?P<pk>\d+)/$',
-        PersonMergeView.as_view(),
-        name='person-merge'
-        ),
-    url(r'^person/link/(?P<pk>\d+)/$',
-        PersonLinkView.as_view(),
-        name='person-link'
-        ),
-    url(r'^junior/create$',
-        JuniorCreateView.as_view(),
-        name='junior-create'
-        ),
+    # url(r'^person/create(?:/(?P<link>\d+))?/$',
+    #     PersonCreateView.as_view(),
+    #     name='person-create'
+    #     ),
+    # url(r'^person/update/(?P<pk>\d+)/$', PersonUpdateView.as_view(), name='person-update'),
+    #
+    # url(r'^person/merge/(?P<pk>\d+)/$',
+    #     PersonMergeView.as_view(),
+    #     name='person-merge'
+    #     ),
+    # url(r'^person/link/(?P<pk>\d+)/$',
+    #     PersonLinkView.as_view(),
+    #     name='person-link'
+    #     ),
+    # url(r'^junior/create$',
+    #     JuniorCreateView.as_view(),
+    #     name='junior-create'
+    #     ),
 
     url(r'^person/export$',
         PersonExportView.as_view(),
         name='person-export'
         ),
-
-    url(r'^person/profile/(?P<pk>\d+)$',
-        AdultProfileView.as_view(edit=False),
-        name='person-profile'
-        ),
-
-    url(r'^person/profile/edit/(?P<pk>\d+)$',
-        AdultProfileView.as_view(edit=True),
-        name='person-profile-edit'
-        ),
-
-    url(r'^junior/profile/(?P<pk>\d+)$',
-        JuniorProfileView.as_view(edit=False),
-        name='junior-profile'
-        ),
-
-    url(r'^junior/profile/edit/(?P<pk>\d+)$',
-        JuniorProfileView.as_view(edit=True),
-        name='junior-profile-edit'
-        ),
+    #
+    # url(r'^person/profile/(?P<pk>\d+)$',
+    #     AdultProfileView.as_view(edit=False),
+    #     name='person-profile'
+    #     ),
+    #
+    # url(r'^person/profile/edit/(?P<pk>\d+)$',
+    #     AdultProfileView.as_view(edit=True),
+    #     name='person-profile-edit'
+    #     ),
+    #
+    # url(r'^junior/profile/(?P<pk>\d+)$',
+    #     JuniorProfileView.as_view(edit=False),
+    #     name='junior-profile'
+    #     ),
+    #
+    # url(r'^junior/profile/edit/(?P<pk>\d+)$',
+    #     JuniorProfileView.as_view(edit=True),
+    #     name='junior-profile-edit'
+    #     ),
 
     #   ADDRESSES
-    url(r'^person/address/(?P<person_id>\d+)/$',
-        AddressUpdateView.as_view(),
-        name='person-address'
-        ),
+    # url(r'^person/address/(?P<person_id>\d+)/$',
+    #     AddressUpdateView.as_view(),
+    #     name='person-address'
+    #     ),
 
     #   INVOICE ITEMS
     url(r'^items/(?P<pk>\d+)/$',

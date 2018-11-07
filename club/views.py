@@ -8,7 +8,8 @@ from mysite.common import Button
 from members.models import Person, Address, Settings, Invoice, Payment, ItemType
 from pos.models import PosPayment, Transaction, VisitorBook
 from .tables import PosPaymentsTable, VisitorBookTable
-from members.views import set_person_context, add_membership_context, SingleTableView
+from members.views.views import add_membership_context, SingleTableView
+from members.views.person_views import set_person_context
 from members.services import person_statement
 from public.forms import NameForm, AddressForm, ConsentForm
 from public.views import InvoicePublicView

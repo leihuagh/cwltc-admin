@@ -762,6 +762,9 @@ def person_reassign_records(person_from, person_to):
     for cnote in person_from.creditnote_set.all():
         cnote.person = person_to
         cnote.save()
+    for trans in person_from.postransaction_set.all():
+        trans.person = person_to
+        trans.save
 
 
 def person_link(child, parent):

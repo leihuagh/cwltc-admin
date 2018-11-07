@@ -3,13 +3,15 @@ from django.db.models import Q
 from django.utils import timezone
 from .models import Person, Membership, Settings, Subscription, Invoice, InvoiceItem, Payment
 import django_filters
-from django_filters.widgets import BooleanWidget
+from tempus_dominus.widgets import DatePicker
+
 
 def year_choices(withNone=False):
     choices = []
     if withNone:
         choices.append([0, "Not invoiced"])
     year = Settings.current_year()
+    #TODO fix dependcy on settings
     for y in range(year, year-5, -1):
         choices.append([y, str(y)])
     return choices
@@ -18,6 +20,7 @@ def year_choices(withNone=False):
 class SubsBaseFilter(django_filters.FilterSet):
 
     class Meta:
+
         model = Subscription
         fields = {'person_member__email':['icontains']}
                   
@@ -45,25 +48,19 @@ class SubsBaseFilter(django_filters.FilterSet):
                                                   to_field_name="description",
                                                   empty_label="No filter"
                                                  )
-    first_name = django_filters.CharFilter(field_name='person_member__first_name',
-                                           lookup_expr='istartswith',
-                                           label = 'First name starts'
-                                          )                                           
-    last_name = django_filters.CharFilter(field_name='person_member__last_name',
-                                          lookup_expr='istartswith',
-                                          label='Last name starts'
-                                         )
 
 
 class JuniorFilter(SubsBaseFilter):
 
     dob1 = django_filters.DateFilter(field_name='person_member__dob',
                                      label='Born after',
-                                     lookup_expr='gt'
+                                     lookup_expr='gt',
+                                     widget=DatePicker(options={'format': 'DD/MM/YYYY'})
                                      )
     dob2 = django_filters.DateFilter(field_name='person_member__dob',
                                      label='Born before',
-                                     lookup_expr='lt'
+                                     lookup_expr='lt',
+                                     widget=DatePicker(options={'format': 'DD/MM/YYYY'})
                                      )
     membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.filter(is_adult=False),
                                                   required=None,
@@ -139,17 +136,16 @@ class InvoiceItemFilter(django_filters.FilterSet):
         fields = ['item_type', 'paid']
 
     invoiced = django_filters.ChoiceFilter(field_name='invoice',
-                                            label='Invoice year',
-                                            empty_label=None,
-                                            method='has_invoice',
-                                            choices=year_choices(withNone=True))
+                                           label='Invoice year',
+                                           empty_label=None,
+                                           method='has_invoice',
+                                           choices=year_choices(withNone=True))
    
     def has_invoice(self, queryset, name, value):
         if value == '0':
             return queryset.filter(invoice__isnull=True)
         else:
             return queryset.filter(invoice__membership_year=value)
-     
             
                                             
 class PaymentFilter(django_filters.FilterSet):

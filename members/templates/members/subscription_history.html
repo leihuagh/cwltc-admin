@@ -1,10 +1,12 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% load members_extras %}
 {% block content %}
-<h2>Subscription history</h2>
-<h4>
+<h2 class="app-title">Subscription history</h2>
+<div class="col"><h4>
 <a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
-</h4>
+</h4></div>
+  <div class="col col-md-8">
+  <div class="tile p-0">
 <table id="subs" class="table table-condensed" >
 <thead>
   <tr>
@@ -20,7 +22,7 @@
 {% for sub in subs %}
 <tr>
     <td>
-      <a href="{% url "sub-detail" sub.id %}" class="btn btn-primary btn-xs">View</a>
+      <a href="{% url "sub-detail" sub.id %}" class="btn btn-default btn-sm">View</a>
     </td>
     <td>{{ sub.sub_year }}</td>
     <td>{{ sub.active }}</td>
@@ -42,4 +44,6 @@
 </tr>
 {% endfor sub %}
 </table>
+  </div>
+  </div>
 {% endblock %}

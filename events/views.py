@@ -7,7 +7,7 @@ from django.http import Http404
 from braces.views import StaffuserRequiredMixin, LoginRequiredMixin
 from mysite.common import Button, LinkButton
 from club.views import person_from_user
-from members.views import SingleTableView
+from members.views.views import SingleTableView
 from members.models import Person, ItemType
 from cardless.services import person_from_token
 from events.models import Event, Participant, Tournament
