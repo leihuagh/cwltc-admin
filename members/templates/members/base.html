@@ -2,7 +2,7 @@
 {% load static %}
 {% load menu %}
 {% block head %}
-{#  <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">#}
+{#link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">#}
 {% endblock %}
 
 {% block content0 %}
@@ -15,7 +15,7 @@
       <ul class="app-nav">
         <li class="app-search">
           <form class="navbar-form navbar-left" role="search" action="/search/person/" id="nav-form">
-            <input class="app-search__input typeahead tt-query" id="nav_search" placeholder="Search">
+            <input class="app-search__input " id="nav_search" placeholder="Search">
             <input name="nav_person_id" id="nav_person_id" type="hidden" value="">
             <button class="app-search__button"><i class="fa fa-search"></i></button>
           </form>
@@ -80,6 +80,9 @@
     </aside>
 
     <main class="app-content">
+      {% block app_title %}
+      {% endblock %}
+        {% include '_messages.html' %}
       {% block content %}
       {% endblock %}
     </main>

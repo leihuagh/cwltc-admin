@@ -15,7 +15,6 @@ from members.services import person_can_delete, person_delete, person_link, pers
 from members.tables import ApplicantTable
 from public.forms import AddressForm
 from pos.models import PosPayment, VisitorBook
-from members.excel import export_members
 
 stdlogger = logging.getLogger(__name__)
 
@@ -88,7 +87,6 @@ class PersonCreateView(StaffuserRequiredMixin, CreateView):
 class PersonUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Person
     template_name = 'members/crispy_tile.html'
-    success_msg = 'Person updated'
     form_class = PersonNameForm
 
     def get_success_url(self):
@@ -107,7 +105,7 @@ class PersonLinkView(StaffuserRequiredMixin, TemplateView):
         context['action1'] = "Link"
         if person.linked:
             context['action2'] = "UnLink"
-            context['title'] = 'Link / unlink person'
+            context['title'] = 'Link / unlink' if person.linked else 'Unlink' + ' person'
         return context
 
     def post(self, request, *args, **kwargs):
@@ -360,7 +358,7 @@ def search_person(request):
 class AddressUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Address
     form_class = AddressForm  # public!
-    template_name = 'members/address_form.html'
+    template_name = 'members/crispy_tile.html'
 
     def get_object(self, queryset=None):
         self.person = Person.objects.get(pk=self.kwargs['person_id'])
@@ -373,12 +371,13 @@ class AddressUpdateView(StaffuserRequiredMixin, UpdateView):
             parent = self.person.linked
         context['person'] = parent
         context['children'] = parent.person_set.all()
+        context['app_title'] = 'Edit address'
         return context
 
     def form_invalid(self, form):
         if 'cancel' in form.data:
             return redirect(self.get_success_url())
-        return super(AddressUpdateView, self).form_invalid(form)
+        return super().form_invalid(form)
 
     def form_valid(self, form):
         if 'cancel' in form.data:
@@ -386,7 +385,7 @@ class AddressUpdateView(StaffuserRequiredMixin, UpdateView):
         address = form.save()
         self.person.address = address
         self.person.save()
-        return super(AddressUpdateView, self).form_valid(form)
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk': self.kwargs['person_id']})

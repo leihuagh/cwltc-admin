@@ -2,7 +2,7 @@ import django_tables2 as tables
 from django_tables2.utils import A
 from django.conf import settings
 from django.utils.html import format_html
-from members.models import Person, Subscription, Invoice, InvoiceItem, Payment, Membership
+from members.models import Person, Subscription, Invoice, InvoiceItem, Payment, Membership, Group
 
 
 class PersonTable(tables.Table):
@@ -22,6 +22,16 @@ class PersonTable(tables.Table):
                                              "td__input": {"onclick": "countChecked()", "class": "rowcheckbox"}
                                              },
                                       orderable=False)
+
+
+class GroupTable(tables.Table):
+    class Meta:
+        model = Group
+        fields = ('slug', 'description')
+        attrs = {'class': 'table table-condensed'}
+
+    count = tables.Column(accessor='person_set.count', verbose_name='Members', orderable=False)
+    edit = tables.LinkColumn('group-detail', text='View', args=[A('pk')], orderable=False)
 
 
 class ApplicantTable(tables.Table):

@@ -800,16 +800,6 @@ def group_get_or_create(slug):
     return group
 
 
-def group_add_list(group, id_list):
-    """
-    Adds a list of ids to a group
-    """
-    plist = Person.objects.filter(pk__in=id_list)
-    for person in plist:
-        person.groups.add(group)
-        person.save() 
-
-   
 def consolidate(year):
     slug = '2015UnpaidInvoices'
     group = group_get_or_create(slug)

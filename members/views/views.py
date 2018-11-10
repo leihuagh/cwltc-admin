@@ -64,93 +64,6 @@ class PagedFilteredTableView(SingleTableView):
         return context
 
 
-class SubsTableView(StaffuserRequiredMixin, SingleTableView):
-    # http://stackoverflow.com/questions/13611741/django-tables-column-filtering/15129259#15129259
-    raise_exception = permission_denied
-    filter_class = None
-    juniors = False
-    parents = False
-    members = False
-    template_name = 'members/person_table.html'
-    table_pagination = {"per_page": 10000}
-
-    def get_table_data(self):
-        """
-        Perform the query and do the filtering
-        """
-        year = Settings.current_year()
-
-        if not self.filter_class:
-            self.filter = None
-            return Person.objects.all().select_related('sub__membership').order_by('last_name')
-
-        qs = Subscription.objects.filter(
-            active=True
-        ).select_related('membership').select_related('person_member')
-
-        if self.juniors or self.parents:
-            qs = qs.exclude(membership__is_adult=True).filter(
-                person_member__state=Person.ACTIVE)
-
-        # set defaults for first time
-        data = self.request.GET.copy()
-        if len(data) == 0:
-            data['paid'] = True
-            data['year'] = year
-            data['state'] = Person.ACTIVE
-        self.filter = self.filter_class(data, qs, request=self.request)
-
-        if self.parents:
-            kids = self.filter.qs.values_list('person_member__linked_id')
-            return Person.objects.filter(id__in=kids)
-        return self.filter.qs
-
-    def get_context_data(self, **kwargs):
-        context = super(SubsTableView, self).get_context_data(**kwargs)
-        context['filter'] = self.filter
-        context['members'] = self.members
-        context['juniors'] = self.juniors
-        context['parents'] = self.parents
-        return context
-
-    def post(self, request, *args, **kwargs):
-        """
-        POST builds a list of selected people ids in a session variable
-        and calls the action routine
-        """
-        request.session['selected_people_ids'] = request.POST.getlist('selection')
-        request.session['source_path'] = request.META['HTTP_REFERER']
-        action = request.POST['action']
-        if action == 'none':
-            return redirect(request.session['source_path'])
-
-        if action == 'group':
-            return redirect('group-add-list')
-
-        if action == 'export':
-            selected_people = Person.objects.filter(
-                pk__in=request.POST.getlist('selection')
-            ).select_related(
-                'sub'
-            ).select_related(
-                'sub__membership'
-            )
-            self.request.session['selected_people_ids'] = []
-            sheet_name = 'Juniors' if 'juniors' in request.session['source_path'] else 'People'
-            return export_people(sheet_name, selected_people)
-
-        if action == 'mail':
-            return redirect('email-selection')
-
-        if action == 'renew':
-            return redirect('sub-renew-list')
-
-        if action == 'invoice':
-            return redirect('invoice-generate')
-
-        return redirect('home')
-
-
 class HomeView(StaffuserRequiredMixin, TemplateView):
     template_name = 'members/index.html'
 
@@ -160,23 +73,6 @@ class HomeView(StaffuserRequiredMixin, TemplateView):
         context['membership_year'] = Settings.current_year()
         context['db_name'] = settings.DATABASES['default']['NAME']
         add_invoice_summary(context)
-        return context
-
-
-class AppliedTableView(StaffuserRequiredMixin, SingleTableView):
-    """
-    List of people who have applied to join
-    """
-    template_name = 'members/generic_table.html'
-    table_pagination = {"per_page": 10000}
-    table_class = ApplicantTable
-
-    def get_queryset(self):
-        return Person.objects.filter(state=Person.APPLIED).order_by('last_name')
-
-    def get_context_data(self, **kwargs):
-        context = super(AppliedTableView, self).get_context_data(**kwargs)
-        context['title'] = 'Applicants'
         return context
 
 
@@ -197,148 +93,12 @@ def search_person(request):
     if id:
         return redirect(reverse('person-detail', kwargs={'pk': id}))
     return Http404
-#
-#
+
+
 class PersonExportView(StaffuserRequiredMixin, View):
 
     def get(self, request, option="all"):
         return export_members(option)
-
-
-class PeopleResignView(StaffuserRequiredMixin, TemplateView):
-    template_name = 'members/people_resign.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['people'] = self.get_people(self.request)
-        return context
-
-    def get_people(self, request):
-        id_list = request.session.get('selected_people_ids', [])
-        return Person.objects.filter(pk__in=id_list).order_by('first_name', 'last_name')
-
-    def post(self, request, **kwargs):
-        people = self.get_people(request)
-        if 'resign' in request.POST:
-            count = 0
-            for person in people:
-                try:
-                    person_resign(person)
-                    count += 1
-                except:
-                    pass
-            messages.success(self.request, f'{count} of {len(people)} people marked as resigned')
-        else:
-            messages.success(self.request, f'Resignation of {len(people)} cancelled')
-        return redirect('home')
-
-
-# ============== Groups
-
-
-class GroupCreateView(StaffuserRequiredMixin, CreateView):
-    model = Group
-    form_class = GroupForm
-    template_name = 'members/generic_crispy_form.html'
-
-    def get_success_url(self):
-        return reverse('group-list')
-
-
-class GroupListView(StaffuserRequiredMixin, ListView):
-    """ List all groups"""
-    model = Group
-    template_name = 'members/group_list.html'
-    context_object_name = 'groups'
-
-
-class GroupDetailView(StaffuserRequiredMixin, DetailView):
-    model = Group
-    template_name = 'members/group_detail.html'
-    context_object_name = 'group'
-
-    def get_context_data(self, **kwargs):
-        context = super(GroupDetailView, self).get_context_data(**kwargs)
-        context['url'] = reverse('group-detail', kwargs={'slug': kwargs['object'].slug})
-        add_membership_context(context)
-        return context
-
-    def post(self, request, *args, **kwargs):
-        group = self.get_object()
-        if request.is_ajax():
-            qset = self.get_object().person_set.order_by('last_name')
-            plist = list(qset.values_list(
-                'first_name',
-                'last_name',
-                'membership__description',
-                'email',
-                'id'
-            ))
-            dict = {"data": plist}
-            return JsonResponse(dict)
-
-        if 'delete' in request.POST:
-            group.delete()
-        elif 'clear' in request.POST:
-            group.person_set.clear()
-        elif 'export' in request.POST:
-            return export_people(group.slug, group.person_set.all())
-        elif 'email' in request.POST:
-            return redirect(reverse('email-group', kwargs={'group': group.id}))
-        return redirect(reverse('group-list'))
-
-
-class GroupAddPersonView(StaffuserRequiredMixin, FormView):
-    form_class = GroupAddPersonForm
-    template_name = 'members/generic_crispy_form.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(GroupAddPersonView, self).get_context_data(**kwargs)
-        self.person = Person.objects.get(pk=self.kwargs['person_id'])
-        context['message'] = self.person.fullname
-        context['title'] = "Add " + self.person.fullname + " to group"
-        return context
-
-    def form_valid(self, form):
-        person = Person.objects.get(pk=self.kwargs['person_id'])
-        if 'cancel' in form.data:
-            return redirect(person)
-
-        if 'submit' in form.data:
-            self.group = form.cleaned_data['group']
-            person.groups.add(self.group)
-            return super(GroupAddPersonView, self).form_valid(form)
-
-    def get_success_url(self):
-        return reverse('group-detail', kwargs={'pk': self.group.id})
-
-
-class GroupAddListView(StaffuserRequiredMixin, FormView):
-    form_class = GroupAddPersonForm
-    template_name = 'members/generic_crispy_form.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(GroupAddListView, self).get_context_data(**kwargs)
-        selection = self.request.session['selected_people_ids']
-        if selection:
-            context['message'] = '{} people are selected'.format(len(selection))
-        else:
-            context['message'] = "No selected people"
-        context['title'] = "Add selected people to group"
-        return context
-
-    def form_valid(self, form):
-        group = form.cleaned_data['group']
-        if 'cancel' in form.data:
-            return redirect('members-list')
-
-        if 'submit' in form.data:
-            selection = self.request.session['selected_people_ids']
-            if selection:
-                group_add_list(group, selection)
-                self.request.session['selected_people_ids'] = []
-        return redirect('group-detail', pk=group.id)
-
 
 # ============== Subscriptions
 
@@ -925,6 +685,14 @@ class InvoiceItemUpdateView(StaffuserRequiredMixin, UpdateView):
     form_class = InvoiceItemForm
     template_name = 'members/crispy_tile.html'
 
+    def post(self, request, *args, **kwargs):
+        if 'delete' in request.POST:
+            item = self.get_object()
+            person_id = item.person.id
+            item.delete()
+            return redirect('person-detail', pk=person_id)
+        return super().post(request, *args, **kwargs)
+
     def get_success_url(self):
         item = self.get_object()
         return reverse('person-detail', kwargs={'pk': item.person.id})
@@ -935,15 +703,6 @@ class InvoiceItemUpdateView(StaffuserRequiredMixin, UpdateView):
         context['person'] = item.person
         context['delete'] = True
         return context
-
-    def form_valid(self, form):
-        if 'submit' in form.data:
-            return super(InvoiceItemUpdateView, self).form_valid(form)
-        if 'delete' in form.data:
-            item = self.get_object()
-            person_id = item.person.id
-            item.delete()
-            return redirect('person-detail', kwargs={'pk': person_id})
 
 
 class InvoiceItemDetailViewOld(StaffuserRequiredMixin, DetailView):
@@ -2093,58 +1852,6 @@ class EmailView(StaffuserRequiredMixin, FormView):
         else:
             return redirect('home')
 
-
-# class ImportExcelMore(StaffuserRequiredMixin, FormView):
-#     form_class = XlsMoreForm
-#     template_name = 'members/import_more.html'
-#
-#     def get_context_data(self, **kwargs):
-#         context = super(ImportExcelMore, self).get_context_data(**kwargs)
-#         context['title'] = 'Import Members'
-#         context['pass'] = self.kwargs['pass']
-#         context['start'] = self.kwargs['start']
-#         context['size'] = self.kwargs['size']
-#         return context
-#
-#     def form_valid(self,form):
-#         pass_no = int(self.kwargs['pass'])
-#         my_book = ExcelBook.objects.all()[0]
-#         start = int(self.kwargs['start'])
-#         size = int(self.kwargs['size'])
-#         if pass_no == 1:
-#             """ Pass 1
-#                 Create the members """
-#
-#             with open_excel_workbook(my_book.file) as book:
-#                 next = import_members_1(book, start, size)
-#                 if next < 0:
-#                     return HttpResponse('Pass 1 Import error')
-#                 elif next == 0:
-#                     return HttpResponseRedirect(reverse('import_more',
-#                                                     args=[2, 0, size]))
-#                 else:
-#                     return HttpResponseRedirect(reverse('import_more',
-#                                                     args=[1, next, size]))
-#         elif pass_no == 2:
-#             with open_excel_workbook(my_book.file) as book:
-#                 count = import_members_2(book)
-#                 return HttpResponseRedirect(reverse('import_more',
-#                                 args=[3, count, size]))
-#
-#         elif pass_no == 3:
-#             with open_excel_workbook(my_book.file) as book:
-#                 result = import_members_3(book, size)
-#                 count = result[0]
-#                 if result[1]:
-#                     context = {'title': 'Import result'}
-#                     context['message'] = '{} items were imported'.format(result[0])
-#                     context['errors'] = result[1]
-#                     return render(self.request, 'members/generic_result.html', context)
-#                 if count == 0:
-#                     return HttpResponseRedirect(reverse('person-list'))
-#                 else:
-#                     return HttpResponseRedirect(reverse('import_more',
-#                                                         args=[3, count, size]))
 
 
 class ImportExcelView(StaffuserRequiredMixin, FormView):

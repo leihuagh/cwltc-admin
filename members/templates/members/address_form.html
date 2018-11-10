@@ -1,6 +1,7 @@
 ﻿{% extends "members/base.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
+  <h3 class="app-title">Change address</h3>
   <h2 class="text-center">Change address for:</h2>
   <h4 class="text-center"><a href="{% url "person-detail" pk=person.id %}">{{ person.first_name }} {{ person.last_name }}</a></h4>
   {% if children %}

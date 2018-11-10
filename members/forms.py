@@ -732,9 +732,11 @@ class InvoiceItemForm(ModelForm):
     def clean(self):
         cleaned_data = super(InvoiceItemForm, self).clean()
         item_type = cleaned_data.get('item_type')
-        amount = float(cleaned_data.get('amount'))
+        amount = cleaned_data.get('amount', 0)
+        if amount == 0:
+            raise forms.ValidationError("Amount cannot be 0")
         if item_type.credit:
-            if amount >= 0:
+            if amount > 0:
                 raise forms.ValidationError("This is a credit. The amount must be negative")
 
 
@@ -810,14 +812,9 @@ class GroupAddPersonForm(Form):
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
 
     def __init__(self, *args, **kwargs):
-        super(GroupAddPersonForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
-        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
-        self.helper.add_input(SubmitButton('submit', 'Add', css_class='btn-primary'))
+        self.helper.form_tag = False
 
 
 class EmailTextForm(forms.Form):

@@ -64,7 +64,7 @@ class JuniorFilter(SubsBaseFilter):
                                      )
     membership = django_filters.ModelChoiceFilter(queryset=Membership.objects.filter(is_adult=False),
                                                   required=None,
-                                                  label="Junior membership",
+                                                  label="Membership",
                                                   to_field_name="description",
                                                   empty_label="Juniors & cadets"
                                                  )

@@ -1,12 +1,11 @@
 {% extends "members/base.html" %}
 
 {% block content %}
-
-  <div class="app-title"><h3><a href="{% url 'person-detail' pk=person.id %}">{{ person.fullname }}</a></h3></div>
+  {% if app_title %}<h3 class="app-title">{{ app_title }}</h3>
+  {% elif form.title %}<h3 class="app-title">{{ form.title }}</h3>
+  {% endif %}
   <div class="row">
     <div class="col-lg-4">
-      <h3 class="text-center">{{ header }}</h3>
-      <h4 class="text-center">{% if person %}<a href="{% url 'person-detail' pk=person.id %}">{{ person.fullname }}</a>{% endif %}</h4>
       {% include 'members/_crispy_tile.html' %}
     </div>
   </div>

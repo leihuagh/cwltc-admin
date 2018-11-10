@@ -1,11 +1,18 @@
 ﻿﻿{% extends "members/base.html" %}
 {% load static %}
 {% load render_table from django_tables2 %}
-
+{% block app_title %}
+  <h3 class="app-title">{{ table_title }}</h3>
+{% endblock %}
 {% block content %}
-  <h2>{{ title }}</h2>
 
-{% render_table table 'django_tables2/table.html'%}
+  <div class="row>">
+
+    <div class="tile p-0">
+      {% render_table table 'django_tables2/table.html' %}
+    </div>
+  </div>
+
 {% endblock %}
 
 {% block scripts %}

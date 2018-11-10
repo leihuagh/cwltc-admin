@@ -284,6 +284,14 @@ class Membership(models.Model):
         else:
             return list(qs.values_list('id', 'description'))
 
+    @classmethod
+    def dictionary(cls):
+        """ Return dictionary of membership id and description """
+        dict = {}
+        for mem in Membership.objects.all():
+            dict[mem.id] = mem.description
+        return dict
+
 
 class AdultApplication(models.Model):
     """

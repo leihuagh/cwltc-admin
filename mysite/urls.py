@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django_mail_viewer import urls as django_mail_viewer_urls
 from django.views.generic.base import RedirectView
-from members.urls import ajax_patterns, person_patterns
+from members.urls import ajax_patterns, person_patterns, people_patterns, group_patterns
 from mysite.views import *
 from members.views.views import *
 from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
@@ -40,6 +40,8 @@ urlpatterns = [
     path('home/', HomeView.as_view(), name='home'),
     path('ajax/', include(ajax_patterns)),
     path('person/', include(person_patterns)),
+    path('people/', include(people_patterns)),
+    path('group/', include(group_patterns)),
 
     path('search/person/', search_person, name='search-person'),
 #    path('report_builder/', include('report_builder.urls')),
@@ -53,29 +55,29 @@ urlpatterns = [
 
     # url(r'^markdownx/', include('markdownx.urls')),
     # GROUPS
-    url(r'^group/create/$',
-        GroupCreateView.as_view(),
-        name='group-create'
-        ),
-    url(r'^group/(?P<pk>\d+)/$',
-        GroupDetailView.as_view(),
-        name='group-detail'
-        ),
-    url(r'^group/(?P<slug>[\w-]+)/$',
-        GroupDetailView.as_view(),
-        name='group-detail'
-        ),
-    url(r'^groups/$',
-        GroupListView.as_view(),
-        name='group-list'
-        ),
-    url(r'^groups/addperson/(?P<person_id>\d+)/$',
-        GroupAddPersonView.as_view(),
-        name='group-add-person'
-        ),
-    url(r'^groups/addlist/$',
-        GroupAddListView.as_view(),
-        name='group-add-list'),
+    # url(r'^group/create/$',
+    #     GroupCreateView.as_view(),
+    #     name='group-create'
+    #     ),
+    # url(r'^group/(?P<pk>\d+)/$',
+    #     GroupDetailView.as_view(),
+    #     name='group-detail'
+    #     ),
+    # url(r'^group/(?P<slug>[\w-]+)/$',
+    #     GroupDetailView.as_view(),
+    #     name='group-detail'
+    #     ),
+    # url(r'^groups/$',
+    #     GroupListView.as_view(),
+    #     name='group-list'
+    #     ),
+    # url(r'^groups/addperson/(?P<person_id>\d+)/$',
+    #     GroupAddPersonView.as_view(),
+    #     name='group-add-person'
+    #     ),
+    # url(r'^groups/addlist/$',
+    #     GroupAddListView.as_view(),
+    #     name='group-add-list'),
 
     #   MEMBERSHIP CATEGORIES
     url(r'^categories/list/$', MembershipTableView.as_view(), name='categories-list'),
@@ -195,41 +197,41 @@ urlpatterns = [
 
     #   PEOPLE
 
-    url(r'^people/members/$', SubsTableView.as_view(
-        table_class=SubsTable,
-        model=Subscription,
-        members=True,
-        filter_class=SubsFilter,
-    ),
-        name='members-list'),
-
-    url(r'^people/juniors/$', SubsTableView.as_view(
-        table_class=SubsTable,
-        model=Subscription,
-        juniors=True,
-        filter_class=JuniorFilter,
-    ),
-        name='juniors-list'),
-
-    url(r'^people/parents/$', SubsTableView.as_view(
-        table_class=PersonTable,
-        model=Person,
-        parents=True,
-        filter_class=JuniorFilter,
-    ),
-        name='parents-list'
-        ),
-    url(r'^people/all/$', SubsTableView.as_view(
-        table_class=PersonTable,
-        model=Person,
-    ),
-        name='all-people-list'
-        ),
-    url(r'^people/applied/$', AppliedTableView.as_view(),
-        name='applied-list'),
-
-    url(r'^people/resign/$', PeopleResignView.as_view(),
-        name='people-resign'),
+    # url(r'^people/members/$', SubsTableView.as_view(
+    #     table_class=SubsTable,
+    #     model=Subscription,
+    #     members=True,
+    #     filter_class=SubsFilter,
+    # ),
+    #     name='members-list'),
+    #
+    # url(r'^people/juniors/$', SubsTableView.as_view(
+    #     table_class=SubsTable,
+    #     model=Subscription,
+    #     juniors=True,
+    #     filter_class=JuniorFilter,
+    # ),
+    #     name='juniors-list'),
+    #
+    # url(r'^people/parents/$', SubsTableView.as_view(
+    #     table_class=PersonTable,
+    #     model=Person,
+    #     parents=True,
+    #     filter_class=JuniorFilter,
+    # ),
+    #     name='parents-list'
+    #     ),
+    # url(r'^people/all/$', SubsTableView.as_view(
+    #     table_class=PersonTable,
+    #     model=Person,
+    # ),
+    #     name='all-people-list'
+    #     ),
+    # url(r'^people/applied/$', AppliedTableView.as_view(),
+    #     name='applied-list'),
+    #
+    # url(r'^people/resign/$', PeopleResignView.as_view(),
+    #     name='people-resign'),
 
 
     # url(r'^(?P<pk>\d+)/$',
