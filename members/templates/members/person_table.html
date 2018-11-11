@@ -71,19 +71,9 @@
       {% endif %}
     </div>
   </form>
-  <div id="id_loader" style="display: none">
-    <div class="text-center">
-      <div class="m-overlay mr-4">
-        <svg class="m-circular" viewBox="25 25 50 50">
-          <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="6" stroke-miterlimit="10"/>
-        </svg>
-      </div>
-      <h3 class="l-text">Loading</h3>
-    </div>
-  </div>
   <form method="post" action="." class="form-inline">{% csrf_token %}
     <!-- ACTIONS -->
-    <div class="tile my-1 py-1 px-2" id="id_action_form" style="width: 40rem;">
+    <div class="tile my-1 py-1 px-2" id="id_action_form" style="width: 60rem;">
 
       <div class="row">
         {% csrf_token %}
@@ -91,14 +81,22 @@
           <span id="id-count">0</span> of {{ table.rows|length }} rows selected
         </div>
         <div class="col">
+          <div class="input-group mt-1">
+            <select class="custom-select" id="id_action" , name="action">
+              {% for action in actions %}
+                <option value="{{ action.1 }}" {% if forloop.counter == 1 %}selected{% endif %}>{{ action.0 }}</option>
+              {% endfor %}
+            </select>
+            <div class="input-group-append">
+              <button class="btn btn-primary" name="go" id="id_go" type="submit">Go</button>
+            </div>
+          </div>
+        </div>
 
-          <select class="form-control form-control-sm" id="id_action" , name="action">
-            {% for action in actions %}
-              <option value="{{ action.1 }}" {% if forloop.counter == 1 %}selected{% endif %}>{{ action.0 }}</option>
-            {% endfor %}
-          </select>
-          <button class="form-control form-control-sm btn btn-primary btn-sm" name="go" id="id_go" type="submit">Go
-          </button>
+        <div class="col">
+          {% for button in buttons %}
+            {% include "_button.html" %}
+          {% endfor %}
         </div>
       </div>
     </div>

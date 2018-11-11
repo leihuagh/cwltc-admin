@@ -38,15 +38,12 @@ people_patterns = [
     path('juniors/', JuniorsTableView.as_view(), name='juniors-list'),
     path('parents/', ParentsTableView.as_view(), name='parents-list'),
     path('all/', AllPeopleTableView.as_view(), name='all-people-list'),
-    path('group/<int:group_id>/', GroupPeopleTableView.as_view(), name='people-group-list'),
-
     path('applied/', AppliedTableView.as_view(), name='applied-list'),
     path('resigned/', ResignView.as_view(), name='people-resign'),
 ]
 group_patterns = [
     path('create/', GroupCreateView.as_view(), name='group-create'),
     path('detail/<int:pk>/', GroupPeopleTableView.as_view(), name='group-detail'),
-    # path('slug/<slug:slug>/', GroupDetailView.as_view(), name='group-slug-detail'),
     path('list/', GroupTableView.as_view(), name='group-list'),
     path('add/person/<int:person_id>/', GroupAddPersonView.as_view(), name='group-add-person'),
 ]

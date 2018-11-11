@@ -10,7 +10,7 @@ class PersonTable(tables.Table):
         model = Person
         fields = ('first_name', 'last_name', 'email')
         sequence = ('selection', '...')
-        attrs = {'class': 'table table-condensed'}
+        attrs = {'class': 'table table-sm table-hover' }
 
     description = tables.Column(accessor='sub.membership_fulldescription',
                                 verbose_name='Membership',
@@ -28,7 +28,7 @@ class GroupTable(tables.Table):
     class Meta:
         model = Group
         fields = ('slug', 'description')
-        attrs = {'class': 'table table-condensed'}
+        attrs = {'class': 'table table-sm table-hover'}
 
     count = tables.Column(accessor='person_set.count', verbose_name='Members', orderable=False)
     edit = tables.LinkColumn('group-detail', text='View', args=[A('pk')], orderable=False)
@@ -38,7 +38,7 @@ class ApplicantTable(tables.Table):
     class Meta:
         model = Person
         fields = ('first_name', 'last_name', 'date_joined', 'email', 'linked')
-        attrs = {'class': 'table table-condensed'}
+        attrs = {'class': 'table table-sm table-hover'}
 
     membership = tables.Column(accessor='membership.description', verbose_name='Membership', orderable=True)
     edit = tables.LinkColumn('person-detail', text='Edit', args=[A('pk')], orderable=False)
@@ -50,7 +50,7 @@ class SubsTable(tables.Table):
         fields = ('person_member.first_name', 'person_member.last_name', 'person_member.email',
                   'description', 'person_member.dob', 'paid')
         sequence = ('selection', '...')
-        attrs = {'class': 'table table-condensed'}
+        attrs = {'class': 'table table-sm table-hover'}
 
     description = tables.Column(accessor='membership_fulldescription',
                                 verbose_name='Membership',
@@ -70,7 +70,7 @@ class InvoiceTable(tables.Table):
         fields = ('id', 'person.first_name', 'person.last_name', 'person.state',
                   'person.membership.description', 'age', 'state', 'special_case', 'note')
         sequence = ('selection', 'id', 'person.first_name', 'person.last_name', 'person.state', 'parent', '...')
-        attrs = {'class': 'table table-condensed'}
+        attrs = {'class': 'table table-sm table-hover'}
 
     payment = tables.Column(accessor='payment_state_text')
     id = tables.LinkColumn('invoice-detail', verbose_name="Number", args=[A('id')])
@@ -104,7 +104,7 @@ class InvoiceItemTable(tables.Table):
         fields = ('id', 'person.first_name', 'person.last_name', 'item_type.description', 'description',
                   'paid', 'invoice_id')
         sequence = ('id', 'year', '...')
-        attrs = {'class': 'table table-condensed'}
+        attrs = {'class': 'table table-sm table-hover'}
 
     id = tables.LinkColumn('item-detail', verbose_name="Number", args=[A('id')])
     year = tables.Column(verbose_name="Year", accessor='invoice.membership_year')
@@ -117,7 +117,7 @@ class PaymentTable(tables.Table):
         model = Payment
         fields = ('update_date', 'person.first_name', 'person.last_name', 'person.membership.description', 'type',
                   'amount', 'state', 'banked', 'invoice')
-        attrs = {'class': 'table table-condensed'}
+        attrs = {'class': 'table table-sm table-hover'}
 
     amount = tables.Column(attrs={'td': {'style': 'text-align: right;'}})
     invoice = tables.LinkColumn('invoice-detail', text=lambda r: r.invoice_id, args=[A('invoice_id')],
@@ -128,5 +128,5 @@ class PaymentTable(tables.Table):
 class MembershipTable(tables.Table):
     class Meta:
         model = Membership
-        attrs = {'class': 'table table-condensed'}
+        attrs = {'class': 'table table-sm table-hover'}
     edit = tables.LinkColumn('categories-update', text='Edit', args=[A('id')], orderable=False)

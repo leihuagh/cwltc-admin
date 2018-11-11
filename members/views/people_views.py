@@ -1,5 +1,5 @@
 import logging
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django_tables2 import SingleTableView
 from django.contrib import messages
 from django.views.generic import TemplateView
@@ -9,6 +9,7 @@ from members.excel import export_people
 from members.filters import SubsFilter, JuniorFilter
 from members.tables import SubsTable, PersonTable, ApplicantTable
 from members.services import person_resign
+from mysite.common import Button
 
 stdlogger = logging.getLogger(__name__)
 
@@ -34,6 +35,16 @@ class PeopleTableView(StaffuserRequiredMixin, SingleTableView):
     filter = None
     template_name = 'members/person_table.html'
     table_pagination = {"per_page": 10000}
+
+    # TODO make loader work with tests
+
+    # def dispatch(self, request, *args, **kwargs):
+    #     if request.session.get('slow_url', '') == request.path:
+    #         request.session['slow_url'] = ''
+    #         return super().dispatch(request, *args, **kwargs)
+    #     else:
+    #         request.session['slow_url'] = request.path
+    #         return render(request, 'members/loading.html', {'url':request.build_absolute_uri()})
 
     def get_table_data(self):
         """
@@ -125,6 +136,7 @@ class GroupPeopleTableView(PeopleTableView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['actions'].extend(Actions.group_actions())
+        context['buttons'] = Actions.group_buttons()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -141,7 +153,7 @@ class AppliedTableView(StaffuserRequiredMixin, SingleTableView):
     table_class = ApplicantTable
 
     def get_queryset(self):
-        return Person.objects.filter(state=Person.APPLIED).order_by('last_name')
+        return Person.objects.filter(state=Person.APPLIED).order_by('date_joined')
 
     def get_context_data(self, **kwargs):
         context = super(AppliedTableView, self).get_context_data(**kwargs)
@@ -195,18 +207,26 @@ class Actions:
 
     @staticmethod
     def group_actions():
-        return [('Delete group', 'x_group_delete'),
-                ('Clear group', 'x_group_clear'),
-                ('Add selected people', 'x_group_add_people'),
-                ('Remove selected people', 'x_group_remove_people'),]
+        return [('Add selected people', 'x_group_add_people'),
+                ('Remove selected people', 'x_group_remove_people'), ]
+
+    @staticmethod
+    def group_buttons():
+        return [Button('Delete group', 'x_group_delete'),
+                Button('Clear group', 'x_group_clear'), ]
 
     @staticmethod
     def execute_action(request, group=None):
         request.session['source_path'] = request.META['HTTP_REFERER']
         id_list = request.POST.getlist('selection')
-        action = request.POST['action']
-        if action == 'none':
-            return redirect(request.session['source_path'])
+        action = request.POST.get('action', 'none')
+        if action is 'none':
+            for key in request.POST:
+                if key[:2] == 'x_':
+                    action = key
+                    break
+            else:
+                return redirect(request.session['source_path'])
         if action[:2] == 'x_':
             method = getattr(Actions, action[2:])
             people = Person.objects.filter(pk__in=id_list)
@@ -214,10 +234,8 @@ class Actions:
                 return method(group, people) if 'people' in action else method(group)
             else:
                 return method(people)
-
         request.session['selected_people_ids'] = id_list
         return redirect(action)
-
 
     @staticmethod
     def export(people):

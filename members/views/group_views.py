@@ -1,11 +1,9 @@
 import logging
-from django.http import JsonResponse
 from django.urls import reverse
-from django.views.generic import ListView, DetailView, CreateView, FormView
-from django.shortcuts import redirect
-from django_tables2 import SingleTableView, SingleTableMixin
+from django.views.generic import ListView, CreateView, FormView
+from django_tables2 import SingleTableView
 from braces.views import StaffuserRequiredMixin
-from members.models import Group,  Person
+from members.models import Group, Person
 from members.tables import GroupTable
 from members.forms import GroupForm, GroupAddPersonForm
 
@@ -19,13 +17,6 @@ class GroupCreateView(StaffuserRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse('group-list')
-
-
-class GroupListView(StaffuserRequiredMixin, ListView):
-    """ List all groups"""
-    model = Group
-    template_name = 'members/group_list.html'
-    context_object_name = 'groups'
 
 
 class GroupTableView(StaffuserRequiredMixin, SingleTableView):
@@ -57,10 +48,9 @@ class GroupAddPersonView(StaffuserRequiredMixin, FormView):
 
     def form_valid(self, form):
         person = Person.objects.get(pk=self.kwargs['person_id'])
-        if 'submit' in form.data:
-            self.group = form.cleaned_data['group']
-            person.groups.add(self.group)
-            return super().form_valid(form)
+        self.group = form.cleaned_data['group']
+        person.groups.add(self.group)
+        return super().form_valid(form)
 
     def get_success_url(self):
         if self.group:
