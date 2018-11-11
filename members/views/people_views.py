@@ -81,7 +81,7 @@ class PeopleTableView(StaffuserRequiredMixin, SingleTableView):
         context['members'] = self.members
         context['juniors'] = self.juniors
         context['parents'] = self.parents
-        context['table_title'] = self.title
+        context['title'] = self.title
         context['actions'] = Actions.default_actions()
         return context
 
@@ -123,15 +123,16 @@ class GroupPeopleTableView(PeopleTableView):
     table_class = PersonTable
     model = Person
     group_id = ''
+    title = ''
 
     def dispatch(self, request, *args, **kwargs):
         self.group_id = self.kwargs.pop('pk', '')
         return super().dispatch(request, *args, **kwargs)
 
     def get_table_data(self):
-        group = get_object_or_404(Group, pk=self.group_id)
-        self.title = group.description or 'Group'
-        return group.person_set.all().select_related('sub__membership').order_by('last_name')
+        self.group = get_object_or_404(Group, pk=self.group_id)
+        self.title = self.group.name or 'Group'
+        return self.group.person_set.all().select_related('sub__membership').order_by('last_name')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -151,6 +152,7 @@ class AppliedTableView(StaffuserRequiredMixin, SingleTableView):
     template_name = 'members/generic_table.html'
     table_pagination = {"per_page": 10000}
     table_class = ApplicantTable
+    title = 'Applications'
 
     def get_queryset(self):
         return Person.objects.filter(state=Person.APPLIED).order_by('date_joined')
@@ -164,6 +166,7 @@ class AppliedTableView(StaffuserRequiredMixin, SingleTableView):
 class ResignView(StaffuserRequiredMixin, TemplateView):
     """ Confirm  a list of people to resign """
     template_name = 'members/people_resign.html'
+    title = 'Confirm resignations'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

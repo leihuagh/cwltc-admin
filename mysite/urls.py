@@ -5,7 +5,8 @@ from django.contrib import admin
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django_mail_viewer import urls as django_mail_viewer_urls
 from django.views.generic.base import RedirectView
-from members.urls import ajax_patterns, person_patterns, people_patterns, group_patterns
+from members.urls import ajax_patterns, person_patterns, people_patterns, group_patterns, membership_patterns, \
+    fees_patterns, sub_patterns
 from mysite.views import *
 from members.views.views import *
 from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
@@ -42,6 +43,9 @@ urlpatterns = [
     path('person/', include(person_patterns)),
     path('people/', include(people_patterns)),
     path('group/', include(group_patterns)),
+    path('membership/', include(membership_patterns)),
+    path('fees/', include(fees_patterns)),
+    path('sub/', include(sub_patterns)),
 
     path('search/person/', search_person, name='search-person'),
 #    path('report_builder/', include('report_builder.urls')),
@@ -79,48 +83,48 @@ urlpatterns = [
     #     GroupAddListView.as_view(),
     #     name='group-add-list'),
 
-    #   MEMBERSHIP CATEGORIES
-    url(r'^categories/list/$', MembershipTableView.as_view(), name='categories-list'),
-    url(r'^categories/create/$', MembershipCreateView.as_view(), name='categories-create'),
-    url(r'^categories/update/(?P<pk>\d+)$', MembershipUpdateView.as_view(), name='categories-update'),
-
-    #   FEES
-    url(r'^fees/update/(?P<pk>\d+)/$', FeesUpdateView.as_view(), name='fees-update'),
-    url(r'^fees/list/$', FeesListView.as_view(), name='fees-list'),
-    url(r'^fees/list/(?P<year>[0-9]{4})/$', FeesListView.as_view(), name='fees-list'),
-
-    url(r'^visitor-fees/update/(?P<pk>\d+)/$', VisitorFeesUpdateView.as_view(), name='visitor-fees-update'),
-    url(r'^visitor-fees/list/$', VisitorFeesListView.as_view(), name='visitor-fees-list'),
-
-    #   SUBSCRIPTIONS
-    url(r'^sub/update/(?P<pk>\d+)/$',
-        SubUpdateView.as_view(),
-        name='sub-update'
-        ),
-    url(r'^sub/correct/(?P<pk>\d+)/$',
-        SubCorrectView.as_view(),
-        name='sub-correct'
-        ),
-    url(r'^sub/create/(?P<person_id>\d+)/$',
-        SubCreateView.as_view(),
-        name='sub-create'
-        ),
-    url(r'^sub/(?P<pk>\d+)/$',
-        SubDetailView.as_view(),
-        name='sub-detail'
-        ),
-    url(r'^sub/renew/all$',
-        SubRenewAllView.as_view(),
-        name='sub-renew-all'
-        ),
-    url(r'^sub/renew/list$',
-        SubRenewSelectionView.as_view(),
-        name='sub-renew-list'
-        ),
-    url(r'^sub/history/(?P<person_id>\d+)/$',
-        SubHistoryView.as_view(),
-        name='sub-history'
-        ),
+    # #   MEMBERSHIP CATEGORIES
+    # url(r'^categories/list/$', MembershipTableView.as_view(), name='categories-list'),
+    # url(r'^categories/create/$', MembershipCreateView.as_view(), name='categories-create'),
+    # url(r'^categories/update/(?P<pk>\d+)$', MembershipUpdateView.as_view(), name='categories-update'),
+    #
+    # #   FEES
+    # url(r'^fees/update/(?P<pk>\d+)/$', FeesUpdateView.as_view(), name='fees-update'),
+    # url(r'^fees/list/$', FeesListView.as_view(), name='fees-list'),
+    # url(r'^fees/list/(?P<year>[0-9]{4})/$', FeesListView.as_view(), name='fees-list'),
+    #
+    # url(r'^visitor-fees/update/(?P<pk>\d+)/$', VisitorFeesUpdateView.as_view(), name='visitor-fees-update'),
+    # url(r'^visitor-fees/list/$', VisitorFeesListView.as_view(), name='visitor-fees-list'),
+    #
+    # #   SUBSCRIPTIONS
+    # url(r'^sub/update/(?P<pk>\d+)/$',
+    #     SubUpdateView.as_view(),
+    #     name='sub-update'
+    #     ),
+    # url(r'^sub/correct/(?P<pk>\d+)/$',
+    #     SubCorrectView.as_view(),
+    #     name='sub-correct'
+    #     ),
+    # url(r'^sub/create/(?P<person_id>\d+)/$',
+    #     SubCreateView.as_view(),
+    #     name='sub-create'
+    #     ),
+    # url(r'^sub/(?P<pk>\d+)/$',
+    #     SubDetailView.as_view(),
+    #     name='sub-detail'
+    #     ),
+    # url(r'^sub/renew/all$',
+    #     SubRenewAllView.as_view(),
+    #     name='sub-renew-all'
+    #     ),
+    # url(r'^sub/renew/list$',
+    #     SubRenewSelectionView.as_view(),
+    #     name='sub-renew-list'
+    #     ),
+    # url(r'^sub/history/(?P<person_id>\d+)/$',
+    #     SubHistoryView.as_view(),
+    #     name='sub-history'
+    #     ),
 
     #   INVOICES (excludes public invoice view)
     url(r'^sub/invoicecancel/(?P<pk>\d+)/$',

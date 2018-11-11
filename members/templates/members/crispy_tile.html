@@ -1,9 +1,6 @@
 {% extends "members/base.html" %}
 
 {% block content %}
-  {% if app_title %}<h3 class="app-title">{{ app_title }}</h3>
-  {% elif form.title %}<h3 class="app-title">{{ form.title }}</h3>
-  {% endif %}
   <div class="row">
     <div class="col-lg-4">
       {% include 'members/_crispy_tile.html' %}

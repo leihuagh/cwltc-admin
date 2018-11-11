@@ -27,7 +27,7 @@ class PersonTable(tables.Table):
 class GroupTable(tables.Table):
     class Meta:
         model = Group
-        fields = ('slug', 'description')
+        fields = ('name', 'description')
         attrs = {'class': 'table table-sm table-hover'}
 
     count = tables.Column(accessor='person_set.count', verbose_name='Members', orderable=False)
@@ -129,4 +129,4 @@ class MembershipTable(tables.Table):
     class Meta:
         model = Membership
         attrs = {'class': 'table table-sm table-hover'}
-    edit = tables.LinkColumn('categories-update', text='Edit', args=[A('id')], orderable=False)
+    edit = tables.LinkColumn('membership-update', text='Edit', args=[A('id')], orderable=False)

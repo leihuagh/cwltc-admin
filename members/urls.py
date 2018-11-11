@@ -7,6 +7,11 @@ from members.views.person_views import PersonDetailView, PersonCreateView, Perso
 from members.views.people_views import MembersTableView, JuniorsTableView, ParentsTableView, AllPeopleTableView, \
     GroupPeopleTableView, AppliedTableView, ResignView
 from members.views.group_views import GroupAddPersonView, GroupCreateView, GroupTableView
+from members.views.membership_views import MembershipCreateView, MembershipUpdateView, MembershipTableView
+from members.views.fees_views import FeesCreateView, FeesUpdateView, FeesListView, VisitorFeesUpdateView, \
+    VisitorFeesListView
+from members.views.sub_views import SubCreateView, SubUpdateView, SubCorrectView, SubDetailView, SubHistoryView, \
+    SubRenewAllView, SubRenewSelectionView
 
 ajax_patterns = [
     path('people/', ajax_people, name='ajax-people'),
@@ -46,4 +51,26 @@ group_patterns = [
     path('detail/<int:pk>/', GroupPeopleTableView.as_view(), name='group-detail'),
     path('list/', GroupTableView.as_view(), name='group-list'),
     path('add/person/<int:person_id>/', GroupAddPersonView.as_view(), name='group-add-person'),
+]
+membership_patterns = [
+    path('create/', MembershipCreateView.as_view(), name='membership-create'),
+    path('update/<int:pk>', MembershipUpdateView.as_view(), name='membership-update'),
+    path('list/', MembershipTableView.as_view(), name='membership-list'),
+]
+fees_patterns = [
+    path('create/', FeesCreateView.as_view(), name='fees-create'),
+    path('update/<int:pk>/', FeesUpdateView.as_view(), name='fees-update'),
+    path('list/', FeesListView.as_view(), name='fees-list'),
+    path('list/<int:year>/', FeesListView.as_view(), name='fees-list-year'),
+    path('visitor/update/<int:pk>/', VisitorFeesUpdateView.as_view(), name='visitor-fees-update'),
+    path('visitor/list/', VisitorFeesListView.as_view(), name='visitor-fees-list'),
+]
+sub_patterns = [
+    path('create/<int:person_id>/', SubCreateView.as_view(), name='sub-create'),
+    path('update/<int:pk>/', SubUpdateView.as_view(), name='sub-update'),
+    path('correct/<int:pk>/', SubCorrectView.as_view(), name='sub-correct'),
+    path('detail/<int:pk>/', SubDetailView.as_view(), name='sub-detail'),
+    path('renew/all', SubRenewAllView.as_view(), name='sub-renew-all'),
+    path('renew/list', SubRenewSelectionView.as_view(), name='sub-renew-list'),
+    path('history/<int:pk>/', SubHistoryView.as_view(), name='sub-history'),
 ]

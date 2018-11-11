@@ -1,4 +1,4 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% load members_extras %}
 {% load static %}
 {% load widget_tweaks %}
@@ -22,7 +22,7 @@
           {{ form.paystate|add_class:"trigger" }}
         </div>
     <hr />  
-    <table id="people" class="table table-condensed" >
+    <table id="people" class="table table-sm" >
     <thead>
             <tr>
             <th>First name</th>

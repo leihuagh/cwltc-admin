@@ -1,18 +1,18 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% block content %}
-  <h2>Visitor fees</h2>
   {% if message %}
   <p>{{ message }}</p>
   {% endif %}
   <div class="row">
     <div class="col-md-6">
-      <table id="fees" class="table table-condensed" width="150px">
+      <div class="tile">
+      <table id="fees" class="table table-sm" width="150px">
         <thead>
           <tr>
             <th>Year</th>
             <th class="text-right">Adult fee</th>
             <th class="text-right">Junior fee</th>
-            <th class="text-right">Edit</th>
+            <th class="text-right"></th>
           </tr>
         </thead>
         {% for record in object_list %}
@@ -20,16 +20,17 @@
             <td>{{ record.year }}</td>
             <td class="text-right">£{{ record.adult_fee}}</td>
             <td class="text-right">£{{ record.junior_fee }}</td>
-            <td class="text-right"><a href="{% url "visitor-fees-update" pk=record.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+            <td class="text-right"><a href="{% url "visitor-fees-update" pk=record.id %}" class="btn btn-primary btn-sm">Edit</a></td>
           </tr>
         {% endfor %}
       </table>
 
-      <form action="." method="post" class="form-inline" id="post-form">
+      <form action="." method="post" id="post-form">
         {% csrf_token %}
         <input type="submit" name="create" value="Create next year" class="btn btn-primary">
-        <a href="{% url 'fees-list' %}" class="btn btn-default pull-right">Membership fees</a>
+        <a href="{% url 'fees-list' %}" class="btn btn-primary pull-right">Membership fees</a>
       </form>
+      </div>
     </div>
   </div>
 

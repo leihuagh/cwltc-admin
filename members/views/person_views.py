@@ -88,6 +88,7 @@ class PersonUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Person
     template_name = 'members/crispy_tile.html'
     form_class = PersonNameForm
+    title = 'Update person'
 
     def get_success_url(self):
         return reverse('person-detail', kwargs={'pk': self.kwargs['pk']})
@@ -186,6 +187,7 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         add_membership_context(context)
         context['pos_bill'] = True
+        context['app_title'] = person.fullname
         return set_person_context(context, person)
 
     def post(self, request, *args, **kwargs):
@@ -206,8 +208,8 @@ class PersonDetailView(StaffuserRequiredMixin, DetailView):
 
         elif 'remove' in request.POST:
             # remove from group
-            slug = request.POST['remove']
-            group = Group.objects.filter(slug=slug)[0]
+            name = request.POST['remove']
+            group = Group.objects.filter(name=name)[0]
             person.groups.remove(group)
 
         elif 'unlink' in request.POST:

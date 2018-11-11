@@ -40,11 +40,11 @@ class ParentsManager(models.Manager):
 
 
 class Group(models.Model):
-    slug = models.SlugField(max_length=20)
+    name = models.CharField(max_length=40, default='Group')
     description = models.CharField(max_length=80)
 
     def __str__(self):
-        return self.slug
+        return self.name
 
 
 class Person(models.Model):

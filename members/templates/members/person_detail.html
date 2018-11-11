@@ -1,8 +1,5 @@
 ﻿{% extends "members/base.html" %}
 {% load members_extras %}
-{% block app_title %}
-  <div class="app-title"><h3 class="text-center">{{ person.fullname }}</h3></div>
-{% endblock %}
 {% block content %}
   <form action="." method="post">
     {% csrf_token %}
@@ -301,9 +298,9 @@
               <h5>Group membership</h5>
               {% for group in person.groups.all %}
                 <div class="row pb-1">
-                  <div class="col-8">{{ group.slug }}</div>
+                  <div class="col-8">{{ group.name }}</div>
                   <div class="col">
-                    <button type="submit" name="remove" value="{{ group.slug }}" class="btn btn-danger btn-sm">Remove
+                    <button type="submit" name="remove" value="{{ group.name }}" class="btn btn-danger btn-sm">Remove
                     </button>
                   </div>
                 </div>

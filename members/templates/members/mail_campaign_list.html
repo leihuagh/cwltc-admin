@@ -1,8 +1,8 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% load members_extras %}
 {% block content %}
 <h2>Mail campaigns</h2>
-<table id="mailCampaigns" class="table table-condensed" >
+<table id="mailCampaigns" class="table table-sm" >
 <thead>
         <tr>
         <th>Campaign name</th>
@@ -17,8 +17,8 @@
     <td>{{ campaign.name }}</td>
     <td> {{ campaign.created }}</td>
     <td> {{ campaign.sent }}</td>
-    <td><a href="{% url "mail-campaign-bee" pk=campaign.id %}" class = "btn btn-primary btn-xs">Edit</a></td>
-    <td><a href="{% url "email-campaign" campaign=campaign.id %}" class = "btn btn-primary btn-xs">Send</a></td>
+    <td><a href="{% url "mail-campaign-bee" pk=campaign.id %}" class = "btn btn-primary btn-sm">Edit</a></td>
+    <td><a href="{% url "email-campaign" campaign=campaign.id %}" class = "btn btn-primary btn-sm">Send</a></td>
 </tr>
 {% endfor sub %}
 </table>

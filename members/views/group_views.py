@@ -13,19 +13,26 @@ stdlogger = logging.getLogger(__name__)
 class GroupCreateView(StaffuserRequiredMixin, CreateView):
     model = Group
     form_class = GroupForm
-    template_name = 'members/generic_crispy_form.html'
+    template_name = 'members/crispy_tile.html'
+    title = 'Create group'
 
     def get_success_url(self):
         return reverse('group-list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tile_title'] = 'Create new group'
+        return context
 
 
 class GroupTableView(StaffuserRequiredMixin, SingleTableView):
     template_name = 'members/generic_table.html'
     table_pagination = {"per_page": 10000}
     table_class = GroupTable
+    title = 'Groups'
 
     def get_queryset(self):
-        return Group.objects.all().order_by('slug')
+        return Group.objects.all().order_by('name')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -38,12 +45,12 @@ class GroupAddPersonView(StaffuserRequiredMixin, FormView):
     template_name = 'members/crispy_tile.html'
     person = None
     group = None
+    title = 'Add person to group'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.person = Person.objects.get(pk=self.kwargs['person_id'])
         context['person'] = self.person
-        context['app_title'] = 'Add person to group'
         return context
 
     def form_valid(self, form):

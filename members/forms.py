@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
-from django.template.defaultfilters import slugify
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Fieldset, ButtonHolder, BaseInput
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
@@ -790,22 +789,13 @@ class SettingsForm(Form):
 class GroupForm(ModelForm):
     class Meta:
         model = Group
-        fields = ['description']
+        fields = ['name', 'description']
 
     def __init__(self, *args, **kwargs):
         super(GroupForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
-        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
-        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-
-    def save(self, *args, **kwargs):
-        grp = super(GroupForm, self).save(commit=False)
-        grp.slug = slugify(grp.description)
-        grp.save()
+        self.helper.form_tag = False
+        self.title = 'Group'
 
 
 class GroupAddPersonForm(Form):
@@ -856,7 +846,7 @@ class EmailForm(Form):
         text = kwargs.pop('text', '')
         selection = kwargs.pop('selection', False)
         super(EmailForm, self).__init__(*args, **kwargs)
-        choices = [(-1, 'None')] + [(x.id, x.slug) for x in Group.objects.order_by('slug')]
+        choices = [(-1, 'None')] + [(x.id, x.name) for x in Group.objects.order_by('name')]
         self.fields['group'].choices = choices
         self.helper = FormHelper()
         self.helper.form_id = 'id-emailForm'
@@ -984,6 +974,7 @@ class TextBlockForm(ModelForm):
         super(TextBlockForm, self).__init__(*args, **kwargs)
         self.fields['text'].required = False  # get round bug in tinymce
         self.helper = FormHelper(self)
+        self.helper.form_tag = False
         self.helper.field_class = 'input-xlarge'
         self.helper.form_method = 'post'
         self.helper.form_show_errors = True
