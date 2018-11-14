@@ -1,49 +1,47 @@
 ﻿{% extends "members/base.html" %}
 {% load members_extras %}
 {% block content %}
-<h2 class="app-title">Subscription history</h2>
-<div class="col"><h4>
-<a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
-</h4></div>
-  <div class="col col-md-8">
-  <div class="tile p-0">
-<table id="subs" class="table table-sm" >
-<thead>
-  <tr>
-    <th>Action</th>
-    <th>Year</th>
-    <th>Active</th>
-    <th>From</th>
-    <th>To</th>
-    <th>Membership</th>
-    <th>Payment state</th>
-  </tr>
-</thead>
-{% for sub in subs %}
-<tr>
-    <td>
-      <a href="{% url "sub-detail" sub.id %}" class="btn btn-default btn-sm">View</a>
-    </td>
-    <td>{{ sub.sub_year }}</td>
-    <td>{{ sub.active }}</td>
-    <td>{{ sub.start_date }}</td>
-    <td>{{ sub.end_date }}</td>
-    <td>{{ sub.membership_fulldescription }}</td>
-    <td>
-    {% if sub.has_paid_invoice %}
-        Paid invoice
-    {% elif sub.has_unpaid_invoice %}
-        Unpaid invoice
-    {% elif sub.has_items %}
-        Uninvoiced item
-    {% else %}
-        Not billed
-    {% endif %} 
-    </td>
-    <td>
-</tr>
-{% endfor sub %}
-</table>
-  </div>
+  <div class="col col-md-8 p-0">
+    <div class="tile p-1">
+      <table id="subs" class="table table-sm">
+        <h4 class="p-2"><a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a></h4>
+          <thead>
+          <tr>
+            <th></th>
+            <th>Year</th>
+            <th>Active</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Membership</th>
+            <th>Payment state</th>
+          </tr>
+          </thead>
+          {% for sub in subs %}
+            <tr>
+              <td>
+                <a href="{% url "sub-detail" sub.id %}" class="btn btn-default btn-sm">View</a>
+              </td>
+              <td>{{ sub.sub_year }}</td>
+              <td>{{ sub.active }}</td>
+              <td>{{ sub.start_date }}</td>
+              <td>{{ sub.end_date }}</td>
+              <td>{{ sub.membership_fulldescription }}</td>
+              <td>
+                {% if sub.has_paid_invoice %}
+                  Paid invoice
+                {% elif sub.has_unpaid_invoice %}
+                  Unpaid invoice
+                {% elif sub.has_items %}
+                  Uninvoiced item
+                {% else %}
+                  Not billed
+                {% endif %}
+              </td>
+              <td>
+            </tr>
+          {% endfor sub %}
+      </table>
+      <div class="p-3"><a href="{% url 'person-detail' pk=person.id %}" class="btn btn-primary">Back</a></div>
+      </div>
   </div>
 {% endblock %}

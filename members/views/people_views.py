@@ -1,5 +1,5 @@
 import logging
-from django.shortcuts import redirect, get_object_or_404, render
+from django.shortcuts import redirect, get_object_or_404
 from django_tables2 import SingleTableView
 from django.contrib import messages
 from django.views.generic import TemplateView
@@ -32,6 +32,7 @@ class PeopleTableView(StaffuserRequiredMixin, SingleTableView):
     members = False
     group = None
     title = ''
+    table_title = ''
     filter = None
     template_name = 'members/person_table.html'
     table_pagination = {"per_page": 10000}
@@ -81,7 +82,7 @@ class PeopleTableView(StaffuserRequiredMixin, SingleTableView):
         context['members'] = self.members
         context['juniors'] = self.juniors
         context['parents'] = self.parents
-        context['title'] = self.title
+        context['table_title'] = self.table_title
         context['actions'] = Actions.default_actions()
         return context
 
@@ -94,7 +95,7 @@ class MembersTableView(PeopleTableView):
     model = Subscription
     members = True
     filter_class = SubsFilter
-    title = 'Members'
+    table_title = 'Members'
 
 
 class JuniorsTableView(PeopleTableView):

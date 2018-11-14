@@ -12,6 +12,15 @@ from members.views.fees_views import FeesCreateView, FeesUpdateView, FeesListVie
     VisitorFeesListView
 from members.views.sub_views import SubCreateView, SubUpdateView, SubCorrectView, SubDetailView, SubHistoryView, \
     SubRenewAllView, SubRenewSelectionView
+from members.views.invoiceitem_views import InvoiceItemCreateView, InvoiceItemUpdateView, InvoiceItemDetailView, \
+    InvoiceItemListView, InvoiceItemTableView
+from members.views.invoice_views import \
+    InvoiceGenerateSelectionView, InvoiceTableView, InvoiceDetailView, InvoiceSelectView, InvoiceMailView, \
+    InvoiceMailConfigView, InvoiceMailBatchView, InvoiceDeleteView, InvoicePublicView, InvoiceBatchView
+from members.views.payment_views import PaymentCreateView, PaymentUpdateView, PaymentDetailView, PaymentListView, \
+    CreditNoteCreateView, CreditNoteDetailView
+from members.views.email_views import EmailView, TextBlockCreateView, TextBlockUpdateView, TextBlockListView, \
+    MailTypeCreateView, MailTypeUpdateView, MailTypeDetailView, MailTypeListView, MailTypeSubscribeView
 
 ajax_patterns = [
     path('people/', ajax_people, name='ajax-people'),
@@ -70,7 +79,54 @@ sub_patterns = [
     path('update/<int:pk>/', SubUpdateView.as_view(), name='sub-update'),
     path('correct/<int:pk>/', SubCorrectView.as_view(), name='sub-correct'),
     path('detail/<int:pk>/', SubDetailView.as_view(), name='sub-detail'),
-    path('renew/all', SubRenewAllView.as_view(), name='sub-renew-all'),
-    path('renew/list', SubRenewSelectionView.as_view(), name='sub-renew-list'),
-    path('history/<int:pk>/', SubHistoryView.as_view(), name='sub-history'),
+    path('renew/all/', SubRenewAllView.as_view(), name='sub-renew-all'),
+    path('renew/list/', SubRenewSelectionView.as_view(), name='sub-renew-list'),
+    path('history/<int:person_id>/', SubHistoryView.as_view(), name='sub-history'),
+]
+invoiceitem_patterns = [
+    path('create/<int:person_id>/', InvoiceItemCreateView.as_view(), name='item-create'),
+    path('update/<int:pk>/', InvoiceItemUpdateView.as_view(), name='item-update'),
+    path('detail/<int:pk>/', InvoiceItemDetailView.as_view(), name='item-detail'),
+    path('list/<int:pk>/', InvoiceItemListView.as_view(), name='item-list'),
+    path('table/', InvoiceItemTableView.as_view(), name='item-table'),
+]
+invoice_patterns = [
+    path('generate/', InvoiceGenerateSelectionView.as_view(), name='invoices-generate'),
+    path('delete/<int:pk>/', InvoiceDeleteView.as_view(), name='invoice-delete'),
+    path('table/', InvoiceTableView.as_view(), name='invoice-list'),
+    path('detail/<int:pk>/', InvoiceDetailView.as_view(), name='invoice-detail'),
+    path('public/<str:token>/', InvoicePublicView.as_view(), name='public-invoice-token'),
+    path('select/', InvoiceSelectView.as_view(), name='select'),
+    path('batch/', InvoiceBatchView.as_view(), name='invoice-batch'),
+    path('mail/<int:pk>/<str:option>/', InvoiceMailView.as_view(), name='invoice-mail'),
+    path('mail/config/<int:pk>/', InvoiceMailConfigView.as_view(), name='invoice-mail-config'),
+    path('mail/batch/<int:send>/', InvoiceMailBatchView.as_view(), name='invoice-mail-batch'),
+]
+payment_patterns = [
+    path('list/', PaymentListView.as_view(), name='payment-list'),
+    path('invoice/<int:invoice_id>/', PaymentCreateView.as_view(), name='payment-invoice'),
+    path('detail/<int:pk>/', PaymentDetailView.as_view(), name='payment-detail'),
+    path('update/<int:pk>/', PaymentUpdateView.as_view(), name='payment-update'),
+    path('creditnote/create/<int:person_id>/', CreditNoteCreateView.as_view(), name='creditnote-create'),
+    path('creditnote/<int:pk>/', CreditNoteDetailView.as_view(), name='creditnote-update'),
+]
+text_patterns = [
+    path('create/', TextBlockCreateView.as_view(), name='text-create'),
+    path('update/<int:pk>/', TextBlockUpdateView.as_view(), name='text-update'),
+    path('list/', TextBlockListView.as_view(), name='text-list'),
+]
+email_patterns = [
+    path('single/', EmailView.as_view(), name='email'),
+    path('selection/', EmailView.as_view(selection=True), name='email-selection'),
+    path('person/<int:person>/', EmailView.as_view(), name='email-person'),
+    path('group/<int:group>/', EmailView.as_view(), name='email-group'),
+    path('campaign/<int:campaign>/', EmailView.as_view(), name='email-campaign'),
+]
+mailtype_patterns = [
+    path('create/', MailTypeCreateView.as_view(), name='mailtype-create'),
+    path('update/<int:pk>/', MailTypeUpdateView.as_view(), name='mailtype-update'),
+    path('detail/<int:pk>/', MailTypeDetailView.as_view(), name='mailtype-detail'),
+    path('list/', MailTypeListView.as_view(), name='mailtype-list'),
+    path('public/subscribe/<str:token>/', MailTypeSubscribeView.as_view(), name='mailtype-subscribe-public'),
+    path('subscribe/<int:person>/', MailTypeSubscribeView.as_view(), name='mailtype-subscribe'),
 ]

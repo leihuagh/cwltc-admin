@@ -461,19 +461,12 @@ class SubscriptionForm(ModelForm):
         super().__init__(*args, **kwargs)
         person = Person.objects.get(pk=person_id)
         instance = getattr(self, 'instance', None)
-        self.updating = False
-        if instance and instance.id:
-            self.updating = True
+        self.updating = True if instance and instance.id else False
         self.helper = FormHelper(self)
-        # self.helper.form_class = 'form-horizontal'
-        # self.helper.label_class = 'col'
-        # self.helper.field_class = 'col'
-        self.helper.render_required_fields = False
         message = 'New subscription'
         if person.subscription_set.count() > 0:
             message += ' (add to history)'
         if self.updating:
-
             if instance.has_paid_invoice():
                 message = 'This sub is linked to a paid invoice and cannot be changed.'
             elif instance.has_unpaid_invoice():
@@ -713,6 +706,11 @@ class InvoiceFilterForm(Form):
             time(23, 59, 59)
         )
         return self.cleaned_data
+
+
+class PeriodForm(Form):
+    start_date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
+    end_date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
 
 
 class InvoiceItemForm(ModelForm):

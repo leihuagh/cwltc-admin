@@ -1,40 +1,42 @@
 ﻿{% extends "members/base.html" %}
 {% load widget_tweaks %}
 {% block content %}
-
-{% load render_table from django_tables2 %}
-<form method="get">
-  <div class="well" style="padding:10px">
-
-    <div class="row">
-      <div class="form-group col-sm-3 col-md-2">
-        <h3>{{ title }}</h3>
-      </div>
-      <div class="form-group col-sm-3 col-md-2">
-          {{ filter.form.invoiced.label_tag }}
-          {% render_field filter.form.invoiced class="form-control form-control-sm" %}
-      </div>
-
-      <div class="form-group col-sm-3 col-md-2">
-          {{ filter.form.item_type.label_tag }}
-          {% render_field filter.form.item_type class="form-control form-control-sm" %}
-      </div>
-      <div class="form-group  col-sm-3  col-md-2">
-        <label for="id_search">&nbsp</label>
-        <button class="form-control btn-primary btn-block" id="id_search" type="submit">
-          <span class="glyphicon glyphicon-search"></span> Search
-        </button>
+  {% load render_table from django_tables2 %}
+  <form method="get">
+    <div class="app-title p-0">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="form-group col-sm-6 col-md-4 col-lg pl-0">
+            <h3 class="mt-3 p-2">{{ table_title }}</h3>
+          </div>
+          <div class="form-group col-sm-6 col-md-4 col-lg-2 pl-0">
+            {{ filter.form.invoiced.label_tag }}
+            {% render_field filter.form.invoiced class="form-control form-control-sm" %}
+          </div>
+          <div class="form-group col-sm-6 col-md-4 col-lg-2 pl-0">
+            {{ filter.form.item_type.label_tag }}
+            {% render_field filter.form.item_type class="form-control form-control-sm" %}
+          </div>
+          <div class="form-group col-sm-6 col-md-4 col-lg-2 pl-0">
+            <label for="id_search">&nbsp</label>
+            <button class="form-control btn-primary btn-sm " id="id_search" type="submit">
+              <i class="fa fa-search"></i> Filter
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-
+  </form>
+  <div class="tile mb-1 pt-1 pb-0 px-2" style="width:100%">
+    <div class="row">
+      <div class="col">
+        <h5 class="pull-right pb-0-1">Total = £ {{ total }}</h5>
+      </div>
+    </div>
   </div>
-</form>
-<div class="contained">
-    <div class="row">
-      <div class="col-sm-3 col-md-offset-10 col-md-2">
-<h4>Total = £ {{ total }}</h4>
-      </div>
+  <div class="container-fluid p-0">
+    <div class="tile m-0 p-0" id="id_tile">
+      {% render_table table %}
     </div>
-</div>
-{% render_table table %}
+  </div>
 {% endblock content %}

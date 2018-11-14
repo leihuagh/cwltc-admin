@@ -12,7 +12,7 @@ from members.views.views import add_membership_context, SingleTableView
 from members.views.person_views import set_person_context
 from members.services import person_statement
 from public.forms import NameForm, AddressForm, ConsentForm
-from public.views import InvoicePublicView
+from members.views.invoice_views import InvoicePublicView
 from .models import Document
 from .forms import DocumentForm
 

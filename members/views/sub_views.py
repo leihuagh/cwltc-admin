@@ -13,14 +13,16 @@ from members.services import subscription_activate, subscription_delete, subscri
 
 stdlogger = logging.getLogger(__name__)
 
+# todo Check all these views
 
 class SubCreateView(StaffuserRequiredMixin, CreateView):
     model = Subscription
     form_class = SubscriptionForm
-    template_name = 'members/subscription_form.html'
+    template_name = 'members/crispy_tile.html'
+    title = 'Create subsription'
 
     def get_form_kwargs(self):
-        """ pass the person_id to the form """
+        # pass the person_id to the form
         kwargs = super().get_form_kwargs()
         kwargs.update({'person_id': self.kwargs['person_id']})
         return kwargs
@@ -58,6 +60,7 @@ class SubUpdateView(StaffuserRequiredMixin, UpdateView):
     model = Subscription
     form_class = SubscriptionForm
     template_name = 'members/subscription_form.html'
+    title = 'Update subscription'
 
     def get_form_kwargs(self):
         """ pass the person_id to the form """
@@ -67,7 +70,7 @@ class SubUpdateView(StaffuserRequiredMixin, UpdateView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(SubUpdateView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         sub = self.get_object()
         context['sub'] = sub
         context['person'] = sub.person_member
@@ -87,7 +90,7 @@ class SubUpdateView(StaffuserRequiredMixin, UpdateView):
 
         if 'submit' in form.data:
             form.instance.membership = Membership.objects.get(pk=form.cleaned_data['membership_id'])
-            return super(SubUpdateView, self).form_valid(form)
+            return super().form_valid(form)
 
         if 'delete' in form.data:
             sub = self.get_object()
@@ -111,6 +114,7 @@ class SubCorrectView(StaffuserRequiredMixin, UpdateView):
     """ standard model view that skips validation """
     model = Subscription
     form_class = SubCorrectForm
+    title = 'Correct subscription'
 
     def get_success_url(self):
         sub = self.get_object()
@@ -121,6 +125,7 @@ class SubCorrectView(StaffuserRequiredMixin, UpdateView):
 class SubDetailView(StaffuserRequiredMixin, DetailView):
     model = Subscription
     template_name = 'members/generic_detail.html'
+    title = 'Subscription'
 
     class Form(ModelForm):
         class Meta:
@@ -149,13 +154,14 @@ class SubHistoryView(StaffuserRequiredMixin, ListView):
     template_name = 'members/subscription_history.html'
     context_object_name = 'subs'
     person = None
+    title = 'Subscription history'
 
     def get_queryset(self):
         self.person = get_object_or_404(Person, pk=self.kwargs['person_id'])
         return Subscription.objects.filter(person_member=self.person).order_by('-start_date', 'active')
 
     def get_context_data(self, **kwargs):
-        context = super(SubHistoryView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['person'] = self.person
         return context
 
@@ -164,9 +170,10 @@ class SubRenewAllView(StaffuserRequiredMixin, FormView):
     form_class = YearConfirmForm
     template_name = 'members/generic_crispy_form.html'
     subs = None
+    title = 'Renew subsriptions'
 
     def get_context_data(self, **kwargs):
-        context = super(SubRenewAllView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         self.subs = Subscription.objects.filter(active=True, no_renewal=False)
         context['title'] = 'Renew subscriptions'
         context['message'] = '{} subscriptions to renew'.format(self.subs.count())
@@ -191,9 +198,10 @@ class SubRenewSelectionView(StaffuserRequiredMixin, FormView):
     """
     form_class = YearConfirmForm
     template_name = 'members/generic_crispy_form.html'
+    title = 'Renew subsriptions'
 
     def get_context_data(self, **kwargs):
-        context = super(SubRenewSelectionView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         selection = self.request.session['selected_people_ids']
         subtext = "subscription"
         if len(selection) > 1:
@@ -225,4 +233,3 @@ class SubRenewSelectionView(StaffuserRequiredMixin, FormView):
 
     def get_success_url(self):
         return reverse('home')
-

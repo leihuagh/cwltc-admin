@@ -3,7 +3,7 @@ import os
 from decimal import *
 from enum import IntEnum
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.urls import reverse
@@ -665,6 +665,24 @@ class ItemType(models.Model):
         return self.description
 
 
+class InvoiceItemBillingManager(models.Manager):
+
+    def unbilled_data(self, item_type=None, person=None, date_before=None):
+        qs = InvoiceItem.objects.filter(invoice=None)
+        if item_type:
+            qs.filter(item_type=item_type)
+        if person:
+            qs.filter(person=person)
+        if date_before:
+            qs.filter(creation_date__lt=date_before)
+        return qs.order_by('item_type')
+
+    def unbilled_total(self, item_type=None, person=None, date_before=None):
+        dict = self.unbilled_data(item_type, person, date_before).aggregate(Sum('amount'))
+        total = dict['amount__sum']
+        return 0 if total is None else total
+
+
 class InvoiceItem(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -672,12 +690,15 @@ class InvoiceItem(models.Model):
     description = models.CharField(max_length=100, blank=True, null=True)
     amount = models.DecimalField(max_digits=7, decimal_places=2)
     paid = models.BooleanField(default=False)
-    #
     item_type = models.ForeignKey(ItemType, on_delete=models.SET_NULL, blank=False, null=True)
     person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, blank=True, null=True, related_name='invoice_items')
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, blank=True, null=True)
     subscription = models.ForeignKey('Subscription', on_delete=models.SET_NULL, blank=True, null=True)
+
+    objects = models.Manager()
+    billing = InvoiceItemBillingManager()
+
 
     def __str__(self):
         return f'{self.description} {self.amount}'
@@ -808,6 +829,10 @@ class Settings(models.Model):
             return record.membership_year
         except ObjectDoesNotExist:
             return 1900
+
+    @classmethod
+    def year_start_date(cls):
+        return date(Settings.current_year(), Subscription.START_MONTH, 1)
 
 
 class Editor(models.Model):

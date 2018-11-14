@@ -66,10 +66,10 @@
 {#  <a href="{% url "invoice-update"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>#}
 {#{% if items %}#}
 {#    {% if cancel_invoice %}#}
-{#        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>#}
+{#        <a href="{% url "invoice-delete"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>#}
 {#      {% endif %}#}
 {#    {% if delete_unpaid %}#}
-{#        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Delete unpaid items</a>   #}
+{#        <a href="{% url "invoice-delete"  subscription.id %}" class="btn btn-warning">Delete unpaid items</a>   #}
 {#    {% endif %}#}
 {#{% endif %}#}
 {% endblock content %}

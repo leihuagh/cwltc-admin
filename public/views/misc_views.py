@@ -1,15 +1,10 @@
 import logging
-import datetime
-from django.shortcuts import render_to_response, redirect
-from django.views.generic import DetailView, TemplateView
-from django.core.signing import Signer
+from django.shortcuts import redirect
+from django.views.generic import TemplateView
 from django.core.mail import send_mail
-from django.contrib import messages
 from django.views.generic.edit import FormView
-from members.models import Invoice, MailType, Settings
-from members.services import group_get_or_create
 from public.forms import *
-from cardless.services import detokenise, person_from_token, invoice_payments_list
+from cardless.services import person_from_token
 
 logger = logging.getLogger(__name__)
 
@@ -31,103 +26,6 @@ class LoginView(FormView):
     template_name = 'authentication/login.html'
 
 # ================= Public Views accessed through a token
-
-
-class MailTypeSubscribeView(TemplateView):
-    """
-    Displays a form with checkboxes that allows a user to unsubscribe
-    User can either be logged in (self.token=None) or get here direct from an Unsubscribe link
-    """
-    template_name = 'public/mailtype_manage.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(MailTypeSubscribeView, self).get_context_data(**kwargs)
-        self.get_person()
-        context['person'] = self.person
-        context['token'] = self.token
-        if self.person:
-            mailtypes = MailType.objects.filter(can_unsubscribe=True).order_by('description')
-            for m in mailtypes:
-                if m.person_set.filter(id=self.person.id).exists():
-                    m.subscribed = False
-                else:
-                    m.subscribed = True
-            context['mailtypes'] = mailtypes
-        return context
-
-    def get_person(self):
-        self.person = None
-        person_id = None
-        self.token = self.kwargs.pop('token', None)
-        if self.token:
-            try:
-                signer = Signer()
-                person_id = signer.unsign(self.token)
-            except:
-                pass
-        else:
-            if self.request.user.is_authenticated:
-                person_id = self.kwargs.pop('person', None)
-        if person_id:
-            self.person = Person.objects.get(pk=person_id)
-
-    def post(self, request, *args, **kwargs):
-        self.get_person()
-        checklist = request.POST.getlist('checks')
-        mail_types = MailType.objects.all()
-        has_selection = False
-        for m in mail_types:
-            if m.can_unsubscribe:
-                if str(m.id) in checklist:
-                    has_selection = True
-                    m.person_set.remove(self.person)
-                else:
-                    m.person_set.add(self.person)
-        if has_selection:
-            self.person.allow_marketing = True
-            self.person.consent_date = datetime.datetime.now()
-            self.person.save()
-        if self.token:
-            return render_to_response('public/mailtype_done.html')
-        else:
-            messages.info(request, "Your mail choices have been saved")
-            return redirect('club_person_pk', pk=self.person.pk)
-
-
-class InvoicePublicView(DetailView):
-    model = Invoice
-    template_name = 'public/invoice_public.html'
-    invoice = None
-
-    def get_object(self, queryset=None):
-        self.invoice = detokenise(self.kwargs['token'], Invoice)
-        return self.invoice
-
-    def get_context_data(self, **kwargs):
-        context = super(InvoicePublicView, self).get_context_data(**kwargs)
-        if self.invoice:
-            self.invoice.add_context(context)
-            context['token'] = self.kwargs['token']
-            context['cancelled'] = self.invoice.state == Invoice.STATE.CANCELLED.value
-            context['payments_pending'] = invoice_payments_list(self.invoice, pending=True)
-            context['payments_paid'] = invoice_payments_list(self.invoice, paid=True)
-        return context
-
-    def post(self, request, *args, **kwargs):
-        year = Settings.current_year()
-        invoice = self.get_object()
-        person_token = Signer().sign(invoice.person.id)
-        if 'pay' in request.POST:
-            return redirect('cardless_payment_create', kwargs['token'])
-        if 'query' in request.POST:
-            group = group_get_or_create(f'{year}_subs_query')
-            invoice.person.groups.add(group)
-            return redirect('public-contact-token', token=person_token)
-        elif 'resign' in request.POST:
-            group = group_get_or_create(f'{year}_resignation')
-            invoice.person.groups.add(group)
-            return redirect('public-resign-token', token=person_token)
-
 
 class ContactView(FormView):
     """
