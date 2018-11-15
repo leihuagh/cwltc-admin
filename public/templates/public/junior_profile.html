@@ -12,7 +12,7 @@
         {{ form.membership_id|as_crispy_field }}
         <div class="card my-2">
           {% if form_title %}
-            <h4 class="card-header card-title bg-success text-white mb-3" >{{ form_title }}</h4>
+            <h4 class="card-header card-title bg-primary text-white mb-3" >{{ form_title }}</h4>
           {% endif %}
 
         {% if messages %}
@@ -27,7 +27,7 @@
               <strong>Please correct the errors in red below.</strong>
             </div>
             {% endif %}
-          <h5 class="card-title bg-success text-white p-1">Membership</h5>
+          <h5 class="card-title bg-primary text-white p-1">Membership</h5>
             <p class="mb-0">
             Membership category: <strong>{{ membership.description }}</strong> (Under {{ membership.cutoff_age }} on 1 May {{ year }})
             <br>

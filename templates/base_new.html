@@ -11,7 +11,8 @@
 {#      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">#}
   <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
   <link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:700" rel="stylesheet">
-  <link rel="stylesheet" type="text/css"  href="{% static 'css/custom.css' %}">
+{#  <link rel="stylesheet" type="text/css"  href="{% static 'css/custom.css' %}">#}
+  <link rel="stylesheet" type="text/css"  href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.css">
   <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicons/apple-touch-icon.png' %}">
   <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicons/favicon-32x32.png' %}">
@@ -46,24 +47,7 @@
     {% endblock %}
     {% if not no_container %}</div>{% endif %}
   </div>
- <footer class="mb-0 pt-md-2 bg-success">
-  <div class="container text-light">
-    <div class="row">
-      <div class="col-md-4">
-        <p>Coombe Wood Lawn Tennis Club<br/>
-           Galsworthy Road <br/>Kingston upon Thames <br/>KT2 7BS
-        </p>
-      </div>
-      <div class="col-md-4">Enquiries: <a href="mailto:info@coomebwoodltc.co.uk"><span class="text-light">info@coombewoodltc.co.uk</span></a><br/>
-        Head coach: <a href="mailto:ollie@oltennis.co.uk"><span class="text-light">ollie@oltennis.co.uk</span></a>
-      </div>
-      <div class="col-md-4">
-        <a class="text-light" href="{% url 'privacy-policy' %}">Privacy policy</a>
-      </div>
-    </div>
-    <p class= "text-light float-right">Membership Management System &copy; 2015-2018 ISKT Ltd</p>
-  </div>
- </footer>
+ {% include '_footer.html' %}
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"

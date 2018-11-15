@@ -1,0 +1,45 @@
+{% load wagtailcore_tags %}
+{% load wagtailimages_tags %}
+
+
+<div class="tile mt-2">
+  {% if item.image_position < 2 %}
+  <!-- Image is before or after title -->
+    {% if item.image and item.image_position == 0 %}
+      {% image item.image width-750 class="card-img-top" %}
+    {% endif %}
+    <div class="">
+      <h3 class="card-title text-center">{{ item.title }}</h3>
+      {% if item.image and item.image_position == 1 %}
+        {% image item.image width-750 %}
+      {% endif %}
+      <p class="">{{ item.body|richtext }}</p>
+    </div>
+  {% else %}
+    <!-- Image is left or right -->
+    <div class="">
+      <div class="row">
+        <div class="col">
+          {% if item.image_position == 2 %}
+            {% image item.image width-325 %}
+          {% else %}
+            <h3 class="card-title text-center">{{ item.title }}</h3>
+            <p class="card-text">{{ item.body|richtext }}</p>
+          {% endif %}
+        </div>
+        <div class="col">
+          {% if item.image_position == 2 %}
+            <h3 class="card-title text-center">{{ item.title }}</h3>
+            <p class="card-text">{{ item.body|richtext }}</p>
+          {% else %}
+            {% image item.image width-325 %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="text-muted">
+    Posted on {{ item.date }}
+  </div>
+</div>

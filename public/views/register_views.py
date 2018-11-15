@@ -77,7 +77,7 @@ class RegisterView(FormView):
         context = super().get_context_data(**kwargs)
         context['form_title'] = 'Register for the club website and online services'
         context['info'] = 'Enter these details to confirm you are a club member:'
-        context['buttons'] = [Button('Register', css_class='btn-success')]
+        context['buttons'] = [Button('Register', css_class='btn-primary')]
         return context
 
     def form_valid(self, form):
@@ -132,7 +132,7 @@ class RegisterTokenView(FormView):
     def get_context_data(self, **kwargs):
         kwargs['person'] = self.get_person()
         kwargs['form_title'] = "Registration for " + self.person.fullname
-        kwargs['buttons'] = [Button('Next', css_class='btn-success')]
+        kwargs['buttons'] = [Button('Next', css_class='btn-primary')]
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):
@@ -245,7 +245,7 @@ class ConsentJuniorTokenView(FormView):
 
     def get_context_data(self, **kwargs):
         kwargs['person'] = self.person
-        kwargs['buttons'] = [Button('Next', css_class='btn-success')]
+        kwargs['buttons'] = [Button('Next', css_class='btn-primary')]
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):

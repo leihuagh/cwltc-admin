@@ -1,9 +1,12 @@
-from django.urls import path, include
+from django.urls import path, re_path, include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django_mail_viewer import urls as django_mail_viewer_urls
 from django.views.generic.base import RedirectView
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.documents import urls as wagtaildocs_urls
+from wagtail.core import urls as wagtail_urls
 from mysite.views import index_view, test_celery_view, custom_500
 from members.urls import ajax_patterns, person_patterns, people_patterns, group_patterns, membership_patterns, \
     fees_patterns, sub_patterns, invoiceitem_patterns, invoice_patterns, payment_patterns, text_patterns, \
@@ -24,6 +27,10 @@ router.register(r'Xinvoices', InvoiceViewSet)
 urlpatterns = [
     path('', index_view, name='index'),
     path('', include('authentication.urls')),
+    path('admin/', admin.site.urls),
+    re_path(r'^cms/', include(wagtailadmin_urls)),
+    re_path(r'^documents/', include(wagtaildocs_urls)),
+    re_path(r'^pages/', include(wagtail_urls)),
     path('celery', test_celery_view, name='celery'),
     path('mv/', include(django_mail_viewer_urls)),
     path('api/', include(router.urls)),
@@ -76,7 +83,7 @@ urlpatterns = [
     path('export/<str:option>/', PersonExportView.as_view(), name='export-option'),
     path('person/export', PersonExportView.as_view(), name='person-export'),
 
-    path('admin/', admin.site.urls),
+
 
     # https://realfavicongenerator.net
     path('favicon.ico/',
@@ -102,4 +109,4 @@ urlpatterns = [
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns += [(path('__debug__/', include(debug_toolbar.urls)))]
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

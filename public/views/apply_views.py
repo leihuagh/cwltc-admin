@@ -67,7 +67,7 @@ class ApplyMain(TemplateView):
         kwargs['address_form'] = self.address_form
         kwargs['form_title'] = "Adult Application Form" if session.is_adult_application(self.request) else\
             "Details of parent or guardian"
-        kwargs['buttons'] = [Button('Next', css_class='btn-success')]
+        kwargs['buttons'] = [Button('Next', css_class='btn-primary')]
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -142,8 +142,8 @@ class ApplyAdultMembershipView(DispatchMixin, FormView):
         else:
             kwargs['form_title'] = f'Select adult membership for {self.full_name}'
             kwargs['memberships'] = Membership.adult_choices(description=True)
-        kwargs['buttons'] = [Button('Back', css_class='btn-success'),
-                             Button('Next', css_class='btn-success')]
+        kwargs['buttons'] = [Button('Back', css_class='btn-primary'),
+                             Button('Next', css_class='btn-primary')]
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -176,8 +176,8 @@ class ApplyAddView(DispatchMixin, CreateView):
 
 
     def get_context_data(self, **kwargs):
-        kwargs['buttons'] = [Button('Back', css_class='btn-success', no_validate=True),
-                             Button('Next', css_class='btn-success')]
+        kwargs['buttons'] = [Button('Back', css_class='btn-primary', no_validate=True),
+                             Button('Next', css_class='btn-primary')]
         if session.post_data(self):
             kwargs['buttons'].append(Button('Delete', css_class='btn-danger', no_validate=True))
         action_text = ' to applicants'
@@ -244,8 +244,8 @@ class ApplyAdultProfileView(DispatchMixin, CreateView):
     def get_context_data(self, **kwargs):
         kwargs['form_title'] = "Adult profile: " + self.full_name
         kwargs['memberships'] = Membership.adult_choices(self.membership_id, description=True)
-        kwargs['buttons'] = [Button('Back', css_class='btn-success'),
-                             Button('Next', css_class='btn-success')]
+        kwargs['buttons'] = [Button('Back', css_class='btn-primary'),
+                             Button('Next', css_class='btn-primary')]
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -305,8 +305,8 @@ class ApplyJuniorProfileView(DispatchMixin, FormView):
         kwargs['sub'] = fee.annual_sub
         kwargs['year'] = fee.sub_year
         kwargs['end_year'] = int(fee.sub_year) + 1
-        kwargs['buttons'] = [Button('Back', css_class='btn-success'),
-                             Button('Next', css_class='btn-success')]
+        kwargs['buttons'] = [Button('Back', css_class='btn-primary'),
+                             Button('Next', css_class='btn-primary')]
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
