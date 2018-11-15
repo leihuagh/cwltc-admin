@@ -1,8 +1,8 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% load members_extras %}
 {% block content %}
 <h2>Mail message types</h2>
-<table id="mailtypes" class="table table-condensed" >
+<table id="mailtypes" class="table table-sm" >
 <thead>
         <tr>
         <th>Message type</th>
@@ -20,7 +20,7 @@
     <td> {{ mailtype.can_unsubscribe }}</td>
     <td> {{ mailtype.person_set.count }}</td> 
     <td> {{ mailtype.sequence }}</td> 
-    <td><a href="{% url "mailtype-update" pk=mailtype.id %}" class = "btn btn-primary btn-xs">Edit</a></td>
+    <td><a href="{% url "mailtype-update" pk=mailtype.id %}" class = "btn btn-primary btn-sm">Edit</a></td>
 </tr>
 {% endfor sub %}
 </table>

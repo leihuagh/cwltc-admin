@@ -1,4 +1,4 @@
-﻿<table id="invoiceitem" class="table table-condensed">
+﻿<table id="invoiceitem" class="table table-sm">
   <thead>
     <tr>
       <th>Unbilled items</th>    
@@ -12,7 +12,7 @@
   </thead>
   {% for item in items %}
     <tr>
-      <td><a href="{% url "item-update" item.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+      <td><a href="{% url "item-update" item.id %}" class="btn btn-primary btn-sm">Edit</a></td>
       <td>{{ item.item_date }}</td>
       <td>{{ item.item_type.description}}</td>
       <td>{{ item.person.first_name }} {{ item.person.last_name }}</td>

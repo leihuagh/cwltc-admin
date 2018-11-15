@@ -1,0 +1,25 @@
+{% load crispy_forms_tags %}
+<div class="tile" style="width: {% if tile_width %}{{ tile_width }}{% else %}30{% endif %}rem;">
+  {% if tile_title %}<h3 class="text-center pb-2">{{ tile_title }}</h3>
+  {% elif person %}<h3 class="text-center pb-2"><a href="{% url 'person-detail' pk=person.id %}">{{ person.fullname }}</a></h3>
+  {% endif %}
+  {% if children %}
+    {% for child in children %}
+      <h5 class="text-center"><a href="{% url "person-detail" pk=child.id %}">{{ child.first_name }} {{ child.last_name }}</a></h5>
+    {% endfor child %}
+  {% elif tile_subtitle %}<h4 class="text-center">{{ tile_subtitle }}</h4> {% endif %}
+  {% if form.errors %}
+    <p class="text-danger">Please correct the errors below.</p>
+  {% endif %}
+  {% if form.helper.form_tag %}
+    {% crispy form %}
+  {% else %}
+    <form method="post">
+      {% csrf_token %}
+      {% crispy form %}
+        <input type="submit" name="submit" class="btn btn-primary" value="Save">
+        {% if delete %}<input type="submit" name="delete" class="btn btn-danger" value="Delete" formnovalidate>{% endif %}
+        <a href="{{ view.get_success_url }}" class="btn btn-default">Cancel</a>
+    </form>
+  {% endif %}
+</div>

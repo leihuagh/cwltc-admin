@@ -1,11 +1,11 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% block content %}
 <h2>Subscription</h2>
 
 <h4>
 <a href="{% url "person-detail"  object.person_member_id %}">{{ subscription.person_member.first_name }} {{ subscription.person_member.last_name }}</a>
 </h4>
-<table id="sub" class="table table-condensed">
+<table id="sub" class="table table-sm">
     <tr>
         <td>Subscription year:</td><td>{{ subscription.sub_year}}</td>      
     </tr>
@@ -36,10 +36,10 @@
 </table>
 {% if items %}
 <h4>Linked invoice items</h4>
-<table id="sub" class="table table-condensed">
+<table id="sub" class="table table-sm">
     {% for item in items %}
     <tr>
-        <td><a href="{% url "item-update" item.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+        <td><a href="{% url "item-update" item.id %}" class="btn btn-primary btn-sm">Edit</a></td>
         <td>{{ item.item_date|date }}</td>
         <td>{{ item.description}}</td>
         <td>
@@ -66,10 +66,10 @@
 {#  <a href="{% url "invoice-update"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>#}
 {#{% if items %}#}
 {#    {% if cancel_invoice %}#}
-{#        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>#}
+{#        <a href="{% url "invoice-delete"  subscription.id %}" class="btn btn-warning">Cancel unpaid invoices and delete unpaid items</a>#}
 {#      {% endif %}#}
 {#    {% if delete_unpaid %}#}
-{#        <a href="{% url "sub-invoice-cancel"  subscription.id %}" class="btn btn-warning">Delete unpaid items</a>   #}
+{#        <a href="{% url "invoice-delete"  subscription.id %}" class="btn btn-warning">Delete unpaid items</a>   #}
 {#    {% endif %}#}
 {#{% endif %}#}
 {% endblock content %}

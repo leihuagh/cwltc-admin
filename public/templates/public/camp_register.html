@@ -1,13 +1,13 @@
-{% extends "base_new.html" %}
-{% load staticfiles %}
+{% extends "public/base.html" %}
+{% load static %}
 {% block head %}
   <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
 {% endblock %}
 {% block content %}
   <div class="container">
   <h2>Register for Tennis Camp on dd/mm/yyyy</h2>
-  <a class="btn btn-block btn-success" href="{% url 'camp-register' %}">Club member or attended previous camp</a>
-  <a class="btn btn-block btn-success" href="{% url 'camp-register' %}">New registration</a>
+  <a class="btn btn-block btn-primary" href="{% url 'camp-register' %}">Club member or attended previous camp</a>
+  <a class="btn btn-block btn-primary" href="{% url 'camp-register' %}">New registration</a>
   </div>
 
 {% endblock %}

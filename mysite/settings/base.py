@@ -35,7 +35,8 @@ INSTALLED_APPS = [
     'django_tables2',
     'djcelery_email',
     'cookielaw',
-    'taggit',
+    'tempus_dominus',
+    'menu',
     'members',
     'pos',
     'public',
@@ -45,7 +46,24 @@ INSTALLED_APPS = [
     'wimbledon',
     'events',
     'diary',
+    'news',
 ]
+WAGTAIL_APPS = [
+'wagtail.contrib.forms',
+'wagtail.contrib.redirects',
+'wagtail.embeds',
+'wagtail.sites',
+'wagtail.users',
+'wagtail.snippets',
+'wagtail.documents',
+'wagtail.images',
+'wagtail.search',
+'wagtail.admin',
+'wagtail.core',
+'modelcluster',
+'taggit',
+]
+INSTALLED_APPS += WAGTAIL_APPS
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -55,7 +73,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'wagtail.core.middleware.SiteMiddleware',
+    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
 ]
+
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
@@ -143,6 +164,7 @@ TIME_INPUT_FORMATS = (
     '%H:%M',  # '17:59'
 )
 DATETIME_INPUT_FORMATS = (
+    '%d/%m/%Y %H:%M',  # '21/03/2014 17:59'
     '%d-%m-%Y %H:%M',  # '21-03-2014 17:59'
 )
 
@@ -167,6 +189,11 @@ LOGIN_REDIRECT_URL = '/club/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 DJANGO_TABLES2_TEMPLATE = 'django_tables2/bootstrap.html'
+TEMPUS_DOMINUS_LOCALIZE = True
+
+WAGTAIL_SITE_NAME = 'News'
+WAGTAIL_DATE_FORMAT = '%d/%m/%Y'
+WAGTAIL_DATETIME_FORMAT = '%d/%m/%Y %H:%M'
 
 # EMAIL_BACKEND is defined in site specific settings
 

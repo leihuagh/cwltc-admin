@@ -16,7 +16,7 @@ $(document).ready(function () {
                 "render": function (data, type, row, meta) {
                     if (type === 'display') {
                         return $('<a>')
-                            .attr('href', '/' + data)
+                            .attr('href', '/person/detail/' + data)
                             .text(data)
                             .wrap('<div></div>')
                             .parent()

@@ -1,5 +1,5 @@
 from django.shortcuts import reverse, redirect, render
-from django.views.generic import DetailView, TemplateView, UpdateView, FormView
+from django.views.generic import DetailView, TemplateView, UpdateView, RedirectView
 from django.core.signing import Signer
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db.models import Sum
@@ -8,23 +8,30 @@ from mysite.common import Button
 from members.models import Person, Address, Settings, Invoice, Payment, ItemType
 from pos.models import PosPayment, Transaction, VisitorBook
 from .tables import PosPaymentsTable, VisitorBookTable
-from members.views import set_person_context, add_membership_context, SingleTableView
+from members.views.views import add_membership_context, SingleTableView
+from members.views.person_views import set_person_context
 from members.services import person_statement
 from public.forms import NameForm, AddressForm, ConsentForm
-from public.views import InvoicePublicView
+from members.views.invoice_views import InvoicePublicView
 from .models import Document
 from .forms import DocumentForm
 
 # Club Members views
 
 
-class ClubHomeView(LoginRequiredMixin, TemplateView):
+# class ClubHomeView(LoginRequiredMixin, TemplateView):
+#     template_name = 'club/home.html'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data()
+#         context['bg_class'] = 'bg-white'
+#         return context
+
+class ClubHomeView(LoginRequiredMixin, RedirectView):
     template_name = 'club/home.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data()
-        context['bg_class'] = 'bg-white'
-        return context
+    def get_redirect_url(self, *args, **kwargs):
+        return '/pages/home'
 
 
 class PersonView(LoginRequiredMixin, DetailView):

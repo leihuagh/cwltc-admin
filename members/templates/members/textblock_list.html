@@ -1,8 +1,7 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% block content %}
-<h2>Standard text blocks</h2>
-
-<table id="textblocks" class="table table-condensed">
+<div class="tile">
+<table id="textblocks" class="table table-sm">
 <thead>
     <tr>
         <th>Action</th>
@@ -13,13 +12,13 @@
 </thead>
 {% for text in object_list %}
 <tr>
-    <td><a href="{% url "text-update" text.id %}" class="btn btn-primary btn-xs">Edit</a></td>
+    <td><a href="{% url "text-update" text.id %}" class="btn btn-primary btn-sm">Edit</a></td>
     <td>{{ text.name }}</td>
     <td>{{ text.type }}</td>
-    <td>{{ text.text|striptags|truncatechars:80 }}</td>
+    <td>{{ text.text|safe }}</td>
 </tr>
 {% endfor text %}
 </table>
 <a href="{% url "text-create" %}" class="btn btn-primary">Create text block</a>
-
+</div>
 {%  endblock content %}

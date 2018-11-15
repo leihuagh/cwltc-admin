@@ -1,5 +1,5 @@
-﻿{% extends "members/layout.html" %}
-{% load staticfiles %}
+﻿{% extends "members/base.html" %}
+{% load static %}
 {% load members_extras %}
 {% block content %}
 <h2>Mail message type: {{ mailtype.name }}</h2>
@@ -21,7 +21,7 @@
     <td> {{ person.last_name }}</td>
     <td> {{ person.membership.description }}</td>
     <td> {{ person.email }}</td> 
-    <td><a href="{% url "person-detail" pk=person.id %}"class="btn btn-primary btn-xs">View</a></td> 
+    <td><a href="{% url "person-detail" pk=person.id %}"class="btn btn-primary btn-sm">View</a></td>
 </tr>
 {% endfor sub %}
 </table>

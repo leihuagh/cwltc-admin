@@ -2,7 +2,7 @@ from django.conf.urls import url
 from public.views import *
 
 # /public/ URLs
-
+# NB there are also public views for Invoice view and email unsubscribe defined in members app
 urlpatterns = [
     url(r'^$', PublicHomeView.as_view(), name='public-home'),
     url(r'^apply/adult/$', ApplyAdult.as_view(), name='public-apply-adult'),
@@ -21,8 +21,6 @@ urlpatterns = [
         name='public-apply-child-profile'),
     url(r'^apply/submit/$', ApplySubmitView.as_view(), name='public-apply-submit'),
     url(r'^apply/thank-you/$', ApplyThankYouView.as_view(), name='public-apply-thank-you'),
-
-    url(r'^invoice/public/(?P<token>.+)/$', InvoicePublicView.as_view(), name='public-invoice-token'),
 
     url(r'^online/(?P<token>.+)/$', GoOnlineView.as_view(), name='public-online-token'),
     url(r'^please_register/(?P<token>.+)/$', PleaseRegisterView.as_view(), name='public-please-register-token'),

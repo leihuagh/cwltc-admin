@@ -1,4 +1,4 @@
-from os import path
+import os
 from datetime import date, datetime, timedelta, time
 from django import forms
 from django.forms import Form, ModelForm, ModelMultipleChoiceField, HiddenInput, inlineformset_factory
@@ -7,15 +7,14 @@ from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
-from django.template.defaultfilters import slugify
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, MultiField, Fieldset, ButtonHolder, BaseInput
+from crispy_forms.layout import Layout, Div, Submit, HTML, Fieldset, ButtonHolder, BaseInput
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
-from mysite.widgets import DateTimePicker
+from tempus_dominus.widgets import DatePicker
 from .widgets import MySelectDate
-from .models import (Person, Address, AdultApplication, Subscription, Membership, Invoice, InvoiceItem,
-                     Payment, CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings, VisitorFees)
-from .excel import *
+from .models import (Person, Address, Subscription, Membership, Fees, Invoice, InvoiceItem, Payment,
+                     CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings, VisitorFees)
+from .excel import open_excel_workbook
 from .filters import year_choices
 
 # 
@@ -84,24 +83,11 @@ class PersonNameForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.layout = Layout(
-            Fieldset('',
-                'first_name',
-                'last_name',
-                'gender',
-                'dob',
-                'state',
-                'email',
-                'mobile_phone',
-                'british_tennis',
-                'pays_own_bill',
-                'notes'
-            ),
-            FormActions(
-                SubmitButton('submit', 'Save', css_class='btn-primary'),
-                SubmitButton('cancel', 'Cancel', css_class='btn-default')
-            )
-        )
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-4'
+        self.helper.field_class = 'col'
+        self.helper.form_tag = False
+        self.title = "Edit person"
 
 
 class PersonForm(ModelForm):
@@ -174,7 +160,7 @@ class PersonForm(ModelForm):
                 'dob',
                 'mobile_phone',
                 'email',
-                css_class="well"
+                css_class="tile"
                 ),
             css_class="col col-sm-4"
         )
@@ -185,22 +171,11 @@ class PersonForm(ModelForm):
                 'town',
                 'post_code',
                 'home_phone',
-                css_class="well"
+                css_class="tile"
                 ),
             css_class="col col-sm-4"
         )
 
-        # other_set = Div(
-        #     Div('Other information',
-        #         'notes',
-        #         'british_tennis',
-        #         'pays_own_bill',
-        #         'pays_family_bill',
-        #         'state',
-        #         css_class="well"
-        #         ),
-        #     css_class="col col-sm-4"
-        # )
 
         if self.link or self.updating:
             self.helper.layout = Layout(Div(name_set, css_class="row"))
@@ -217,13 +192,6 @@ class PersonForm(ModelForm):
             css_class="row"
             )
         )
-
-        # if not self.public:
-        #     self.helper.layout.append(other_set)
-        # self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-        # if not self.updating:
-        #     self.helper.add_input(SubmitButton('submit_sub', 'Save and add sub', css_class='btn-primary'))
-        # self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
 
 
     def clean(self):
@@ -490,36 +458,28 @@ class SubscriptionForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         person_id = kwargs.pop('person_id', None)
-        super(SubscriptionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         person = Person.objects.get(pk=person_id)
         instance = getattr(self, 'instance', None)
-        self.updating = False
-        if instance and instance.id:
-            self.updating = True
+        self.updating = True if instance and instance.id else False
         self.helper = FormHelper(self)
-        # self.helper.form_id = 'id-SubscriptionForm'
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
-        self.helper.render_required_fields = False
         message = 'New subscription'
         if person.subscription_set.count() > 0:
             message += ' (add to history)'
         if self.updating:
-
             if instance.has_paid_invoice():
-                message = 'This sub is linked to a paid invoice and cannot be changed'
+                message = 'This sub is linked to a paid invoice and cannot be changed.'
             elif instance.has_unpaid_invoice():
-                message = 'This sub cannot be changed until the linked unpaid invoice is deleted'
+                message = 'This sub cannot be changed until the linked unpaid invoice is deleted.'
             elif instance.has_items():
-                message = 'This sub cannot be changed until the linked unbilled item is deleted'
+                message = 'This sub cannot be changed until the linked unbilled item is deleted.'
             else:
                 message = 'Change subscription'
             if instance.resigned:
                 message += " (Resigned)"
         self.helper.layout = Layout(
-            Fieldset(
-                message,
+            HTML(f'<h4 class="text-danger"> {message}</h4>'),
+            Fieldset('',
                 'membership_id',
                 'sub_year',
                 'period',
@@ -529,25 +489,21 @@ class SubscriptionForm(ModelForm):
             ),
             HTML("""
                 {% for item in items %}
+                <p class="text-danger">
                     {{ item.item_date|date }} {{ item.description}}
                     {% if item.payment %}
                         {{ item.payment_id }}
                     {% else %}
                         Unpaid
                     {% endif %}          
-                    {{ item.amount }}
+                    £ {{ item.amount }}
                 {% endfor item %}
-                <br />
+                </p>
             """)
         )
 
         self.fields['start_date'].widget = MySelectDate()
-        # .attrs['class'] = 'datepicker'
-        # self.fields['start_date'].input_formats = settings.DATE_INPUT_FORMATS
-        #
         self.fields['end_date'].widget = MySelectDate()
-        # self.fields['end_date'].input_formats = settings.DATE_INPUT_FORMATS
-
         now = date.today()
         years = []
         for y in range(now.year - 2, now.year + 2):
@@ -594,8 +550,7 @@ class SubscriptionForm(ModelForm):
                     (Membership.COACH, "Coach"),
                     (Membership.NON_PLAYING, "Non playing")
                 ]
-        # if self.updating:
-        #    choices.append((Membership.RESIGNED, "Resigned"))                       
+
         self.fields['membership_id'] = forms.ChoiceField(choices=choices)
 
         if self.updating:
@@ -617,8 +572,6 @@ class SubscriptionForm(ModelForm):
             else:
                 self.helper.add_input(SubmitButton('delete', 'Delete sub', css_class='btn-danger'))
                 self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-                # if not instance.resigned:
-                #    self.helper.add_input(SubmitButton('resign', 'Resign', css_class='btn-warning'))
         else:
             self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
@@ -755,35 +708,33 @@ class InvoiceFilterForm(Form):
         return self.cleaned_data
 
 
+class PeriodForm(Form):
+    start_date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
+    end_date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
+
+
 class InvoiceItemForm(ModelForm):
 
     class Meta:
         model = InvoiceItem
         fields = ['item_type', 'item_date', 'description', 'amount']
-        widgets = {'item_date': DateTimePicker(options={'format': 'DD/MM/YYYY',
-                                                        'allowInputToggle': True})}
+        widgets = {'item_date': DatePicker(options={'format': 'DD/MM/YYYY'})}
 
     def __init__(self, *args, **kwargs):
-        super(InvoiceItemForm, self).__init__(*args, **kwargs)
-        instance = getattr(self, 'instance', None)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_error_title = 'Errors'
-        if instance and instance.id:
-            self.helper.add_input(SubmitButton('delete', 'Delete', css_class='btn-danger'))
-        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-        # self.fields['item_date'].widget.format = '%d/%m/%Y'
-        # self.fields['item_date'].input_formats = settings.DATE_INPUT_FORMATS
-
+        self.helper.form_tag = False
+        self.title = "Invoice item"
 
     def clean(self):
         cleaned_data = super(InvoiceItemForm, self).clean()
         item_type = cleaned_data.get('item_type')
-        amount = float(cleaned_data.get('amount'))
+        amount = cleaned_data.get('amount', 0)
+        if amount == 0:
+            raise forms.ValidationError("Amount cannot be 0")
         if item_type.credit:
-            if amount >= 0:
+            if amount > 0:
                 raise forms.ValidationError("This is a credit. The amount must be negative")
-
-
 
 
 class InvoiceSelectForm(Form):
@@ -836,36 +787,22 @@ class SettingsForm(Form):
 class GroupForm(ModelForm):
     class Meta:
         model = Group
-        fields = ['description']
+        fields = ['name', 'description']
 
     def __init__(self, *args, **kwargs):
         super(GroupForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
-        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
-        self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-
-    def save(self, *args, **kwargs):
-        grp = super(GroupForm, self).save(commit=False)
-        grp.slug = slugify(grp.description)
-        grp.save()
+        self.helper.form_tag = False
+        self.title = 'Group'
 
 
 class GroupAddPersonForm(Form):
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
 
     def __init__(self, *args, **kwargs):
-        super(GroupAddPersonForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
-        self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
-        self.helper.add_input(SubmitButton('submit', 'Add', css_class='btn-primary'))
+        self.helper.form_tag = False
 
 
 class EmailTextForm(forms.Form):
@@ -907,7 +844,7 @@ class EmailForm(Form):
         text = kwargs.pop('text', '')
         selection = kwargs.pop('selection', False)
         super(EmailForm, self).__init__(*args, **kwargs)
-        choices = [(-1, 'None')] + [(x.id, x.slug) for x in Group.objects.order_by('slug')]
+        choices = [(-1, 'None')] + [(x.id, x.name) for x in Group.objects.order_by('name')]
         self.fields['group'].choices = choices
         self.helper = FormHelper()
         self.helper.form_id = 'id-emailForm'
@@ -952,7 +889,6 @@ class MailTypeForm(ModelForm):
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-6'
-        self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
         if with_delete:
@@ -968,24 +904,16 @@ class PaymentForm(ModelForm):
         if amount:
             self.fields['amount'].initial = amount
         self.helper = FormHelper(self)
-        self.helper.form_id = 'id-InvoiceItemForm'
-
-        self.helper.form_method = 'post'
-        self.helper.form_show_errors = True
         self.helper.form_error_title = 'Errors'
-        self.helper.error_text_inline = True
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
 
-        # self.fields['banked_date'].widget.format = '%d/%m/%Y'
         self.fields['banked_date'].input_formats = settings.DATE_INPUT_FORMATS
 
     class Meta:
         model = Payment
-        fields = ['membership_year', 'type', 'reference', 'amount', 'banked', 'banked_date']
-        widgets = {'banked_date': DateTimePicker(options={'format': 'DD/MM/YYYY',
-                                                          'allowInputToggle': True}
-                                                 ),
-                   'membership_year': forms.Select(choices=year_choices())
+        fields = ['membership_year', 'type', 'reference', 'amount', 'banked', 'banked_date',]
+        widgets = {'banked_date': DatePicker(),
+                   'membership_year': forms.Select(choices=year_choices()),
         }
 
 
@@ -1044,6 +972,7 @@ class TextBlockForm(ModelForm):
         super(TextBlockForm, self).__init__(*args, **kwargs)
         self.fields['text'].required = False  # get round bug in tinymce
         self.helper = FormHelper(self)
+        self.helper.form_tag = False
         self.helper.field_class = 'input-xlarge'
         self.helper.form_method = 'post'
         self.helper.form_show_errors = True
@@ -1103,7 +1032,7 @@ class XlsInputForm(Form):
 
     def clean_input_excel(self):
         input_excel = self.cleaned_data['input_excel']
-        extension = path.splitext(input_excel.name)[1]
+        extension = os.path.splitext(input_excel.name)[1]
         if not (extension in XlsInputForm.IMPORT_FILE_TYPES):
             raise forms.ValidationError(u'%s is not a valid excel file' % extension)
         else:

@@ -1,5 +1,5 @@
 {% extends "base_new.html" %}
-{% load staticfiles %}
+{% load static %}
 {% block head %}
   <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
 {% endblock %}
@@ -19,7 +19,8 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <div class="navbar-nav mr-auto">
-          <a class="nav-item nav-link" href="{% url 'club_home' %}">Home</a>
+{#          <a class="nav-item nav-link" href="{% url 'club_home' %}">Home</a>#}
+          <a class="nav-item nav-link" href="\pages\news">News</a>
           <a class="nav-item nav-link" href="{% url 'club_search' %}">Search</a>
           <a class="nav-item nav-link" href="{% url 'events:list' %}">Events</a>
           <a class="nav-item nav-link" href="{% url 'club_magazine' %}">UK Tennis magazine</a>
@@ -35,6 +36,7 @@
                 <a class="dropdown-item" href="{% url 'events:tournament_admin' %}">Tournaments admin</a>
                 <a class="dropdown-item" href="{% url 'events:admin' %}">Events admin</a>
                 <a class="dropdown-item" href="{% url 'pos_admin' %}">POS admin</a>
+                <a class="dropdown-item" href="{% url 'wagtailadmin_home' %}">Content Management System</a>
               </div>
             </div>
           {% endif %}
@@ -66,3 +68,4 @@
   </div>
 </div>
 {% endblock %}
+

@@ -1,6 +1,6 @@
 ﻿{% load members_extras %}
 <div id="tab_invoices">
-<table id="invoices" class="table table-condensed">
+<table id="invoices" class="table table-sm">
 <thead>
     <tr>
         <th>No</th>
@@ -32,7 +32,7 @@
     <tbody>
 {% for inv in invoices %}
     <tr>
-        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View {{ inv.id }}</a></td>    
+        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-sm">View {{ inv.id }}</a></td>
         <td>{{ inv.creation_date|date }}</td>
         <td>{{ inv.update_date|date }}</td>
         <td class = "text-right"><a href="{% url "person-detail" inv.person.id %}" >{{ inv.person.first_name }}</a></td>
@@ -43,11 +43,11 @@
         <td>
         {% if inv.state == 2  %}
            {% for payment in inv.payment_set.all %}
-               <a href="{% url "payment-detail" payment.id %}"class="btn btn-success btn-xs"  >Paid</a>
+               <a href="{% url "payment-detail" payment.id %}"class="btn btn-success btn-sm"  >Paid</a>
            {% endfor %} 
         {% elif inv.state == 3 %}
            {% for cnote in inv.creditnote_set.all %}
-               <a href="{% url "creditnote-detail" cnote.id %}" class="btn btn-danger btn-xs" >Cancelled</a>
+               <a href="{% url "creditnote-detail" cnote.id %}" class="btn btn-danger btn-sm" >Cancelled</a>
            {% endfor %} 
         {% else %}
             {{ state_list|get_option:inv.state }}

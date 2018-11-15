@@ -60,6 +60,7 @@ class Tournament(models.Model):
                     count += data.process()
         return count
 
+
     def add_standard_events(self):
         """ Main events are active, plate events are inactive"""
         Event.objects.create(name="Men's Singles", event_type=EventType.MENS_SINGLES, cost=self.event_cost,
@@ -108,6 +109,8 @@ class EventType(ModelEnum):
     MIXED_DOUBLES = 4
     OPEN_SINGLES = 5
     OPEN_DOUBLES = 6
+
+
 
 
 class Event(models.Model):
@@ -277,6 +280,14 @@ class Event(models.Model):
             records = Event.objects.filter(id=self.id) # need a queryset of records to be updated
             return BillingData(self.item_type, dict, records,
                                transactions=None, description=self.name, date=self.date)
+
+    def unbilled(self, person):
+        total = 0;
+        if not self.billed:
+            for p in self.participant_set.all():
+                if p.id == person.id or p.partner_id == person.id:
+                    total += self.cost
+        return total
 
 
 class Participant(models.Model):

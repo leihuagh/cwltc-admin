@@ -142,11 +142,14 @@ class LineItem(models.Model):
 
 class PosPaymentBillingManager(models.Manager):
 
-    def unbilled_total(self, person, item_type):
-        dict = PosPayment.objects.filter(
+    def unbilled_total(self, person=None, item_type=ItemType.BAR):
+        """ Return all unbilled of type if person is None """
+        qs = PosPayment.objects.filter(
             transaction__item_type=item_type,
-            person=person,
-            billed=False).aggregate(Sum('total'))
+            billed=False)
+        if person:
+            qs = qs.filter(person=person)
+        dict = qs.aggregate(Sum('total'))
         total = dict['total__sum']
         return 0 if total is None else total
 
@@ -260,8 +263,11 @@ class Visitor(models.Model):
 
 class VisitorBookBillingManager(models.Manager):
 
-    def unbilled_total(self, person, item_type):
-        dict = VisitorBook.objects.filter(member=person, billed=False).aggregate(Sum('fee'))
+    def unbilled_total(self, person=None):
+        qs = VisitorBook.objects.filter(billed=False)
+        if person:
+            qs = qs.filter(member=person)
+        dict = qs.aggregate(Sum('fee'))
         total = dict['fee__sum']
         return 0 if total is None else total
 

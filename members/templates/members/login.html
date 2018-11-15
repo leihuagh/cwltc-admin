@@ -1,4 +1,4 @@
-{% extends "members/layout.html" %}
+{% extends "members/base.html" %}
 
 {% block content %}
 
@@ -44,7 +44,7 @@
 
 {% block scripts %}
 
-    {% load staticfiles %}
+    {% load static %}
 <script src="{% static 'members/scripts/jquery.validate.min.js' %}"></script>
 
 {% endblock %}

@@ -1,6 +1,6 @@
 ﻿from django import template
 from django.urls import reverse
-from os import path
+from django.utils.safestring import mark_safe
 from django.core.signing import Signer
 
 register = template.Library()
@@ -19,7 +19,7 @@ def get_item(dictionary, key):
 def get_option(options, key):
     """
     Gets a value from a list of options
-    usage: {{options|get_option:key }}
+    usage: {{ options|get_option:key }}
     """
     if key <= len(options) - 1:
         return options[key][1]
@@ -40,8 +40,7 @@ def classname(obj):
     """
     Returns the classname of an object
     """
-    classname = obj.__class__.__name__
-    return classname
+    return obj.__class__.__name__
 
 
 # From http://vanderwijk.info/blog/adding-css-classes-formfields-in-django-templates/#comment-1193609278
@@ -65,6 +64,34 @@ def add_class(field, css):
    return field.as_widget(attrs={"class":css})
 
 
+@register.filter
+def detail_view(field):
+    """
+    Output a form field's value for a detail view
+    Usage: {{ field|detail_view }}
+    If foreign keys are included, the ID is output but
+    make sure foreign key fields have HiddenInput as widget!
+    """
+    f = field.field
+    if hasattr(f, 'queryset'):
+        return field.initial
+    elif hasattr(f, 'choices'):
+        return f.choices[field.initial][1]
+    elif hasattr(f, 'decimal_places'):
+        return f'£ {field.initial}'
+    else:
+        if field.initial:
+            return field.initial
+        return ''
+
+@register.filter
+def truth_icon(value):
+    if value:
+        return mark_safe('<span style="color: Green;"><i class="fas fa-check"></i></span>')
+    else:
+        return mark_safe('<span style="color: Red;"><i class="fas fa-times"></i></span>')
+
+
 @register.simple_tag(takes_context=True)
 def signed_url(context, url_name, pk):
     """
@@ -77,3 +104,4 @@ def signed_url(context, url_name, pk):
     token = signer.sign(pk)
     resolved_url = reverse(url_name, kwargs={'token': token})
     return request.build_absolute_uri(resolved_url)
+

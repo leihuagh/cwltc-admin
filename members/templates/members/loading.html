@@ -1,0 +1,18 @@
+{% extends 'members/base.html' %}
+{% block content %}
+<div id="id_loader">
+    <div class="">
+      <div class="m-overlay mr-4">
+        <svg class="m-circular" viewBox="25 25 50 50">
+          <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="6" stroke-miterlimit="10"/>
+        </svg>
+      </div>
+      <h5 class="l-text">Loading ...</h5><p class="small text-muted">{{ url }}</p>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+    <script>
+    window.location.href= "{{ url }}";
+    </script>
+{% endblock %}

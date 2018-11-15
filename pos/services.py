@@ -28,6 +28,7 @@ class PosServicesError(Error):
         self.message = message
 
 
+
 @transaction.atomic
 def create_transaction_from_receipt(creator_id, terminal, layout_id, receipt, total,
                                     people, attended, creation_date=None):

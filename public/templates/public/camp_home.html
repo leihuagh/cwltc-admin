@@ -1,12 +1,12 @@
-{% extends "base_new.html" %}
-{% load staticfiles %}
+{% extends "public/base.html" %}
+{% load static %}
 {% block head %}
   <link rel="stylesheet" type="text/css"  href="{% static 'public/css/public.css' %}">
 {% endblock %}
 {% block content %}
   <div class="container">
   <h2>This will be a list of camps that are available for registration</h2>
-  <a class="btn btn-block btn-success" href="{% url 'camp-register' %}">Register</a>
+  <a class="btn btn-block btn-primary" href="{% url 'camp-register' %}">Register</a>
   </div>
 
 {% endblock %}

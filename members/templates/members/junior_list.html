@@ -1,6 +1,6 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% load members_extras %}
-{% load staticfiles %}
+{% load static %}
 {% load widget_tweaks %}
 {% block content %}
 <h2>Juniors list</h2>
@@ -22,7 +22,7 @@
           {{ form.paystate|add_class:"trigger" }}
         </div>
     <hr />  
-    <table id="people" class="table table-condensed" >
+    <table id="people" class="table table-sm" >
     <thead>
             <tr>
             <th>First name</th>

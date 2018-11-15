@@ -742,7 +742,7 @@ class MembersTestCase(TestCase):
         # check person has a group
         self.assertEqual(adult.groups.count(), 1)
         # check person is in the group
-        self.assertTrue(adult.groups.filter(slug='test').exists())
+        self.assertTrue(adult.groups.filter(name='test').exists())
         group = group_get_or_create('test')
         self.assertEqual(group.person_set.filter(id=adult.id).count(), 1)
         # Add another person
@@ -751,12 +751,12 @@ class MembersTestCase(TestCase):
         self.assertEqual(group.person_set.all().count(), 2)
         # remove the adult at the adult end
         adult.groups.remove(group)
-        self.assertFalse(adult.groups.filter(slug='test').exists())
+        self.assertFalse(adult.groups.filter(name='test').exists())
         group = group_get_or_create('test')
         self.assertEqual(group.person_set.filter(id=adult.id).count(), 0)
         # remove the wife at the groups end
         group.person_set.remove(wife)
-        self.assertFalse(wife.groups.filter(slug='test').exists())
+        self.assertFalse(wife.groups.filter(name='test').exists())
         self.assertEqual(group.person_set.all().count(), 0)
         
 

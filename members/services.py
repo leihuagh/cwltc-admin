@@ -21,6 +21,9 @@ class ServicesError(Error):
 
 
 class BillingData:
+    """
+     Handle the creation of invoice items for POS, Visitors Book and Events
+    """
 
     def __init__(self, item_type:ItemType, dict:Dict, records, transactions=None, description='', date=None):
         self.item_type = item_type
@@ -33,6 +36,7 @@ class BillingData:
     def process(self):
         """
         Processes the dictionary creating invoice items
+        Update POS transactions if any
         Return count of items generated
         """
         count = 0
@@ -52,7 +56,8 @@ class BillingData:
                     inv_item.save()
             self.records.update(billed=True)
             if self.transactions:
-                self.transactions.update(billed=True)
+                for trans in self.transactions:
+                    trans.update_billed()
         return count
 
 
@@ -182,7 +187,7 @@ def invoice_pay(invoice, payment):
     invoice_update_state(invoice)
 
 
-def invoice_create_batch(exclude_slug='', size=10000):
+def invoice_create_batch(exclude_name='', size=10000):
     """
     Generate a batch of invoices of specified size
     Returns the number of people still remaining with uninvoiced items
@@ -197,8 +202,8 @@ def invoice_create_batch(exclude_slug='', size=10000):
     done = 0
     if size > 0:
         for person in people:
-            if exclude_slug != '':
-                include = not person.groups.filter(slug=exclude_slug).exists()
+            if exclude_name!= '':
+                include = not person.groups.filter(name=exclude_name).exists()
             else:
                 include = True
             if include:
@@ -779,35 +784,25 @@ def person_link(child, parent):
         old_address.delete()
 
 
-def group_get_or_create(slug):
+def group_get_or_create(name):
     """
-    Returns the group with given slug if it exists
+    Returns the group with given name if it exists
     Otherwise it creates it
     """
-    qset = Group.objects.filter(slug=slug)
+    qset = Group.objects.filter(name=name)
     if qset.count() == 0:
-        group = Group(slug=slug)
+        group = Group(name=name)
         group.save()
     elif qset.count() == 1:
         group = qset[0]
     else:
-        raise ServicesError("{} groups matches slug {}".format(qset.count(), slug))
+        raise ServicesError("{} groups matches name {}".format(qset.count(), name))
     return group
 
 
-def group_add_list(group, id_list):
-    """
-    Adds a list of ids to a group
-    """
-    plist = Person.objects.filter(pk__in=id_list)
-    for person in plist:
-        person.groups.add(group)
-        person.save() 
-
-   
 def consolidate(year):
-    slug = '2015UnpaidInvoices'
-    group = group_get_or_create(slug)
+    name = '2015UnpaidInvoices'
+    group = group_get_or_create(name)
  
     # get a set of all people ids from year's invoices
     people_ids = set(Invoice.objects.filter(membership_year=year).values_list('person_id', flat=True))

@@ -1,27 +1,14 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% block content %}
 {% load crispy_forms_tags %}
-<h2>Subscription</h2>
-<h4>
-<a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a>
-</h4>
-
-{% crispy form %}
+<h3 class="text-center">Subscription</h3>
+<h4 class="text-center"><a href="{% url "person-detail"  person.id %}">{{ person.fullname }}</a></h4>
+<div class="row justify-content-md-center">
+  <div class="tile" style="width: 30rem;">
+    {% if form.errors %}
+      <p class="text-danger">Please correct the errors on the form</p>
+    {% endif %}
+    {% crispy form %}
+  </div>
+</div>
 {% endblock content %}
-{% block scripts %}
-<!---https://github.com/uxsolutions/bootstrap-datepicker-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js"></script>
-<script>
- $(document).ready(function () {
-   $(function () {
-     $('.datepicker').datepicker({
-    format: "mm/yyyy",
-    startView: 1,
-    minViewMode: 1,
-    maxViewMode: 2
-       });
-   });
-});
-
-</script>
-{% endblock %}

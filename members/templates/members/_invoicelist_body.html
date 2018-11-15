@@ -11,7 +11,7 @@
         <td>{{ inv.invoiceitem_set.count }}</td> 
         <td>{{ inv.email_count}}</td>
         <td class = "text-right">£{{ inv.total }}</td>
-        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-xs">View</a></td>
+        <td><a href="{% url "invoice-detail" inv.id %}" class="btn btn-primary btn-sm">View</a></td>
     </tr>
 {% endfor sub %}
 </tbody>

@@ -1,9 +1,10 @@
-﻿{% extends "members/layout.html" %}
-
+﻿{% extends "members/base.html" %}
+{% load crispy_forms_tags %}
 {% block content %}
-    {% load crispy_forms_tags %}
-    <h2>{{ title }}</h2>
-    {% crispy form %}
+  <h3 class="app-title">{{ app_title }}</h3>
+  <div class="tile" style="width: 850px">
+  {% crispy form %}
+  </div>
 {% endblock %}
 {% block scripts %}
 <script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
@@ -12,7 +13,7 @@
     selector: '#id_text',
     height: 300,
     width: 800,
-
+    convert_urls: false,
     browser_spellcheck: true,
     plugins: 'code advlist autolink link image lists charmap print preview',
 

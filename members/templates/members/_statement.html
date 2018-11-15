@@ -1,6 +1,6 @@
 ﻿{% load members_extras %}
 {% if statement %}
-<table class="table table-condensed">
+<table style="width: 100%";>
   <thead>
     <tr>
       <th></th>
@@ -20,9 +20,7 @@
       {% with entry|classname as modelclass %}
         {% if modelclass == 'Invoice' %}
           <tr>
-            <td><a href="{% url "invoice-detail" entry.id %}" class="btn
-            {% if entry.state == 0 %}btn-danger
-            {% else %}btn-default {%  endif %} btn-xs">View</a></td>
+            <td><a href="{% url "invoice-detail" entry.id %}" class="btn btn-default btn-sm">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Invoice</td>
             <td></td>
@@ -39,7 +37,7 @@
           </tr>
         {% elif modelclass == 'Payment' %}
           <tr>
-            <td><a href="{% url "payment-detail" entry.id %}" class="btn btn-success btn-xs">View</a></td>
+            <td><a href="{% url "payment-detail" entry.id %}" class="btn btn-default btn-sm">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Payment</td>
             <td>{{ payment_types|get_option:entry.type }}</td>
@@ -52,7 +50,7 @@
           </tr>
         {% elif modelclass == 'CreditNote' %}
           <tr>
-            <td><a href="{% url "creditnote-update" entry.id %}" class="btn btn-warning btn-xs">View</a></td>
+            <td><a href="{% url "creditnote-update" entry.id %}" class="btn btn-warning btn-sm">View</a></td>
             <td>{{ entry.update_date|date }}</td>
             <td>Credit note</td>
             <td>{{ entry.id }}</td>
@@ -67,6 +65,7 @@
       {% endwith %}
     {% endwith %}
   {% endfor %}
+
 </table>
 {% else %}
  <br/><p>No entries for this year</p>

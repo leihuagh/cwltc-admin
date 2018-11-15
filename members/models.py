@@ -3,7 +3,7 @@ import os
 from decimal import *
 from enum import IntEnum
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.urls import reverse
@@ -40,11 +40,11 @@ class ParentsManager(models.Manager):
 
 
 class Group(models.Model):
-    slug = models.SlugField(max_length=20)
+    name = models.CharField(max_length=40, default='Group')
     description = models.CharField(max_length=80)
 
     def __str__(self):
-        return self.slug
+        return self.name
 
 
 class Person(models.Model):
@@ -283,6 +283,14 @@ class Membership(models.Model):
             return result
         else:
             return list(qs.values_list('id', 'description'))
+
+    @classmethod
+    def dictionary(cls):
+        """ Return dictionary of membership id and description """
+        dict = {}
+        for mem in Membership.objects.all():
+            dict[mem.id] = mem.description
+        return dict
 
 
 class AdultApplication(models.Model):
@@ -657,19 +665,40 @@ class ItemType(models.Model):
         return self.description
 
 
+class InvoiceItemBillingManager(models.Manager):
+
+    def unbilled_data(self, item_type=None, person=None, date_before=None):
+        qs = InvoiceItem.objects.filter(invoice=None)
+        if item_type:
+            qs.filter(item_type=item_type)
+        if person:
+            qs.filter(person=person)
+        if date_before:
+            qs.filter(creation_date__lt=date_before)
+        return qs.order_by('item_type')
+
+    def unbilled_total(self, item_type=None, person=None, date_before=None):
+        dict = self.unbilled_data(item_type, person, date_before).aggregate(Sum('amount'))
+        total = dict['amount__sum']
+        return 0 if total is None else total
+
+
 class InvoiceItem(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
-    item_date = models.DateField(null=True, blank=True)
+    item_date = models.DateField(null=True, blank=False)
     description = models.CharField(max_length=100, blank=True, null=True)
     amount = models.DecimalField(max_digits=7, decimal_places=2)
     paid = models.BooleanField(default=False)
-    #
-    item_type = models.ForeignKey(ItemType, on_delete=models.SET_NULL, blank=True, null=True)
+    item_type = models.ForeignKey(ItemType, on_delete=models.SET_NULL, blank=False, null=True)
     person = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, blank=True, null=True, related_name='invoice_items')
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, blank=True, null=True)
     subscription = models.ForeignKey('Subscription', on_delete=models.SET_NULL, blank=True, null=True)
+
+    objects = models.Manager()
+    billing = InvoiceItemBillingManager()
+
 
     def __str__(self):
         return f'{self.description} {self.amount}'
@@ -736,7 +765,7 @@ class Subscription(models.Model):
     resigned = models.BooleanField(default=False)
     invoiced_month = models.SmallIntegerField()
     no_renewal = models.BooleanField(default=False)
-    cardless_id = models.CharField(max_length=50, blank=True, null=True)
+
     objects = models.Manager()
     counts = SubscriptionCountManager()
 
@@ -764,6 +793,12 @@ class Subscription(models.Model):
             if item.invoice and item.invoice.state == Invoice.STATE.PAID.value:
                 return True
         return False
+
+    def invoice_payment_state(self):
+        for item in self.invoiceitem_set.all():
+            if item.invoice:
+                return item.invoice.payment_state_text
+        return 'No invoice'
 
     def is_special_case(self):
         for item in self.invoiceitem_set.all():
@@ -794,6 +829,10 @@ class Settings(models.Model):
             return record.membership_year
         except ObjectDoesNotExist:
             return 1900
+
+    @classmethod
+    def year_start_date(cls):
+        return date(Settings.current_year(), Subscription.START_MONTH, 1)
 
 
 class Editor(models.Model):

@@ -1,4 +1,4 @@
-﻿{% extends "members/layout.html" %}
+﻿{% extends "members/base.html" %}
 {% load members_extras %}
 
 {% block content %}
@@ -22,17 +22,17 @@
           <p style="color:red;">Special case: Treat as paid</p>
         {% endif %}
       <p>{{ invoice.note }}</p>
-      <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#noteModal">Edit note</button>
+      <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#noteModal">Edit note</button>
       </div>
     {% else %}
-      <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#noteModal">Add note</button>
+      <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#noteModal">Add note</button>
     {% endif %}
     {% if payments %}
-      <table class="table table-condensed">
+      <table class="table table-sm">
         <tr><th>Payments</th><th>Type</th><th>Created</th><th>Amount</th><th>State</th><th>Banked</th><th>GoCardless Id</th></tr>
         {% for payment in payments %}
           <tr>
-            <td><a href="{% url 'payment-detail' pk=payment.id %}" class="btn btn-default btn-xs">View</a></td>
+            <td><a href="{% url 'payment-detail' pk=payment.id %}" class="btn btn-default btn-sm">View</a></td>
             <td>{{ payment.TYPES|get_option:payment.type }}</td>
             <td>{{ payment.creation_date }}</td>
             <td>£{{ payment.amount }}</td>
@@ -73,7 +73,7 @@ Email text blocks:
     {% else %}
         None
     {% endif %}
-    <a href="{% url "invoice-mail-config" pk=invoice.id %}" class="btn btn-primary btn-xs">Configure mail</a>
+    <a href="{% url "invoice-mail-config" pk=invoice.id %}" class="btn btn-primary btn-sm">Configure mail</a>
 <br /><br />
     <input type="submit" name="view" value="Preview mail" class="btn btn-primary">
     <input type="submit" name="test" value="Send test mail" class="btn btn-primary">

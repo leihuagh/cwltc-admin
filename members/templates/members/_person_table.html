@@ -18,7 +18,7 @@
         <td>{{ mem_dict|get_item:person.membership_id }}</td>  
         <td>{{ person.age_today }}</td>
         <td>{{ person.email }}</td>
-        <td><a href="{% url "person-detail" pk=person.id %}"class="btn btn-primary btn-xs">View</a></td>        
+        <td><a href="{% url "person-detail" pk=person.id %}"class="btn btn-primary btn-sm">View</a></td>
     </tr>
     {% endfor %}
 </table>

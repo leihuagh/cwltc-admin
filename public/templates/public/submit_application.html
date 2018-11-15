@@ -1,5 +1,5 @@
 ﻿{% extends "public/base.html" %}
-{% load staticfiles %}
+{% load static %}
 {% load crispy_forms_tags %}
 {% block content %}
   <h3></h3>
@@ -8,7 +8,7 @@
       <form class="form-horizontal" role="form" action="{% url "public-apply-submit" %}" method="post" novalidate>
         {% csrf_token %}
         <div class="card my-2">
-          <h4 class="card-header card-title bg-success text-white mb-3">
+          <h4 class="card-header card-title bg-primary text-white mb-3">
             Terms and conditions
           </h4>
           <div class="card-body pt-0">
