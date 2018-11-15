@@ -31,7 +31,7 @@ class ClubHomeView(LoginRequiredMixin, RedirectView):
     template_name = 'club/home.html'
 
     def get_redirect_url(self, *args, **kwargs):
-        return '/pages/club-news'
+        return '/pages/home'
 
 
 class PersonView(LoginRequiredMixin, DetailView):
