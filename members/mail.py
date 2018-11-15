@@ -140,7 +140,7 @@ def send_template_mail(request, person, text,
             for inv in unpaid_invoices:
                 total_unpaid += inv.total
                 token = signer.sign(inv.id)
-                url = request.build_absolute_uri(reverse('invoice-public', args=(token,)))
+                url = request.build_absolute_uri(reverse('public-invoice-token', args=(token,)))
                 anchor ='<p><a href="' + url + '">Invoice ' + str(inv.id) + '</a><p>'
                 invoice_urls.append(anchor)
         event_ids = Event.objects.filter(item_type_id=ItemType.SOCIAL,
