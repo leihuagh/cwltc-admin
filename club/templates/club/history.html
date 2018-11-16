@@ -1,8 +1,12 @@
-{% extends "club/base.html" %}
+{% extends "club/club_base.html" %}
 {% load static %}
 
 {% block content %}
-  <h3 class="mt-2 pt-2">Club History</h3>
+    <div class="container text-center" style="min-height: 70vh;">
+    <div class="tile">
+  <h3 class=" pt-2">Club History</h3>
   <img src="{% static 'club/images/history.JPG' %}">
   <p>Click <a href="{% static 'club/documents/History.pdf' %}" target="_blank">here </a> to view the history of the club.<p>
+    </div>
+    </div>
  {% endblock %}

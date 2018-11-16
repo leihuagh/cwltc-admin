@@ -1,0 +1,262 @@
+/* padding after navbar */
+body {
+    padding-top: 0;
+    min-height: 100vh;
+    background-color: #cccccc;
+}
+
+/*footer {*/
+  /*position: absolute;*/
+  /*bottom: 0;*/
+/*}*/
+
+
+.margin-bg {
+  /*background-color: #495057;*/
+  background-color: #0e2d26;
+}
+
+.content-bg {
+  background-color: #ddffee;
+}
+
+.logo {
+  font-family: 'Montserrat', 'sans-serif';
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.logo-orange {
+  color: #8b3d00;
+}
+
+.logo-green {
+  color: #00564f;
+ }
+
+.logo-strap {
+  font-family: 'Roboto', 'sans-serif';
+  color: #6f8f8b;
+  position: absolute;
+  font-size: 1em;
+  font-style: oblique;
+  top: 40px;
+}
+
+.club-66 {
+  height: 66vh;
+}
+
+@media only screen and (min-width: 300px) {
+  .logo-content {
+    width: 300px;
+  }
+  .logo {
+  font-size: 2em;
+  }
+  .logo-strap {
+    font-size: 1em;
+    top: 35px;
+  }
+}
+
+@media only screen and (min-width: 33.9em) {
+  .logo-content {
+    width: 32em;
+  }
+  .logo {
+  font-size: 2em;
+  }
+  .logo-strap {
+    font-size: 1em;
+    top: 40px
+  }
+}
+@media only screen and (min-width: 47.9em) {
+  .logo-content {
+    width: 45px;
+  }
+  .logo {
+  font-size: 2.3em;
+  }
+  .logo-strap {
+    font-size: 1.1em;
+    top: 45px
+  }
+}
+@media only screen and (min-width: 61.9em) {
+  .logo-content {
+    width: 60em;
+  }
+  .logo {
+  font-size: 2.3em;
+  }
+  .logo-strap {
+    font-size: 1.25em;
+    top: 48px
+  }
+ }
+@media only screen and (min-width: 74.9em) {
+  .logo-content {
+    width: 71em;
+  }
+  .logo {
+    font-size: 2.7em;
+  }
+  .logo-strap {
+    font-size: 1.45em;
+    top: 52px
+  }
+}
+
+.site-name {
+  font-size: 2em;
+  color: darkred;
+  position: absolute;
+  left: 50%;
+  top: 20px
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+}
+
+/*.flex-grow {*/
+   /*flex: 1;*/
+/*}*/
+
+.shadow {
+    color: white;
+    text-shadow: 2px 2px 4px #000000;
+}
+
+/*@media all and (max-width: 1200px) {*/
+    /*.display-4{*/
+        /*font-size: 3em;*/
+    /*}*/
+    /*.display-5{*/
+        /*font-size: 1.75em;*/
+    /*}*/
+/*}*/
+/*@media all and (max-width: 800px) {*/
+    /*.display-4{*/
+        /*font-size: 2em;*/
+        /*}*/
+    /*.display-5{*/
+        /*font-size: 1.25em;*/
+    /*}*/
+    /*}*/
+/*@media all and (max-width: 600px) {*/
+    /*.display-4{*/
+        /*font-size: 1em;*/
+        /*}*/
+    /*.display-5 {*/
+      /*font-size: .75em;*/
+    /*}*/
+    /*}*/
+
+.card-custom {
+    /*line-height: 1.5;*/
+    border-color: #008080;
+    /*border-radius: 1px;*/
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.list-group-custom {
+  height: 30px;
+  padding: 1px 10px
+}
+
+.table-borderless td,
+.table-borderless th {
+    border: 0;
+}
+
+.form-control-label {
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+
+#CookielawBanner {
+    background: #fff;
+    padding: 15px 0;
+}
+
+#CookielawBanner #CookielawCross {
+    cursor: pointer;
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 15px;
+    height: 15px;
+}
+
+/* Corrections to bootstrap check boxes and radio fields */
+.invalid-feedback {
+  display: block;
+  font-size: 1em;
+  margin-bottom: 0px;
+}
+
+.form-check {
+  margin-bottom: 0px;
+}
+
+.form-check-input{
+  margin-right: 5px;
+}
+
+.form-check-label{
+  font-weight: bold;
+}
+
+.col-form-label{
+  padding-top: 0;
+  padding-bottom: 0;
+  font-weight: bold;
+}
+
+.centered {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translate(-50%);
+}
+
+.deepshd {
+  color: #e0dfdc;
+  letter-spacing: .1em;
+  text-shadow: 0 -1px 0 #fff, 1px 1px 0 #2e2e2e, 2px 2px 0 #2c2c2c, 0 3px 0 #2a2a2a, 0 4px 0 #282828;
+}
+
+.asteriskField {
+    display: none;
+}
+
+.initially-hidden {
+  display: none
+}
+
+table.dark-header > thead > tr > th{
+  background-color: #00564f;
+  color: white;
+  font-weight: normal;
+  border-bottom: 0;
+}
+
+table.with-border {
+  border: 1px solid #00564f; !important
+}
+
+/* Django-Tables2 */
+
+th.orderable a{
+  color: white; !important
+  font-weight: normal;
+}
+
+

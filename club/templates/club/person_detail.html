@@ -6,26 +6,26 @@
   {% if person.sub %}<h5>Membership: {{ person.membership.description }}</h5>{%  endif %}
   <div class="row">
     <div class="col-md-6">
-      <div class="card"><div class="card-header bg-success text-white text-center p-1">{{ person.fullname }}</div>
+      <div class="card tile-shadow"><div class="card-header bg-primary text-white text-center p-1">{{ person.fullname }}</div>
         <div class="card-body">
-          <div class="row"><div class="col-5 text-success">First name:</div><div class="col">{{ person.first_name }}</div></div>
-          <div class="row"><div class="col-5 text-success">Last name:</div><div class="col">{{ person.last_name }}</div></div>
-          <div class="row"><div class="col-5 text-success">Gender:</div><div class="col">
+          <div class="row"><div class="col-5 text-primary">First name:</div><div class="col">{{ person.first_name }}</div></div>
+          <div class="row"><div class="col-5 text-primary">Last name:</div><div class="col">{{ person.last_name }}</div></div>
+          <div class="row"><div class="col-5 text-primary">Gender:</div><div class="col">
             {% if person.gender == 'F' %}Female{% else %}Male{% endif %}</div></div>
-          <div class="row"><div class="col-5 text-success">Date of birth:</div><div class="col">
+          <div class="row"><div class="col-5 text-primary">Date of birth:</div><div class="col">
             {% if person.dob %}{{ person.dob|date }}{% else %}Unknown - please add{% endif %}</div></div>
-          <div class="row"><div class="col-5 text-success">Mobile:</div><div class="col">{{ person.mobile_phone }}</div></div>
-          <div class="row"><div class="col-5 text-success">Email:</div><div class="col">{{ person.email }}</div></div>
-          <div class="row"><div class="col-5 text-success">British tennis:</div><div class="col">{{ person.british_tennis }}</div></div>
+          <div class="row"><div class="col-5 text-primary">Mobile:</div><div class="col">{{ person.mobile_phone }}</div></div>
+          <div class="row"><div class="col-5 text-primary">Email:</div><div class="col">{{ person.email }}</div></div>
+          <div class="row"><div class="col-5 text-primary">British tennis:</div><div class="col">{{ person.british_tennis }}</div></div>
         </div>
         <div class="card-footer py-1">
-          <a href="{% url "club_person_update" pk=person.id %}" class="btn btn-success btn-sm">Edit details</a>
+          <a href="{% url "club_person_update" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a>
         </div>
       </div>
 
-      <div class="card my-2">
+      <div class="card tile-shadow my-2">
         <div class="card-body">
-          <div class="row"><div class="col-5 text-success">Address:</div>
+          <div class="row"><div class="col-5 text-primary">Address:</div>
             <div class="col">
               {{ address.address1 }}<br />
               {% if address.address2 %}{{ address.address2 }}<br />{% endif %}
@@ -33,46 +33,46 @@
               {{ address.post_code }}
             </div>
           </div>
-          <div class="row"><div class="col-5 text-success">Home phone:</div><div class="col">{{ address.home_phone }}</div></div>
+          <div class="row"><div class="col-5 text-primary">Home phone:</div><div class="col">{{ address.home_phone }}</div></div>
         </div>
         <div class="card-footer py-1">
-          <a href="{% url "club_address_update" pk=person.id %}" class="btn btn-success btn-sm">Edit address</a>
+          <a href="{% url "club_address_update" pk=person.id %}" class="btn btn-primary btn-sm">Edit address</a>
         </div>
       </div>
     </div>
     {% if person.membership.is_adult %}
       <div class="col-md-6">
         <form method="post">{% csrf_token %}
-          <div class="card"><div class="card-header bg-success text-white text-center p-1">Preferences</div>
+          <div class="card tile-shadow"><div class="card-header bg-primary text-white text-center p-1">Preferences</div>
             <div class="card-body">
               <h5>Members database</h5>
-              <p class="text-success">
+              <p class="text-primary">
       Allow members to look up your details for the purpose of arranging matches.<br>
       This is required if you wish to enter club tournaments.
               </p>
               <div class="row">
-                <div class="col-6 text-success">Include phone:</div>
+                <div class="col-6 text-primary">Include phone:</div>
                 <div class="col-3">{% if person.allow_phone %}Yes{% else %} No {% endif %}</div>
-                <div class="col-3"><input type="submit" class="btn btn-sm btn-success" name="change_phone" value="Change"></div>
+                <div class="col-3"><input type="submit" class="btn btn-sm btn-primary" name="change_phone" value="Change"></div>
               </div>
               <div class="row">
-                <div class="col-6 text-success">Include email:</div>
+                <div class="col-6 text-primary">Include email:</div>
                 <div class="col-3">{% if person.allow_email %}Yes{% else %} No {% endif %}</div>
-                <div class="col-3"><input type="submit" class="btn btn-sm btn-success mt-1" name="change_email" value="Change"></div>
+                <div class="col-3"><input type="submit" class="btn btn-sm btn-primary mt-1" name="change_email" value="Change"></div>
               </div>
               <h5>Club marketing emails</h5>
               <div class="row">
-                <div class="col-6 text-success">Marketing emails:</div>
+                <div class="col-6 text-primary">Marketing emails:</div>
                 <div class="col-3">{% if person.allow_marketing %}Yes{% else %}No{% endif %}</div>
-                <div class="col-3"><input type="submit" class="btn btn-sm btn-success mt-1" name="marketing" value="Change"></div>
+                <div class="col-3"><input type="submit" class="btn btn-sm btn-primary mt-1" name="marketing" value="Change"></div>
               </div>
               <div class="row">
                 {% if person.allow_marketing %}
                   <div class="col-9">
-                    <p class="text-success"> Choose which mail types you want to receive.</p>
+                    <p class="text-primary"> Choose which mail types you want to receive.</p>
                   </div>
                   <div class="col-3">
-                    <input type="submit" class="btn btn-sm btn-success mt-1" name="mail_subscribe" value=" Choose">
+                    <input type="submit" class="btn btn-sm btn-primary mt-1" name="mail_subscribe" value=" Choose">
                   </div>
                   {% else %}
                   <div class="col-12">
@@ -90,7 +90,7 @@
       <!-- Family panel -->
       <div class="col-md-4">
         <div class="card">
-          <div class="card-header bg-success text-white text-center p-1">Family members</div>
+          <div class="card-header bg-primary text-white text-center p-1">Family members</div>
           <div class="card-body">
             <div class="row {% if parent.id == person.id %}}} bg-light {% endif %}">
               <div class="col-8"><a href="{% url "club_person_pk" pk=parent.id %}">{{ parent.fullname }}</a></div>

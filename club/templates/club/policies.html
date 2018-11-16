@@ -1,7 +1,9 @@
-{% extends "club/base.html" %}
+{% extends "club/club_base.html" %}
 {% load static %}
 
 {% block content %}
+      <div class="container text-center" style="min-height: 70vh;">
+    <div class="tile">
   <h3 class="mt-2 pt-2">Club Rules and Policy Documents</h3>
   <p>These documents are downloadable in pdf format.</p>
   <ul>
@@ -37,4 +39,5 @@
     </a></li>
   </ul>
   <p>You can view our privacy policy <a href="{% url 'privacy-policy' %}">here</a>.</p>
+    </div></div>
  {% endblock %}

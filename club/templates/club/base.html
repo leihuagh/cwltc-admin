@@ -7,65 +7,6 @@
   {%  include '_logo_banner.html' %}
 {% endblock %}
 {% block navbar %}
-<div class="container-fluid
-      {% if site_name == 'Development' %}" style="background-color: darkmagenta;"
-      {% elif site_name == 'Sandbox' %}" style="background-color: darkred;"
-      {% else %} bg-primary"
-      {% endif %}>
-  <div class="container p-0">
-    <nav class="navbar navbar-expand-sm navbar-dark">
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-        <div class="navbar-nav mr-auto">
-{#          <a class="nav-item nav-link" href="{% url 'club_home' %}">Home</a>#}
-          <a class="nav-item nav-link" href="\pages\home">News</a>
-          <a class="nav-item nav-link" href="{% url 'club_search' %}">Search</a>
-          <a class="nav-item nav-link" href="{% url 'events:list' %}">Events</a>
-          <a class="nav-item nav-link" href="{% url 'club_magazine' %}">UK Tennis magazine</a>
-          <a class="nav-item nav-link" href="{% url 'club_history' %}">Club history</a>
-          <a class="nav-item nav-link" href="{% url 'club_policies' %}">Rules & policies</a>
-          {% if user.is_staff %}
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Admin
-              </a>
-              <div class="dropdown-menu" aria-labelledby="navbarAdmin">
-                <a class="dropdown-item" href="{% url 'home' %}">Members admin</a>
-                <a class="dropdown-item" href="{% url 'events:tournament_admin' %}">Tournaments admin</a>
-                <a class="dropdown-item" href="{% url 'events:admin' %}">Events admin</a>
-                <a class="dropdown-item" href="{% url 'pos_admin' %}">POS admin</a>
-                <a class="dropdown-item" href="{% url 'wagtailadmin_home' %}">Content Management System</a>
-              </div>
-            </div>
-          {% endif %}
-        </div>
-        <div class="navbar-nav">
-          {% if user.is_authenticated %}
-            <span class="navbar-text text-white">{{ request.user.first_name }} {{ request.user.last_name }}</span>
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Account
-              </a>
-              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="accountDropdown">
-                <a class="dropdown-item" href="{% url 'club_person' %}">Edit personal details</a>
-                <a class="dropdown-item" href="{% url 'password_change' %}">Change password</a>
-                <a class="dropdown-item" href="{% url 'club_account_overview' %}">Account overview</a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="javascript:document.getElementById('logoutForm').submit()">Log out</a>
-              </div>
-            </div>
-            <form id="logoutForm" action="/logout" method="post" class="form-inline mr-auto">
-              {% csrf_token %}
-            </form>
-          {% else %}
-            <a href="{% url 'login' %}">Log in</a>
-           {% endif %}
-        </div>
-      </div>
-    </nav>
-  </div>
-</div>
+{% include 'club/_navbar.html' %}
 {% endblock %}
 

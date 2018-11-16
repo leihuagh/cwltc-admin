@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import datetime, date
 import logging
 from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
 from django.contrib.auth.hashers import check_password
@@ -101,27 +101,32 @@ def ajax_password(request):
     if request.user.is_authenticated and request.is_ajax():
         id = request.POST.get('person_id', None)
         pin = request.POST.get('pin', None)
-        password = request.POST.get('password', None)
-        request.session['person_id'] = id
-        try:
-            person = Person.objects.get(pk=id)
-        except Person.DoesNotExist:
-            return JsonResponse(dict)
+        # test for complimentary
+        if id == '-1':
+            if pin == str(datetime.now().year):
+                dict['authenticated'] = True
+        else:
+            password = request.POST.get('password', None)
+            request.session['person_id'] = id
+            try:
+                person = Person.objects.get(pk=id)
+            except Person.DoesNotExist:
+                return JsonResponse(dict)
 
-        try:
-            user = User.objects.get(pk=person.auth_id)
-        except User.DoesNotExist:
-            user = None
+            try:
+                user = User.objects.get(pk=person.auth_id)
+            except User.DoesNotExist:
+                user = None
 
-        authenticated = False
-        if pin and person.pin:
-            authenticated = check_password(pin, person.pin)
-        if not authenticated and user and password:
-            authenticated = user.check_password(password)
-        if authenticated:
-            dict['authenticated'] = True
-            if user:
-                dict['supervisor'] = True if user.groups.filter(name='Pos').exists() or user.is_staff else False
+            authenticated = False
+            if pin and person.pin:
+                authenticated = check_password(pin, person.pin)
+            if not authenticated and user and password:
+                authenticated = user.check_password(password)
+            if authenticated:
+                dict['authenticated'] = True
+                if user:
+                    dict['supervisor'] = True if user.groups.filter(name='Pos').exists() or user.is_staff else False
     return JsonResponse(dict)
 
 

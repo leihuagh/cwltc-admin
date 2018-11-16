@@ -105,3 +105,12 @@ def signed_url(context, url_name, pk):
     resolved_url = reverse(url_name, kwargs={'token': token})
     return request.build_absolute_uri(resolved_url)
 
+
+@register.simple_tag(takes_context=True)
+def active_nav(context, url_name):
+    """
+    Return active if url_name matches path
+
+    """
+    if reverse(url_name) == context['request'].path:
+        return ' active '

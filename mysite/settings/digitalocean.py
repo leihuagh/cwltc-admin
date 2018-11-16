@@ -1,7 +1,7 @@
 from .base import *
 DEBUG = False
 # This is picked up by a context processor
-SITE_NAME = "Coombe Wood Tennis"
+SITE_NAME = "Live"
 # We could use the default path but make it explicit for clarity
 env_path = os.path.join(BASE_DIR, "mysite", "settings", ".env")
 environ.Env.read_env(env_path)
