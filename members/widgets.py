@@ -1,7 +1,7 @@
 import datetime
 import re
 from django.utils.formats import get_format, datetime_safe
-from django.forms.widgets import Widget, Select, SelectDateWidget
+from django.forms.widgets import Widget, Select, SelectDateWidget, TextInput
 from django.utils.dates import MONTHS
 from django.utils.safestring import mark_safe
 from django.conf import settings
@@ -143,3 +143,20 @@ class MySelectDate(SelectDateWidget):
             else:
                 return datetime.date(int(y), int(m), 1)
         return data.get(name)
+
+
+# https://gist.github.com/conor10/8085ac62fd81ad3002e582d1be65c398
+class ListTextWidget(TextInput):
+    def __init__(self, data_list, name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._name = name
+        self._list = data_list
+        self.attrs.update({'list': 'list__{}'.format(self._name)})
+
+    def render(self, name, value, attrs=None, renderer=None):
+        text_html = super().render(name, value, attrs=attrs)
+        data_list = '<datalist id="list__{}">'.format(self._name)
+        for item in self._list:
+            data_list += f'<option value={item}></option>'
+        data_list += '</datalist>'
+        return text_html + data_list

@@ -132,6 +132,20 @@ body {
     text-shadow: 2px 2px 4px #000000;
 }
 
+/*.email {*/
+  /*background-color: #ff0000;*/
+/*}*/
+
+/*#email > div {*/
+  /*height: 50% !important;*/
+  /*overflow: hidden !important;*/
+/*}*/
+
+/* TinyMCE specific rules */
+body.mceContentBody {
+   background: #FF0000;
+}
+
 /*@media all and (max-width: 1200px) {*/
     /*.display-4{*/
         /*font-size: 3em;*/

@@ -1,20 +1,22 @@
 # ========= EMAIL, TEXT BLOCKS and Mail Types
+import datetime
 import json
 import logging
-import datetime
-from django.shortcuts import render_to_response
+
+from braces.views import StaffuserRequiredMixin
+from django.conf import settings
+from django.contrib import messages
 from django.core.signing import Signer
 from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.shortcuts import render_to_response
+from django.shortcuts import reverse
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, TemplateView
 from django.views.generic.edit import FormView
-from django.contrib import messages
-from django.conf import settings
-from django.shortcuts import redirect
-from django.shortcuts import reverse
-from braces.views import StaffuserRequiredMixin
-from members.models import (Person, MailType, TextBlock, Group, MailCampaign)
+
 from members.forms import TextBlockForm, EmailForm, MailTypeForm
 from members.mail import send_multiple_mails, send_template_mail
+from members.models import (Person, MailType, TextBlock, MailCampaign)
 
 stdlogger = logging.getLogger(__name__)
 
@@ -22,55 +24,55 @@ stdlogger = logging.getLogger(__name__)
 class EmailView(StaffuserRequiredMixin, FormView):
     form_class = EmailForm
     template_name = 'members/email.html'
-    selection = False
-    person = None
+    is_selection = False
+
+    def __init__(self):
+        super().__init__()
+        self.person = None
+
+    def get(self, request, *args, **kwargs):
+        if request.is_ajax():
+            # Return text block that was selected within editor
+            try:
+                block_id = int(request.GET['blockId'])
+                block = TextBlock.objects.get(pk=block_id)
+                dict = {'text': block.text}
+                return JsonResponse(dict)
+            except TextBlock.DoesNotExist:
+                return JsonResponse({'error': 'Bad text block request'})
+        else:
+            return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        context = super(EmailView, self).get_context_data(**kwargs)
-        target = 'Send email'
-        context['title'] = target
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Send email'
         blocks = TextBlock.objects.all()
-        try:
-            value_list = []
-            for block in blocks:
+        value_list = []
+        for block in blocks:
+            if block.text[0] != '_':
                 dict_entry = {"text": "'" + block.name + "'", "value": "'" + str(block.id) + "'"}
                 json_entry = json.dumps(dict_entry).replace('"', '')
                 value_list.append(json_entry)
-            context['blocks'] = value_list
-        except:
-            pass
+        context['blocks'] = value_list
         return context
-
-    def get_form_kwargs(self):
-        person_id = self.kwargs.get('person', '')
-        self.to = ''
-        self.person = None
-        if person_id:
-            self.person = Person.objects.get(pk=person_id)
-            self.to = self.person.email
-        self.group = self.kwargs.get('group', '-1')
-        self.campaign_id = self.kwargs.get('campaign', 0)
-        kwargs = super(EmailView, self).get_form_kwargs()
-        kwargs.update({'to': self.to,
-                       'group': self.group,
-                       'selection': self.selection})
-
-        return kwargs
 
     def get_initial(self):
         """
         This is called by get_context_data
         """
-        initial = super(EmailView, self).get_initial()
-        person_id = self.kwargs.get('person', '')
+        initial = super().get_initial()
+        person_id = self.kwargs.get('person_id', '')
         if person_id:
-            self.person = Person.objects.get(pk=person_id)
-            self.to = self.person.email
-            initial['to'] = self.to
-        initial['group'] = self.kwargs.get('group', '-1')
+            person = Person.objects.get(pk=person_id)
+            if person.linked and not person.pays_own_bill:
+                person = person.linked
+            to = person.email + f' ({person.fullname})'
+        else:
+            count = len(self.request.session.get('selected_people_ids', []))
+            to = f'{count} selected people'
+        initial['to'] = to
         initial['from_email'] = getattr(settings, 'SUBS_EMAIL')
         initial['subject'] = "Coombe Wood LTC membership"
-        initial['selected'] = self.selection
         initial['text'] = """Dear {{first_name}}"""
         campaign_id = self.kwargs.get('campaign', 0)
         if campaign_id:
@@ -78,27 +80,8 @@ class EmailView(StaffuserRequiredMixin, FormView):
             initial['text'] = campaign.text
         return initial
 
-    def get(self, request, *args, **kwargs):
-        if request.is_ajax():
-            try:
-                blockId = int(request.GET['blockId'])
-                block = TextBlock.objects.get(pk=blockId)
-                dict = {}
-                dict['text'] = block.text
-                return JsonResponse(dict)
-            except:
-                return JsonResponse({'error': 'Bad AJAX request'})
-        else:
-            return super(EmailView, self).get(request, *args, **kwargs)
-
-    def form_invalid(self, form):
-        return super(EmailView, self).form_invalid(form)
-
     def form_valid(self, form):
         from_email = form.cleaned_data['from_email']
-        to = form.cleaned_data['to']
-        group_id = form.cleaned_data['group']
-        selection = form.cleaned_data['selected']
         text = form.cleaned_data['text']
         subject = form.cleaned_data['subject']
         mail_type_list = []
@@ -114,19 +97,12 @@ class EmailView(StaffuserRequiredMixin, FormView):
                                         subject=subject,
                                         mail_types=mail_types)
             if result == 'sent':
-                messages.success(self.request, "Mail sent")
+                messages.info(self.request, "Mail sent")
             else:
                 messages.error(self.request, f'Mail not sent - {result}')
             return redirect('person-detail', pk=self.person.id)
 
-        elif group_id != '':
-            group = Group.objects.get(pk=group_id)
-            result = send_multiple_mails(self.request, group.person_set.all(),
-                                         text, from_email, None, None, subject, mail_types)
-            messages.info(self.request, result)
-            return redirect('group-detail', pk=group_id)
-
-        elif selection:
+        else:
             id_list = self.request.session['selected_people_ids']
             result = send_multiple_mails(self.request, Person.objects.filter(pk__in=id_list),
                                          text, from_email, None, None, subject, mail_types)
@@ -134,8 +110,9 @@ class EmailView(StaffuserRequiredMixin, FormView):
             messages.info(self.request, result)
             return redirect(self.request.session['source_path'])
 
-        else:
-            return redirect('home')
+
+class EmailSelectionView(EmailView):
+    is_selection = True
 
 
 class TextBlockCreateView(StaffuserRequiredMixin, CreateView):

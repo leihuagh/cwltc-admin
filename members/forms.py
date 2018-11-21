@@ -1,23 +1,21 @@
 import os
 from datetime import date, datetime, timedelta, time
 from django import forms
-from django.forms import Form, ModelForm, ModelMultipleChoiceField, HiddenInput, inlineformset_factory
-from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, Textarea
+from django.forms import Form, ModelForm, HiddenInput
+from django.forms.widgets import CheckboxSelectMultiple, Textarea
 from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Fieldset, ButtonHolder, BaseInput
-from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions, InlineCheckboxes
+from crispy_forms.layout import Layout, Div, HTML, Fieldset, ButtonHolder, BaseInput
 from tempus_dominus.widgets import DatePicker
-from .widgets import MySelectDate
+from .widgets import MySelectDate, ListTextWidget
 from .models import (Person, Address, Subscription, Membership, Fees, Invoice, InvoiceItem, Payment,
                      CreditNote, ExcelBook, TextBlock, MailType, MailCampaign, Group, Settings, VisitorFees)
 from .excel import open_excel_workbook
 from .filters import year_choices
 
-# 
 TEMPLATE_PACK = getattr(settings, 'CRISPY_TEMPLATE_PACK', 'bootstrap')
 
 
@@ -27,15 +25,6 @@ class SubmitButton(BaseInput):
     """
     input_type = 'submit'
     field_classes = 'button' if TEMPLATE_PACK == 'uni_form' else 'btn'  # removed btn-primary
-
-
-def DefaultHelper(form):
-    helper = FormHelper(form)
-    helper.form_class = 'form-horizontal'
-    helper.label_class = 'col-lg-2'
-    helper.field_class = 'col-lg-6'
-    helper.form_method = 'post'
-    return helper
 
 
 class FilterMemberForm(Form):
@@ -53,32 +42,21 @@ class FilterMemberForm(Form):
             self.fields[str(cat.id)] = forms.BooleanField(required=False, label=cat.description)
 
 
-class FilterMemberAjaxForm(Form):
-    categories = forms.ChoiceField()
-
-    def __init__(self, *args, **kwargs):
-        super(FilterMemberAjaxForm, self).__init__(*args, **kwargs)
-        self.fields['categories'].choices = Membership.FILTER_CHOICES + [
-            (x.id, x.description) for x in Membership.objects.all()
-        ]
-
-
 class PersonNameForm(ModelForm):
-
     class Meta:
         model = Person
         fields = [
-                  'first_name',
-                  'last_name',
-                  'gender',
-                  'dob',
-                  'state',
-                  'email',
-                  'mobile_phone',
-                  'british_tennis',
-                  'pays_own_bill',
-                  'notes'
-                  ]
+            'first_name',
+            'last_name',
+            'gender',
+            'dob',
+            'state',
+            'email',
+            'mobile_phone',
+            'british_tennis',
+            'pays_own_bill',
+            'notes'
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -120,7 +98,8 @@ class PersonForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.link = kwargs.pop('link', None)
         self.public = kwargs.pop('public', None)
-        super(PersonForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        self.person = None
 
         if self.link:
             self.parent = Person.objects.get(pk=self.link)
@@ -154,28 +133,27 @@ class PersonForm(ModelForm):
         self.helper = FormHelper(self)
 
         name_set = Div(HTML('<h3>Create Adult</h3>'),
-            Div('first_name',
-                'last_name',
-                'gender',
-                'dob',
-                'mobile_phone',
-                'email',
-                css_class="tile"
-                ),
-            css_class="col col-sm-4"
-        )
+                       Div('first_name',
+                           'last_name',
+                           'gender',
+                           'dob',
+                           'mobile_phone',
+                           'email',
+                           css_class="tile"
+                           ),
+                       css_class="col col-sm-4"
+                       )
 
         address_set = Div(HTML('<h3>Address</h3>'),
-            Div('address1',
-                'address2',
-                'town',
-                'post_code',
-                'home_phone',
-                css_class="tile"
-                ),
-            css_class="col col-sm-4"
-        )
-
+                          Div('address1',
+                              'address2',
+                              'town',
+                              'post_code',
+                              'home_phone',
+                              css_class="tile"
+                              ),
+                          css_class="col col-sm-4"
+                          )
 
         if self.link or self.updating:
             self.helper.layout = Layout(Div(name_set, css_class="row"))
@@ -186,17 +164,16 @@ class PersonForm(ModelForm):
                 ButtonHolder(
                     SubmitButton('submit', 'Save', css_class='btn-primary'),
                     SubmitButton('cancel', 'Cancel', css_class='btn-default')
-                    ),
-                    css_class="col col-sm-4"
                 ),
+                css_class="col col-sm-4"
+            ),
             css_class="row"
-            )
         )
-
+        )
 
     def clean(self):
         """ remove address errors if linked person or update """
-        super(PersonForm, self).clean()
+        super().clean()
         if not self.updating:
             self.cleaned_data['date_joined'] = date.today()
         if self.link or self.updating:
@@ -206,7 +183,7 @@ class PersonForm(ModelForm):
         return self.cleaned_data
 
     def save(self, commit=True):
-        self.person = super(PersonForm, self).save(commit=False)
+        self.person = super().save(commit=False)
         if not self.updating:
             self.person.date_joined = date.today()
         if self.link:
@@ -249,7 +226,7 @@ class JuniorForm(ModelForm):
     post_code = forms.CharField(max_length=15)
 
     def __init__(self, *args, **kwargs):
-        super(JuniorForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.fields['dob'].widget.format = settings.DATE_INPUT_FORMATS[0]
         self.fields['dob'].input_formats = settings.DATE_INPUT_FORMATS
@@ -295,10 +272,10 @@ class JuniorForm(ModelForm):
         )
 
     def clean(self):
-        self.cleaned_data = super(JuniorForm, self).clean()
+        self.cleaned_data = super().clean()
 
         if (len(self.cleaned_data['parent_mobile']) == 0 and
-        len(self.cleaned_data['home_phone']) == 0):
+                len(self.cleaned_data['home_phone']) == 0):
             raise forms.ValidationError('Please enter at least one of home phone or mobile phone')
         if len(self.cleaned_data['child_email']) > 0:
             self.cleaned_data['email'] = self.cleaned_data['child_email']
@@ -316,7 +293,7 @@ class JuniorForm(ModelForm):
 
     def save(self, commit=True):
         """ Create a child record linked to a parent record """
-        junior = super(JuniorForm, self).save(commit=False)
+        junior = super().save(commit=False)
         address = Address.objects.create(
             address1=self.cleaned_data['address1'],
             address2=self.cleaned_data['address2'],
@@ -348,7 +325,7 @@ class PersonLinkForm(Form):
     id = forms.IntegerField(required=False)
 
     def __init__(self, *args, **kwargs):
-        super(Form, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -367,7 +344,7 @@ class PersonLinkForm(Form):
         )
 
     def clean(self):
-        cleaned_data = super(PersonLinkForm, self).clean()
+        cleaned_data = super().clean()
         id = cleaned_data.get('id')
         if id:
             matches = Person.objects.filter(pk=id)
@@ -397,7 +374,7 @@ class FeesForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         year = kwargs.pop('year', None)
-        super(FeesForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         self.updating = False
         if instance and instance.id:
@@ -421,7 +398,7 @@ class FeesForm(ModelForm):
         )
 
     def clean(self):
-        cleaned_data = super(FeesForm, self).clean()
+        cleaned_data = super().clean()
         annual = cleaned_data.get('annual_sub')
         monthly = cleaned_data.get('monthly_sub')
         joining = cleaned_data.get('joining_fee')
@@ -433,7 +410,6 @@ class FeesForm(ModelForm):
 
 
 class VisitorFeesForm(ModelForm):
-
     class Meta:
         model = VisitorFees
         fields = ['year', 'adult_fee', 'junior_fee']
@@ -449,7 +425,6 @@ class VisitorFeesForm(ModelForm):
 
 
 class SubscriptionForm(ModelForm):
-
     class Meta:
         model = Subscription
         fields = ['sub_year', 'period', 'start_date', 'end_date', 'no_renewal']
@@ -480,13 +455,13 @@ class SubscriptionForm(ModelForm):
         self.helper.layout = Layout(
             HTML(f'<h4 class="text-danger"> {message}</h4>'),
             Fieldset('',
-                'membership_id',
-                'sub_year',
-                'period',
-                'start_date',
-                'end_date',
-                'no_renewal',
-            ),
+                     'membership_id',
+                     'sub_year',
+                     'period',
+                     'start_date',
+                     'end_date',
+                     'no_renewal',
+                     ),
             HTML("""
                 {% for item in items %}
                 <p class="text-danger">
@@ -577,7 +552,7 @@ class SubscriptionForm(ModelForm):
         self.helper.add_input(SubmitButton('cancel', 'Cancel', css_class='btn-default'))
 
     def clean(self):
-        cleaned_data = super(SubscriptionForm, self).clean()
+        cleaned_data = super().clean()
         if self.updating:
             # Add missing fields from the instance
             instance = getattr(self, 'instance', None)
@@ -618,7 +593,7 @@ class SubCorrectForm(ModelForm):
     """ Allow changes without age validation """
 
     def __init__(self, *args, **kwargs):
-        super(SubCorrectForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
@@ -633,7 +608,7 @@ class YearConfirmForm(Form):
     sub_year = forms.IntegerField(max_value=2100, min_value=2014, required=True)
 
     def __init__(self, *args, **kwargs):
-        super(YearConfirmForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_method = 'post'
         self.helper.add_input(SubmitButton('apply', 'Apply', css_class='btn-primary'))
@@ -641,12 +616,11 @@ class YearConfirmForm(Form):
         self.fields['sub_year'].initial = Settings.objects.all()[0].membership_year
 
     def clean(self):
-        cleaned_data = super(YearConfirmForm, self).clean()
+        cleaned_data = super().clean()
         year = cleaned_data.get('sub_year')
 
 
 class MembershipForm(ModelForm):
-
     class Meta:
         model = Membership
         fields = ['description', 'long_description',
@@ -656,33 +630,6 @@ class MembershipForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.add_input(SubmitButton('submit', 'Save', css_class='btn-primary'))
-
-
-# class MembersListForm(Form):
-#     # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
-#     categories = forms.ChoiceField()
-#     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-#                                          initial=Settings.current_year())
-#     paystate = forms.ChoiceField(choices=Payment.STATE.choices(),
-#                                  initial=Payment.STATE.PAID.value)
-#     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
-#
-#     def __init__(self, *args, **kwargs):
-#         super(MembersListForm, self).__init__(*args, **kwargs)
-#         self.fields['categories'].choices = Membership.FILTER_CHOICES + [
-#             (x.id, x.description) for x in Membership.objects.all()
-#         ]
-#
-#
-# class JuniorsListForm(Form):
-#     # PAYCHOICES = [('paid','Paid'),('unpaid','Unpaid'),('all','All')]
-#     categories = forms.ChoiceField(choices=Membership.JUNIOR_CHOICES,
-#                                    initial=Membership.JUNIORS)
-#     membership_year = forms.IntegerField(min_value=2015, max_value=2100,
-#                                          initial=Settings.current_year())
-#     paystate = forms.ChoiceField(choices=Payment.STATE.choices(),
-#                                  initial=Payment.STATE.PAID.value)
-#     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, required=False)
 
 
 class InvoiceFilterForm(Form):
@@ -699,7 +646,7 @@ class InvoiceFilterForm(Form):
     cancelled = forms.BooleanField(initial=False, required=False)
 
     def clean(self):
-        super(InvoiceFilterForm, self).clean()
+        super().clean()
         edate = self.cleaned_data['end_datetime']
         self.cleaned_data['end_datetime'] = datetime.combine(
             date(edate.year, edate.month, edate.day),
@@ -714,7 +661,6 @@ class PeriodForm(Form):
 
 
 class InvoiceItemForm(ModelForm):
-
     class Meta:
         model = InvoiceItem
         fields = ['item_type', 'item_date', 'description', 'amount']
@@ -727,7 +673,7 @@ class InvoiceItemForm(ModelForm):
         self.title = "Invoice item"
 
     def clean(self):
-        cleaned_data = super(InvoiceItemForm, self).clean()
+        cleaned_data = super().clean()
         item_type = cleaned_data.get('item_type')
         amount = cleaned_data.get('amount', 0)
         if amount == 0:
@@ -745,7 +691,7 @@ class InvoiceSelectForm(Form):
     choice = forms.ChoiceField(choices=CHOICES, widget=forms.RadioSelect(), label='Select')
 
     def __init__(self, *args, **kwargs):
-        super(InvoiceSelectForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -755,13 +701,13 @@ class InvoiceSelectForm(Form):
         self.initial['choice'] = 1
 
     def clean(self):
-        cleaned_data = super(InvoiceSelectForm, self).clean()
+        cleaned_data = super().clean()
         choice = int(cleaned_data.get('choice'))
         ref = int(cleaned_data.get('ref'))
         if choice == 1:
             try:
                 inv = Invoice.objects.get(pk=ref)
-            except:
+            except Invoice.DoesNotExist:
                 raise forms.ValidationError("Invoice with id {} not found".format(ref))
         elif choice == 2:
             try:
@@ -774,7 +720,7 @@ class SettingsForm(Form):
     membership_year = forms.IntegerField(max_value=2100, min_value=0)
 
     def __init__(self, *args, **kwargs):
-        super(SettingsForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-sm-2'
@@ -790,7 +736,7 @@ class GroupForm(ModelForm):
         fields = ['name', 'description']
 
     def __init__(self, *args, **kwargs):
-        super(GroupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.title = 'Group'
@@ -811,7 +757,7 @@ class EmailTextForm(forms.Form):
     closing = forms.ChoiceField()
 
     def __init__(self, *args, **kwargs):
-        super(EmailTextForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         text_choices = [(-1, 'None')] + [(x.id, x.name) for x in TextBlock.objects.filter(
             ~Q(name__startswith='_')).order_by('name')]
         self.fields['intro'].choices = text_choices
@@ -827,53 +773,20 @@ class EmailTextForm(forms.Form):
 
 
 class EmailForm(Form):
-    from_email = forms.EmailField(required=True)
-    to = forms.EmailField(required=False)
-    group = forms.ChoiceField(required=False)
-    selected = forms.BooleanField(required=False)
-    cc = forms.CharField(required=False)
-    bcc = forms.CharField(required=False)
+    from_email = forms.EmailField(required=True, widget=ListTextWidget(
+        name='email',
+        data_list=((getattr(settings, 'SUBS_EMAIL'), getattr(settings, 'INFO_EMAIL')))
+    ))
+    to = forms.CharField(required=False, disabled=True)
     subject = forms.CharField(required=True)
     text = forms.CharField(required=True, widget=Textarea)
     mailtype = forms.ModelMultipleChoiceField(queryset=MailType.objects.all(),
+                                              widget=CheckboxSelectMultiple,
                                               required=True)
 
     def __init__(self, *args, **kwargs):
-        to = kwargs.pop('to', '')
-        group = kwargs.pop('group', '')
-        text = kwargs.pop('text', '')
-        selection = kwargs.pop('selection', False)
-        super(EmailForm, self).__init__(*args, **kwargs)
-        choices = [(-1, 'None')] + [(x.id, x.name) for x in Group.objects.order_by('name')]
-        self.fields['group'].choices = choices
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_id = 'id-emailForm'
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-sm-2'
-        self.helper.field_class = 'col-sm-6'
-        self.fields['selected'].widget = HiddenInput()
-        if to:
-            my_fields = Div('from_email', 'to')
-        elif group != '-1':
-            my_fields = Div('from_email', 'group')
-        elif selection:
-            my_fields = Div('from_email')
-        else:
-            my_fields = Div('from_email', 'to', 'group')
-        my_fields.fields.extend(['selected', 'subject', 'text', 'mailtype'])
-
-        self.helper.layout = Layout(
-            my_fields,
-            FormActions(
-                Submit('send', 'Send', css_class='btn-primary')
-            )
-        )
-
-    def clean(self):
-        cleaned_data = super(EmailForm, self).clean()
-        if cleaned_data['to'] == '' and cleaned_data['group'] == '-1':
-            raise forms.ValidationError('No To or group selected')
-        return self.cleaned_data
 
 
 class MailTypeForm(ModelForm):
@@ -884,7 +797,7 @@ class MailTypeForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         with_delete = kwargs.pop('with_delete', None)
-        super(MailTypeForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -900,7 +813,7 @@ class PaymentForm(ModelForm):
     def __init__(self, *args, **kwargs):
         """ optional kwarg amount sets the default amount """
         amount = kwargs.pop('amount', None)
-        super(PaymentForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if amount:
             self.fields['amount'].initial = amount
         self.helper = FormHelper(self)
@@ -911,10 +824,10 @@ class PaymentForm(ModelForm):
 
     class Meta:
         model = Payment
-        fields = ['membership_year', 'type', 'reference', 'amount', 'banked', 'banked_date',]
+        fields = ['membership_year', 'type', 'reference', 'amount', 'banked', 'banked_date', ]
         widgets = {'banked_date': DatePicker(),
                    'membership_year': forms.Select(choices=year_choices()),
-        }
+                   }
 
 
 class PaymentFilterForm(Form):
@@ -934,13 +847,12 @@ class PaymentFilterForm(Form):
 
 
 class CreditNoteForm(ModelForm):
-
     class Meta:
         model = CreditNote
         fields = ['membership_year', 'amount', 'reference']
 
     def __init__(self, *args, **kwargs):
-        super(CreditNoteForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-sm-2'
@@ -969,10 +881,10 @@ class TextBlockForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         no_delete = kwargs.pop('no_delete', False)
-        super(TextBlockForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['text'].required = False  # get round bug in tinymce
         self.helper = FormHelper(self)
-        self.helper.form_tag = False
+        self.helper.form_tag = True
         self.helper.field_class = 'input-xlarge'
         self.helper.form_method = 'post'
         self.helper.form_show_errors = True
@@ -987,7 +899,7 @@ class TextBlockForm(ModelForm):
 class MailCampaignForm(ModelForm):
     def __init__(self, *args, **kwargs):
         with_delete = kwargs.pop('with_delete', None)
-        super(MailCampaignForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.field_class = 'input-xlarge'
         self.helper.error_text_inline = True
@@ -1020,7 +932,7 @@ class XlsInputForm(Form):
     # batch_size = forms.IntegerField(label=u"Batch size")
 
     def __init__(self, *args, **kwargs):
-        super(XlsInputForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -1041,7 +953,7 @@ class XlsInputForm(Form):
 
 class XlsMoreForm(Form):
     def __init__(self, *args, **kwargs):
-        super(XlsMoreForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.form_method = 'post'
@@ -1050,7 +962,7 @@ class XlsMoreForm(Form):
 
 class GenericMoreForm(Form):
     def __init__(self, *args, **kwargs):
-        super(GenericMoreForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.form_method = 'post'
@@ -1071,7 +983,7 @@ class BootstrapAuthenticationForm(AuthenticationForm):
 
 class SelectSheetsForm(Form):
     def __init__(self, *args, **kwargs):
-        super(SelectSheetsForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.form_method = 'post'

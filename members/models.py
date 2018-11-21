@@ -143,6 +143,7 @@ class Person(models.Model):
     def is_active_parent(self):
         return self.person_set.filter(state=Person.ACTIVE).exists()
 
+
     def active_sub(self, year):
         """ Return the active subscription for a year if one exists. """
         subs = self.subscription_set.filter(sub_year=year, active=True)

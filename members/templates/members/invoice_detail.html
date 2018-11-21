@@ -2,118 +2,163 @@
 {% load members_extras %}
 
 {% block content %}
-<h4 xmlns="http://www.w3.org/1999/html">
-  <a href="{% url "person-detail"  person.id %}">{{ person.first_name }} {{ person.last_name }}</a>
-</h4>
-  <div class="well">
-    {% include "members/_invoice_detail.html" %}
-  </div>
   <form action="." method="post" class="form-inline" id="post-form">{% csrf_token %}
-    <p>Membership year : {{ invoice.membership_year }}</p>
-    <p>State: {{ state_list|get_option:invoice.state }}
-    {% if invoice.pending %}
-     There is a payment pending.
-    {% endif %}
-
-    </p>
-    {% if invoice.note or invoice.special_case %}
-      <div class="well"  style="background: #ffff66">
-        {% if invoice.special_case %}
-          <p style="color:red;">Special case: Treat as paid</p>
-        {% endif %}
-      <p>{{ invoice.note }}</p>
-      <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#noteModal">Edit note</button>
-      </div>
-    {% else %}
-      <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#noteModal">Add note</button>
-    {% endif %}
-    {% if payments %}
-      <table class="table table-sm">
-        <tr><th>Payments</th><th>Type</th><th>Created</th><th>Amount</th><th>State</th><th>Banked</th><th>GoCardless Id</th></tr>
-        {% for payment in payments %}
-          <tr>
-            <td><a href="{% url 'payment-detail' pk=payment.id %}" class="btn btn-default btn-sm">View</a></td>
-            <td>{{ payment.TYPES|get_option:payment.type }}</td>
-            <td>{{ payment.creation_date }}</td>
-            <td>£{{ payment.amount }}</td>
-            <td>{{ payment.STATES|get_option:payment.state }}</td>
-            <td>{{ payment.banked }}</td>
-            <td>{{ payment.cardless_id }}</td>
-          </tr>
-        {% endfor %}
-      </table>
-    {% endif %}
-
-    {% if credit_note %}
-      <p>Credit note: {{ credit_note.id }} </p>
-      <p>Issued: {{ credit_note.update_date}}</p>
-      <p>Amount: {{ credit_note.amount }}</p>
-      <p>{{ credit_note.reference }}</p>
-    {% endif %}
-
-  <p>Email count: {{ invoice.email_count }} </p>
-
-
-  <hr />
-
-{% if full_payment_button %}
-Email text blocks:
-    {% if text_intro %}
-        <a href="{% url "text-update" pk=text_intro.id %}">{{ text_intro }}</a>, 
-    {% else %}
-        None,
-    {% endif %}
-    {% if text_notes %}
-        <a href="{% url "text-update" pk=text_notes.id %}">{{ text_notes }}</a>, 
-    {% else %}
-        None,
-    {% endif %}
-    {% if text_closing %}
-        <a href="{% url "text-update" pk=text_closing.id %}">{{ text_closing }}</a>
-    {% else %}
-        None
-    {% endif %}
-    <a href="{% url "invoice-mail-config" pk=invoice.id %}" class="btn btn-primary btn-sm">Configure mail</a>
-<br /><br />
-    <input type="submit" name="view" value="Preview mail" class="btn btn-primary">
-    <input type="submit" name="test" value="Send test mail" class="btn btn-primary">
-    <input type="submit" name="send" value="send mail" class="btn btn-primary"> 
-<br />    <br /> 
-    <input type="submit" name="pay" value="Full payment" class="btn btn-success"> 
-    <input type="submit" name="cancel" value="Cancel invoice" class="btn btn-danger"> 
-{% endif %}
-{% if can_delete %}
-    <input type="submit" name="delete" value="Delete invoice" class="btn btn-danger">
-{% else %}
-    {% if user.is_staff %}
-       {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete invoice" confirm_yes="Delete" confirm_submit="superdelete" %}
-       <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-danger">Delete invoice</a>
-    {% endif %}
-{% endif %}
-
-  <!-- Modal to handle note and special case flag -->
-
-  <div id="noteModal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Add note to invoice</h4>
-        </div>
-        <div class="modal-body">
-          <label for="idNote">Note</label>
-          <input type="text" class="form-control" style="min-width: 100%;" name="note" id="idNote" value="{{ invoice.note }}">
-          <label for="idSpecial">Treat as paid</label>
-          <input type="checkbox" class="form-control" name="special_case" id="idSpecial" {% if invoice.special_case %}checked {% endif %}>
-        </div>
-        <div class="modal-footer">
-          {% if invoice.note %}
-            <input type="submit" name="delete_note" value="Delete note" class="btn btn-primary">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 p-1">
+          <div class="tile py-0 mb-2">
+            {% include "members/_invoice_detail.html" %}
+          </div>
+          {% if invoice.pending or payments or creditnote %}
+            <div class="tile py-1 mb-2">
+              {% if invoice.pending %}
+                <h5>There is a payment pending.</h5>
+              {% endif %}
+              {% if payments %}
+                <table class="table table-sm">
+                  <tr>
+                    <th>Payments</th>
+                    <th>Type</th>
+                    <th>Created</th>
+                    <th>Amount</th>
+                    <th>State</th>
+                    <th>Banked</th>
+                    <th>GoCardless Id</th>
+                  </tr>
+                  {% for payment in payments %}
+                    <tr>
+                      <td><a href="{% url 'payment-detail' pk=payment.id %}"
+                             class="btn btn-default btn-sm p-0">View</a>
+                      </td>
+                      <td>{{ payment.TYPES|get_option:payment.type }}</td>
+                      <td>{{ payment.creation_date|date }}</td>
+                      <td>£ {{ payment.amount }}</td>
+                      <td>{{ payment.STATES|get_option:payment.state }}</td>
+                      <td class="text-center">{% if payment.banked %}
+                        <i class="fas fa-check text-success"></i>{% else %}
+                        <i class="fas fa-times text-danger"></i>{% endif %}</td>
+                      <td>{{ payment.cardless_id }}</td>
+                    </tr>
+                  {% endfor %}
+                </table>
+              {% endif %}
+              {% if credit_note %}
+                <h5>Credit note</h5>
+                <p>Credit note: {{ credit_note.id }} </p>
+                <p>Issued: {{ credit_note.update_date }}</p>
+                <p>Amount: {{ credit_note.amount }}</p>
+                <p>{{ credit_note.reference }}</p>
+              {% endif %}
+            </div> <!-- tile -->
           {% endif %}
-          <input type="submit" name="save_note" value="Save" class="btn btn-primary">
+          <div class="tile py-2 mb-2">
+            {% if full_payment_button %}
+              <input type="submit" name="pay" value="Full payment" class="btn btn-sm btn-success">
+              <input type="submit" name="cancel" value="Cancel invoice" class="btn btn-sm btn-danger">
+            {% endif %}
+            {% if can_delete %}
+              <input type="submit" name="delete" value="Delete invoice" class="btn btn-sm btn-danger">
+            {% else %}
+              {% if user.is_staff %}
+                {% include "members/_confirm.html" with confirm_id="confDelete" confirm_title="Delete invoice" confirm_yes="Delete" confirm_submit="superdelete" %}
+                <a href="#" data-toggle="modal" data-target="#confDelete" class="btn btn-sm btn-danger">Delete
+                  invoice</a>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col p-1">
+          <div class="tile py-2 mb-2">
+            <h4><a href="{% url "person-detail"  person.id %}">{{ person.first_name }} {{ person.last_name }}</a></h4>
+            <h5>Membership year : {{ invoice.membership_year }}</h5>
+            {% if invoice.state == 0 %}
+              <h5>State: <span class="badge badge-danger">Unpaid</span></h5>
+            {% else %}
+              <h5>State: {{ state_list|get_option:invoice.state }}</h5>
+            {% endif %}
+
+            {% if not invoice.note and not invoice.special_case %}
+              <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#noteModal">Add note
+              </button>
+            {% endif %}
+          </div>
+          {% if invoice.note or invoice.special_case %}
+            <div class="tile py-2 mb-2" style="background: #ffff66">
+              {% if invoice.special_case %}
+                <p style="color:red;">Special case: Treat as paid</p>
+              {% endif %}
+              <p>{{ invoice.note }}</p>
+              <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#noteModal">Edit
+                note
+              </button>
+            </div>
+          {% endif %}
+
+          {% if full_payment_button %}
+            <div class="tile py-2 mb-2">
+              <h5>Email</h5>
+              <p>Email count: {{ invoice.email_count }} </p>
+              Email text blocks:<br>
+              {% if text_intro %}
+                <a href="{% url "text-update" pk=text_intro.id %}">{{ text_intro }}</a>,
+              {% else %}
+                None,
+              {% endif %}
+              {% if text_notes %}
+                <a href="{% url "text-update" pk=text_notes.id %}">{{ text_notes }}</a>,
+              {% else %}
+                None,
+              {% endif %}
+              {% if text_closing %}
+                <a href="{% url "text-update" pk=text_closing.id %}">{{ text_closing }}</a>
+              {% else %}
+                None
+              {% endif %}
+              <br>
+              <a href="{% url "invoice-mail-config" pk=invoice.id %}" class="btn btn-sm btn-primary btn-sm">Configure
+                mail</a>
+              <br/><br/>
+              <input type="submit" name="view" value="Preview mail" class="btn btn-sm btn-primary">
+              <input type="submit" name="test" value="Send test mail" class="btn btn-sm btn-primary">
+              <input type="submit" name="send" value="Send mail" class="btn btn-sm btn-success">
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>
-  </div>
-</form>
+    </div>
+
+
+    <!-- Modal to handle note and special case flag -->
+
+    <div id="noteModal" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Add note to invoice</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="idNote">Note</label>
+              <input type="text" class="form-control" style="min-width: 100%;" name="note" id="idNote"
+                     value="{{ invoice.note }}">
+            </div>
+            <div class="form-group mt-2 ml-4">
+              <input type="checkbox" class="form-check-input" name="special_case" id="idSpecial"
+                     {% if invoice.special_case %}checked {% endif %}>
+              <label for="idSpecial">Treat as paid</label>
+            </div>
+            <div class="mt-4">
+
+              {% if invoice.note %}
+                <input type="submit" name="delete_note" value="Delete note" class="btn btn-primary btn-sm">
+              {% endif %}
+              <input type="submit" name="save_note" value="Save" class="btn btn-primary btn-sm">
+            </div>
+          </div>
+        </div>
+      </div>
+  </form>
 {% endblock content %}

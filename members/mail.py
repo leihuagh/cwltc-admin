@@ -99,7 +99,7 @@ def send_template_mail(request, person, text,
         year = Settings.current_year()
     recipient = person
     child = None
-    if person.linked:
+    if person.linked and not person.pays_own_bill:
         # Get the current sub but deal with case in 
         # April when year is changed but sub is not yet there
         sub = person.active_sub(year)

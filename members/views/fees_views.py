@@ -54,6 +54,10 @@ class FeesListView(StaffuserRequiredMixin, ListView):
     latest_year = 0
     title = 'List fees'
 
+    def __init__(self):
+        super().__init__()
+        self.year = 0
+
     def get_queryset(self):
         self.year = int(self.kwargs.get('year', 0))
         self.latest_year = Fees.objects.all().order_by('-sub_year')[0].sub_year

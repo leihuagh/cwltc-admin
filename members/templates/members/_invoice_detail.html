@@ -1,46 +1,43 @@
-﻿<table width="650"  border="0">
-    <tr><td>
-
-<p style="font-family: 'Arial'; font-size:18px;" ><strong>Coombe Wood LTC Invoice</strong>
-<p style="font-family: 'Arial'; font-size:14px; color:#020202;">
-Reference: {{ person.id }}/{{ invoice.id }}<br />
-Date: {{ invoice.date }}
-</p>
-<p style="font-family: 'Arial';font-size:14px;  color:#101010;">
-{{ addressee }}<br />
-{% if unknown %}
-    </p>
-    <p style="font-family: 'Arial';font-size:14px; color:#ff0000">
-    {{ unknown }} </p>
-    <p style="font-family: 'Arial';font-size:14px; color:#101010;">
-{% endif %}
-{% include "members/_address_block.html" %}
-</p>
-
-<table style="height: 40px;" width="650" cellpadding="8">
-<tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
-{% for item in items %}
-<tr>
-    <td>{{ item.person.fullname }}</td>
+﻿<table width="650" border="0">
+  <tr>
     <td>
-    {% if item.description %}
-        {{ item.description }}
-    {% else %}
-        {{ item.item_type.description }}
-    {% endif %}
+      <p style="font-family: 'Arial'; font-size:18px;"><strong>Coombe Wood LTC Invoice</strong>
+      <p style="font-family: 'Arial'; font-size:14px; color:#020202;">
+        Reference: {{ person.id }}/{{ invoice.id }}<br/>
+        Date: {{ invoice.date }}
+      </p>
+      <p style="font-family: 'Arial';font-size:14px;  color:#101010;">
+        {{ addressee }}<br/>
+        {% if unknown %}
+          </p>
+          <p style="font-family: 'Arial';font-size:14px; color:#ff0000">
+            {{ unknown }} </p>
+          <p style="font-family: 'Arial';font-size:14px; color:#101010;">
+        {% endif %}
+        {% include "members/_address_block.html" %}
+        </p>
+
+      <table style="height: 40px;" width="650" cellpadding="3">
+        <tbody style="font-family: 'Arial'; font-size:14px; color:#020202;">
+        {% for item in items %}
+          <tr>
+            <td>{{ item.person.fullname }}</td>
+            <td>
+              {% if item.description %}
+                {{ item.description }}
+              {% else %}
+                {{ item.item_type.description }}
+              {% endif %}
+            </td>
+            <td align="right">£ {{ item.amount }}</td>
+          </tr>
+        {% endfor %}
+        <tr>
+          <td></td>
+          <td align="right"><b>Total now due:</b></td>
+          <td align="right"><b>£ {{ invoice.total }}</b></td>
+        </tr>
+      </table>
     </td>
-    <td align="right">£ {{ item.amount }}</td>
-    {% if show_buttons %}
-        <td>{% if item.paid %}&nbsp; Paid {% else %}&nbsp; Unpaid {% endif %}</td>
-    {% endif %}
-</tr>
-{% endfor %}
-<tr>
-    <td></td>
-    <td align="right"><b>Total now due:</b></td>
-    <td align="right"><b>£ {{ invoice.total }}</b></td>
-</tr>
-</table>
-        </td>
-    </tr>
+  </tr>
 </table>

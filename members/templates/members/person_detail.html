@@ -73,7 +73,7 @@
             </div>
             <a href="{% url "person-update" pk=person.id %}" class="btn btn-primary btn-sm">Edit details</a>
             {% if person.email %}
-              <a href="{% url "email-person" person=person.id %}" class="btn btn-primary btn-sm">Send email</a>
+              <a href="{% url "email-person" person_id=person.id %}" class="btn btn-primary btn-sm">Send email</a>
             {% endif %}
             {% if user.is_superuser %}
               {% if can_delete %}

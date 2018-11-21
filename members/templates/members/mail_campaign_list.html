@@ -18,7 +18,7 @@
     <td> {{ campaign.created }}</td>
     <td> {{ campaign.sent }}</td>
     <td><a href="{% url "mail-campaign-bee" pk=campaign.id %}" class = "btn btn-primary btn-sm">Edit</a></td>
-    <td><a href="{% url "email-campaign" campaign=campaign.id %}" class = "btn btn-primary btn-sm">Send</a></td>
+    <td><a href="{% url "email-campaign" campaign_id=campaign.id %}" class = "btn btn-primary btn-sm">Send</a></td>
 </tr>
 {% endfor sub %}
 </table>

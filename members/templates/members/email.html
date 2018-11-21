@@ -1,79 +1,126 @@
 ﻿{% extends "members/base.html" %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags static widget_tweaks %}
 {% block content %}
-  {% crispy form %}
+<div class="container">
+  <form method="post" novalidate>{% csrf_token %}
+    <div class="tile my-1 py-1">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="row">
+            <div class="col">
+              {{ form.from_email|as_crispy_field }}
+            </div>
+            <div class="col">
+              {{ form.to|as_crispy_field }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col email">
+              {{ form.subject|as_crispy_field }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col" id="email">
+
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          {{ form.mailtype|as_crispy_field }}
+          {% if form.mailtype.errors %}<span class="text-danger">At least 1 mailtype must be checked</span>{% endif  %}
+        </div>
+        <div class="col-md-1">
+          <button type="submit" , class="mt-5 btn btn-primary" , name="send">Send</button>
+        </div>
+
+      </div>
+    </div>
+{% render_field form.text class='email' %}
+
+  </form>
+
+</div>
+{% crispy form %}
+
 {% endblock %}
 
 {% block scripts %}
-<script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
-<script type="text/javascript">
+  {#  <script src='//cdn.tinymce.com/4.1/tinymce.min.js'></script>#}
+  <script src="//cdnjs.cloudflare.com/ajax/libs/tinymce/4.8.5/tinymce.min.js"></script>
+  <script type="text/javascript">
 
-    tinymce.init({
-        selector: '#id_text',
-        height : 300,
-        width: 800,
-        convert_urls: false,
-        browser_spellcheck: true,
-        plugins: 'code advlist autolink link image lists charmap print preview',
+      tinymce.init({
+          selector: '#id_text',
+          height: 450,
+          width: 'auto',
+          convert_urls: false,
+          browser_spellcheck: true,
+          plugins: 'code advlist autolink link image lists charmap print preview',
+          menu: 'preview',
+          toolbar1: 'undo redo | formatselect| fontselect, fontsizeselect | preview, code | mybutton',
+          toolbar2: 'bold, italic, underline | alignleft, aligncenter, alignright, alignjustify | cut, copy, paste | bullist, numlist | outdent, indent',
+          // content_css: '{% static "css/extra.css" %}',
+          setup: function (editor) {
+              editor.addButton('mybutton', {
+                      text: "Insert text",
+                      onclick: function () {
+                          editor.windowManager.open({
+                                  title: 'Standard text block',
+                                  width: 300,
+                                  height: 150,
+                                  body: [
+                                      {
+                                          type: 'listbox',
+                                          name: 'textblockid',
+                                          label: 'Select :',
+                                          'values': [
+                                              {% for block in blocks %}
+                                                  {{ block|safe }},
+                                              {% endfor %}
+                                          ]
+                                      }
+                                  ],
+                                  onsubmit: function (e) {
+                                      getBlock(e.data.textblockid);
+                                  }
+                              }
+                          )
+                      }
+                  }
+              );
+              editor.on('init', function(e) {
+              editor.execCommand("fontName", false, "Times New Roman");
+              editor.execCommand("fontSize", false, "10pt");
 
-        toolbar1: 'undo redo | styleselect, formatselect, fontselect, fontsizeselect, mybutton',
-        toolbar2: 'bold, italic, underline | alignleft, aligncenter, alignright, alignjustify | cut, copy, paste | bullist, numlist | outdent, indent',
-
-        setup: function(editor) {
-            editor.addButton('mybutton', {
-                text: "Insert text",
-                onclick: function () {
-                    editor.windowManager.open({
-                        title: 'Text block',
-                        width: 300,
-                        height: 150,
-                        body: [
-                               {
-                                   type: 'listbox',
-                                   name: 'textblockid',  
-                                   label: 'Select :',
-                                   'values': [
-                                     {% for block in blocks %}
-                                     {{ block|safe }},
-                                     {% endfor %}
-                                     ]
-                               }
-                        ],
-                        onsubmit: function(e) {
-                            getBlock(e.data.textblockid);
-                        }
-                    }
-                    )
-                }
-            }
-          ) 
-         }
-        });
+              });
+              }
+          });
 
 
-    // AJAX to get a block of text for insertion
-    function getBlock(id) {
-        $.ajax({
-            url: "", 
-            type: "GET",
-            data: {
-                blockId: id
-            }, 
 
-            // handle a successful response
-            success: function (json) {
-                text = json["text"];
-                tinyMCE.execCommand('mceInsertContent', false, text);
-            },
+      // AJAX to get a block of text for insertion
+      function getBlock(id) {
+          $.ajax({
+                  url: "",
+                  type: "GET",
+                  data: {
+                      blockId: id
+                  },
 
-            // handle an unsuccessful response
-            error: function (xhr, errmsg, err) {
-                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
-                    " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-            }
-        }
-        )
-    }
-</script>
+                  // handle a successful response
+                  success: function (json) {
+                      text = json["text"];
+                      tinyMCE.execCommand('mceInsertContent', false, text);
+                  },
+
+                  // handle an unsuccessful response
+                  error: function (xhr, errmsg, err) {
+                      $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + errmsg +
+                          " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                      console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                  }
+              }
+          )
+      }
+  </script>
 {% endblock %}

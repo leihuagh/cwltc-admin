@@ -238,12 +238,11 @@ class InvoiceDetailView(StaffuserRequiredMixin, DetailView):
             return redirect(invoice)
 
     def get_context_data(self, **kwargs):
-        context = super(InvoiceDetailView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         invoice = self.get_object()
         invoice.add_context(context)
         context['payments'] = invoice_payments_list(invoice)
         TextBlock.add_email_context(context)
-        context['show_buttons'] = True
         return context
 
 

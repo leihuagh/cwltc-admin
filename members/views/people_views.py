@@ -1,5 +1,5 @@
 import logging
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django_tables2 import SingleTableView
 from django.contrib import messages
 from django.views.generic import TemplateView
@@ -33,43 +33,39 @@ class PeopleTableView(StaffuserRequiredMixin, SingleTableView):
     group = None
     title = ''
     table_title = ''
-    filter = None
     template_name = 'members/person_table.html'
     table_pagination = {"per_page": 10000}
 
     # TODO make loader work with tests
 
-    # def dispatch(self, request, *args, **kwargs):
-    #     if request.session.get('slow_url', '') == request.path:
-    #         request.session['slow_url'] = ''
-    #         return super().dispatch(request, *args, **kwargs)
-    #     else:
-    #         request.session['slow_url'] = request.path
-    #         return render(request, 'members/loading.html', {'url':request.build_absolute_uri()})
+    def dispatch(self, request, *args, **kwargs):
+        """ show temporary loading page that redirects to result """
+        if request.session.get('slow_url', '') == request.path:
+            request.session['slow_url'] = ''
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            request.session['slow_url'] = request.path
+            return render(request, 'members/loading.html', {'url': request.build_absolute_uri()})
 
     def get_table_data(self):
         """
         Perform the query and do the filtering
         """
-        if self.group:
-            return self.group.person_set.all().select_related('sub__membership').orderby('last_name')
-        if not self.filter_class:
-            return Person.objects.all().select_related('sub__membership').order_by('last_name')
         year = Settings.current_year()
-        qs = Subscription.objects.filter(
-            active=True
-        ).select_related('membership').select_related('person_member')
-
+        qs = Subscription.objects.filter(active=True).select_related(
+            'membership').select_related('person_member').order_by('person_member__last_name')
         if self.juniors or self.parents:
             qs = qs.exclude(membership__is_adult=True).filter(person_member__state=Person.ACTIVE)
 
-        # set defaults for first time
-        data = self.request.GET.copy()
-        if len(data) == 0:
-            data['paid'] = True
-            data['year'] = year
-            data['state'] = Person.ACTIVE
-        self.filter = self.filter_class(data, qs, request=self.request)
+        # Set defaults for first time when there will be an empty set of filters
+        # and also for when a sort operation has been performed after first time
+        options = self.request.GET.copy()
+        if len(options) == 0 or len(options) == 1 and 'sort' in options.keys():
+            options['paid'] = True
+            options['year'] = year
+            options['state'] = Person.ACTIVE
+
+        self.filter = self.filter_class(options, qs, request=self.request)
 
         if self.parents:
             kids = self.filter.qs.values_list('person_member__linked_id')
@@ -118,6 +114,9 @@ class AllPeopleTableView(PeopleTableView):
     table_class = PersonTable
     model = Person
     title = 'All people'
+
+    def get_table_data(self):
+        return Person.objects.all().select_related('sub__membership').order_by('last_name')
 
 
 class GroupPeopleTableView(PeopleTableView):

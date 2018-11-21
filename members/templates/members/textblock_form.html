@@ -1,7 +1,6 @@
 ﻿{% extends "members/base.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
-  <h3 class="app-title">{{ app_title }}</h3>
   <div class="tile" style="width: 850px">
   {% crispy form %}
   </div>
@@ -16,8 +15,8 @@
     convert_urls: false,
     browser_spellcheck: true,
     plugins: 'code advlist autolink link image lists charmap print preview',
-
-    toolbar1: 'undo redo | styleselect, formatselect, fontselect, fontsizeselect, mybutton',
+    menu: 'preview',
+    toolbar1: 'undo redo | formatselect| fontselect, fontsizeselect | preview, code | mybutton',
     toolbar2: 'bold, italic, underline | alignleft, aligncenter, alignright, alignjustify | cut, copy, paste | bullist, numlist | outdent, indent',
   });
 </script>

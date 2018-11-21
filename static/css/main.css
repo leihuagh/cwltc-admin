@@ -170,14 +170,14 @@ sup {
 }
 
 a {
-  color: #1C685A;
+  color: #459E52;
   text-decoration: none;
   background-color: transparent;
   -webkit-text-decoration-skip: objects;
 }
 
 a:hover {
-  color: #0c2c26;
+  color: #2e6936;
   text-decoration: underline;
 }
 
@@ -3130,12 +3130,12 @@ fieldset:disabled a.btn {
 
 .btn-link {
   font-weight: 400;
-  color: #1C685A;
+  color: #459E52;
   background-color: transparent;
 }
 
 .btn-link:hover {
-  color: #0c2c26;
+  color: #2e6936;
   text-decoration: underline;
   background-color: transparent;
   border-color: transparent;
@@ -4959,14 +4959,14 @@ input[type="button"].btn-block {
   padding: 0.5rem 0.75rem;
   margin-left: -1px;
   line-height: 1.25;
-  color: #1C685A;
+  color: #459E52;
   background-color: #FFF;
   border: 1px solid #dee2e6;
 }
 
 .page-link:hover {
   z-index: 2;
-  color: #0c2c26;
+  color: #2e6936;
   text-decoration: none;
   background-color: #e9ecef;
   border-color: #dee2e6;
@@ -13605,8 +13605,7 @@ be a descendant of the grid when it is being dragged.
 }
 
 .app-sidebar__toggle {
-  padding: 0 15px;
-  font-family: fontAwesome;
+  padding: 8px 15px;
   color: #fff;
   line-height: 2.4;
   -webkit-transition: background-color 0.3s ease;
@@ -13620,11 +13619,6 @@ be a descendant of the grid when it is being dragged.
         -ms-flex-order: -1;
             order: -1;
   }
-}
-
-.app-sidebar__toggle:before {
-  content: "\f0c9";
-  font-size: 21px;
 }
 
 .app-sidebar__toggle:focus, .app-sidebar__toggle:hover {

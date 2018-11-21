@@ -1,5 +1,7 @@
 from django.urls import path
+
 from public.views import AdultProfileView, JuniorProfileView
+
 from members.views.ajax_views import ajax_people, ajax_person, ajax_adults, ajax_password, ajax_postcode, \
     ajax_dob, ajax_chart, ajax_set_pin
 from members.views.person_views import PersonDetailView, PersonCreateView, PersonUpdateView, PersonMergeView, \
@@ -19,7 +21,8 @@ from members.views.invoice_views import \
     InvoiceMailConfigView, InvoiceMailBatchView, InvoiceDeleteView, InvoicePublicView, InvoiceBatchView
 from members.views.payment_views import PaymentCreateView, PaymentUpdateView, PaymentDetailView, PaymentListView, \
     CreditNoteCreateView, CreditNoteDetailView
-from members.views.email_views import EmailView, TextBlockCreateView, TextBlockUpdateView, TextBlockListView, \
+from members.views.email_views import EmailView, EmailSelectionView, \
+    TextBlockCreateView, TextBlockUpdateView, TextBlockListView, \
     MailTypeCreateView, MailTypeUpdateView, MailTypeDetailView, MailTypeListView, MailTypeSubscribeView
 
 ajax_patterns = [
@@ -117,10 +120,10 @@ text_patterns = [
 ]
 email_patterns = [
     path('single/', EmailView.as_view(), name='email'),
-    path('selection/', EmailView.as_view(selection=True), name='email-selection'),
-    path('person/<int:person>/', EmailView.as_view(), name='email-person'),
-    path('group/<int:group>/', EmailView.as_view(), name='email-group'),
-    path('campaign/<int:campaign>/', EmailView.as_view(), name='email-campaign'),
+    path('selection/', EmailSelectionView.as_view(), name='email-selection'),
+    path('person/<int:person_id>/', EmailView.as_view(), name='email-person'),
+    path('group/<int:group_id>/', EmailView.as_view(), name='email-group'),
+    path('campaign/<int:campaign_id>/', EmailView.as_view(), name='email-campaign'),
 ]
 mailtype_patterns = [
     path('create/', MailTypeCreateView.as_view(), name='mailtype-create'),
