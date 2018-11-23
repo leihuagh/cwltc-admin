@@ -1,50 +1,110 @@
 {% extends "members/base.html" %}
+{% load crispy_forms_tags %}
 {% load static %}
 {% load crispy_forms_tags %}
 {% load widget_tweaks %}
 {% block head %}{{ form.media }}{% endblock %}
 {% block content %}
-  {% if message %}
-    <p>{{ message }}</p>
-  {% endif %}
-  <h4>Membership year = {{ year }}</h4>
-  <form class="form-inline">
-  {% for field in form.visible_fields %}
-    {{ field.label_tag }}&nbsp&nbsp {{ field }}&nbsp&nbsp
-  {% endfor %}
-  </form>
-  <div class="tile" style="width: 30rem">
-    <h4>Unbilled POS sales</h4>
-    <div class="row">
-      <div class="col"><a href="{% url 'item-table' %}&item_type=1">Bar sales:</a></div>
-      <div class="col text-right">£{{ unbilled_bar }}</div>
-    </div>
-    <div class="row">
-      <div class="col">Teas sales:</div>
-      <div class="col text-right">£{{ unbilled_teas }}</div>
-    </div>
-    <div class="row">
-      <div class="col">Visitors book:</div>
-      <div class="col text-right">£{{ unbilled_visitors }}</div>
-    </div>
-  <br>
-    <h4>Invoice items</h4>
-    {% for item in items %}
+  <div class="container-fluid">
+    {% if message %}
+      <p>{{ message }}</p>
+    {% endif %}
+    <h4>Membership year = {{ year }}</h4>
+    <form class="form" method="post">{% csrf_token %}
       <div class="row">
-        <div class="col"><a href="{% url 'item-table' %}{{ item.2 }}">{{ item.0 }}</a></div>
-        <div class="col text-right">£{{ item.1 }}</div>
-      </div>
-      {% endfor %}
-  </div>
-  <form method="post">{% csrf_token %}
-    {% for button in buttons %}
-      <div class="row">
-        <div class="col-sm-6 col-md-3">
-          <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} btn-block mb-1"
-                 id="id-{{ button.name }}" value="{{ button.value }}">
-          <br>
+        <div class="col-12 col-lg-4 col-md-6 p-1">
+          <div class="tile">
+            <h4>Unbilled POS sales</h4>
+            <div class="row">
+              <div class="col">
+                {{ form.from_date|as_crispy_field }}
+              </div>
+              <div class="col">
+                {{ form.to_date|as_crispy_field }}
+              </div>
+              <div class="col">
+                <label class="col-form-label" for="filter">&nbsp</label>
+                <div class="input-group">
+                <button class="btn btn-primary" type="submit" name="filter" id="filter">Filter sales</button>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">Bar sales:</div>
+              <div class="col text-right">£ {{ pos_bar }}</div>
+            </div>
+            <div class="row">
+              <div class="col">Teas sales:</div>
+              <div class="col text-right">£ {{ pos_teas }}</div>
+            </div>
+            <div class="row">
+              <div class="col">Visitors book:</div>
+              <div class="col text-right">£ {{ pos_visitors }}</div>
+            </div>
+            <div class="row">
+              <div class="col text-right"><b>Total:&nbsp&nbsp £ {{ pos_total }}</b></div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="dropdown">
+                  <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1"
+                          data-toggle="dropdown"
+                          aria-haspopup="true" aria-expanded="false">
+                    Generate invoice items
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                    <button class="dropdown-item" type="submit" name="all">All POS types</button>
+                    <button class="dropdown-item" type="submit" name="bar">Only bar sales</button>
+                    <button class="dropdown-item" type="submit" name="teas">Only teas sales</button>
+                    <button class="dropdown-item" type="submit" name="visitors">Only visitors</button>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4 col-md-6 p-1">
+          <div class="tile">
+            <h4>Unbilled Invoice items</h4>
+            {% for item in items %}
+              <div class="row">
+                <div class="col-8"><a href="{% url 'item-table' %}{{ item.2 }}">{{ item.0 }}</a></div>
+                <div class="col-4 text-right">£{{ item.1 }}</div>
+              </div>
+            {% endfor %}
+
+            <div class="row">
+              <div class="col text-right"><b>Total:&nbsp&nbsp £ {{ item_total }}</b></div>
+            </div>
+            <h5 class="mb-0 mt-2">Create invoices</h5>
+            <div class="row">
+              <div class="col">{{ form.minimum_amount|as_crispy_field }}</div>
+              <div class="col">{{ form.invoice_date|as_crispy_field }}</div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <button class="btn btn-primary" type="submit" name="create" id="create">Create invoices</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4 col-md-6 p-1">
+          <div class="tile">
+            <h4>Invoices generated</h4>
+          </div>
         </div>
       </div>
-    {% endfor %}
-  </form>
+    </form>
+  </div>
+  {#  <form method="post">{% csrf_token %}#}
+  {#    {% for button in buttons %}#}
+  {#      <div class="row">#}
+  {#        <div class="col-sm-6 col-md-3">#}
+  {#          <input type="submit" name="{{ button.name }}" class="{{ button.css_class }} btn-block mb-1"#}
+  {#                 id="id-{{ button.name }}" value="{{ button.value }}">#}
+  {#          <br>#}
+  {#        </div>#}
+  {#      </div>#}
+  {#    {% endfor %}#}
+  {#  </form>#}
 {% endblock content %}

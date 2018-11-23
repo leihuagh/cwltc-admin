@@ -656,8 +656,15 @@ class InvoiceFilterForm(Form):
 
 
 class PeriodForm(Form):
-    start_date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
-    end_date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
+    from_date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
+    to_date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
+    minimum_amount = forms.IntegerField(required=True)
+    invoice_date = forms.DateField(widget=DatePicker(options={'format': 'DD/MM/YYYY'}))
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned['to_date'] < cleaned['from_date']:
+            raise forms.ValidationError('Start date us before end date')
 
 
 class InvoiceItemForm(ModelForm):

@@ -206,7 +206,7 @@ class PosTestCase(TestCase):
         # start with no unbilled transactions
         self.assertEqual(Transaction.objects.filter(billed=UNBILLED).count(), 6)
         # generate data for 1 person only but do not process it
-        bill_data_list = PosPayment.billing.data(person1)
+        bill_data_list = PosPayment.billing.billing_data(person1)
         self.assertEqual(len(bill_data_list), 2)
         # validate generated data list for BAR
         bill = bill_data_list[0]

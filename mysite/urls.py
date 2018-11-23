@@ -10,7 +10,7 @@ from wagtail.core import urls as wagtail_urls
 from mysite.views import index_view, test_celery_view, custom_500
 from members.urls import ajax_patterns, person_patterns, people_patterns, group_patterns, membership_patterns, \
     fees_patterns, sub_patterns, invoiceitem_patterns, invoice_patterns, payment_patterns, text_patterns, \
-    email_patterns, mailtype_patterns
+    email_patterns, mailtype_patterns, billing_patterns
 from members.views.views import *
 from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
 from rest_framework import routers
@@ -57,12 +57,9 @@ urlpatterns = [
     path('text/', include(text_patterns)),
     path('email/', include(email_patterns)),
     path('mailtype/', include(mailtype_patterns)),
+    path('billing/', include(billing_patterns)),
 
     path('search/person/', search_person, name='search-person'),
-
-    # YEAR END
-    path('yearend/', YearEndView.as_view(), name='yearend'),
-    path('yearend/year/', ChangeYearView.as_view(), name='yearend-year'),
 
 
     #    path('report_builder/', include('report_builder.urls')),

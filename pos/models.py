@@ -1,13 +1,14 @@
+from datetime import datetime, date
 from decimal import Decimal
-from datetime import datetime
+
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
-from django.contrib.auth.models import User
-from events.models import Event
-from members.models import Person, ItemType, ModelEnum
-from members.services import BillingData
 
+from events.models import Event
+from members.models import Person, ItemType, ModelEnum, Settings, Subscription
+from members.services import BillingData
 
 TWO_PLACES = Decimal(10) ** -2
 
@@ -41,18 +42,16 @@ class Item(models.Model):
         return str(self.margin().quantize(TWO_PLACES)) + '%'
 
     def to_dict(self):
-        '''
+        """
         Create a dictionary item used while transaction is being created
         Decimal fields are converted to integers so they can be saved in json format
-        '''
-        item_dict = {}
-        item_dict['id'] = self.id
-        item_dict['description'] = self.description
-        item_dict['sale_price'] = int(100 * self.sale_price)
-        item_dict['cost_price'] = int(100 * self.cost_price)
-        item_dict['quantity'] = 1
-        item_dict['total'] = chr(163) + " " + str(self.sale_price)
-        return item_dict
+        """
+        return {'id': self.id,
+                'description': self.description,
+                'sale_price': int(100 * self.sale_price),
+                'cost_price': int(100 * self.cost_price),
+                'quantity': 1,
+                'total': chr(163) + " " + str(self.sale_price)}
 
 
 class Layout(models.Model):
@@ -83,7 +82,6 @@ class Location(models.Model):
 
 
 class Transaction(models.Model):
-
     class BilledState(ModelEnum):
         UNBILLED = 0
         PART_BILLED = 1
@@ -113,7 +111,6 @@ class Transaction(models.Model):
             self.creation_date = timezone.now()
         super().save(*args, **kwargs)
 
-
     def update_billed(self):
         billed_count = 0
         payments = self.pospayment_set.all()
@@ -142,52 +139,83 @@ class LineItem(models.Model):
 
 class PosPaymentBillingManager(models.Manager):
 
-    def unbilled_total(self, person=None, item_type=ItemType.BAR):
-        """ Return all unbilled of type if person is None """
+    def __init__(self):
+        super().__init__()
+        self.person = None
+        self.item_type_id = None
+
+    def _set_dates(self, from_date, to_date):
+        self.from_date = from_date if from_date else date(Settings.current_year() - 1,
+                                                          Subscription.START_MONTH, 1)
+        self.to_date = to_date if to_date else datetime.now().date()
+
+    def get_queryset(self):
         qs = PosPayment.objects.filter(
-            transaction__item_type=item_type,
-            billed=False)
-        if person:
-            qs = qs.filter(person=person)
-        dict = qs.aggregate(Sum('total'))
+            transaction__creation_date__date__range=[self.from_date, self.to_date],
+            transaction__item_type=self.item_type_id,
+            billed=False).order_by('person_id')
+        if self.person:
+            qs = qs.filter(person=self.person)
+        return qs
+
+    def unbilled_total(self, person=None, item_type_id=ItemType.BAR, from_date=None, to_date=None):
+        """
+        Returns total of all unbilled PosPayments of specified type for a person.
+        If person os None return total for all people
+        """
+        self.person = person
+        self._set_dates(from_date, to_date)
+        self.item_type_id = item_type_id
+        dict = self.get_queryset().aggregate(Sum('total'))
         total = dict['total__sum']
         return 0 if total is None else total
 
-    def data(self, person=None):
-        result = []
-        item_types = ItemType.objects.filter(pos=True)
-        for item_type in item_types:
-            records = PosPayment.objects.filter(
-                transaction__item_type=item_type,
-                billed=False).order_by('person_id')
-            if person:
-                records = records.filter(person=person)
+    def billing_data(self, person=None, item_type_id=None, from_date=None, to_date=None):
+        """
+        Return a BillingData object with consolidated data for specified item_type_id.
+        The original POS trancastions remaim untouched.
+        Person is optional and if None it means all people.
+        """
+        self.person = person
+        self.item_type_id = item_type_id
+        self._set_dates(from_date, to_date)
+        records = self.get_queryset()
+        transaction_ids = []
+        last_id = 0
+        dict = {}
+        if len(records):
+            for record in records:
+                transaction_ids.append(record.transaction_id)
+                if record.person_id:  # skip complimentary
+                    if record.person_id != last_id:
+                        last_id = record.person_id
+                        dict[record.person_id] = Decimal(record.total)
+                    else:
+                        dict[record.person_id] += record.total
+            transactions = Transaction.objects.filter(id__in=transaction_ids)
+            return BillingData(item_type_id, dict, records, transactions)
+        return None
 
-            transaction_ids = []
-            last_id = 0
-            dict = {}
-            if len(records):
-                for record in records:
-                    transaction_ids.append(record.transaction_id)
-                    if record.person_id:  # skip complimentary
-                        if record.person_id != last_id:
-                            last_id = record.person_id
-                            dict[record.person_id] = Decimal(record.total)
-                        else:
-                            dict[record.person_id] += record.total
-                transactions = Transaction.objects.filter(id__in=transaction_ids)
-                billing_data = BillingData(item_type, dict, records, transactions)
-                result.append(billing_data)
-        return result
-
-    def process(self, person=None):
-        """ return count of invoice items generated """
-        data = self.data(person)
+    def process(self, person=None, item_type_id=None, from_date=None, to_date=None):
+        """
+        Generate invoice items from POS data
+        if person is None, do it for all people
+        If item_type_id is None, do it for all POS item types
+        Return count of invoice items generated
+        """
         count = 0
-        if data:
-            for billing_data in data:
-                count += billing_data.process()
-        return count
+        value = Decimal(0)
+        if item_type_id is None:
+            item_types = ItemType.objects.filter(pos=True).values_list('id', flat=True)
+        else:
+            item_types = [item_type_id]
+        for i_type in item_types:
+            billing_data = self.billing_data(person, i_type, from_date, to_date)
+            if billing_data:
+                count1, value1 = billing_data.process()
+                count += count1
+                value += value1
+        return count, value
 
 
 class PosPayment(models.Model):
@@ -241,10 +269,11 @@ class PosApp(models.Model):
 class PosPing(models.Model):
     terminal = models.SmallIntegerField()
     time = models.DateTimeField()
+
     # url = models.CharField(max_length=30)
 
     def __str__(self):
-        return f'Terminal: {terminal} time: {time}'
+        return f'Terminal: {self.terminal} time: {self.time}'
 
 
 class Visitor(models.Model):
@@ -263,18 +292,26 @@ class Visitor(models.Model):
 
 class VisitorBookBillingManager(models.Manager):
 
-    def unbilled_total(self, person=None):
-        qs = VisitorBook.objects.filter(billed=False)
+    def _set_dates(self, from_date, to_date):
+        self.from_date = from_date if from_date else date(Settings.current_year() - 1,
+                                                          Subscription.START_MONTH, 1)
+        self.to_date = to_date if to_date else datetime.now().date()
+
+    def get_queryset(self, person):
+        qs = VisitorBook.objects.filter(billed=False, date__range=[self.from_date, self.to_date])
         if person:
             qs = qs.filter(member=person)
-        dict = qs.aggregate(Sum('fee'))
+        return qs
+
+    def unbilled_total(self, person=None, from_date=None, to_date=None):
+        self._set_dates(from_date, to_date)
+        dict = self.get_queryset(person).aggregate(Sum('fee'))
         total = dict['fee__sum']
         return 0 if total is None else total
 
-    def data(self, person=None):
-        records = VisitorBook.objects.filter(billed=False).order_by('member_id')
-        if person:
-            records = records.filter(member=person)
+    def data(self, person=None, from_date=None, to_date=None):
+        self._set_dates(from_date, to_date)
+        records = self.get_queryset(person)
         last_id = 0
         dict = {}
         if len(records):
@@ -284,16 +321,16 @@ class VisitorBookBillingManager(models.Manager):
                     dict[record.member_id] = Decimal(record.fee)
                 else:
                     dict[record.member_id] += record.fee
-            item_type = ItemType.objects.get(id=ItemType.VISITORS)
-            return BillingData(item_type, dict, records)
+            return BillingData(ItemType.VISITORS, dict, records)
         return None
 
-    def process(self, person=None):
+    def process(self, person=None, from_date=None, to_date=None):
         count = 0
-        data = self.data(person)
+        value = Decimal(0)
+        data = self.data(person, from_date, to_date)
         if data:
-            count = data.process()
-        return count
+            count, value = data.process()
+        return count, value
 
 
 class VisitorBook(models.Model):

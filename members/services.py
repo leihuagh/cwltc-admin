@@ -22,16 +22,19 @@ class ServicesError(Error):
 
 class BillingData:
     """
-     Handle the creation of invoice items for POS, Visitors Book and Events
+     Creation of invoice items for Bar, Teas, Visitors Book and Events.
+     dict has a key = person_id and value = consolidated total fror item type.
+     records is a list of records to be update as billed.
+     For Bar and Teas, transactions is list of transactions to be updated as billed.
     """
 
-    def __init__(self, item_type:ItemType, dict:Dict, records, transactions=None, description='', date=None):
-        self.item_type = item_type
+    def __init__(self, item_type_id, dict, records, transactions=None, description='', date=None):
+        self.item_type_id = item_type_id
         self.dict = dict
         self.description = description
         self.records = records
         self.transactions = transactions
-        self.date = date
+        self.date = date if date else datetime.today()
 
     def process(self):
         """
@@ -40,14 +43,15 @@ class BillingData:
         Return count of items generated
         """
         count = 0
-        date = self.date if self.date else datetime.today()
+        value = Decimal(0)
         with transaction.atomic():
             for id, total in self.dict.items():
                 if total != 0:
                     count += 1
+                    value += total
                     inv_item = InvoiceItem(
-                        item_date=date,
-                        item_type_id=self.item_type.id,
+                        item_date=self.date,
+                        item_type_id=self.item_type_id,
                         description=self.description,
                         amount=total,
                         person_id=id,
@@ -58,7 +62,7 @@ class BillingData:
             if self.transactions:
                 for trans in self.transactions:
                     trans.update_billed()
-        return count
+        return count, value
 
 
 def calculate_fee(amount):

@@ -820,6 +820,11 @@ class Subscription(models.Model):
         return desc
 
 
+    @staticmethod
+    def latest_sub_year():
+        qs = Subscription.objects.all().values_list('sub_year', flat=True).distinct().order_by('-sub_year')
+        return qs[0] if len(qs)>0 else 0
+
 class Settings(models.Model):
     membership_year = models.SmallIntegerField(default=0)
 
@@ -830,10 +835,6 @@ class Settings(models.Model):
             return record.membership_year
         except ObjectDoesNotExist:
             return 1900
-
-    @classmethod
-    def year_start_date(cls):
-        return date(Settings.current_year(), Subscription.START_MONTH, 1)
 
 
 class Editor(models.Model):

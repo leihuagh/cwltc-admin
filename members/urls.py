@@ -24,6 +24,7 @@ from members.views.payment_views import PaymentCreateView, PaymentUpdateView, Pa
 from members.views.email_views import EmailView, EmailSelectionView, \
     TextBlockCreateView, TextBlockUpdateView, TextBlockListView, \
     MailTypeCreateView, MailTypeUpdateView, MailTypeDetailView, MailTypeListView, MailTypeSubscribeView
+from members.views.billing_views import BillingView, YearEndView
 
 ajax_patterns = [
     path('people/', ajax_people, name='ajax-people'),
@@ -132,4 +133,8 @@ mailtype_patterns = [
     path('list/', MailTypeListView.as_view(), name='mailtype-list'),
     path('public/subscribe/<str:token>/', MailTypeSubscribeView.as_view(), name='mailtype-subscribe-public'),
     path('subscribe/<int:person>/', MailTypeSubscribeView.as_view(), name='mailtype-subscribe'),
+]
+billing_patterns = [
+    path('period/', BillingView.as_view(), name='billing-period'),
+    path('year_end/', YearEndView.as_view(), name='billing-year-end')
 ]

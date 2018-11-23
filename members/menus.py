@@ -12,9 +12,11 @@ def profile_title(request):
 
     return "%s's Profile" % name
 
-Menu.add_item('side', MenuItem('Dashboard', reverse('home'), icon='fas fa-tachometer-alt'))
+Menu.add_item('side', MenuItem('Dashboard',
+                               reverse('home'), icon='fas fa-tachometer-alt'))
 
-Menu.add_item('side', MenuItem("People", None, icon='fas fa-user', children=[
+Menu.add_item('side', MenuItem("People",
+                               None, icon='fas fa-user', children=[
     MenuItem('Members', reverse('members-list'), icon='fas fa-user-check'),
     MenuItem('Juniors', reverse('juniors-list'), icon='fas fa-child'),
     MenuItem('Parents', reverse('parents-list'), icon='fas fa-female'),
@@ -24,26 +26,32 @@ Menu.add_item('side', MenuItem("People", None, icon='fas fa-user', children=[
     MenuItem('Create junior', reverse('person-junior-create'), icon='fas fa-child'),
 ]   ))
 
-Menu.add_item("side", MenuItem("Groups", None, icon='fas fa-users', children=[
+Menu.add_item("side", MenuItem("Groups",
+                               None, icon='fas fa-users', children=[
     MenuItem('List groups', reverse('group-list'), icon='fas fa-list-ul'),
     MenuItem('New group', reverse('group-create'), icon='fas fa-plus'),
     ]))
 
-Menu.add_item("side", MenuItem("Finance", None, icon='fas fa-pound-sign', children=[
-    MenuItem('Invoices', reverse('invoice-list'), icon='fas fa-list-ul'),
-    MenuItem('Payments', reverse('payment-list'), icon='fas fa-list-ul'),
+Menu.add_item("side", MenuItem("Finance",
+                               None, icon='fas fa-pound-sign', children=[
+    MenuItem('Invoices', reverse('invoice-list'), icon='far fa-circle'),
+    MenuItem('Payments', reverse('payment-list'), icon='far fa-circle'),
+    MenuItem('Billing', reverse('billing-period'), icon='far fa-circle'),
+    MenuItem('Year-end', reverse('billing-year-end'), icon = 'far fa-circle')
     ]))
 
-Menu.add_item("side", MenuItem("Mail", None, icon='far fa-envelope', children=[
-    MenuItem('List text blocks', reverse('text-list'), icon='fa fa-circle-o'),
-    MenuItem('New text block', reverse('text-create'), icon='fa fa-circle-o'),
-    MenuItem('List mail types', reverse('mailtype-list'), icon='fa fa-circle-o'),
-    MenuItem('New mail type', reverse('mailtype-create'), icon='fa fa-circle-o'),
+Menu.add_item("side", MenuItem("Mail",
+                               None, icon='far fa-envelope', children=[
+    MenuItem('List text blocks', reverse('text-list'), icon='far fa-circle'),
+    MenuItem('New text block', reverse('text-create'), icon='far fa-circle'),
+    MenuItem('List mail types', reverse('mailtype-list'), icon='far fa-circle'),
+    MenuItem('New mail type', reverse('mailtype-create'), icon='far fa-circle'),
     ]))
 
-Menu.add_item("side", MenuItem("Settings", None, icon='fas fa-cog', children=[
-    MenuItem('Fees', reverse('fees-list'), icon='fa fa-circle-o'),
-    MenuItem('Membership categories', reverse('membership-list'), icon='fa fa-circle-o'),
+Menu.add_item("side", MenuItem("Settings",
+                               None, icon='fas fa-cog', children=[
+    MenuItem('Fees', reverse('fees-list'), icon='far fa-circle'),
+    MenuItem('Membership categories', reverse('membership-list'), icon='far fa-circle'),
     ]))
 
 
