@@ -32,6 +32,11 @@ Menu.add_item("side", MenuItem("Groups",
     MenuItem('New group', reverse('group-create'), icon='fas fa-plus'),
     ]))
 
+Menu.add_item("side", MenuItem("Charts",
+                               None, icon='fas fa-chart-bar', children=[
+    MenuItem('Membership', reverse('charts-members'), icon='fa2 fa-circle'),
+    ]))
+
 Menu.add_item("side", MenuItem("Finance",
                                None, icon='fas fa-pound-sign', children=[
     MenuItem('Invoices', reverse('invoice-list'), icon='far fa-circle'),

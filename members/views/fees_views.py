@@ -52,7 +52,6 @@ class FeesListView(StaffuserRequiredMixin, ListView):
     template_name = 'members/fees_list.html'
     year = 0
     latest_year = 0
-    title = 'List fees'
 
     def __init__(self):
         super().__init__()
@@ -67,6 +66,7 @@ class FeesListView(StaffuserRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['title'] = f'Fees for {self.year}'
         context['year'] = self.year
         context['latest'] = (self.latest_year == self.year)
         context['forward'] = self.year + 1

@@ -1,19 +1,20 @@
-from django.urls import path, re_path, include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.storage import staticfiles_storage
-from django_mail_viewer import urls as django_mail_viewer_urls
+from django.urls import path, re_path, include
 from django.views.generic.base import RedirectView
+from django_mail_viewer import urls as django_mail_viewer_urls
+from rest_framework import routers
 from wagtail.admin import urls as wagtailadmin_urls
-from wagtail.documents import urls as wagtaildocs_urls
 from wagtail.core import urls as wagtail_urls
-from mysite.views import index_view, test_celery_view, custom_500
+from wagtail.documents import urls as wagtaildocs_urls
+
 from members.urls import ajax_patterns, person_patterns, people_patterns, group_patterns, membership_patterns, \
     fees_patterns, sub_patterns, invoiceitem_patterns, invoice_patterns, payment_patterns, text_patterns, \
-    email_patterns, mailtype_patterns, billing_patterns
+    email_patterns, mailtype_patterns, billing_patterns, charts_patterns
 from members.views.views import *
 from members.viewsets import UserViewSet, GroupViewSet, InvoiceViewSet
-from rest_framework import routers
+from mysite.views import index_view, test_celery_view
 
 handler500 = 'mysite.views.custom_500'
 
@@ -58,6 +59,7 @@ urlpatterns = [
     path('email/', include(email_patterns)),
     path('mailtype/', include(mailtype_patterns)),
     path('billing/', include(billing_patterns)),
+    path('charts/', include(charts_patterns)),
 
     path('search/person/', search_person, name='search-person'),
 

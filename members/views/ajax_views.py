@@ -201,9 +201,14 @@ def ajax_chart(request):
             set, labels = create_membership_dataset(year, filter, 'green')
             data = {
                 'type': 'bar',
-                'title': 'Membership by category',
                 'labels': labels,
                 'datasets': [set],
+                'options': {
+                    'title': {
+                        'display': True,
+                        'text': 'Membership by category'
+                    }
+                }
             }
 
         elif chart == 'trend':
@@ -212,9 +217,14 @@ def ajax_chart(request):
             set3, _ = create_membership_dataset(year, filter, 'green')
             data = {
                 'type': 'bar',
-                'title': 'Membership by category',
                 'labels': labels,
                 'datasets': [set1, set2, set3],
+                'options': {
+                    'title': {
+                        'display': True,
+                        'text': 'Membership trend'
+                    }
+                }
             }
 
         elif chart == 'ages':
@@ -234,7 +244,11 @@ def ajax_chart(request):
                 'options': {
                     'scales': {
                         'xAxes': [{'stacked': True}],
-                        'yAxes': [{'stacked': True}]
+                        'yAxes': [{'stacked': True}],
+                    },
+                    'title': {
+                        'display': True,
+                        'text': 'Juniors by Age'
                     }
                 }
             }

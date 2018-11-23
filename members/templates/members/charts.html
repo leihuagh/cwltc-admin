@@ -1,0 +1,97 @@
+{% extends "members/base.html" %}
+{% block head %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+{% endblock %}
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-6 p-1">
+        <div class="tile mb-1 p-0">
+          <canvas id="myChart1" width="200" height="150"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-6 p-1">
+        <div class="tile mb-1 p-0">
+          <canvas id="myChart2" width="200" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-6 p-1">
+        <div class="tile mb-1 p-0">
+          <canvas id="myChart3" width="200" height="150"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-6 p-1">
+        <div class="tile mb-1 p-0">
+          <canvas id="myChart4" width="200" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+      $.ajax({
+          method: 'GET',
+          url: '/ajax/chart/?chart=membership',
+          success: function (data) {
+              console.log(data);
+              setChart(data, 'myChart1');
+          },
+          error: function (error) {
+              console.log(error)
+          }
+      });
+
+      $.ajax({
+          method: 'GET',
+          url: '/ajax/chart/?chart=trend',
+          success: function (data) {
+              console.log(data);
+              setChart(data, 'myChart2');
+          },
+          error: function (error) {
+              console.log(error)
+          }
+      });
+
+      $.ajax({
+          method: 'GET',
+          url: '/ajax/chart/?chart=membership&filter=tennis,adults',
+          success: function (data) {
+              console.log(data);
+              setChart(data, 'myChart3');
+          },
+          error: function (error) {
+              console.log(error)
+          }
+      });
+
+      $.ajax({
+          method: 'GET',
+          url: '/ajax/chart/?chart=ages',
+          success: function (data) {
+              console.log(data);
+              setChart(data, 'myChart4');
+          },
+          error: function (error) {
+              console.log(error)
+          }
+      });
+
+      function setChart(data, chartId) {
+          var ctx = document.getElementById(chartId).getContext('2d');
+          var myChart = new Chart(ctx, {
+              type: data.type,
+              data: {
+                  labels: data.labels,
+                  datasets: data.datasets
+              },
+              options: data.options
+          });
+      }
+
+  </script>
+
+{% endblock %}

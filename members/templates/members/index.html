@@ -1,50 +1,47 @@
 {% extends "members/base.html" %}
 {% load static %}
-
+{% block head %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+{% endblock %}
 {% block content %}
-
-  <div>
-  <img src="{% static "images/CWLTC logo small.png" %}"/>
-      <h2>Coombe Wood Lawn Tennis Club</h2>
-      <p class="lead">Membership system
-      {% if site_name  == "Sandbox" %}
-       [SANDBOX]
-      {% elif site_name == "Dev" %}
-       [Local Development]
-      {% endif %}
-      </p>
-      <p>
-      Membership year: {{ membership_year }}
-      </p>
-      <a href="{% url 'club_home' %}" class="btn btn-primary">Club site</a>
-  </div>
-
   <div class="row">
-      <div class="col-md-12">
-        <div class="well">
-  {% include 'members/_invoice_summary.html' %}
-        </div>
+    <div class="col-lg-6 p-1">
+      <div class="tile">
+        {% include 'members/_invoice_summary.html' %}
       </div>
-
-  </div>
-  <div class="row">
-    <div class="col-md-8">
-      <canvas id="myChart1" width="200" height="150"></canvas>
+    </div>
+    <div class="col-lg-6 p-1">
+      <div class="tile">
+        <canvas id="myChart1" width="200" height="150"></canvas>
+      </div>
     </div>
   </div>
-
-  <div class="row">
-    <div class="col-md-8">
-      <canvas id="myChart2" width="200" height="150"></canvas>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-8">
-      <canvas id="myChart3" width="200" height="150"></canvas>
-    </div>
-  </div>
-
+{% endblock %}
+{% block scripts %}
+<script>
+    $.ajax({
+        method: 'GET',
+        url: '/ajax/chart/?chart=membership',
+        success: function (data) {
+            console.log(data);
+            setChart(data, 'myChart1');
+        },
+        error: function (error) {
+            console.log(error)
+        }
+    });
+    function setChart(data, chartId) {
+        var ctx = document.getElementById(chartId).getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: data.type,
+            data: {
+                labels: data.labels,
+                datasets: data.datasets
+            },
+            options: data.options
+        });
+    }
+</script>
 {% endblock %}
 
  

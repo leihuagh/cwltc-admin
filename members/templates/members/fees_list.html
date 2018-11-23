@@ -1,44 +1,48 @@
 ﻿{% extends "members/base.html" %}
 {% load members_extras %}
 {% block content %}
-
-  {% if message %}
-  <p>{{ message }}</p>
-  {% endif %}
-  <div class="tile px-2 pt-0" style="width:50rem;">
-  <h4 class="p-1">Fees for {{ year }}</h4>
-    <table id="fees" class="table table-sm" >
-  <thead>
-          <tr>
+  <div class="container-fluid">
+    {% if message %}
+      <p>{{ message }}</p>
+    {% endif %}
+    <div class="row">
+      <div class="c"
+    </div>
+    <div class="tile px-2 pt-0" style="width:50rem;">
+      <table id="fees" class="table table-sm">
+        <thead>
+        <tr>
           <th>Membership category</th>
-          <th class = "text-right">Annual</th>
-          <th class = "text-right">Monthly</th>
-          <th class = "text-right">Joining fee</th>
-          <th class = "text-right"></th>
-      </tr>
-  </thead>
-  {% for fee in object_list %}
-  <tr>
-      <td>{{ fee.membership.description }}</td>
-      <td class = "text-right">£{{ fee.annual_sub }}</td>
-      <td class = "text-right">£{{ fee.monthly_sub }}</td>
-      <td class = "text-right">£{{ fee.joining_fee }}</td>
-      <td class = "text-right"><a href="{% url "fees-update" fee.id %}" class="btn btn-primary btn-sm">Edit</a></td>
-  </tr>
-  {% endfor sub %}
-  </table>
+          <th class="text-right">Annual</th>
+          <th class="text-right">Monthly</th>
+          <th class="text-right">Joining fee</th>
+          <th class="text-right"></th>
+        </tr>
+        </thead>
+        {% for fee in object_list %}
+          <tr>
+            <td>{{ fee.membership.description }}</td>
+            <td class="text-right">£{{ fee.annual_sub }}</td>
+            <td class="text-right">£{{ fee.monthly_sub }}</td>
+            <td class="text-right">£{{ fee.joining_fee }}</td>
+            <td class="text-right"><a href="{% url "fees-update" fee.id %}" class="btn btn-primary btn-sm">Edit</a></td>
+          </tr>
+        {% endfor sub %}
+      </table>
 
-  <form action="." method="post"  id="post-form">
-      {% csrf_token %}
-       <input type="submit" name="back" value="<< {{ back }}" class="btn btn-primary"/>
-      {% if latest %}
-        <input type="submit" name="copy" value="Copy to year {{ forward }}" class="btn btn-primary">
-        <input type="submit" name="delete" value="Delete this year" class="btn btn-danger" onclick="return confirm('Are you sure?')">
-      {% else %}
+      <form action="." method="post" id="post-form">
+        {% csrf_token %}
+        <input type="submit" name="back" value="<< {{ back }}" class="btn btn-primary"/>
+        {% if latest %}
+          <input type="submit" name="copy" value="Copy to year {{ forward }}" class="btn btn-primary">
+          <input type="submit" name="delete" value="Delete this year" class="btn btn-danger"
+                 onclick="return confirm('Are you sure?')">
+        {% else %}
           <input type="submit" name="forward" value="{{ forward }} >>" class="btn btn-primary"/>
-      {% endif %}
-      <a href="{% url 'visitor-fees-list' %}" class="btn btn-primary pull-right">Visitors fees</a>
-      <input type="hidden" name="year" value="{{ year }}"/>
-  </form>
+        {% endif %}
+        <a href="{% url 'visitor-fees-list' %}" class="btn btn-primary pull-right">Visitors fees</a>
+        <input type="hidden" name="year" value="{{ year }}"/>
+      </form>
+    </div>
   </div>
 {% endblock %}
